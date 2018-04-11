@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Plugin(id = "epicbanitem", name = "EpicBanItem", version = "1.0", authors = "yinyangshi,GINYAI,ustc-zzzz")
+@Plugin(id = "epicbanitem", name = "EpicBanItem", version = "1.0", authors = {"yinyangshi", "GINYAI", "ustc-zzzz"})
 public class EpicBanItem {
 
     @Inject
