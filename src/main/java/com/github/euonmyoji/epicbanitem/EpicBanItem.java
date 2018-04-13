@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem;
 
+import com.github.euonmyoji.epicbanitem.commands.EpicBanItemCommand;
 import com.github.euonmyoji.epicbanitem.listeners.GetItemListener;
 import com.github.euonmyoji.epicbanitem.listeners.SummonListener;
 import com.github.euonmyoji.epicbanitem.listeners.WorldItemMoveListener;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
@@ -31,6 +33,11 @@ public class EpicBanItem {
     public Logger logger;
 
     @Listener
+    public void onReload(GameReloadEvent event) {
+
+    }
+
+    @Listener
     public void onStarting(GameStartingServerEvent event) {
         if (!Files.exists(cfgDir)) {
             try {
@@ -43,8 +50,9 @@ public class EpicBanItem {
 
     @Listener
     public void onStarted(GameStartedServerEvent event) {
-        Sponge.getEventManager().registerListeners(new GetItemListener(), this);
-        Sponge.getEventManager().registerListeners(new WorldItemMoveListener(), this);
-        Sponge.getEventManager().registerListeners(new SummonListener(), this);
+        Sponge.getCommandManager().register(this, EpicBanItemCommand.ebi, "epicbanitem", "ebi", "banitem");
+        Sponge.getEventManager().registerListeners(this, new GetItemListener());
+        Sponge.getEventManager().registerListeners(this, new WorldItemMoveListener());
+        Sponge.getEventManager().registerListeners(this, new SummonListener());
     }
 }
