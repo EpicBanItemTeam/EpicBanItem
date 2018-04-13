@@ -1,7 +1,10 @@
-group = 'com.github.euonmyoji.epicbanitem'
 version = '1.0'
+group = 'com.github.euonmyoji.epicbanitem'
 
 apply plugin: 'java'
+apply plugin: 'idea'
+
+defaultTasks 'clean', 'build'
 
 sourceCompatibility = 1.8
 

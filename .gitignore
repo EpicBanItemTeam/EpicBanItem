@@ -1,5 +1,17 @@
-.gradle
-.idea
-gradle
-gradlew
-gradlew.bat
+# Whitelist Mode
+/*
+
+# Git Files
+!.gitignore
+
+# GitHub Files
+!README.md
+!LICENSE
+
+# Java Files
+!src/
+!resources/
+!api/
+
+# Gradle Files
+!build.gradle
