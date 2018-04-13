@@ -1,5 +1,8 @@
 package com.github.euonmyoji.epicbanitem;
 
+import com.github.euonmyoji.epicbanitem.listeners.GetItemListener;
+import com.github.euonmyoji.epicbanitem.listeners.WorldItemMoveListener;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
@@ -31,6 +34,7 @@ public class EpicBanItem {
 
     @Listener
     public void onStarted(GameStartedServerEvent event) {
-
+        Sponge.getEventManager().registerListeners(new GetItemListener(), this);
+        Sponge.getEventManager().registerListeners(new WorldItemMoveListener(), this);
     }
 }
