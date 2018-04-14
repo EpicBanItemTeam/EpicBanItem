@@ -1,14 +1,15 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.spec.CommandSpec;
 
-public class Query {
+public class Plugin {
 
-    static CommandSpec query = CommandSpec.builder()
-            .permission("epicbanitem.query")
+    static CommandSpec reload = CommandSpec.builder()
+            .permission("epicbanitem.reload")
             .executor((src, args) -> {
-                //something
+                EpicBanItem.reload();
                 return CommandResult.success();
             })
             .build();
