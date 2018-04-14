@@ -4,14 +4,18 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.Types;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.util.Tuple;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author ustc_zzzz
@@ -36,6 +40,9 @@ public class QueryExpression implements DataPredicate {
         builder.put("$lte", n -> new OneOrMore(new Compare(n, i -> i >= 0)));
         builder.put("$in", n -> new OneOrMore(new Or(n.getChildrenList(), QueryExpression::getInPredicate, false)));
         builder.put("$nin", n -> new OneOrMore(new Nor(n.getChildrenList(), QueryExpression::getInPredicate, false)));
+
+        builder.put("$exists", n -> new OneOrMore(new Exists(n)));
+        builder.put("$tagType", node -> new OneOrMore(new TagType(node)));
 
         operators = builder.build();
     }
@@ -339,6 +346,111 @@ public class QueryExpression implements DataPredicate {
         public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
             String string = NbtTypeHelper.getAsString(NbtTypeHelper.getObject(query, view));
             return Optional.ofNullable(string).filter(this.pattern.asPredicate()).map(s -> Collections.emptyMap());
+        }
+    }
+
+    private static class Exists implements DataPredicate {
+        private final boolean existentialState;
+
+        private Exists(ConfigurationNode node) {
+            Integer i = node.getValue(Types::asInt);
+            if (Objects.nonNull(i)) {
+                Preconditions.checkArgument(i == 0 || i == 1);
+                this.existentialState = i == 1;
+            } else {
+                Boolean b = node.getValue(Types::strictAsBoolean);
+                this.existentialState = Preconditions.checkNotNull(b);
+            }
+        }
+
+        @Override
+        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+            boolean exists = Objects.nonNull(NbtTypeHelper.getObject(query, view));
+            return this.existentialState == exists ? Optional.of(Collections.emptyMap()) : Optional.empty();
+        }
+    }
+
+    private static class TagType implements DataPredicate {
+        private static final List<Predicate<Object>> matchers = getMatchers();
+        private static final List<Tuple<String, Integer>> matcherAliases = getMatcherAliases();
+
+        private final int[] types;
+
+        private TagType(ConfigurationNode node) {
+            Stream<Integer> stream = nodeToList(node).stream().map(n -> n.getValue(TagType::asInt));
+            this.types = stream.mapToInt(t -> Math.max(0, Math.min(13, Preconditions.checkNotNull(t)))).toArray();
+        }
+
+        private static Integer asInt(Object value) {
+            Integer integer = Types.asInt(value);
+            if (Objects.isNull(integer)) {
+                String string = String.valueOf(value);
+                for (Tuple<String, Integer> matcherAlias : matcherAliases) {
+                    if (string.equalsIgnoreCase(matcherAlias.getFirst())) {
+                        integer = matcherAlias.getSecond();
+                        break;
+                    }
+                }
+            }
+            return integer;
+        }
+
+        private static List<? extends ConfigurationNode> nodeToList(ConfigurationNode node) {
+            return node.hasListChildren() ? node.getChildrenList() : Collections.singletonList(node);
+        }
+
+        private static ImmutableList<Predicate<Object>> getMatchers() {
+            ImmutableList.Builder<Predicate<Object>> builder = ImmutableList.builder();
+
+            builder.add(value -> false); // 0
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsByte(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsShort(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsInteger(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsLong(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsFloat(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsDouble(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsByteArray(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsString(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsList(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsMap(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsIntegerArray(value)));
+            builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsLongArray(value)));
+            builder.add(value -> false); // 13
+
+            return builder.build();
+        }
+
+        private static List<Tuple<String, Integer>> getMatcherAliases() {
+            ImmutableList.Builder<Tuple<String, Integer>> builder = ImmutableList.builder();
+
+            builder.add(new Tuple<>("byte", 1));
+            builder.add(new Tuple<>("bytearray", 7));
+            builder.add(new Tuple<>("byte_array", 7));
+            builder.add(new Tuple<>("compound", 10));
+            builder.add(new Tuple<>("double", 6));
+            builder.add(new Tuple<>("end", 0));
+            builder.add(new Tuple<>("float", 5));
+            builder.add(new Tuple<>("int", 3));
+            builder.add(new Tuple<>("intarray", 11));
+            builder.add(new Tuple<>("int_array", 11));
+            builder.add(new Tuple<>("list", 9));
+            builder.add(new Tuple<>("long", 4));
+            builder.add(new Tuple<>("longarray", 12));
+            builder.add(new Tuple<>("long_array", 12));
+            builder.add(new Tuple<>("short", 2));
+            builder.add(new Tuple<>("string", 8));
+
+            return builder.build();
+        }
+
+        @Override
+        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+            for (int type : this.types) {
+                if (matchers.get(type).test(NbtTypeHelper.getObject(query, view))) {
+                    return Optional.of(Collections.emptyMap());
+                }
+            }
+            return Optional.empty();
         }
     }
 }

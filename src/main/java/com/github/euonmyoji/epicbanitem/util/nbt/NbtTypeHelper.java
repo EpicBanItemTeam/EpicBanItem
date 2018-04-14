@@ -35,6 +35,11 @@ public final class NbtTypeHelper {
                     result = index < 0 || index >= list.size() ? null : list.get(index);
                     continue;
                 }
+                long[] longArray = getAsLongArray(result);
+                if (Objects.nonNull(longArray)) {
+                    result = index < 0 || index >= longArray.length ? null : longArray[index];
+                    continue;
+                }
                 int[] intArray = getAsIntegerArray(result);
                 if (Objects.nonNull(intArray)) {
                     result = index < 0 || index >= intArray.length ? null : intArray[index];
@@ -144,6 +149,15 @@ public final class NbtTypeHelper {
                 }
                 return !iterator.hasNext();
             }
+            long[] longs = getAsLongArray(value);
+            if (Objects.nonNull(longs)) {
+                for (long l : longs) {
+                    if (!iterator.hasNext() || !isEqual(l, iterator.next())) {
+                        return false;
+                    }
+                }
+                return !iterator.hasNext();
+            }
             List<?> list = getAsList(value);
             if (Objects.nonNull(list)) {
                 for (Object e : list) {
@@ -217,6 +231,11 @@ public final class NbtTypeHelper {
     }
 
     @Nullable
+    public static long[] getAsLongArray(@Nullable Object value) {
+        return value instanceof long[] ? (long[]) value : value instanceof Long[] ? to((Long[]) value) : null;
+    }
+
+    @Nullable
     public static List<?> getAsList(@Nullable Object value) {
         return value instanceof List ? (List<?>) value : null;
     }
@@ -252,6 +271,14 @@ public final class NbtTypeHelper {
             ints[i] = array[i];
         }
         return ints;
+    }
+
+    private static long[] to(Long[] array) {
+        long[] longs = new long[array.length];
+        for (int i = 0; i < array.length; i++) {
+            longs[i] = array[i];
+        }
+        return longs;
     }
 
     private static Map<String, ?> to(Map<?, ?> map) {
