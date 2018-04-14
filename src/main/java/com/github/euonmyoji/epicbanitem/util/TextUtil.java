@@ -1,9 +1,9 @@
 package com.github.euonmyoji.epicbanitem.util;
 
-import com.sun.istack.internal.Nullable;
 import org.spongepowered.api.text.Text;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static org.spongepowered.api.text.Text.builder;
 import static org.spongepowered.api.text.Text.of;
