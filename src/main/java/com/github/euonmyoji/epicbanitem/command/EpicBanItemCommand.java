@@ -35,5 +35,6 @@ public class EpicBanItemCommand {
             .child(Query.query, "query", "q")
             .child(Show.show, "show", "s")
             .child(Update.update, "update", "u")
+            .child(Plugin.reload, "reload", "r")
             .build();
 }
