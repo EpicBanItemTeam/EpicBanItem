@@ -3,6 +3,8 @@ package com.github.euonmyoji.epicbanitem.util;
 import com.sun.istack.internal.Nullable;
 import org.spongepowered.api.text.Text;
 
+import javax.annotation.Nonnull;
+
 import static org.spongepowered.api.text.Text.builder;
 import static org.spongepowered.api.text.Text.of;
 import static org.spongepowered.api.text.action.TextActions.*;
@@ -32,7 +34,7 @@ public class TextUtil {
      * @param commandArgs 命令所需参数
      * @return 带gui的指令提示text
      */
-    public static Text suggestCommandGui(String command, String describe, @Nullable String commandArgs) {
+    public static Text suggestCommandGui(String command, String describe, @Nonnull String commandArgs) {
         return builder().append(of(command + " " + commandArgs + " " + describe))
                 .onClick(suggestCommand(command + " "))
                 .onHover(showText(of(command + " " + commandArgs)))
