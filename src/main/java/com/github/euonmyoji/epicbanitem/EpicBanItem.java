@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem;
 
 import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
+import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
 import com.github.euonmyoji.epicbanitem.listener.SummonListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
@@ -39,6 +40,7 @@ public class EpicBanItem {
     }
 
     public static void reload() {
+        Settings.reload();
     }
 
     @Listener

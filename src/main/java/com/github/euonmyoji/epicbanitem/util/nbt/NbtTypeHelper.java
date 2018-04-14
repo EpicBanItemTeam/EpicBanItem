@@ -15,6 +15,7 @@ import java.util.*;
 /**
  * @author ustc_zzzz
  */
+@SuppressWarnings("WeakerAccess")
 public final class NbtTypeHelper {
     @Nullable
     public static Object getObject(DataQuery query, DataView view) {
