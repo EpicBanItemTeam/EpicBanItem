@@ -71,7 +71,7 @@ class Query {
                 src.sendMessage(Text.of("未成功匹配物品。"));
             }
         } catch (Exception e) {
-            throw new CommandException(Text.of("解析匹配时出错: ", e.getLocalizedMessage()));
+            throw new CommandException(Text.of("解析匹配时出错: ", e.toString()));
         }
         return CommandResult.success();
     }
