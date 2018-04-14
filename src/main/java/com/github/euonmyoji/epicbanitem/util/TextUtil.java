@@ -22,6 +22,10 @@ public class TextUtil {
                 .build();
     }
 
+    public static Text runCommandGui(String command, String describe) {
+        return runCommandGui(command, describe, null);
+    }
+
     /**
      * @param command  指令#点击后显示的 带/
      * @param describe 指令描述
@@ -33,5 +37,9 @@ public class TextUtil {
                 .onClick(suggestCommand(command))
                 .onHover(showText(of(hoverStr != null ? hoverStr : "点击使用" + command)))
                 .build();
+    }
+
+    public static Text suggestCommandGui(String command, String describe) {
+        return suggestCommandGui(command, describe, null);
     }
 }

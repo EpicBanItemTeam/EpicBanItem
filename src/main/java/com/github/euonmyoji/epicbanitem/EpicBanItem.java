@@ -1,9 +1,9 @@
 package com.github.euonmyoji.epicbanitem;
 
-import com.github.euonmyoji.epicbanitem.commands.EpicBanItemCommand;
-import com.github.euonmyoji.epicbanitem.listeners.GetItemListener;
-import com.github.euonmyoji.epicbanitem.listeners.SummonListener;
-import com.github.euonmyoji.epicbanitem.listeners.WorldItemMoveListener;
+import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
+import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
+import com.github.euonmyoji.epicbanitem.listener.SummonListener;
+import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
