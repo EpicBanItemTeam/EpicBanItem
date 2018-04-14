@@ -28,7 +28,7 @@ public class EpicBanItem {
 
     @Inject
     @ConfigDir(sharedRoot = false)
-    public static Path cfgDir;
+    public Path cfgDir;
 
     @Inject
     public Logger logger;
