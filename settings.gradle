@@ -1,4 +1,4 @@
 rootProject.name = 'epicbanitem'
 include 'src'
-findProject(':src')?.name = 'epicbanitem'
+//findProject(':src')?.name = 'epicbanitem'
 
