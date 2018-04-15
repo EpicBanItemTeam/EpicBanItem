@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @NonnullByDefault
 public class EpicBanItemArgs {
 
-    public static CommandElement itemOrHand(Text key, boolean explicitHand) {
+    private static CommandElement itemOrHand(Text key, boolean explicitHand) {
         return new ArgItemOrHand(key, explicitHand);
     }
 
@@ -107,8 +107,7 @@ public class EpicBanItemArgs {
 
         @Override
         public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
-            Object val = parseValue(source, args);
-            String key = getUntranslatedKey();
+            //noinspection ConstantConditions  不会传empty的 除非有什么改变了宇宙
             ItemType itemType = context.<ItemType>getOne("item-type").get();
             String argString = args.next();
             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
@@ -128,12 +127,13 @@ public class EpicBanItemArgs {
         }
 
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Object parseValue(CommandSource source, CommandArgs args) {
             throw new UnsupportedOperationException();
         }
 
         @Override
         public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+            //noinspection ConstantConditions  不会传empty的 除非有什么改变了宇宙
             ItemType itemType = context.<ItemType>getOne("item-type").get();
             String prefix = args.nextIfPresent().orElse("").toLowerCase();
             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);

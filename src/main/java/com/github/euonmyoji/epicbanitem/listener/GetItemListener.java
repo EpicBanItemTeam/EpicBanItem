@@ -6,8 +6,5 @@ import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
 public class GetItemListener {
     @Listener
     public void onChangeInv(ChangeInventoryEvent event) {
-        if(event instanceof ChangeInventoryEvent.Pickup){
-
-        }
     }
 }
