@@ -26,7 +26,6 @@ public class CheckResult {
     }
 
     public Optional<Text> getMessage() {
-
         return Optional.ofNullable(this.message);
     }
 
