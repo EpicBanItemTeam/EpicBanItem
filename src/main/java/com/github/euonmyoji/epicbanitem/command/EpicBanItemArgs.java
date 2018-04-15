@@ -10,16 +10,18 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@NonnullByDefault
 public class EpicBanItemArgs {
 
-    public static CommandElement itemOrHand(Text key,boolean explicitHand){
-        return new ArgItemOrHand(key,explicitHand);
+    public static CommandElement itemOrHand(Text key, boolean explicitHand) {
+        return new ArgItemOrHand(key, explicitHand);
     }
 
     public static class ArgItemOrHand extends CommandElement {
@@ -33,31 +35,31 @@ public class EpicBanItemArgs {
         @Override
         protected ItemType parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             boolean isPlayer = source instanceof Player;
-            if(!args.hasNext()){
-                if(isPlayer && !explicitHand){
+            if (!args.hasNext()) {
+                if (isPlayer && !explicitHand) {
                     return getItemTypeFormHand((Player) source);
-                }else {
+                } else {
                     //todo:消息提示
                     throw args.createError(Text.EMPTY);
                 }
             }
             String argString = args.next();
-            if(isPlayer && explicitHand && argString.equalsIgnoreCase("hand")){
+            if (isPlayer && explicitHand && argString.equalsIgnoreCase("hand")) {
                 return getItemTypeFormHand((Player) source);
             }
-            Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class,argString);
-            if(optionalItemType.isPresent()){
+            Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class, argString);
+            if (optionalItemType.isPresent()) {
                 return optionalItemType.get();
-            }else if(isPlayer && !explicitHand){
+            } else if (isPlayer && !explicitHand) {
                 return getItemTypeFormHand((Player) source);
-            }else {
+            } else {
                 //todo:消息提示
                 throw args.createError(Text.EMPTY);
             }
         }
 
         //todo:手持空气？
-        private ItemType getItemTypeFormHand(Player player){
+        private ItemType getItemTypeFormHand(Player player) {
             return player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty()).getType();
         }
 
@@ -65,7 +67,7 @@ public class EpicBanItemArgs {
         public java.util.List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
             String prefix = args.nextIfPresent().orElse("").toLowerCase();
             List<String> list = Sponge.getRegistry().getAllOf(ItemType.class).stream().map(ItemType::getId).filter(s -> s.toLowerCase().startsWith(prefix)).collect(Collectors.toList());
-            if(explicitHand && "hand".startsWith(prefix)){
+            if (explicitHand && "hand".startsWith(prefix)) {
                 list.add("hand");
             }
             return list;
@@ -74,25 +76,25 @@ public class EpicBanItemArgs {
 
         @Override
         public Text getUsage(CommandSource src) {
-            if(src instanceof Player) {
+            if (src instanceof Player) {
                 if (explicitHand) {
                     return getKey() == null ? Text.of() : Text.of("<hand|", getKey(), ">");
                 } else {
                     return getKey() == null ? Text.of() : Text.of("[", getKey(), "]");
                 }
-            }else {
+            } else {
                 return super.getUsage(src);
             }
         }
     }
 
-    public static CommandElement checkRule(Text key){
-        return checkRule(key,false);
+    public static CommandElement checkRule(Text key) {
+        return checkRule(key, false);
     }
 
-    public static CommandElement checkRule(Text key, boolean explicitHand){
+    public static CommandElement checkRule(Text key, boolean explicitHand) {
         return GenericArguments.seq(
-                itemOrHand(Text.of("item-type"),explicitHand),
+                itemOrHand(Text.of("item-type"), explicitHand),
                 new ArgCheckRule(key)
         );
     }
@@ -111,15 +113,15 @@ public class EpicBanItemArgs {
             String argString = args.next();
             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
             CheckRule rule = null;
-            for (CheckRule rule1:service.getCheckRules(itemType)){
-                if(rule1.getName().equalsIgnoreCase(argString)){
+            for (CheckRule rule1 : service.getCheckRules(itemType)) {
+                if (rule1.getName().equalsIgnoreCase(argString)) {
                     rule = rule1;
                     break;
                 }
             }
-            if(rule != null){
-                context.putArg(getKey(),rule);
-            }else {
+            if (rule != null) {
+                context.putArg(getKey(), rule);
+            } else {
                 //todo:提示信息
                 throw args.createError(Text.EMPTY);
             }
