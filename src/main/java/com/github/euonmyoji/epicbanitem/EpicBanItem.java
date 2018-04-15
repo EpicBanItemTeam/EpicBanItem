@@ -1,9 +1,10 @@
 package com.github.euonmyoji.epicbanitem;
 
 import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
+import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
-import com.github.euonmyoji.epicbanitem.listener.SummonListener;
+import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * @author 主yinyangshi
+ * @author 主yinyangshi #调用dalao写的各种方法
  */
 @Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION, authors = {"yinyangshi", "GINYAI", "ustc-zzzz"})
 public class EpicBanItem {
@@ -41,6 +42,7 @@ public class EpicBanItem {
 
     public static void reload() {
         Settings.reload();
+        BanConfig.reload();
     }
 
     @Listener
@@ -53,6 +55,8 @@ public class EpicBanItem {
                 e.printStackTrace();
             }
         }
+        Settings.init();
+        BanConfig.init();
     }
 
     @Listener
@@ -60,6 +64,6 @@ public class EpicBanItem {
         Sponge.getCommandManager().register(this, EpicBanItemCommand.ebi, "epicbanitem", "ebi", "banitem");
         Sponge.getEventManager().registerListeners(this, new GetItemListener());
         Sponge.getEventManager().registerListeners(this, new WorldItemMoveListener());
-        Sponge.getEventManager().registerListeners(this, new SummonListener());
+        Sponge.getEventManager().registerListeners(this, new ChunkListener());
     }
 }
