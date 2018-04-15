@@ -13,9 +13,10 @@ public class Settings {
     private static ConfigurationLoader<CommentedConfigurationNode> loader;
 
     private Settings() {
+        //nothing here
     }
 
-    static {
+    public static void init(){
         loader = HoconConfigurationLoader.builder()
                 .setPath(EpicBanItem.plugin.cfgDir.resolve("settings.conf")).build();
         reload();
@@ -31,6 +32,16 @@ public class Settings {
         } catch (IOException e) {
             return loader.createEmptyNode(ConfigurationOptions.defaults());
         }
+    }
+
+    public static boolean save() {
+        try {
+            loader.save(cfg);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }
