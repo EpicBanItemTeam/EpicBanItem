@@ -1,9 +1,13 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author yinyangshi
@@ -14,11 +18,29 @@ public class CheckResult {
     private boolean banned;
     private Text message;
     private List<CheckRule> breakRules;
+    private Location from;
+    private World world;
 
-    public CheckResult(boolean banned, Text message, List<CheckRule> breakRules) {
-        this.banned = banned;
-        this.message = message;
-        this.breakRules = breakRules;
+    private CheckResult(CheckResultBuilder builder) {
+        this.banned = builder.banned;
+        this.message = builder.message;
+        this.breakRules = builder.breakRules;
+        this.from = builder.from;
+        this.world = builder.world;
+    }
+
+    public orElse ifBanned(Consumer<CheckResult> consumer) {
+        if (banned)
+            consumer.accept(this);
+        return new orElse(!banned);
+    }
+
+    public Optional<World> getWorld() {
+        return Optional.ofNullable(this.world);
+    }
+
+    public Optional<Location> getFrom() {
+        return Optional.ofNullable(this.from);
     }
 
     public Optional<List<CheckRule>> getBreakRules() {
@@ -41,7 +63,14 @@ public class CheckResult {
     public static class CheckResultBuilder {
         private boolean banned;
         private Text message;
-        private List<CheckRule> breakRules;
+        private List<CheckRule> breakRules = new ArrayList<>();
+        private Location from;
+        private World world;
+
+        public CheckResultBuilder setWorld(World world) {
+            this.world = world;
+            return this;
+        }
 
         public CheckResultBuilder setBreakRules(List<CheckRule> breakRules) {
             this.breakRules = breakRules;
@@ -50,6 +79,11 @@ public class CheckResult {
 
         public CheckResultBuilder addBreakRules(List<CheckRule> rules) {
             breakRules.addAll(rules);
+            return this;
+        }
+
+        public CheckResultBuilder setFrom(Location from) {
+            this.from = from;
             return this;
         }
 
@@ -69,7 +103,21 @@ public class CheckResult {
         }
 
         public CheckResult build() {
-            return new CheckResult(banned, message, breakRules);
+            return new CheckResult(this);
+        }
+    }
+
+    private class orElse {
+        private boolean execute;
+
+        private orElse(boolean execute) {
+            this.execute = execute;
+        }
+
+        @SuppressWarnings({"MethodNameSameAsClassName", "unused"})
+        public void orElse(Runnable r) {
+            if (execute)
+                r.run();
         }
     }
 }
