@@ -107,14 +107,14 @@ public class CheckResult {
         }
     }
 
-    private class orElse {
+    public class orElse {
         private boolean execute;
 
         private orElse(boolean execute) {
             this.execute = execute;
         }
 
-        @SuppressWarnings({"MethodNameSameAsClassName", "unused"})
+        @SuppressWarnings("MethodNameSameAsClassName")
         public void orElse(Runnable r) {
             if (execute)
                 r.run();
