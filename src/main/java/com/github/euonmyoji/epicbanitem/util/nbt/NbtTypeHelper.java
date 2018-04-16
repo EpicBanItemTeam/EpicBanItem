@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
@@ -8,181 +9,288 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author ustc_zzzz
  */
+@NonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public final class NbtTypeHelper {
     @Nullable
     public static Object getObject(DataQuery query, DataView view) {
         Object result = view;
         for (String queryPart : query.getParts()) {
-            Map<String, ?> map = getAsMap(result);
-            if (Objects.nonNull(map)) {
-                result = map.get(queryPart);
-                if (Objects.nonNull(result)) {
-                    continue;
-                }
+            result = getObject(queryPart, result);
+            if (Objects.isNull(result)) {
+                break;
             }
-            Integer index = Types.asInt(queryPart);
-            if (Objects.nonNull(index)) {
-                List<?> list = getAsList(result);
-                if (Objects.nonNull(list)) {
-                    result = index < 0 || index >= list.size() ? null : list.get(index);
-                    continue;
-                }
-                long[] longArray = getAsLongArray(result);
-                if (Objects.nonNull(longArray)) {
-                    result = index < 0 || index >= longArray.length ? null : longArray[index];
-                    continue;
-                }
-                int[] intArray = getAsIntegerArray(result);
-                if (Objects.nonNull(intArray)) {
-                    result = index < 0 || index >= intArray.length ? null : intArray[index];
-                    continue;
-                }
-                byte[] byteArray = getAsByteArray(result);
-                if (Objects.nonNull(byteArray)) {
-                    result = index < 0 || index >= byteArray.length ? null : byteArray[index];
-                    continue;
-                }
-            }
-            result = null;
-            break;
         }
         return result;
     }
 
+    @Nullable
+    public static Object getObject(String key, Object view) {
+        Map<String, ?> map = getAsMap(view);
+        if (Objects.nonNull(map)) {
+            Object result = map.get(key);
+            if (Objects.nonNull(result)) {
+                return result;
+            }
+        }
+        Integer index = Types.asInt(key);
+        if (Objects.nonNull(index)) {
+            List<?> list = getAsList(view);
+            if (Objects.nonNull(list)) {
+                return index < 0 || index >= list.size() ? null : list.get(index);
+            }
+            long[] longArray = getAsLongArray(view);
+            if (Objects.nonNull(longArray)) {
+                return index < 0 || index >= longArray.length ? null : longArray[index];
+            }
+            int[] intArray = getAsIntegerArray(view);
+            if (Objects.nonNull(intArray)) {
+                return index < 0 || index >= intArray.length ? null : intArray[index];
+            }
+            byte[] byteArray = getAsByteArray(view);
+            if (Objects.nonNull(byteArray)) {
+                return index < 0 || index >= byteArray.length ? null : byteArray[index];
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
     public static OptionalInt compare(@Nullable Object value, ConfigurationNode node) {
-        if (Objects.isNull(value)) {
-            return OptionalInt.empty();
-        }
-        if (value instanceof Boolean) {
-            value = (Boolean) value ? 1 : 0;
-        }
-        if (value instanceof Byte || value instanceof Short || value instanceof Integer) {
-            Integer integerValue = node.getValue(Types::asInt);
-            if (Objects.isNull(integerValue)) {
-                return OptionalInt.empty();
+        if (Objects.nonNull(value)) {
+            Object another = convert(value, node);
+            if (another instanceof String) {
+                if (value instanceof String) {
+                    return OptionalInt.of(((String) another).compareTo(value.toString()));
+                } else {
+                    return OptionalInt.empty();
+                }
             }
-            return OptionalInt.of(integerValue.compareTo(((Number) value).intValue()));
-        }
-        if (value instanceof Long) {
-            Long longValue = node.getValue(Types::asLong);
-            if (Objects.isNull(longValue)) {
-                return OptionalInt.empty();
+            if (another instanceof Double) {
+                if (value instanceof Number) {
+                    return OptionalInt.of(Double.compare((Double) another, ((Number) value).doubleValue()));
+                } else {
+                    return OptionalInt.empty();
+                }
             }
-            return OptionalInt.of(longValue.compareTo((Long) value));
-        }
-        if (value instanceof Float) {
-            Float floatValue = node.getValue(Types::asFloat);
-            if (Objects.isNull(floatValue)) {
-                return OptionalInt.empty();
+            if (another instanceof Long) {
+                if (value instanceof Number) {
+                    return OptionalInt.of(Long.compare((Long) another, ((Number) value).longValue()));
+                } else {
+                    return OptionalInt.empty();
+                }
             }
-            return OptionalInt.of(floatValue.compareTo((Float) value));
-        }
-        if (value instanceof Double) {
-            Double doubleValue = node.getValue(Types::asDouble);
-            if (Objects.isNull(doubleValue)) {
-                return OptionalInt.empty();
+            if (another instanceof Float) {
+                if (value instanceof Number) {
+                    return OptionalInt.of(Float.compare((Float) another, ((Number) value).floatValue()));
+                } else {
+                    return OptionalInt.empty();
+                }
             }
-            return OptionalInt.of(doubleValue.compareTo((Double) value));
-        }
-        if (value instanceof String) {
-            String stringValue = node.getValue(Types::asString);
-            if (Objects.isNull(stringValue)) {
-                return OptionalInt.empty();
+            if (another instanceof Number) {
+                if (value instanceof Number) {
+                    return OptionalInt.of(Integer.compare(((Number) another).intValue(), ((Number) value).intValue()));
+                } else {
+                    return OptionalInt.empty();
+                }
             }
-            return OptionalInt.of(stringValue.compareTo((String) value));
         }
         return OptionalInt.empty();
+    }
+
+    private static final Pattern BOOLEAN;
+    private static final Pattern DOUBLE;
+    private static final Pattern FLOAT;
+    private static final Pattern BYTE;
+    private static final Pattern LONG;
+    private static final Pattern SHORT;
+    private static final Pattern INTEGER;
+    private static final Pattern NUMBER;
+
+    // from vanilla
+    static {
+        BOOLEAN = Pattern.compile("(true|false)", Pattern.CASE_INSENSITIVE);
+        BYTE = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)b", Pattern.CASE_INSENSITIVE);
+        LONG = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)l", Pattern.CASE_INSENSITIVE);
+        SHORT = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)s", Pattern.CASE_INSENSITIVE);
+        INTEGER = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)", Pattern.CASE_INSENSITIVE);
+        NUMBER = Pattern.compile("[-+]?(?:[0-9]+[.]|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?", Pattern.CASE_INSENSITIVE);
+        FLOAT = Pattern.compile("[-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?f", Pattern.CASE_INSENSITIVE);
+        DOUBLE = Pattern.compile("[-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?d", Pattern.CASE_INSENSITIVE);
+    }
+
+    public static Object convert(@Nullable Object previous, ConfigurationNode node) {
+        if (node.hasListChildren()) {
+            return convert(previous, node.getChildrenList());
+        }
+        if (node.hasMapChildren()) {
+            return convert(previous, node.getChildrenMap());
+        }
+        String valueString = node.getString("");
+        try {
+            if (BOOLEAN.matcher(valueString).matches()) {
+                boolean b = Boolean.parseBoolean(valueString.substring(1, valueString.length() - 1));
+                return previous instanceof Byte ? b ? 1 : 0 : b;
+            }
+            if (DOUBLE.matcher(valueString).matches()) {
+                return Double.parseDouble(valueString.substring(1, valueString.length() - 1));
+            }
+            if (FLOAT.matcher(valueString).matches()) {
+                return Float.parseFloat(valueString.substring(1, valueString.length() - 1));
+            }
+            if (BYTE.matcher(valueString).matches()) {
+                byte b = Byte.parseByte(valueString.substring(1, valueString.length() - 1));
+                return previous instanceof Boolean ? b == 0 ? Boolean.FALSE : b == 1 ? Boolean.TRUE : b : b;
+            }
+            if (LONG.matcher(valueString).matches()) {
+                return Long.parseLong(valueString.substring(1, valueString.length() - 1));
+            }
+            if (SHORT.matcher(valueString).matches()) {
+                return Short.parseShort(valueString.substring(1, valueString.length() - 1));
+            }
+            if (INTEGER.matcher(valueString).matches()) {
+                int i = Integer.parseInt(valueString);
+                if (previous instanceof Byte && (byte) i == i) {
+                    return (byte) i;
+                }
+                if (previous instanceof Short && (short) i == i) {
+                    return (short) i;
+                }
+                if (previous instanceof Long) {
+                    return (long) i;
+                }
+                if (previous instanceof Float) {
+                    return (float) i;
+                }
+                if (previous instanceof Double) {
+                    return (double) i;
+                }
+                return i;
+            }
+            if (NUMBER.matcher(valueString).matches()) {
+                double n = Double.parseDouble(valueString);
+                return previous instanceof Float ? (float) n : n;
+            }
+            return valueString;
+        } catch (NumberFormatException e) {
+            return valueString;
+        }
+    }
+
+    private static Map<String, Object> convert(@Nullable Object previous, Map<Object, ? extends ConfigurationNode> map) {
+        Map<String, Object> previousMap = getAsMap(previous);
+        if (Objects.isNull(previousMap)) {
+            previousMap = Collections.emptyMap();
+        }
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        for (Map.Entry<Object, ? extends ConfigurationNode> entry : map.entrySet()) {
+            String key = entry.getKey().toString();
+            builder.put(key, convert(previousMap.get(key), entry.getValue()));
+        }
+        return builder.build();
+    }
+
+    private static Object convert(@Nullable Object previous, List<? extends ConfigurationNode> list) {
+        int size = list.size();
+        List<Object> result = new ArrayList<>(size);
+        List<Object> previousList = getAsList(previous);
+        boolean isByteArray = false, isIntArray = false, isLongArray = false;
+        int previousSize = Objects.isNull(previousList) ? 0 : previousList.size();
+        if (!list.isEmpty()) {
+            boolean isFirst = true;
+            for (int i = 0; i < size; ++i) {
+                ConfigurationNode node = list.get(i);
+                String value = node.getString("");
+                if (isFirst) {
+                    isFirst = false;
+                    if (value.startsWith("B;")) {
+                        int j = 1;
+                        isByteArray = true;
+                        while (++j < value.length()) {
+                            if (!Character.isWhitespace(value.charAt(i))) {
+                                break;
+                            }
+                        }
+                        value = value.substring(j);
+                        if (value.isEmpty()) {
+                            continue;
+                        }
+                    }
+                    if (value.startsWith("I;")) {
+                        int j = 1;
+                        isIntArray = true;
+                        while (++j < value.length()) {
+                            if (!Character.isWhitespace(value.charAt(i))) {
+                                break;
+                            }
+                        }
+                        value = value.substring(j);
+                        if (value.isEmpty()) {
+                            continue;
+                        }
+                    }
+                    if (value.startsWith("L;")) {
+                        int j = 1;
+                        isLongArray = true;
+                        while (++j < value.length()) {
+                            if (!Character.isWhitespace(value.charAt(i))) {
+                                break;
+                            }
+                        }
+                        value = value.substring(j);
+                        if (value.isEmpty()) {
+                            continue;
+                        }
+                    }
+                }
+                try {
+                    if (isByteArray) {
+                        result.add(Byte.parseByte(value));
+                    }
+                    if (isIntArray) {
+                        result.add(Integer.parseInt(value));
+                    }
+                    if (isLongArray) {
+                        result.add(Long.parseLong(value));
+                    }
+                } catch (NumberFormatException e) {
+                    isByteArray = false;
+                    isIntArray = false;
+                    isLongArray = false;
+                }
+                result.add(convert(i >= previousSize ? null : previousList.get(i), node));
+            }
+        }
+        if (isByteArray) {
+            // noinspection SuspiciousToArrayCall
+            return result.toArray(new Byte[0]);
+        }
+        if (isIntArray) {
+            // noinspection SuspiciousToArrayCall
+            return result.toArray(new Integer[0]);
+        }
+        if (isLongArray) {
+            // noinspection SuspiciousToArrayCall
+            return result.toArray(new Long[0]);
+        }
+        return result;
     }
 
     public static boolean isEqual(@Nullable Object value, ConfigurationNode node) {
         if (Objects.isNull(value)) {
             return Objects.isNull(node.getValue());
+        } else {
+            return value.equals(convert(value, node));
         }
-        if (value instanceof Boolean) {
-            value = (Boolean) value ? 1 : 0;
-        }
-        if (value instanceof Byte || value instanceof Short || value instanceof Integer) {
-            Integer integerValue = node.getValue(Types::asInt);
-            return Objects.nonNull(integerValue) && integerValue.equals(((Number) value).intValue());
-        }
-        if (value instanceof Long) {
-            Long longValue = node.getValue(Types::asLong);
-            return Objects.nonNull(longValue) && longValue.equals(value);
-        }
-        if (value instanceof Float) {
-            Float floatValue = node.getValue(Types::asFloat);
-            return Objects.nonNull(floatValue) && floatValue.equals(value);
-        }
-        if (value instanceof Double) {
-            Double doubleValue = node.getValue(Types::asDouble);
-            return Objects.nonNull(doubleValue) && doubleValue.equals(value);
-        }
-        if (value instanceof String) {
-            String stringValue = node.getValue(Types::asString);
-            return Objects.nonNull(stringValue) && stringValue.equals(value);
-        }
-        if (node.hasListChildren()) {
-            Iterator<? extends ConfigurationNode> iterator = node.getChildrenList().iterator();
-            byte[] bytes = getAsByteArray(value);
-            if (Objects.nonNull(bytes)) {
-                for (byte b : bytes) {
-                    if (!iterator.hasNext() || !isEqual(b, iterator.next())) {
-                        return false;
-                    }
-                }
-                return !iterator.hasNext();
-            }
-            int[] ints = getAsIntegerArray(value);
-            if (Objects.nonNull(ints)) {
-                for (int i : ints) {
-                    if (!iterator.hasNext() || !isEqual(i, iterator.next())) {
-                        return false;
-                    }
-                }
-                return !iterator.hasNext();
-            }
-            long[] longs = getAsLongArray(value);
-            if (Objects.nonNull(longs)) {
-                for (long l : longs) {
-                    if (!iterator.hasNext() || !isEqual(l, iterator.next())) {
-                        return false;
-                    }
-                }
-                return !iterator.hasNext();
-            }
-            List<?> list = getAsList(value);
-            if (Objects.nonNull(list)) {
-                for (Object e : list) {
-                    if (!iterator.hasNext() || !isEqual(e, iterator.next())) {
-                        return false;
-                    }
-                }
-                return !iterator.hasNext();
-            }
-            return false;
-        }
-        if (node.hasMapChildren()) {
-            Map<String, ?> map = getAsMap(value);
-            Set<? extends Map.Entry<Object, ? extends ConfigurationNode>> entries = node.getChildrenMap().entrySet();
-            if (Objects.nonNull(map) && map.size() == entries.size()) {
-                for (Map.Entry<Object, ? extends ConfigurationNode> entry : entries) {
-                    String key = entry.getKey().toString();
-                    if (!map.containsKey(key) || !isEqual(map.get(key), entry.getValue())) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-        return false;
     }
 
     @Nullable
@@ -236,12 +344,12 @@ public final class NbtTypeHelper {
     }
 
     @Nullable
-    public static List<?> getAsList(@Nullable Object value) {
-        return value instanceof List ? (List<?>) value : null;
+    public static List<Object> getAsList(@Nullable Object value) {
+        return value instanceof List ? ImmutableList.copyOf((List<?>) value) : null;
     }
 
     @Nullable
-    public static Map<String, ?> getAsMap(@Nullable Object value) {
+    public static Map<String, Object> getAsMap(@Nullable Object value) {
         return value instanceof Map ? to((Map<?, ?>) value) : value instanceof DataView ? to((DataView) value) : null;
     }
 
@@ -281,7 +389,7 @@ public final class NbtTypeHelper {
         return longs;
     }
 
-    private static Map<String, ?> to(Map<?, ?> map) {
+    private static Map<String, Object> to(Map<?, ?> map) {
         ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             builder.put(entry.getKey().toString(), entry.getValue());
@@ -289,7 +397,7 @@ public final class NbtTypeHelper {
         return builder.build();
     }
 
-    private static Map<String, ?> to(DataView map) {
+    private static Map<String, Object> to(DataView map) {
         ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
         for (Map.Entry<DataQuery, Object> entry : map.getValues(false).entrySet()) {
             builder.put(entry.getKey().toString(), entry.getValue());
