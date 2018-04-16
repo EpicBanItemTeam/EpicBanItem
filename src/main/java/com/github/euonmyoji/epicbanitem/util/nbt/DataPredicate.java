@@ -10,5 +10,5 @@ import java.util.Optional;
  * @author ustc_zzzz
  */
 public interface DataPredicate {
-    Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view);
+    Optional<QueryResult> query(DataQuery query, DataView view);
 }

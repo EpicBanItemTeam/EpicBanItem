@@ -3,8 +3,12 @@ package com.github.euonmyoji.epicbanitem.util.nbt;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.Tuple;
@@ -81,17 +85,17 @@ public class QueryExpression implements DataPredicate {
     }
 
     @Override
-    public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
-        Map<String, DataPredicate> map = new HashMap<>();
+    public Optional<QueryResult> query(DataQuery query, DataView view) {
+        Map<String, QueryResult> map = new HashMap<>();
         for (DataPredicate criterion : this.criteria) {
-            Optional<Map<String, DataPredicate>> result = criterion.testAndGetArrayPlaceholderFinder(query, view);
+            Optional<QueryResult> result = criterion.query(query, view);
             if (result.isPresent()) {
-                map.putAll(result.get());
+                map.putAll(result.get().getChildren());
             } else {
-                return Optional.empty();
+                return QueryResult.failure();
             }
         }
-        return Optional.of(map);
+        return QueryResult.successObject(map);
     }
 
     private static ImmutableList<DataPredicate> findOperators(ConfigurationNode node) {
@@ -143,15 +147,15 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
-            query = query.then(DataQuery.of('.', this.prefix));
-            Optional<Map<String, DataPredicate>> result = this.criterion.testAndGetArrayPlaceholderFinder(query, view);
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            DataQuery then = DataQuery.of('.', this.prefix);
+            Optional<QueryResult> result = this.criterion.query(query.then(then), view);
             if (result.isPresent()) {
-                ImmutableMap.Builder<String, DataPredicate> builder = ImmutableMap.builder();
-                for (Map.Entry<String, DataPredicate> entry : result.get().entrySet()) {
-                    builder.put(this.prefix + '.' + entry.getKey(), entry.getValue());
+                for (String part : then.getParts()) {
+                    // noinspection ConstantConditions
+                    result = QueryResult.successObject(ImmutableMap.of(part, result.get()));
                 }
-                return Optional.of(builder.build());
+                return result;
             }
             return Optional.empty();
         }
@@ -165,21 +169,23 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
-            Optional<Map<String, DataPredicate>> result = this.criterion.testAndGetArrayPlaceholderFinder(query, view);
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            Optional<QueryResult> result = this.criterion.query(query, view);
             if (result.isPresent()) {
-                return Optional.of(Collections.emptyMap());
+                return result;
             }
             List<?> list = NbtTypeHelper.getAsList(NbtTypeHelper.getObject(query, view));
             if (Objects.nonNull(list)) {
+                ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
                 for (int i = 0; i < list.size(); i++) {
-                    result = this.criterion.testAndGetArrayPlaceholderFinder(query.then(Integer.toString(i)), view);
+                    result = this.criterion.query(query.then(Integer.toString(i)), view);
                     if (result.isPresent()) {
-                        return Optional.of(Collections.singletonMap("", this.criterion));
+                        builder.put(Integer.toString(i), result.get());
                     }
                 }
+                return QueryResult.successArray(builder.build());
             }
-            return Optional.empty();
+            return QueryResult.failure();
         }
     }
 
@@ -191,9 +197,8 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
-            boolean isEqual = NbtTypeHelper.isEqual(NbtTypeHelper.getObject(query, view), this.node);
-            return isEqual ? Optional.of(Collections.emptyMap()) : Optional.empty();
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            return QueryResult.check(NbtTypeHelper.isEqual(NbtTypeHelper.getObject(query, view), this.node));
         }
     }
 
@@ -205,9 +210,8 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
-            boolean isEqual = NbtTypeHelper.isEqual(NbtTypeHelper.getObject(query, view), this.node);
-            return isEqual ? Optional.empty() : Optional.of(Collections.emptyMap());
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            return QueryResult.check(!NbtTypeHelper.isEqual(NbtTypeHelper.getObject(query, view), this.node));
         }
     }
 
@@ -221,10 +225,9 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
             OptionalInt optionalInt = NbtTypeHelper.compare(NbtTypeHelper.getObject(query, view), this.node);
-            boolean match = optionalInt.isPresent() && this.predicate.test(optionalInt.getAsInt());
-            return match ? Optional.of(Collections.emptyMap()) : Optional.empty();
+            return QueryResult.check(optionalInt.isPresent() && this.predicate.test(optionalInt.getAsInt()));
         }
     }
 
@@ -238,14 +241,14 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
             for (DataPredicate criterion : this.criteria) {
-                Optional<Map<String, DataPredicate>> result = criterion.testAndGetArrayPlaceholderFinder(query, view);
+                Optional<QueryResult> result = criterion.query(query, view);
                 if (!result.isPresent()) {
-                    return Optional.of(Collections.emptyMap());
+                    return QueryResult.success();
                 }
             }
-            return Optional.empty();
+            return QueryResult.failure();
         }
     }
 
@@ -258,17 +261,27 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
-            Map<String, DataPredicate> map = new HashMap<>();
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            boolean isArray = true, isObject = true;
+            Map<String, QueryResult> map = new HashMap<>();
             for (DataPredicate criterion : this.criteria) {
-                Optional<Map<String, DataPredicate>> result = criterion.testAndGetArrayPlaceholderFinder(query, view);
-                if (result.isPresent()) {
-                    map.putAll(result.get());
+                Optional<QueryResult> resultOptional = criterion.query(query, view);
+                if (resultOptional.isPresent()) {
+                    QueryResult result = resultOptional.get();
+                    isArray = isArray && result.isArrayChildren();
+                    isObject = isObject && result.isObjectChildren();
+                    map.putAll(result.getChildren());
                 } else {
-                    return Optional.empty();
+                    return QueryResult.failure();
                 }
             }
-            return Optional.of(map);
+            if (isArray) {
+                return QueryResult.successArray(map);
+            }
+            if (isObject) {
+                return QueryResult.successObject(map);
+            }
+            return QueryResult.success();
         }
     }
 
@@ -281,14 +294,14 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
             for (DataPredicate criterion : this.criteria) {
-                Optional<Map<String, DataPredicate>> result = criterion.testAndGetArrayPlaceholderFinder(query, view);
+                Optional<QueryResult> result = criterion.query(query, view);
                 if (result.isPresent()) {
                     return result;
                 }
             }
-            return Optional.empty();
+            return QueryResult.failure();
         }
     }
 
@@ -301,14 +314,14 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
             for (DataPredicate criterion : this.criteria) {
-                Optional<Map<String, DataPredicate>> result = criterion.testAndGetArrayPlaceholderFinder(query, view);
+                Optional<QueryResult> result = criterion.query(query, view);
                 if (result.isPresent()) {
-                    return Optional.empty();
+                    return QueryResult.failure();
                 }
             }
-            return Optional.of(Collections.emptyMap());
+            return QueryResult.success();
         }
     }
 
@@ -343,9 +356,9 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
             String string = NbtTypeHelper.getAsString(NbtTypeHelper.getObject(query, view));
-            return Optional.ofNullable(string).filter(this.pattern.asPredicate()).map(s -> Collections.emptyMap());
+            return QueryResult.check(Optional.ofNullable(string).filter(this.pattern.asPredicate()).isPresent());
         }
     }
 
@@ -364,9 +377,9 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
             boolean exists = Objects.nonNull(NbtTypeHelper.getObject(query, view));
-            return this.existentialState == exists ? Optional.of(Collections.emptyMap()) : Optional.empty();
+            return QueryResult.check(this.existentialState == exists);
         }
     }
 
@@ -444,13 +457,13 @@ public class QueryExpression implements DataPredicate {
         }
 
         @Override
-        public Optional<Map<String, DataPredicate>> testAndGetArrayPlaceholderFinder(DataQuery query, DataView view) {
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
             for (int type : this.types) {
                 if (matchers.get(type).test(NbtTypeHelper.getObject(query, view))) {
-                    return Optional.of(Collections.emptyMap());
+                    return QueryResult.success();
                 }
             }
-            return Optional.empty();
+            return QueryResult.failure();
         }
     }
 }

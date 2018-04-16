@@ -1,8 +1,8 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.util.nbt.DataPredicate;
 import com.github.euonmyoji.epicbanitem.util.nbt.NbtTypeHelper;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
+import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.typesafe.config.ConfigParseOptions;
 import com.typesafe.config.ConfigRenderOptions;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -25,7 +25,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 
 import java.io.*;
-import java.util.Map;
 import java.util.Optional;
 
 class Query {
@@ -64,7 +63,7 @@ class Query {
         String rule = args.<String>getOne("query-rule").get();
         try {
             QueryExpression query = new QueryExpression(getFrom(rule));
-            Optional<Map<String, DataPredicate>> result = query.testAndGetArrayPlaceholderFinder(DataQuery.of(), nbt);
+            Optional<QueryResult> result = query.query(DataQuery.of(), nbt);
             if (result.isPresent()) {
                 src.sendMessage(Text.of("成功匹配物品: ", getFrom(DataTranslators.CONFIGURATION_NODE.translate(nbt))));
             } else {
