@@ -13,6 +13,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -21,16 +22,135 @@ import java.util.regex.Pattern;
 @NonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public final class NbtTypeHelper {
+    public static void setObject(DataQuery query, DataView view, Function<Object, Object> valueTransformer) {
+        List<String> queryParts = query.getParts();
+        int lastQueryPartIndex = queryParts.size() - 1;
+        Object[] subViews = new Object[lastQueryPartIndex];
+        for (int i = 0; i < lastQueryPartIndex; ++i) {
+            Object subView = getObject(queryParts.get(i), i == 0 ? view : subViews[i - 1]);
+            subViews[i] = Objects.isNull(subView) ? ImmutableMap.of() : subView;
+        }
+        for (int i = lastQueryPartIndex; i > 0; --i) {
+            Object subView = setObject(queryParts.get(i), subViews[i - 1], valueTransformer);
+            valueTransformer = o -> subView;
+        }
+        DataQuery firstQuery = query.popFirst();
+        view.set(firstQuery, valueTransformer.apply(view.get(firstQuery).orElse(null)));
+    }
+
     @Nullable
     public static Object getObject(DataQuery query, DataView view) {
-        Object result = view;
+        Object subView = view;
         for (String queryPart : query.getParts()) {
-            result = getObject(queryPart, result);
-            if (Objects.isNull(result)) {
+            subView = getObject(queryPart, subView);
+            if (Objects.isNull(subView)) {
                 break;
             }
         }
-        return result;
+        return subView;
+    }
+
+    @Nullable
+    public static Object setObject(String key, Object view, Function<Object, Object> transformFunction) {
+        Map<String, Object> map = getAsMap(view);
+        if (Objects.nonNull(map)) {
+            Object newValue = transformFunction.apply(map.get(key));
+            if (Objects.nonNull(newValue)) {
+                map = new HashMap<>(map); // make it mutable
+                map.put(key, newValue);
+                return map;
+            } else {
+                map = new HashMap<>(map); // make it mutable
+                map.remove(key);
+                return map;
+            }
+        }
+        Integer index = Types.asInt(key);
+        if (Objects.nonNull(index)) {
+            List<Object> list = getAsList(view);
+            if (Objects.nonNull(list)) {
+                if (index >= 0) {
+                    int size = list.size();
+                    if (index == size) {
+                        list = new ArrayList<>(list); // make it mutable
+                        list.add(transformFunction.apply(size > 0 ? list.get(size - 1) : null));
+                        return list;
+                    } else if (index < size) {
+                        Object newValue = transformFunction.apply(list.get(index));
+                        if (Objects.nonNull(newValue)) {
+                            list = new ArrayList<>(list); // make it mutable
+                            list.set(index, newValue);
+                            return list;
+                        }
+                    }
+                }
+                throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+            }
+            long[] longArray = getAsLongArray(view);
+            if (Objects.nonNull(longArray)) {
+                if (index >= 0) {
+                    int size = longArray.length;
+                    if (index == size) {
+                        Object newValue = transformFunction.apply((long) 0);
+                        if (newValue instanceof Long) {
+                            longArray = Arrays.copyOf(longArray, size + 1);
+                            longArray[size] = (Long) newValue;
+                            return longArray;
+                        }
+                    } else if (index < size) {
+                        Object newValue = transformFunction.apply(longArray[index]);
+                        if (newValue instanceof Long) {
+                            longArray[index] = (Long) newValue;
+                            return longArray;
+                        }
+                    }
+                }
+                throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+            }
+            int[] intArray = getAsIntegerArray(view);
+            if (Objects.nonNull(intArray)) {
+                if (index >= 0) {
+                    int size = intArray.length;
+                    if (index == size) {
+                        Object newValue = transformFunction.apply(0);
+                        if (newValue instanceof Integer) {
+                            intArray = Arrays.copyOf(intArray, size + 1);
+                            intArray[size] = (Integer) newValue;
+                            return intArray;
+                        }
+                    } else if (index < size) {
+                        Object newValue = transformFunction.apply(intArray[index]);
+                        if (newValue instanceof Integer) {
+                            intArray[index] = (Integer) newValue;
+                            return intArray;
+                        }
+                    }
+                }
+                throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+            }
+            byte[] byteArray = getAsByteArray(view);
+            if (Objects.nonNull(byteArray)) {
+                if (index >= 0) {
+                    int size = byteArray.length;
+                    if (index == size) {
+                        Object newValue = transformFunction.apply((byte) 0);
+                        if (newValue instanceof Byte) {
+                            byteArray = Arrays.copyOf(byteArray, size + 1);
+                            byteArray[size] = (Byte) newValue;
+                            return byteArray;
+                        }
+                    } else if (index < size) {
+                        Object newValue = transformFunction.apply(byteArray[index]);
+                        if (newValue instanceof Byte) {
+                            byteArray[index] = (Byte) newValue;
+                            return byteArray;
+                        }
+                    }
+                }
+                throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+            }
+        }
+        throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
     }
 
     @Nullable

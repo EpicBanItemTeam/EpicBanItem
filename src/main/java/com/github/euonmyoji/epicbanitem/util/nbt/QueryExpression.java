@@ -45,7 +45,8 @@ public class QueryExpression implements DataPredicate {
         builder.put("$in", n -> new OneOrMore(new Or(n.getChildrenList(), QueryExpression::getInPredicate, false)));
         builder.put("$nin", n -> new OneOrMore(new Nor(n.getChildrenList(), QueryExpression::getInPredicate, false)));
 
-        builder.put("$exists", n -> new OneOrMore(new Exists(n)));
+        // noinspection Convert2MethodRef
+        builder.put("$exists", n -> new Exists(n));
         builder.put("$tagType", node -> new OneOrMore(new TagType(node)));
 
         operators = builder.build();
@@ -86,11 +87,11 @@ public class QueryExpression implements DataPredicate {
 
     @Override
     public Optional<QueryResult> query(DataQuery query, DataView view) {
-        Map<String, QueryResult> map = new HashMap<>();
+        Map<String, QueryResult> map = ImmutableMap.of();
         for (DataPredicate criterion : this.criteria) {
             Optional<QueryResult> result = criterion.query(query, view);
             if (result.isPresent()) {
-                map.putAll(result.get().getChildren());
+                map = result.get().merge(map).getChildren();
             } else {
                 return QueryResult.failure();
             }
@@ -263,23 +264,23 @@ public class QueryExpression implements DataPredicate {
         @Override
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             boolean isArray = true, isObject = true;
-            Map<String, QueryResult> map = new HashMap<>();
+            Map<String, QueryResult> queryResultMap = ImmutableMap.of();
             for (DataPredicate criterion : this.criteria) {
                 Optional<QueryResult> resultOptional = criterion.query(query, view);
                 if (resultOptional.isPresent()) {
                     QueryResult result = resultOptional.get();
                     isArray = isArray && result.isArrayChildren();
                     isObject = isObject && result.isObjectChildren();
-                    map.putAll(result.getChildren());
+                    queryResultMap = result.merge(queryResultMap).getChildren();
                 } else {
                     return QueryResult.failure();
                 }
             }
             if (isArray) {
-                return QueryResult.successArray(map);
+                return QueryResult.successArray(queryResultMap);
             }
             if (isObject) {
-                return QueryResult.successObject(map);
+                return QueryResult.successObject(queryResultMap);
             }
             return QueryResult.success();
         }

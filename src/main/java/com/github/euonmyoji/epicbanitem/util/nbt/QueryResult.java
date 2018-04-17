@@ -5,13 +5,17 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * @author ustc_zzzz
  */
+@NonnullByDefault
 public class QueryResult {
     public static final TypeToken<QueryResult> RESULT_TYPE_TOKEN;
 
@@ -60,6 +64,15 @@ public class QueryResult {
 
     public Map<String, QueryResult> getChildren() {
         return this.children;
+    }
+
+    public QueryResult merge(Map<String, QueryResult> anotherChildren) {
+        Map<String, QueryResult> children = new LinkedHashMap<>(this.children);
+        for (Map.Entry<String, QueryResult> entry : anotherChildren.entrySet()) {
+            QueryResult value = entry.getValue();
+            children.compute(entry.getKey(), (k, v) -> Objects.isNull(v) ? value : v.merge(value.getChildren()));
+        }
+        return new QueryResult(this.isArray, this.isObject, children);
     }
 
     private static class Serializer implements TypeSerializer<QueryResult> {
