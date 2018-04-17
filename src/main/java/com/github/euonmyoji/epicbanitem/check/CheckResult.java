@@ -29,10 +29,10 @@ public class CheckResult {
         this.world = builder.world;
     }
 
-    public orElse ifBanned(Consumer<CheckResult> consumer) {
+    public Else ifBanned(Consumer<CheckResult> consumer) {
         if (banned)
             consumer.accept(this);
-        return new orElse(!banned);
+        return new Else(!banned);
     }
 
     public Optional<World> getWorld() {
@@ -107,14 +107,13 @@ public class CheckResult {
         }
     }
 
-    public class orElse {
+    public class Else {
         private boolean execute;
 
-        private orElse(boolean execute) {
+        private Else(boolean execute) {
             this.execute = execute;
         }
 
-        @SuppressWarnings("MethodNameSameAsClassName")
         public void orElse(Runnable r) {
             if (execute)
                 r.run();
