@@ -3,6 +3,7 @@ package com.github.euonmyoji.epicbanitem.util.nbt;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
@@ -152,7 +153,7 @@ public class QueryExpression implements DataPredicate {
             DataQuery then = DataQuery.of('.', this.prefix);
             Optional<QueryResult> result = this.criterion.query(query.then(then), view);
             if (result.isPresent()) {
-                for (String part : then.getParts()) {
+                for (String part : Lists.reverse(then.getParts())) {
                     // noinspection ConstantConditions
                     result = QueryResult.successObject(ImmutableMap.of(part, result.get()));
                 }
@@ -177,14 +178,18 @@ public class QueryExpression implements DataPredicate {
             }
             List<?> list = NbtTypeHelper.getAsList(NbtTypeHelper.getObject(query, view));
             if (Objects.nonNull(list)) {
+                boolean matchedInArray = false;
                 ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
                 for (int i = 0; i < list.size(); i++) {
                     result = this.criterion.query(query.then(Integer.toString(i)), view);
                     if (result.isPresent()) {
+                        matchedInArray = true;
                         builder.put(Integer.toString(i), result.get());
                     }
                 }
-                return QueryResult.successArray(builder.build());
+                if (matchedInArray) {
+                    return QueryResult.successArray(builder.build());
+                }
             }
             return QueryResult.failure();
         }
@@ -199,7 +204,8 @@ public class QueryExpression implements DataPredicate {
 
         @Override
         public Optional<QueryResult> query(DataQuery query, DataView view) {
-            return QueryResult.check(NbtTypeHelper.isEqual(NbtTypeHelper.getObject(query, view), this.node));
+            Object value = NbtTypeHelper.getObject(query, view);
+            return QueryResult.check(NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, this.node)));
         }
     }
 
@@ -212,7 +218,8 @@ public class QueryExpression implements DataPredicate {
 
         @Override
         public Optional<QueryResult> query(DataQuery query, DataView view) {
-            return QueryResult.check(!NbtTypeHelper.isEqual(NbtTypeHelper.getObject(query, view), this.node));
+            Object value = NbtTypeHelper.getObject(query, view);
+            return QueryResult.check(!NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, this.node)));
         }
     }
 

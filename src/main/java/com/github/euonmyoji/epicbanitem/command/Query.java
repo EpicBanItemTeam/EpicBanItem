@@ -22,7 +22,9 @@ import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.ArmorEquipable;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.text.LiteralText;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 
 import java.io.*;
 import java.util.Optional;
@@ -65,11 +67,14 @@ class Query {
             QueryExpression query = new QueryExpression(getFrom(rule));
             Optional<QueryResult> result = query.query(DataQuery.of(), nbt);
             if (result.isPresent()) {
-                src.sendMessage(Text.of("成功匹配物品: ", getFrom(DataTranslators.CONFIGURATION_NODE.translate(nbt))));
+                LiteralText text = Text.of(result.get().toString());
+                Text.Builder prefix = Text.builder("成功匹配物品: ").onHover(TextActions.showText(text));
+                src.sendMessage(Text.of(prefix.build(), getFrom(DataTranslators.CONFIGURATION_NODE.translate(nbt))));
             } else {
                 src.sendMessage(Text.of("未成功匹配物品。"));
             }
         } catch (Exception e) {
+            e.printStackTrace(); // TODO: where is the logger?
             throw new CommandException(Text.of("解析匹配时出错: ", e.toString()));
         }
         return CommandResult.success();

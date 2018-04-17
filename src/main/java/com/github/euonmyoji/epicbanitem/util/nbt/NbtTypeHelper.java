@@ -405,12 +405,46 @@ public final class NbtTypeHelper {
         return result;
     }
 
-    public static boolean isEqual(@Nullable Object value, ConfigurationNode node) {
-        if (Objects.isNull(value)) {
-            return Objects.isNull(node.getValue());
-        } else {
-            return value.equals(convert(value, node));
+    public static boolean isEqual(@Nullable Object value, Object another) {
+        Map<String, Object> valueMap = getAsMap(value);
+        if (Objects.nonNull(valueMap)) {
+            Map<String, Object> anotherMap = getAsMap(another);
+            if (Objects.isNull(anotherMap) || anotherMap.size() != valueMap.size()) {
+                return false;
+            }
+            for (Map.Entry<String, Object> entry : anotherMap.entrySet()) {
+                if (!isEqual(valueMap.get(entry.getKey()), entry.getValue())) {
+                     return false;
+                }
+            }
+            return true;
         }
+        List<Object> valueList = getAsList(value);
+        if (Objects.nonNull(valueList)) {
+            List<Object> anotherList = getAsList(another);
+            if (Objects.isNull(anotherList) || anotherList.size() != valueList.size()) {
+                return false;
+            }
+            for (int i = anotherList.size() - 1; i >= 0; --i) {
+                if (!isEqual(anotherList.get(i), valueList.get(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        byte[] valueBytes = getAsByteArray(value);
+        if (Objects.nonNull(valueBytes)) {
+            return Arrays.equals(valueBytes, getAsByteArray(another));
+        }
+        int[] valueInts = getAsIntegerArray(value);
+        if (Objects.nonNull(valueInts)) {
+            return Arrays.equals(valueInts, getAsIntegerArray(another));
+        }
+        long[] valueLongs = getAsLongArray(value);
+        if (Objects.nonNull(valueLongs)) {
+            return Arrays.equals(valueLongs, getAsLongArray(another));
+        }
+        return another.equals(value);
     }
 
     @Nullable

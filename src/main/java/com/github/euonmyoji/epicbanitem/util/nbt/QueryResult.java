@@ -70,7 +70,13 @@ public class QueryResult {
         Map<String, QueryResult> children = new LinkedHashMap<>(this.children);
         for (Map.Entry<String, QueryResult> entry : anotherChildren.entrySet()) {
             QueryResult value = entry.getValue();
-            children.compute(entry.getKey(), (k, v) -> Objects.isNull(v) ? value : v.merge(value.getChildren()));
+            children.compute(entry.getKey(), (k, v) -> {
+                if (Objects.isNull(v)) {
+                    return value;
+                } else {
+                    return v.merge(value.getChildren());
+                }
+            });
         }
         return new QueryResult(this.isArray, this.isObject, children);
     }
@@ -107,5 +113,20 @@ public class QueryResult {
                 node.getNode("object").setValue(obj.getChildren());
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        String str = "{";
+        String nextSeparator = "";
+        str = this.isArrayChildren() ? "Array{" : str;
+        str = this.isObjectChildren() ? "Object{" : str;
+        StringBuilder sb = new StringBuilder("QueryResult").append(str);
+        for (Map.Entry<String, QueryResult> entry : this.children.entrySet()) {
+            sb.append(nextSeparator).append(entry.getKey());
+            sb.append('=').append(entry.getValue());
+            nextSeparator = ", ";
+        }
+        return sb.append('}').toString();
     }
 }
