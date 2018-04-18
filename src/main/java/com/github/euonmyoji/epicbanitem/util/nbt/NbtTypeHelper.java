@@ -34,8 +34,13 @@ public final class NbtTypeHelper {
             Object subView = setObject(queryParts.get(i), subViews[i - 1], valueTransformer);
             valueTransformer = o -> subView;
         }
-        DataQuery firstQuery = query.popFirst();
-        view.set(firstQuery, valueTransformer.apply(view.get(firstQuery).orElse(null)));
+        DataQuery firstQuery = DataQuery.of(queryParts.get(0));
+        Object value = valueTransformer.apply(view.get(firstQuery).orElse(null));
+        if (Objects.isNull(value)) {
+            view.remove(firstQuery);
+        } else {
+            view.set(firstQuery, value);
+        }
     }
 
     @Nullable
@@ -50,7 +55,6 @@ public final class NbtTypeHelper {
         return subView;
     }
 
-    @Nullable
     public static Object setObject(String key, Object view, Function<Object, Object> transformFunction) {
         Map<String, Object> map = getAsMap(view);
         if (Objects.nonNull(map)) {
@@ -509,14 +513,26 @@ public final class NbtTypeHelper {
 
     @SuppressWarnings("deprecation")
     public static DataContainer toNbt(ItemStack stack) {
-        DataContainer container = stack.toContainer();
+        DataContainer view = stack.toContainer();
         DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
 
-        container.get(DataQuery.of("ItemType")).ifPresent(id -> result.set(DataQuery.of("id"), id));
-        container.get(DataQuery.of("UnsafeData")).ifPresent(nbt -> result.set(DataQuery.of("tag"), nbt));
-        container.get(DataQuery.of("UnsafeDamage")).ifPresent(damage -> result.set(DataQuery.of("Damage"), damage));
+        view.get(DataQuery.of("ItemType")).ifPresent(id -> result.set(DataQuery.of("id"), id));
+        view.get(DataQuery.of("UnsafeData")).ifPresent(nbt -> result.set(DataQuery.of("tag"), nbt));
+        view.get(DataQuery.of("UnsafeDamage")).ifPresent(damage -> result.set(DataQuery.of("Damage"), damage));
 
         return result;
+    }
+
+    @SuppressWarnings("deprecation")
+    public static ItemStack toItemStack(DataView view) {
+        DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
+
+        result.set(DataQuery.of("Count"), 1);
+        view.get(DataQuery.of("id")).ifPresent(id -> result.set(DataQuery.of("ItemType"), id));
+        view.get(DataQuery.of("tag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
+        view.get(DataQuery.of("Damage")).ifPresent(damage -> result.set(DataQuery.of("UnsafeDamage"), damage));
+
+        return ItemStack.builder().fromContainer(result).build();
     }
 
     private static byte[] to(Byte[] array) {

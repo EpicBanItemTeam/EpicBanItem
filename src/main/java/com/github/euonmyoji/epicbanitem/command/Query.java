@@ -14,7 +14,6 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
@@ -27,7 +26,10 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
 import java.io.*;
-import java.util.Optional;
+import java.util.*;
+
+import static org.spongepowered.api.command.args.GenericArguments.optional;
+import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
 
 class Query {
 
@@ -41,8 +43,10 @@ class Query {
             .setParseOptions(getParseOptions())
             .setRenderOptions(getRenderOptions()).build();
 
+    static Map<UUID, String> histories = new HashMap<>();
+
     static CommandSpec query = CommandSpec.builder()
-            .arguments(GenericArguments.remainingRawJoinedStrings(Text.of("query-rule")))
+            .arguments(optional(remainingRawJoinedStrings(Text.of("query-rule"))))
             .permission("epicbanitem.query")
             .executor(Query::execute)
             .build();
@@ -60,9 +64,10 @@ class Query {
         if (!itemStackOptional.isPresent()) {
             throw new CommandException(Text.of("找不到物品。可能因为你不是玩家，或者手上没拿东西？"));
         }
+        UUID uuid = ((ArmorEquipable) src).getUniqueId();
         DataContainer nbt = NbtTypeHelper.toNbt(itemStackOptional.get());
         // noinspection ConstantConditions
-        String rule = args.<String>getOne("query-rule").get();
+        String rule = args.<String>getOne("query-rule").orElse(histories.getOrDefault(uuid, "{}"));
         try {
             QueryExpression query = new QueryExpression(getFrom(rule));
             Optional<QueryResult> result = query.query(DataQuery.of(), nbt);
@@ -73,6 +78,7 @@ class Query {
             } else {
                 src.sendMessage(Text.of("未成功匹配物品。"));
             }
+            histories.put(uuid, rule);
         } catch (Exception e) {
             e.printStackTrace(); // TODO: where is the logger?
             throw new CommandException(Text.of("解析匹配时出错: ", e.toString()));
@@ -80,14 +86,14 @@ class Query {
         return CommandResult.success();
     }
 
-    private static ConfigurationNode getFrom(String string) throws IOException {
+    static ConfigurationNode getFrom(String string) throws IOException {
         try (StringReader in = new StringReader(string); BufferedReader bufferedReader = new BufferedReader(in)) {
             reader = bufferedReader;
             return LOADER.load();
         }
     }
 
-    private static String getFrom(ConfigurationNode configNode) throws IOException {
+    static String getFrom(ConfigurationNode configNode) throws IOException {
         try (StringWriter out = new StringWriter(); BufferedWriter bufferedWriter = new BufferedWriter(out)) {
             writer = bufferedWriter;
             LOADER.save(configNode);
