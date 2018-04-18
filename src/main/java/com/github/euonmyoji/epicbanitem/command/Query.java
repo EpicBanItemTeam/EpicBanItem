@@ -1,6 +1,6 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.util.nbt.NbtTypeHelper;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.typesafe.config.ConfigParseOptions;
@@ -26,7 +26,10 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.spongepowered.api.command.args.GenericArguments.optional;
 import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
@@ -65,7 +68,7 @@ class Query {
             throw new CommandException(Text.of("找不到物品。可能因为你不是玩家，或者手上没拿东西？"));
         }
         UUID uuid = ((ArmorEquipable) src).getUniqueId();
-        DataContainer nbt = NbtTypeHelper.toNbt(itemStackOptional.get());
+        DataContainer nbt = NbtTagDataUtil.toNbt(itemStackOptional.get());
         // noinspection ConstantConditions
         String rule = args.<String>getOne("query-rule").orElse(histories.getOrDefault(uuid, "{}"));
         try {

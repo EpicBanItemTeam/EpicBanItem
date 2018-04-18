@@ -1,6 +1,10 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.util.nbt.*;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
+import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
+import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
+import com.github.euonmyoji.epicbanitem.util.nbt.UpdateResult;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -53,7 +57,7 @@ class Apply {
         }
         UUID uuid = ((ArmorEquipable) src).getUniqueId();
         int quantity = itemStackOptional.get().getQuantity();
-        DataContainer nbt = NbtTypeHelper.toNbt(itemStackOptional.get());
+        DataContainer nbt = NbtTagDataUtil.toNbt(itemStackOptional.get());
         // noinspection ConstantConditions
         String updateRule = args.<String>getOne("apply-rule").get();
         String queryRule = args.<String>getOne("query-rule").orElse(Query.histories.getOrDefault(uuid, "{}"));
@@ -72,7 +76,7 @@ class Apply {
             throw new CommandException(Text.of("应用规则时出错: ", e.toString()));
         }
         try {
-            ItemStack newStack = NbtTypeHelper.toItemStack(nbt);
+            ItemStack newStack = NbtTagDataUtil.toItemStack(nbt);
             newStack.setQuantity(quantity);
             ((ArmorEquipable) src).setItemInHand(handType, newStack);
             src.sendMessage(Text.of("成功应用物品。"));

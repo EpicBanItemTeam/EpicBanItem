@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.reflect.TypeToken;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -15,14 +14,8 @@ import java.util.Optional;
  * @author ustc_zzzz
  */
 @NonnullByDefault
-public class UpdateResult {
-    public static final TypeToken<UpdateResult> RESULT_TYPE_TOKEN;
-
-    static {
-        RESULT_TYPE_TOKEN = TypeToken.of(UpdateResult.class);
-        // TypeSerializers.getDefaultSerializers().registerType(RESULT_TYPE_TOKEN, new Serializer());
-    }
-
+@SuppressWarnings("WeakerAccess")
+public final class UpdateResult {
     public static UpdateResult nothing() {
         return new UpdateResult(ImmutableMap.of());
     }

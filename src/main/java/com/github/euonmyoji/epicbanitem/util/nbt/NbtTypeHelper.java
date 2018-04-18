@@ -20,9 +20,8 @@ import java.util.regex.Pattern;
  * @author ustc_zzzz
  */
 @NonnullByDefault
-@SuppressWarnings("WeakerAccess")
-public final class NbtTypeHelper {
-    public static void setObject(DataQuery query, DataView view, Function<Object, Object> valueTransformer) {
+final class NbtTypeHelper {
+    static void setObject(DataQuery query, DataView view, Function<Object, Object> valueTransformer) {
         List<String> queryParts = query.getParts();
         int lastQueryPartIndex = queryParts.size() - 1;
         Object[] subViews = new Object[lastQueryPartIndex];
@@ -44,7 +43,7 @@ public final class NbtTypeHelper {
     }
 
     @Nullable
-    public static Object getObject(DataQuery query, DataView view) {
+    static Object getObject(DataQuery query, DataView view) {
         Object subView = view;
         for (String queryPart : query.getParts()) {
             subView = getObject(queryPart, subView);
@@ -55,7 +54,7 @@ public final class NbtTypeHelper {
         return subView;
     }
 
-    public static Object setObject(String key, Object view, Function<Object, Object> transformFunction) {
+    static Object setObject(String key, Object view, Function<Object, Object> transformFunction) {
         Map<String, Object> map = getAsMap(view);
         if (Objects.nonNull(map)) {
             Object newValue = transformFunction.apply(map.get(key));
@@ -158,7 +157,7 @@ public final class NbtTypeHelper {
     }
 
     @Nullable
-    public static Object getObject(String key, Object view) {
+    static Object getObject(String key, Object view) {
         Map<String, ?> map = getAsMap(view);
         if (Objects.nonNull(map)) {
             Object result = map.get(key);
@@ -189,7 +188,7 @@ public final class NbtTypeHelper {
     }
 
     @SuppressWarnings("unchecked")
-    public static OptionalInt compare(@Nullable Object value, ConfigurationNode node) {
+    static OptionalInt compare(@Nullable Object value, ConfigurationNode node) {
         if (Objects.nonNull(value)) {
             Object another = convert(value, node);
             if (another instanceof String) {
@@ -252,7 +251,7 @@ public final class NbtTypeHelper {
         DOUBLE = Pattern.compile("[-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?d", Pattern.CASE_INSENSITIVE);
     }
 
-    public static Object convert(@Nullable Object previous, ConfigurationNode node) {
+    static Object convert(@Nullable Object previous, ConfigurationNode node) {
         if (node.hasListChildren()) {
             return convert(previous, node.getChildrenList());
         }
@@ -409,7 +408,7 @@ public final class NbtTypeHelper {
         return result;
     }
 
-    public static boolean isEqual(@Nullable Object value, Object another) {
+    static boolean isEqual(@Nullable Object value, Object another) {
         Map<String, Object> valueMap = getAsMap(value);
         if (Objects.nonNull(valueMap)) {
             Map<String, Object> anotherMap = getAsMap(another);
@@ -452,87 +451,63 @@ public final class NbtTypeHelper {
     }
 
     @Nullable
-    public static Byte getAsByte(@Nullable Object value) {
+    static Byte getAsByte(@Nullable Object value) {
         return value instanceof Byte ? (Byte) value : value instanceof Boolean ? (Boolean) value ? (byte) 1 : 0 : null;
     }
 
     @Nullable
-    public static Short getAsShort(@Nullable Object value) {
+    static Short getAsShort(@Nullable Object value) {
         return value instanceof Short ? (Short) value : null;
     }
 
     @Nullable
-    public static Integer getAsInteger(@Nullable Object value) {
+    static Integer getAsInteger(@Nullable Object value) {
         return value instanceof Integer ? (Integer) value : null;
     }
 
     @Nullable
-    public static Long getAsLong(@Nullable Object value) {
+    static Long getAsLong(@Nullable Object value) {
         return value instanceof Long ? (Long) value : null;
     }
 
     @Nullable
-    public static Float getAsFloat(@Nullable Object value) {
+    static Float getAsFloat(@Nullable Object value) {
         return value instanceof Float ? (Float) value : null;
     }
 
     @Nullable
-    public static Double getAsDouble(@Nullable Object value) {
+    static Double getAsDouble(@Nullable Object value) {
         return value instanceof Double ? (Double) value : null;
     }
 
     @Nullable
-    public static String getAsString(@Nullable Object value) {
+    static String getAsString(@Nullable Object value) {
         return value instanceof String ? (String) value : null;
     }
 
     @Nullable
-    public static byte[] getAsByteArray(@Nullable Object value) {
+    static byte[] getAsByteArray(@Nullable Object value) {
         return value instanceof byte[] ? (byte[]) value : value instanceof Byte[] ? to((Byte[]) value) : null;
     }
 
     @Nullable
-    public static int[] getAsIntegerArray(@Nullable Object value) {
+    static int[] getAsIntegerArray(@Nullable Object value) {
         return value instanceof int[] ? (int[]) value : value instanceof Integer[] ? to((Integer[]) value) : null;
     }
 
     @Nullable
-    public static long[] getAsLongArray(@Nullable Object value) {
+    static long[] getAsLongArray(@Nullable Object value) {
         return value instanceof long[] ? (long[]) value : value instanceof Long[] ? to((Long[]) value) : null;
     }
 
     @Nullable
-    public static List<Object> getAsList(@Nullable Object value) {
+    static List<Object> getAsList(@Nullable Object value) {
         return value instanceof List ? ImmutableList.copyOf((List<?>) value) : null;
     }
 
     @Nullable
-    public static Map<String, Object> getAsMap(@Nullable Object value) {
+    static Map<String, Object> getAsMap(@Nullable Object value) {
         return value instanceof Map ? to((Map<?, ?>) value) : value instanceof DataView ? to((DataView) value) : null;
-    }
-
-    @SuppressWarnings("deprecation")
-    public static DataContainer toNbt(ItemStack stack) {
-        DataContainer view = stack.toContainer();
-        DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
-
-        view.get(DataQuery.of("ItemType")).ifPresent(id -> result.set(DataQuery.of("id"), id));
-        view.get(DataQuery.of("UnsafeData")).ifPresent(nbt -> result.set(DataQuery.of("tag"), nbt));
-        view.get(DataQuery.of("UnsafeDamage")).ifPresent(damage -> result.set(DataQuery.of("Damage"), damage));
-
-        return result;
-    }
-
-    @SuppressWarnings("deprecation")
-    public static ItemStack toItemStack(DataView view) {
-        DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
-
-        result.set(DataQuery.of("Count"), 1);
-        view.get(DataQuery.of("id")).ifPresent(id -> result.set(DataQuery.of("ItemType"), id));
-        view.get(DataQuery.of("tag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
-        view.get(DataQuery.of("Damage")).ifPresent(damage -> result.set(DataQuery.of("UnsafeDamage"), damage));
-
-        return ItemStack.builder().fromContainer(result).build();
     }
 
     private static byte[] to(Byte[] array) {
