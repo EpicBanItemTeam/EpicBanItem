@@ -103,26 +103,31 @@ public class QueryExpression implements DataPredicate {
     private static ImmutableList<DataPredicate> findOperators(ConfigurationNode node) {
         ImmutableList.Builder<DataPredicate> builder = ImmutableList.builder();
         if (node.hasMapChildren()) {
+            String regexp = "", options = "";
             Map<Object, ? extends ConfigurationNode> map = node.getChildrenMap();
             for (Map.Entry<Object, ? extends ConfigurationNode> entry : map.entrySet()) {
                 String key = entry.getKey().toString();
                 if ("$regex".equals(key)) {
-                    String options = node.getNode("$options").getString("");
-                    String regexp = entry.getValue().getString("");
-                    int regexpEnd = getRegexpEnd(regexp);
-                    if (regexpEnd < 0) {
-                        regexpEnd = regexp.length() + 1;
-                        regexp = '/' + regexp + '/';
-                    }
-                    builder.add(new Regexp(regexp, regexpEnd, options));
+                    regexp = entry.getValue().getString("");
                     continue;
                 }
-                Function<ConfigurationNode, DataPredicate> operator = operators.get(key);
-                if (Objects.nonNull(operator)) {
-                    builder.add(operator.apply(entry.getValue()));
+                if ("$options".equals(key)) {
+                    options = entry.getValue().getString("");
+                    continue;
+                }
+                if (operators.containsKey(key)) {
+                    builder.add(operators.get(key).apply(entry.getValue()));
                     continue;
                 }
                 return ImmutableList.of();
+            }
+            if (!regexp.isEmpty()) {
+                int regexpEnd = getRegexpEnd(regexp);
+                if (regexpEnd < 0) {
+                    regexpEnd = regexp.length() + 1;
+                    regexp = '/' + regexp + '/';
+                }
+                builder.add(new Regexp(regexp, regexpEnd, options));
             }
         }
         return builder.build();
@@ -342,7 +347,7 @@ public class QueryExpression implements DataPredicate {
                 flag = this.addFlag(flag, regexp.charAt(i));
             }
             for (int i = options.length() - 1; i >= 0; --i) {
-                flag = this.addFlag(flag, regexp.charAt(i));
+                flag = this.addFlag(flag, options.charAt(i));
             }
             // noinspection MagicConstant
             this.pattern = Pattern.compile(regexp.substring(1, endIndex), flag);
