@@ -3,8 +3,8 @@ package com.github.euonmyoji.epicbanitem;
 import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
-import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
+import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -32,8 +32,12 @@ public class EpicBanItem {
     @ConfigDir(sharedRoot = false)
     public Path cfgDir;
 
+    public static Logger logger;
+
     @Inject
-    public Logger logger;
+    public void setLogger(Logger logger) {
+        EpicBanItem.logger = logger;
+    }
 
     @Listener
     public void onReload(GameReloadEvent event) {
@@ -41,8 +45,10 @@ public class EpicBanItem {
     }
 
     public static void reload() {
+        logger.info("reloading");
         Settings.reload();
         BanConfig.reload();
+        logger.info("reloaded");
     }
 
     @Listener

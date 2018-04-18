@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.util;
 
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageReceiver;
+import org.spongepowered.api.text.format.TextStyles;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -10,6 +11,9 @@ import static org.spongepowered.api.text.Text.builder;
 import static org.spongepowered.api.text.Text.of;
 import static org.spongepowered.api.text.action.TextActions.*;
 
+/**
+ * @author yinyangshi
+ */
 public class TextUtil {
 
     /**
@@ -19,7 +23,7 @@ public class TextUtil {
      * @return 带gui的指令提示text
      */
     private static Text runCommandGui(String command, String describe, @Nullable String hoverStr) {
-        return builder().append(of(command + " " + describe))
+        return builder().append(of(TextStyles.UNDERLINE, command, TextStyles.RESET, " " + describe))
                 .onClick(runCommand(command))
                 .onHover(showText(of(hoverStr != null ? hoverStr : "点击执行" + command)))
                 .build();
@@ -48,7 +52,7 @@ public class TextUtil {
      * @return 带gui的指令提示text
      */
     private static Text suggestCommandGui(String command, String describe, @Nonnull String commandArgs) {
-        return builder().append(of(command + " " + commandArgs + " " + describe))
+        return builder().append(of(TextStyles.UNDERLINE, command + " " + commandArgs, TextStyles.RESET, " " + describe))
                 .onClick(suggestCommand(command + " "))
                 .onHover(showText(of(command + " " + commandArgs)))
                 .build();

@@ -9,6 +9,7 @@ class Plugin {
     static CommandSpec reload = CommandSpec.builder()
             .permission("epicbanitem.reload")
             .executor((src, args) -> {
+                EpicBanItem.logger.info(src.getName() + "reloaded plugin");
                 EpicBanItem.reload();
                 return CommandResult.success();
             })
