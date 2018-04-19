@@ -1,32 +1,45 @@
 package com.github.euonmyoji.epicbanitem.check;
 
-import org.spongepowered.api.text.Text;
+import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
 import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
  * @author yinyangshi
  * 检查物品的结果
- * the result of check
+ * the result of checkItemStack
  */
 public class CheckResult {
     private boolean banned;
-    private Text message;
-    private List<CheckRule> breakRules;
+    private boolean remove;
+    private CheckRule breakRule;
     private Location from;
-    private World world;
+    private String world;
+    private Object checkedObject;
+    private UpdateExpression updateExpression;
 
-    private CheckResult(CheckResultBuilder builder) {
+    private CheckResult(Builder builder) {
         this.banned = builder.banned;
-        this.message = builder.message;
-        this.breakRules = builder.breakRules;
+        this.breakRule = builder.breakRule;
         this.from = builder.from;
         this.world = builder.world;
+        this.checkedObject = builder.checkedObject;
+        this.remove = builder.remove;
+        this.updateExpression = builder.updateExpression;
+    }
+
+    public Optional<UpdateExpression> getUpdateExpression() {
+        return Optional.ofNullable(this.updateExpression);
+    }
+
+    public boolean shouldRemove() {
+        return this.remove;
+    }
+
+    public Object getCheckedObject() {
+        return this.checkedObject;
     }
 
     public Else ifBanned(Consumer<CheckResult> consumer) {
@@ -35,7 +48,7 @@ public class CheckResult {
         return new Else(!banned);
     }
 
-    public Optional<World> getWorld() {
+    public Optional<String> getWorld() {
         return Optional.ofNullable(this.world);
     }
 
@@ -43,12 +56,8 @@ public class CheckResult {
         return Optional.ofNullable(this.from);
     }
 
-    public Optional<List<CheckRule>> getBreakRules() {
-        return Optional.ofNullable(this.breakRules);
-    }
-
-    public Optional<Text> getMessage() {
-        return Optional.ofNullable(this.message);
+    public Optional<CheckRule> getBreakRule() {
+        return Optional.ofNullable(this.breakRule);
     }
 
     public boolean isBanned() {
@@ -56,53 +65,55 @@ public class CheckResult {
     }
 
 
-    public static CheckResultBuilder builder() {
-        return new CheckResultBuilder();
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public static class CheckResultBuilder {
+    static class Builder {
         private boolean banned;
-        private Text message;
-        private List<CheckRule> breakRules = new ArrayList<>();
+        private CheckRule breakRule;
         private Location from;
-        private World world;
+        private String world;
+        private Object checkedObject;
+        private boolean remove;
+        private UpdateExpression updateExpression;
 
-        public CheckResultBuilder setWorld(World world) {
+        Builder setUpdateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
+            return this;
+        }
+
+        Builder setRemove(boolean remove) {
+            this.remove = remove;
+            return this;
+        }
+
+        Builder setWorld(String world) {
             this.world = world;
             return this;
         }
 
-        public CheckResultBuilder setBreakRules(List<CheckRule> breakRules) {
-            this.breakRules = breakRules;
+        Builder setCheckedObject(Object checkedObject) {
+            this.checkedObject = checkedObject;
             return this;
         }
 
-        public CheckResultBuilder addBreakRules(List<CheckRule> rules) {
-            breakRules.addAll(rules);
+        Builder setBreakRule(CheckRule breakRule) {
+            this.breakRule = breakRule;
             return this;
         }
 
-        public CheckResultBuilder setFrom(Location from) {
+        Builder setFrom(Location from) {
             this.from = from;
             return this;
         }
 
-        public CheckResultBuilder addBreakRule(CheckRule rule) {
-            breakRules.add(rule);
-            return this;
-        }
-
-        public CheckResultBuilder setMessage(Text message) {
-            this.message = message;
-            return this;
-        }
-
-        public CheckResultBuilder setBanned(boolean banned) {
+        Builder setBanned(boolean banned) {
             this.banned = banned;
             return this;
         }
 
-        public CheckResult build() {
+        CheckResult build() {
             return new CheckResult(this);
         }
     }

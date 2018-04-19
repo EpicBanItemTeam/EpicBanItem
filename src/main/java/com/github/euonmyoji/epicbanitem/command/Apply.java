@@ -27,6 +27,9 @@ import java.util.UUID;
 import static org.spongepowered.api.command.args.GenericArguments.firstParsing;
 import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
 
+/**
+ * @author ustc_zzzz
+ */
 class Apply {
 
     static CommandSpec apply = CommandSpec.builder()
@@ -52,7 +55,7 @@ class Apply {
             throw new CommandException(Text.of("找不到物品。可能因为你不是玩家，或者手上没拿东西？"));
         }
         // noinspection ConstantConditions
-        if (false) { // TODO: check and apply rule name first
+        if (false) { // TODO: checkItemStack and apply rule name first
             return CommandResult.success();
         }
         UUID uuid = ((ArmorEquipable) src).getUniqueId();

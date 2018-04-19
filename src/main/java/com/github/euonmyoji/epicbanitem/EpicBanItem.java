@@ -1,12 +1,15 @@
 package com.github.euonmyoji.epicbanitem;
 
+import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -61,6 +64,7 @@ public class EpicBanItem {
                 e.printStackTrace();
             }
         }
+        TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(CheckRule.class), new CheckRule.Serializer());
         Settings.init();
         BanConfig.init();
     }
