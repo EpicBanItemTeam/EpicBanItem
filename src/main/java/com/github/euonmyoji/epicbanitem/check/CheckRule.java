@@ -60,7 +60,7 @@ public class CheckRule {
             return new CheckRule(value.getNode("bypass-permissions").getList(strType, new ArrayList<>()),
                     value.getNode("enabled-worlds").getList(strType, new ArrayList<>()),
                     value.getNode("use-trigger").getList(strType, new ArrayList<>()),
-                    null, null);//TODO: wait for the query and update deserialize method
+                    new QueryExpression(value), new UpdateExpression(value));
         }
 
         @Override
