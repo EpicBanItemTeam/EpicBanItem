@@ -7,7 +7,10 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import java.io.IOException;
+import java.util.Map;
 
+//应该在BanConfig之前
+//静态?
 public class Settings {
     private static CommentedConfigurationNode cfg;
     private static ConfigurationLoader<CommentedConfigurationNode> loader;
@@ -48,6 +51,11 @@ public class Settings {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static Map<String,Boolean> getDefaultTriggers(){
+        //todo:
+        throw new UnsupportedOperationException("TODO :D");
     }
 
 }
