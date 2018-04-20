@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @author yinyangshi
+ * @author GINYAI yinyangshi
  * 检查物品的结果
  * the result of checkItemStack
  */
@@ -16,7 +16,7 @@ public class CheckResult {
     boolean remove;
     DataView view;
 
-    public CheckResult(){
+    public CheckResult() {
         breakRules = new ArrayList<>();
         remove = false;
         view = null;
@@ -37,7 +37,7 @@ public class CheckResult {
     }
 
     public boolean isBanned() {
-        return this.breakRules.size()>0;
+        return this.breakRules.size() > 0;
     }
 
 }
