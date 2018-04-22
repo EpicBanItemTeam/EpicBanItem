@@ -80,7 +80,7 @@ public class CheckRule {
                     origin.remove = true;
                 } else if (update != null) {
                     update.update(optionalQueryResult.get(), view).apply(view);
-                    //todo:?
+                    //todo:返回ItemStack 而不是DataView？
                     origin.view = view;
                 }
             }
@@ -125,7 +125,6 @@ public class CheckRule {
 
         @Override
         public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) throws ObjectMappingException {
-            //todo:
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
             if(rule.enableWorlds!=null){
                 node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>(){},new ArrayList<>(rule.enableWorlds));
@@ -134,11 +133,11 @@ public class CheckRule {
                 node.getNode("use-trigger",trigger).setValue(rule.enableTrigger.contains(trigger));
             }
             if(rule.query!=null){
-                //todo:
+                //todo:Expression序列化？
                 node.getNode("query").setValue(rule.query);
             }
             if(rule.update!=null){
-                //todo:
+                //todo:Expression序列化？
                 node.getNode("update").setValue(rule.query);
             }
             node.getNode("remove").setValue(rule.remove);

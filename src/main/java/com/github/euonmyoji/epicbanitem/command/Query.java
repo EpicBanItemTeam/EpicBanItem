@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
@@ -65,7 +66,7 @@ class Query {
             }
             histories.put(uuid, rule);
         } catch (Exception e) {
-            e.printStackTrace(); // TODO: where is the logger?
+            EpicBanItem.logger.error("解析匹配时出错: ",e);
             throw new CommandException(Text.of("解析匹配时出错: ", e.toString()));
         }
         return CommandResult.success();

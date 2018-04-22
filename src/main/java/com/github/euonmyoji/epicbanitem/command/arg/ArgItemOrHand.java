@@ -9,7 +9,6 @@ import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
-import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -30,32 +29,27 @@ class ArgItemOrHand extends CommandElement {
     @Override
     protected ItemType parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         boolean isPlayer = source instanceof Player;
-        if (!args.hasNext()) {
-            if (isPlayer && !explicitHand) {
-                return getItemTypeFormHand((Player) source);
-            } else {
-                //todo:消息提示
-                throw args.createError(Text.EMPTY);
-            }
+        if (!args.hasNext() && isPlayer && !explicitHand) {
+            return getItemTypeFormHand((Player) source,args);
         }
         String argString = args.next();
         if (isPlayer && explicitHand && argString.equalsIgnoreCase("hand")) {
-            return getItemTypeFormHand((Player) source);
+            return getItemTypeFormHand((Player) source,args);
         }
         Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class, argString);
         if (optionalItemType.isPresent()) {
             return optionalItemType.get();
         } else if (isPlayer && !explicitHand) {
-            return getItemTypeFormHand((Player) source);
+            return getItemTypeFormHand((Player) source,args);
         } else {
             //todo:消息提示
-            throw args.createError(Text.EMPTY);
+            throw args.createError(Text.of("无法找到物品"+argString));
         }
     }
 
-    //todo:手持空气？
-    private ItemType getItemTypeFormHand(Player player) {
-        return player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty()).getType();
+    private ItemType getItemTypeFormHand(Player player,CommandArgs args) throws ArgumentParseException {
+        //todo:消息提示
+        return player.getItemInHand(HandTypes.MAIN_HAND).orElseThrow(()->args.createError(Text.of("not support air"))).getType();
     }
 
     @Override

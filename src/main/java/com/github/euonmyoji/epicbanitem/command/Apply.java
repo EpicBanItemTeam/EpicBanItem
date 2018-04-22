@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
@@ -76,7 +77,7 @@ class Apply {
             Text.Builder prefix = Text.builder("成功应用规则: ").onHover(TextActions.showText(text));
             src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, queryResult)));
         } catch (Exception e) {
-            e.printStackTrace(); // TODO: where is the logger?
+            EpicBanItem.logger.error("应用规则时出错: ",e);
             throw new CommandException(Text.of("应用规则时出错: ", e.toString()));
         }
         try {
@@ -85,7 +86,7 @@ class Apply {
             ((ArmorEquipable) src).setItemInHand(handType, newStack);
             src.sendMessage(Text.of("成功应用物品。"));
         } catch (Exception e) {
-            e.printStackTrace(); // TODO: where is the logger?
+            EpicBanItem.logger.error("应用物品时出错: ",e);
             throw new CommandException(Text.of("应用物品时出错: ", e.toString()));
         }
         return CommandResult.success();
