@@ -1,11 +1,22 @@
 package com.github.euonmyoji.epicbanitem.util;
 
+import com.github.euonmyoji.epicbanitem.util.nbt.NbtTagRenderer;
+import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
+import com.typesafe.config.ConfigParseOptions;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
+import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageReceiver;
 import org.spongepowered.api.text.format.TextStyles;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 
 import static org.spongepowered.api.text.Text.builder;
 import static org.spongepowered.api.text.Text.of;
@@ -64,5 +75,21 @@ public class TextUtil {
      */
     public static void suggestCommandGuiThenSend(MessageReceiver receiver, String command, String describe, @Nonnull String commandArgs) {
         receiver.sendMessage(suggestCommandGui(command, describe, commandArgs));
+    }
+
+    public static Text serializeNbtToString(DataView nbt, QueryResult result) {
+        return new NbtTagRenderer(result).render(nbt);
+    }
+
+    private static BufferedReader delegation;
+
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
+            .setSource(() -> delegation).setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true)).build();
+
+    public static ConfigurationNode serializeStringToConfigNode(String string) throws IOException {
+        try (StringReader in = new StringReader(string); BufferedReader bufferedReader = new BufferedReader(in)) {
+            delegation = bufferedReader;
+            return LOADER.load();
+        }
     }
 }
