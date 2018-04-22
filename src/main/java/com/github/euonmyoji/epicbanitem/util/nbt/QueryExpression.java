@@ -3,7 +3,6 @@ package com.github.euonmyoji.epicbanitem.util.nbt;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import org.spongepowered.api.data.DataQuery;
@@ -43,8 +42,13 @@ public class QueryExpression implements DataPredicate {
         builder.put("$nin", n -> new OneOrMore(new Nor(n.getChildrenList(), QueryExpression::getInPredicate, false)));
 
         // noinspection Convert2MethodRef
+        builder.put("$size", n -> new Size(n));
+        builder.put("$all", n -> new AllIn(n.getChildrenList()));
+        builder.put("$elemMatch", n -> new ElemMatch(new QueryExpression(n)));
+
+        // noinspection Convert2MethodRef
         builder.put("$exists", n -> new Exists(n));
-        builder.put("$tagType", node -> new OneOrMore(new TagType(node)));
+        builder.put("$tagType", n -> new OneOrMore(new TagType(n)));
 
         operators = builder.build();
     }
@@ -140,59 +144,61 @@ public class QueryExpression implements DataPredicate {
         return lastIndex > 0 && value.indexOf('/') == 0 ? lastIndex : -1;
     }
 
+    private static int getListCount(Object object) {
+        List<?> list = NbtTypeHelper.getAsList(object);
+        if (Objects.nonNull(list)) {
+            return list.size();
+        }
+        long[] longArray = NbtTypeHelper.getAsLongArray(object);
+        if (Objects.nonNull(longArray)) {
+            return longArray.length;
+        }
+        int[] intArray = NbtTypeHelper.getAsIntegerArray(object);
+        if (Objects.nonNull(intArray)) {
+            return intArray.length;
+        }
+        byte[] byteArray = NbtTypeHelper.getAsByteArray(object);
+        if (Objects.nonNull(byteArray)) {
+            return byteArray.length;
+        }
+        return -1;
+    }
+
     private static class WithPrefix implements DataPredicate {
         private final DataPredicate criterion;
         private final String prefix;
 
         private WithPrefix(String prefix, DataPredicate criterion) {
-            this.criterion = criterion;
-            this.prefix = prefix;
+            int index = prefix.indexOf('.');
+            if (index < 0) {
+                this.criterion = criterion;
+                this.prefix = prefix;
+            } else {
+                this.criterion = new OneOrMore(new WithPrefix(prefix.substring(index + 1), criterion));
+                this.prefix = prefix.substring(0, index);
+            }
         }
 
         @Override
         public Optional<QueryResult> query(DataQuery query, DataView view) {
-            DataQuery then = DataQuery.of('.', this.prefix);
-            Optional<QueryResult> result = this.criterion.query(query.then(then), view);
-            if (result.isPresent()) {
-                for (String part : Lists.reverse(then.getParts())) {
-                    // noinspection ConstantConditions
-                    result = QueryResult.successObject(ImmutableMap.of(part, result.get()));
-                }
-                return result;
-            }
-            return Optional.empty();
+            Optional<QueryResult> resultOptional = this.criterion.query(query.then(this.prefix), view);
+            return resultOptional.flatMap(result -> QueryResult.successObject(ImmutableMap.of(this.prefix, result)));
         }
     }
 
     private static class OneOrMore implements DataPredicate {
+        private final ElemMatch elemMatchCriterion;
         private final DataPredicate criterion;
 
         private OneOrMore(DataPredicate criterion) {
+            this.elemMatchCriterion = new ElemMatch(criterion);
             this.criterion = criterion;
         }
 
         @Override
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             Optional<QueryResult> result = this.criterion.query(query, view);
-            if (result.isPresent()) {
-                return result;
-            }
-            List<?> list = NbtTypeHelper.getAsList(NbtTypeHelper.getObject(query, view));
-            if (Objects.nonNull(list)) {
-                boolean matchedInArray = false;
-                ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
-                for (int i = 0; i < list.size(); i++) {
-                    result = this.criterion.query(query.then(Integer.toString(i)), view);
-                    if (result.isPresent()) {
-                        matchedInArray = true;
-                        builder.put(Integer.toString(i), result.get());
-                    }
-                }
-                if (matchedInArray) {
-                    return QueryResult.successArray(builder.build());
-                }
-            }
-            return QueryResult.failure();
+            return result.isPresent() ? result : this.elemMatchCriterion.query(query, view);
         }
     }
 
@@ -368,6 +374,92 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             String string = NbtTypeHelper.getAsString(NbtTypeHelper.getObject(query, view));
             return QueryResult.check(Optional.ofNullable(string).filter(this.pattern.asPredicate()).isPresent());
+        }
+    }
+
+    private static class AllIn implements DataPredicate {
+        private final List<DataPredicate> criteria;
+
+        private AllIn(List<? extends ConfigurationNode> nodes) {
+            ImmutableList.Builder<DataPredicate> builder = ImmutableList.builder();
+            for (ConfigurationNode node : nodes) {
+                ConfigurationNode elemMatch = node.getChildrenMap().get("$elemMatch");
+                if (Objects.nonNull(elemMatch)) {
+                    builder.add(new QueryExpression(elemMatch));
+                } else {
+                    builder.add(getInPredicate(node));
+                }
+            }
+            this.criteria = builder.build();
+        }
+
+        @Override
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            int size = getListCount(NbtTypeHelper.getObject(query, view));
+            if (size > 0) {
+                boolean matchedInArray = false;
+                ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
+                for (int i = 0; i < size; i++) {
+                    String key = Integer.toString(i);
+                    DataQuery queryThen = query.then(key);
+                    for (DataPredicate criterion : this.criteria) {
+                        Optional<QueryResult> result = criterion.query(queryThen, view);
+                        if (result.isPresent()) {
+                            builder.put(key, result.get());
+                            matchedInArray = true;
+                            break;
+                        }
+                    }
+                }
+                if (matchedInArray) {
+                    return QueryResult.successArray(builder.build());
+                }
+            }
+            return QueryResult.failure();
+        }
+    }
+
+    private static class Size implements DataPredicate {
+        private final int size;
+
+        private Size(ConfigurationNode node) {
+            Object converted = NbtTypeHelper.convert(0, node);
+            this.size = converted instanceof Integer ? (Integer) converted : -1;
+        }
+
+        @Override
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            int size = getListCount(NbtTypeHelper.getObject(query, view));
+            return QueryResult.check(size >= 0 && size == this.size);
+        }
+    }
+
+    private static class ElemMatch implements DataPredicate {
+        private final DataPredicate criterion;
+
+        private ElemMatch(DataPredicate criterion) {
+            this.criterion = criterion;
+        }
+
+        @Override
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            int size = getListCount(NbtTypeHelper.getObject(query, view));
+            if (size > 0) {
+                boolean matchedInArray = false;
+                ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
+                for (int i = 0; i < size; i++) {
+                    String key = Integer.toString(i);
+                    Optional<QueryResult> result = this.criterion.query(query.then(key), view);
+                    if (result.isPresent()) {
+                        builder.put(key, result.get());
+                        matchedInArray = true;
+                    }
+                }
+                if (matchedInArray) {
+                    return QueryResult.successArray(builder.build());
+                }
+            }
+            return QueryResult.failure();
         }
     }
 

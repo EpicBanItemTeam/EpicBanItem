@@ -11,6 +11,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -213,17 +214,17 @@ final class NbtTypeHelper {
         byte[] bytes = getAsByteArray(value);
         if (Objects.nonNull(bytes)) {
             IntStream range = IntStream.range(0, bytes.length);
-            return "[B;" + range.mapToObj(i -> bytes[i] + "b").reduce((a, b) -> a + "," + b).orElse("") + "]";
+            return "[B;" + range.mapToObj(i -> bytes[i] + "b").reduce((a, b) -> a + ", " + b).orElse("") + "]";
         }
         int[] ints = getAsIntegerArray(value);
         if (Objects.nonNull(ints)) {
             IntStream range = IntStream.range(0, ints.length);
-            return "[I;" + range.mapToObj(i -> ints[i] + "b").reduce((a, b) -> a + "," + b).orElse("") + "]";
+            return "[I;" + range.mapToObj(i -> ints[i] + "b").reduce((a, b) -> a + ", " + b).orElse("") + "]";
         }
         long[] longs = getAsLongArray(value);
         if (Objects.nonNull(longs)) {
             IntStream range = IntStream.range(0, longs.length);
-            return "[L;" + range.mapToObj(i -> longs[i] + "b").reduce((a, b) -> a + "," + b).orElse("") + "]";
+            return "[L;" + range.mapToObj(i -> longs[i] + "b").reduce((a, b) -> a + ", " + b).orElse("") + "]";
         }
         throw new IllegalArgumentException("The value is a list or a compound");
     }
@@ -283,13 +284,13 @@ final class NbtTypeHelper {
     // from vanilla
     static {
         BOOLEAN = Pattern.compile("(true|false)", Pattern.CASE_INSENSITIVE);
-        BYTE = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)b", Pattern.CASE_INSENSITIVE);
-        LONG = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)l", Pattern.CASE_INSENSITIVE);
-        SHORT = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)s", Pattern.CASE_INSENSITIVE);
-        INTEGER = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)", Pattern.CASE_INSENSITIVE);
-        NUMBER = Pattern.compile("[-+]?(?:[0-9]+[.]|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?", Pattern.CASE_INSENSITIVE);
-        FLOAT = Pattern.compile("[-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?f", Pattern.CASE_INSENSITIVE);
-        DOUBLE = Pattern.compile("[-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?d", Pattern.CASE_INSENSITIVE);
+        BYTE = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))b", Pattern.CASE_INSENSITIVE);
+        LONG = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))l", Pattern.CASE_INSENSITIVE);
+        SHORT = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))s", Pattern.CASE_INSENSITIVE);
+        INTEGER = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))", Pattern.CASE_INSENSITIVE);
+        NUMBER = Pattern.compile("([-+]?(?:[0-9]+[.]|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)", Pattern.CASE_INSENSITIVE);
+        FLOAT = Pattern.compile("([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)f", Pattern.CASE_INSENSITIVE);
+        DOUBLE = Pattern.compile("([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)d", Pattern.CASE_INSENSITIVE);
     }
 
     static Object convert(@Nullable Object previous, ConfigurationNode node) {
@@ -299,30 +300,38 @@ final class NbtTypeHelper {
         if (node.hasMapChildren()) {
             return convert(previous, node.getChildrenMap());
         }
+        Matcher matcher;
         String valueString = node.getString("");
         try {
-            if (BOOLEAN.matcher(valueString).matches()) {
-                boolean b = Boolean.parseBoolean(valueString.substring(1, valueString.length() - 1));
+            matcher = BOOLEAN.matcher(valueString);
+            if (matcher.matches()) {
+                boolean b = Boolean.parseBoolean(matcher.group(1));
                 return previous instanceof Byte ? b ? 1 : 0 : b;
             }
-            if (DOUBLE.matcher(valueString).matches()) {
-                return Double.parseDouble(valueString.substring(1, valueString.length() - 1));
+            matcher = DOUBLE.matcher(valueString);
+            if (matcher.matches()) {
+                return Double.parseDouble(matcher.group(1));
             }
-            if (FLOAT.matcher(valueString).matches()) {
-                return Float.parseFloat(valueString.substring(1, valueString.length() - 1));
+            matcher = FLOAT.matcher(valueString);
+            if (matcher.matches()) {
+                return Float.parseFloat(matcher.group(1));
             }
-            if (BYTE.matcher(valueString).matches()) {
-                byte b = Byte.parseByte(valueString.substring(1, valueString.length() - 1));
+            matcher = BYTE.matcher(valueString);
+            if (matcher.matches()) {
+                byte b = Byte.parseByte(matcher.group(1));
                 return previous instanceof Boolean ? b == 0 ? Boolean.FALSE : b == 1 ? Boolean.TRUE : b : b;
             }
-            if (LONG.matcher(valueString).matches()) {
-                return Long.parseLong(valueString.substring(1, valueString.length() - 1));
+            matcher = LONG.matcher(valueString);
+            if (matcher.matches()) {
+                return Long.parseLong(matcher.group(1));
             }
-            if (SHORT.matcher(valueString).matches()) {
-                return Short.parseShort(valueString.substring(1, valueString.length() - 1));
+            matcher = SHORT.matcher(valueString);
+            if (matcher.matches()) {
+                return Short.parseShort(matcher.group(1));
             }
-            if (INTEGER.matcher(valueString).matches()) {
-                int i = Integer.parseInt(valueString);
+            matcher = INTEGER.matcher(valueString);
+            if (matcher.matches()) {
+                int i = Integer.parseInt(matcher.group(1));
                 if (previous instanceof Byte && (byte) i == i) {
                     return (byte) i;
                 }
@@ -340,8 +349,9 @@ final class NbtTypeHelper {
                 }
                 return i;
             }
-            if (NUMBER.matcher(valueString).matches()) {
-                double n = Double.parseDouble(valueString);
+            matcher = NUMBER.matcher(valueString);
+            if (matcher.matches()) {
+                double n = Double.parseDouble(matcher.group(1));
                 return previous instanceof Float ? (float) n : n;
             }
             return valueString;
@@ -419,12 +429,15 @@ final class NbtTypeHelper {
                 try {
                     if (isByteArray) {
                         result.add(Byte.parseByte(value));
+                        continue;
                     }
                     if (isIntArray) {
                         result.add(Integer.parseInt(value));
+                        continue;
                     }
                     if (isLongArray) {
                         result.add(Long.parseLong(value));
+                        continue;
                     }
                 } catch (NumberFormatException e) {
                     isByteArray = false;
@@ -435,16 +448,28 @@ final class NbtTypeHelper {
             }
         }
         if (isByteArray) {
-            // noinspection SuspiciousToArrayCall
-            return result.toArray(new Byte[0]);
+            byte[] bytes = new byte[result.size()];
+            for (int i = 0; i < bytes.length; i++) {
+                Byte element = (Byte) result.get(i);
+                bytes[i] = element;
+            }
+            return bytes;
         }
         if (isIntArray) {
-            // noinspection SuspiciousToArrayCall
-            return result.toArray(new Integer[0]);
+            int[] ints = new int[result.size()];
+            for (int i = 0; i < ints.length; i++) {
+                Integer element = (Integer) result.get(i);
+                ints[i] = element;
+            }
+            return ints;
         }
         if (isLongArray) {
-            // noinspection SuspiciousToArrayCall
-            return result.toArray(new Long[0]);
+            long[] longs = new long[result.size()];
+            for (int i = 0; i < longs.length; i++) {
+                Long element = (Long) result.get(i);
+                longs[i] = element;
+            }
+            return longs;
         }
         return result;
     }

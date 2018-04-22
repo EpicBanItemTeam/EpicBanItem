@@ -64,7 +64,7 @@ class Apply {
         DataContainer nbt = NbtTagDataUtil.toNbt(itemStackOptional.get());
         // noinspection ConstantConditions
         String updateRule = args.<String>getOne("apply-rule").get();
-        String queryRule = args.<String>getOne("query-rule").orElse(Query.histories.getOrDefault(uuid, "{}"));
+        String queryRule = Query.histories.getOrDefault(uuid, "{}");
         try {
             UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
             QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
