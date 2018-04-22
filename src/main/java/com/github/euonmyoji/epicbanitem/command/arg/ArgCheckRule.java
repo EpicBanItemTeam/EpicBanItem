@@ -14,6 +14,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @NonnullByDefault
@@ -30,10 +31,15 @@ class ArgCheckRule extends CommandElement {
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         CheckRule rule = null;
-        for (CheckRule rule1 : service.getCheckRules(itemType)) {
-            if (rule1.getName().equalsIgnoreCase(argString)) {
-                rule = rule1;
-                break;
+        Optional<CheckRule> optionalCheckRule = service.getCheckRule(itemType,argString);
+        if(optionalCheckRule.isPresent()){
+            rule = optionalCheckRule.get();
+        }else {
+            for (CheckRule rule1 : service.getCheckRules(itemType)) {
+                if (rule1.getName().equalsIgnoreCase(argString)) {
+                    rule = rule1;
+                    break;
+                }
             }
         }
         if (rule != null) {

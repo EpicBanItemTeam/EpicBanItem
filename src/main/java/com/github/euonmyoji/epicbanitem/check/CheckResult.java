@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,11 @@ public class CheckResult {
 
     public boolean isBanned() {
         return this.breakRules.size() > 0;
+    }
+
+    public Text getText(){
+        //todo:
+        throw new UnsupportedOperationException("TODO");
     }
 
 }

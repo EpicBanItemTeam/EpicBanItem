@@ -13,13 +13,11 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author GINYAI yinyangshi
@@ -90,6 +88,11 @@ public class CheckRule {
         return origin;
     }
 
+    public Text getText(){
+        //todo:改个好听的名字
+        throw new UnsupportedOperationException("TODO");
+    }
+
     public static class Serializer implements TypeSerializer<CheckRule> {
 
         @Override
@@ -121,8 +124,24 @@ public class CheckRule {
         }
 
         @Override
-        public void serialize(TypeToken<?> type, CheckRule obj, ConfigurationNode value) throws ObjectMappingException {
+        public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) throws ObjectMappingException {
             //todo:
+            node.getNode("bypass-permissions").setValue(rule.ignorePermission);
+            if(rule.enableWorlds!=null){
+                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>(){},new ArrayList<>(rule.enableWorlds));
+            }
+            for (String trigger: Settings.getDefaultTriggers().keySet()) {
+                node.getNode("use-trigger",trigger).setValue(rule.enableTrigger.contains(trigger));
+            }
+            if(rule.query!=null){
+                //todo:
+                node.getNode("query").setValue(rule.query);
+            }
+            if(rule.update!=null){
+                //todo:
+                node.getNode("update").setValue(rule.query);
+            }
+            node.getNode("remove").setValue(rule.remove);
 //            TypeToken<List<String>> strType = new TypeToken<List<String>>() {};
 //
 //            value.getNode("bypass-permissions").setValue(strType, obj.ignorePermissions);
