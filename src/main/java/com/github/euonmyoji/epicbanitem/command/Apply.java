@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
@@ -13,7 +14,6 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
-import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.ArmorEquipable;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -65,15 +65,16 @@ class Apply {
         String updateRule = args.<String>getOne("apply-rule").get();
         String queryRule = args.<String>getOne("query-rule").orElse(Query.histories.getOrDefault(uuid, "{}"));
         try {
+            UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
+            QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
             // noinspection ConstantConditions
-            QueryResult queryResult = new QueryExpression(Query.getFrom(queryRule)).query(DataQuery.of(), nbt).get();
-            UpdateExpression update = new UpdateExpression(Query.getFrom(updateRule));
+            QueryResult queryResult = query.query(DataQuery.of(), nbt).get();
             UpdateResult updateResult = update.update(queryResult, nbt);
 
             updateResult.apply(nbt);
             LiteralText text = Text.of(updateResult.toString());
             Text.Builder prefix = Text.builder("成功应用规则: ").onHover(TextActions.showText(text));
-            src.sendMessage(Text.of(prefix.build(), Query.getFrom(DataTranslators.CONFIGURATION_NODE.translate(nbt))));
+            src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, queryResult)));
         } catch (Exception e) {
             e.printStackTrace(); // TODO: where is the logger?
             throw new CommandException(Text.of("应用规则时出错: ", e.toString()));

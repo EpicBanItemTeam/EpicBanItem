@@ -4,17 +4,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
-import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.data.MemoryDataContainer;
-import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 /**
  * @author ustc_zzzz
@@ -59,11 +57,11 @@ final class NbtTypeHelper {
         if (Objects.nonNull(map)) {
             Object newValue = transformFunction.apply(map.get(key));
             if (Objects.nonNull(newValue)) {
-                map = new HashMap<>(map); // make it mutable
+                map = new LinkedHashMap<>(map); // make it mutable
                 map.put(key, newValue);
                 return map;
             } else {
-                map = new HashMap<>(map); // make it mutable
+                map = new LinkedHashMap<>(map); // make it mutable
                 map.remove(key);
                 return map;
             }
@@ -185,6 +183,49 @@ final class NbtTypeHelper {
             }
         }
         return null;
+    }
+
+    static String toString(Object value) {
+        if (value instanceof Boolean) {
+            return (Boolean) value ? "1b" : "0b";
+        }
+        if (value instanceof Byte) {
+            return value.toString() + "b";
+        }
+        if (value instanceof Short) {
+            return value.toString() + "s";
+        }
+        if (value instanceof Integer) {
+            return value.toString();
+        }
+        if (value instanceof Long) {
+            return value.toString() + "l";
+        }
+        if (value instanceof Float) {
+            return value.toString() + "f";
+        }
+        if (value instanceof Double) {
+            return value.toString() + "d";
+        }
+        if (value instanceof String) {
+            return "\"" + ((String) value).replace("\"", "\\\"") + "\"";
+        }
+        byte[] bytes = getAsByteArray(value);
+        if (Objects.nonNull(bytes)) {
+            IntStream range = IntStream.range(0, bytes.length);
+            return "[B;" + range.mapToObj(i -> bytes[i] + "b").reduce((a, b) -> a + "," + b).orElse("") + "]";
+        }
+        int[] ints = getAsIntegerArray(value);
+        if (Objects.nonNull(ints)) {
+            IntStream range = IntStream.range(0, ints.length);
+            return "[I;" + range.mapToObj(i -> ints[i] + "b").reduce((a, b) -> a + "," + b).orElse("") + "]";
+        }
+        long[] longs = getAsLongArray(value);
+        if (Objects.nonNull(longs)) {
+            IntStream range = IntStream.range(0, longs.length);
+            return "[L;" + range.mapToObj(i -> longs[i] + "b").reduce((a, b) -> a + "," + b).orElse("") + "]";
+        }
+        throw new IllegalArgumentException("The value is a list or a compound");
     }
 
     @SuppressWarnings("unchecked")
@@ -417,7 +458,7 @@ final class NbtTypeHelper {
             }
             for (Map.Entry<String, Object> entry : anotherMap.entrySet()) {
                 if (!isEqual(valueMap.get(entry.getKey()), entry.getValue())) {
-                     return false;
+                    return false;
                 }
             }
             return true;
