@@ -10,6 +10,8 @@ import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 
+import java.nio.file.ProviderNotFoundException;
+
 /**
  * @author yinyangshi & dalaos
  */
@@ -26,7 +28,7 @@ public class GetItemListener {
                 "transfer" : null;
         if (trigger != null) {
             CheckRuleService service = Sponge.getServiceManager().provide(CheckRuleService.class)
-                    .orElseThrow(() -> new IllegalArgumentException("No CheckRuleService found!"));
+                    .orElseThrow(() -> new ProviderNotFoundException("No CheckRuleService found!"));
             Player p = event.getSource() instanceof Player ? ((Player) event.getSource()) : null;
             for (SlotTransaction slotTransaction : event.getTransactions()) {
                 ItemStack item = slotTransaction.getOriginal().createStack();
