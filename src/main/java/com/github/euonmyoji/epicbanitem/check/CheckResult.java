@@ -17,10 +17,14 @@ public class CheckResult {
     boolean remove;
     DataView view;
 
-    public CheckResult() {
+    private CheckResult() {
         breakRules = new ArrayList<>();
         remove = false;
         view = null;
+    }
+
+    public List<CheckRule> getBreakRules() {
+        return this.breakRules;
     }
 
     public CheckResult(List<CheckRule> breakRules, boolean remove, DataView view) {
@@ -41,9 +45,13 @@ public class CheckResult {
         return this.breakRules.size() > 0;
     }
 
-    public Text getText(){
+    public Text getText() {
         //todo:
         throw new UnsupportedOperationException("TODO");
     }
 
+
+    static CheckResult empty() {
+        return new CheckResult();
+    }
 }

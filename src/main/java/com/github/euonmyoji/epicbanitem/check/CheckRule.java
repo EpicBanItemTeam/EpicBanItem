@@ -58,7 +58,7 @@ public class CheckRule {
      * @param subject 被检查的权限主体
      * @return 检查结果
      */
-    public CheckResult check(DataView view, CheckResult origin, World world, String trigger, @Nullable Subject subject) {
+    private CheckResult check(DataView view, CheckResult origin, World world, String trigger, @Nullable Subject subject) {
         if (!enableTrigger.contains(trigger)) {
             return origin;
         }
@@ -88,7 +88,7 @@ public class CheckRule {
         return origin;
     }
 
-    public Text getText(){
+    public Text getText() {
         //todo:改个好听的名字
         throw new UnsupportedOperationException("TODO");
     }
@@ -126,17 +126,18 @@ public class CheckRule {
         @Override
         public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) throws ObjectMappingException {
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
-            if(rule.enableWorlds!=null){
-                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>(){},new ArrayList<>(rule.enableWorlds));
+            if (rule.enableWorlds != null) {
+                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {
+                }, new ArrayList<>(rule.enableWorlds));
             }
-            for (String trigger: Settings.getDefaultTriggers().keySet()) {
-                node.getNode("use-trigger",trigger).setValue(rule.enableTrigger.contains(trigger));
+            for (String trigger : Settings.getDefaultTriggers().keySet()) {
+                node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
             }
-            if(rule.query!=null){
+            if (rule.query != null) {
                 //todo:Expression序列化？
                 node.getNode("query").setValue(rule.query);
             }
-            if(rule.update!=null){
+            if (rule.update != null) {
                 //todo:Expression序列化？
                 node.getNode("update").setValue(rule.query);
             }
