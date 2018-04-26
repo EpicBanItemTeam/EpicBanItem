@@ -9,8 +9,11 @@ import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
+import org.spongepowered.api.world.Locatable;
+import org.spongepowered.api.world.World;
 
 import java.nio.file.ProviderNotFoundException;
+import java.util.Optional;
 
 /**
  * @author yinyangshi & dalaos
@@ -30,10 +33,16 @@ public class GetItemListener {
             CheckRuleService service = Sponge.getServiceManager().provide(CheckRuleService.class)
                     .orElseThrow(() -> new ProviderNotFoundException("No CheckRuleService found!"));
             Player p = event.getSource() instanceof Player ? ((Player) event.getSource()) : null;
+            //感觉不是很确定
+            Optional<Locatable> optionalLocatable = event.getCause().first(Locatable.class);
+            World world = null;
+            if(optionalLocatable.isPresent()){
+                world = optionalLocatable.get().getWorld();
+            }
             for (SlotTransaction slotTransaction : event.getTransactions()) {
                 ItemStack item = slotTransaction.getOriginal().createStack();
                 CheckResult result;
-                while ((result = service.check(item, p, trigger)).isBanned()) {
+                while ((result = service.check(item,world,trigger, p)).isBanned()) {
                     event.setCancelled(true);
                     if (result.shouldRemove()) {
                         slotTransaction.setCustom(ItemStack.empty());

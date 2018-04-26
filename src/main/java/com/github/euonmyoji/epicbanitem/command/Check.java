@@ -14,6 +14,7 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.world.storage.WorldProperties;
 
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ public class Check implements CommandExecutor {
             //todo:<hand|lookat>
             .permission("epicbanitem.check")
             .arguments(
+                    GenericArguments.world(Text.of("world")),
                     GenericArguments.string(Text.of("trigger"))
             )
             .executor(new Check())

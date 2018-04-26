@@ -24,5 +24,4 @@ public interface CheckRuleService {
 
     CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject);
 
-    CheckResult check(ItemStack itemStack, @Nullable Player p, String trigger);
 }

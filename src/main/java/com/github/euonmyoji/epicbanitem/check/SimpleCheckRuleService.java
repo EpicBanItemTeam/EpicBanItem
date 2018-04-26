@@ -29,14 +29,9 @@ public class SimpleCheckRuleService implements CheckRuleService {
 
     @Override
     public CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject) {
-        return null;
-    }
-
-    @Override
-    public CheckResult check(ItemStack itemStack, @Nullable Player p, String trigger) {
         CheckResult result = CheckResult.empty();
-        getCheckRules(itemStack.getType()).forEach(checkRule -> checkRule.check(itemStack, result,
-                p != null ? p.getWorld() : null, trigger, p));
+        getCheckRules(itemStack.getType()).forEach(checkRule -> checkRule.check(itemStack, result, world, trigger, subject));
         return result;
     }
+
 }
