@@ -29,6 +29,7 @@ public class SimpleCheckRuleService implements CheckRuleService {
 
     @Override
     public CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject) {
+<<<<<<< HEAD
         return null;
     }
 
@@ -37,6 +38,11 @@ public class SimpleCheckRuleService implements CheckRuleService {
         CheckResult result = CheckResult.empty();
         getCheckRules(itemStack.getType()).forEach(checkRule -> checkRule.check(itemStack, result,
                 p.getWorld(), trigger, p));
+=======
+        CheckResult result = CheckResult.empty();
+        getCheckRules(itemStack.getType()).forEach(checkRule -> checkRule.check(itemStack, result, world, trigger, subject));
+>>>>>>> 7bab48494f308ee37f1f19ec80e88fba041db2ea
         return result;
     }
+
 }
