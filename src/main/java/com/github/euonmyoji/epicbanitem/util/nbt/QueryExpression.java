@@ -623,9 +623,7 @@ public class QueryExpression implements DataPredicate {
             try {
                 this.bindings.clear();
                 this.bindings.put("obj", transform(NbtTypeHelper.getAsMap(view)));
-                Object result = this.compiledScript.eval(this.bindings);
-                System.out.println(result);
-                return QueryResult.check(Boolean.FALSE.equals(result));
+                return QueryResult.check(Boolean.FALSE.equals(this.compiledScript.eval(this.bindings)));
             } catch (ScriptException e) {
                 return QueryResult.failure();
             }
