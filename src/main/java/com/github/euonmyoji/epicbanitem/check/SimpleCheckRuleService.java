@@ -33,10 +33,10 @@ public class SimpleCheckRuleService implements CheckRuleService {
     }
 
     @Override
-    public CheckResult check(ItemStack itemStack, @Nullable Player p, String trigger) {
+    public CheckResult check(ItemStack itemStack, Player p, String trigger) {
         CheckResult result = CheckResult.empty();
         getCheckRules(itemStack.getType()).forEach(checkRule -> checkRule.check(itemStack, result,
-                p != null ? p.getWorld() : null, trigger, p));
+                p.getWorld(), trigger, p));
         return result;
     }
 }

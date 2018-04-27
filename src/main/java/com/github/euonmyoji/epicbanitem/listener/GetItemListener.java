@@ -20,7 +20,6 @@ public class GetItemListener {
     @Listener
     public void onChangeInv(ChangeInventoryEvent event) {
         //判断trigger 可能有点乱:D
-        System.out.println(event);
         String trigger = event instanceof ClickInventoryEvent.Drag
                 || event instanceof ClickInventoryEvent.Shift ?
                 "click" : event instanceof ChangeInventoryEvent.Pickup ?
@@ -29,7 +28,7 @@ public class GetItemListener {
         if (trigger != null) {
             CheckRuleService service = Sponge.getServiceManager().provide(CheckRuleService.class)
                     .orElseThrow(() -> new ProviderNotFoundException("No CheckRuleService found!"));
-            Player p = event.getSource() instanceof Player ? ((Player) event.getSource()) : null;
+            Player p = event.getCause().first(Player.class).orElseThrow(NoSuchFieldError::new);
             for (SlotTransaction slotTransaction : event.getTransactions()) {
                 ItemStack item = slotTransaction.getOriginal().createStack();
                 CheckResult result;
