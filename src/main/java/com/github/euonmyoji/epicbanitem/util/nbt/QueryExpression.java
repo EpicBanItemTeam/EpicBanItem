@@ -593,7 +593,7 @@ public class QueryExpression implements DataPredicate {
             try {
                 // test if it is an expression
                 ((Compilable) ENGINE).compile(script);
-                return "!(function(){return " + script + ";}).apply(obj)";
+                return "!(function(){return typeof(this)=='function'?this.apply(obj):this;}).apply((function(){return (" + script + ");}).apply(obj))";
             } catch (ScriptException e) {
                 return "!(new Function(" + TextUtil.escape(script) + ").apply(obj))";
             }
