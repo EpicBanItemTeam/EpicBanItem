@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.util;
 
 import com.github.euonmyoji.epicbanitem.util.nbt.NbtTagRenderer;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
+import com.google.gson.stream.JsonWriter;
 import com.typesafe.config.ConfigParseOptions;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -14,9 +15,7 @@ import org.spongepowered.api.text.format.TextStyles;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 
 import static org.spongepowered.api.text.Text.builder;
 import static org.spongepowered.api.text.Text.of;
@@ -79,6 +78,16 @@ public class TextUtil {
 
     public static Text serializeNbtToString(DataView nbt, QueryResult result) {
         return new NbtTagRenderer(result).render(nbt);
+    }
+
+    public static String escape(String unescapedString) {
+        try (StringWriter out = new StringWriter()) {
+            JsonWriter writer = new JsonWriter(out);
+            writer.value(unescapedString).close();
+            return out.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static BufferedReader delegation;

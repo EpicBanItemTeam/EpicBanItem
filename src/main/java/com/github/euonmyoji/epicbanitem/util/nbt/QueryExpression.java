@@ -1,14 +1,17 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.Tuple;
 
+import javax.script.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
@@ -58,6 +61,7 @@ public class QueryExpression implements DataPredicate {
     public QueryExpression(ConfigurationNode view) {
         Map<Object, ? extends ConfigurationNode> map = view.getChildrenMap();
         this.criteria = new ArrayList<>(map.size());
+        DataPredicate whereExpression = null;
         for (Map.Entry<Object, ? extends ConfigurationNode> entry : map.entrySet()) {
             String key = entry.getKey().toString();
             if ("$and".equals(key) || "$nor".equals(key) || "$or".equals(key)) {
@@ -65,7 +69,7 @@ public class QueryExpression implements DataPredicate {
                 continue;
             }
             if ("$where".equals(key)) {
-                // TODO
+                whereExpression = new Where(entry.getValue());
                 continue;
             }
             ConfigurationNode value = entry.getValue();
@@ -83,6 +87,9 @@ public class QueryExpression implements DataPredicate {
                 continue;
             }
             this.criteria.add(new WithPrefix(key, new Regexp(valueString, regexpEnd, "")));
+        }
+        if (Objects.nonNull(whereExpression)) {
+            this.criteria.add(whereExpression);
         }
     }
 
@@ -565,6 +572,63 @@ public class QueryExpression implements DataPredicate {
                 }
             }
             return QueryResult.failure();
+        }
+    }
+
+    private static class Where implements DataPredicate {
+        private static final ScriptEngine ENGINE = getJavaScriptEngine();
+
+        private final CompiledScript compiledScript;
+        private final Bindings bindings = new SimpleBindings();
+
+        private Where(ConfigurationNode node) {
+            try {
+                this.compiledScript = ((Compilable) ENGINE).compile(wrap(node.getString("")));
+            } catch (ScriptException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+
+        private static String wrap(String script) {
+            try {
+                // test if it is an expression
+                ((Compilable) ENGINE).compile(script);
+                return "!(function(){return " + script + ";}).apply(obj)";
+            } catch (ScriptException e) {
+                return "!(new Function(" + TextUtil.escape(script) + ").apply(obj))";
+            }
+        }
+
+        private static ScriptEngine getJavaScriptEngine() {
+            // noinspection SpellCheckingInspection
+            return new ScriptEngineManager(null).getEngineByName("nashorn");
+        }
+
+        private static Map<String, Object> transform(Map<String, Object> map) {
+            return Maps.transformValues(map, v -> {
+                List<Object> l = NbtTypeHelper.getAsList(v);
+                if (Objects.nonNull(l)) {
+                    return l.toArray(new Object[0]);
+                }
+                Map<String, Object> m = NbtTypeHelper.getAsMap(v);
+                if (Objects.nonNull(m)) {
+                    return transform(m);
+                }
+                return v;
+            });
+        }
+
+        @Override
+        public Optional<QueryResult> query(DataQuery query, DataView view) {
+            try {
+                this.bindings.clear();
+                this.bindings.put("obj", transform(NbtTypeHelper.getAsMap(view)));
+                Object result = this.compiledScript.eval(this.bindings);
+                System.out.println(result);
+                return QueryResult.check(Boolean.FALSE.equals(result));
+            } catch (ScriptException e) {
+                return QueryResult.failure();
+            }
         }
     }
 }
