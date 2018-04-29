@@ -2,7 +2,7 @@ package com.github.euonmyoji.epicbanitem;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
-import com.github.euonmyoji.epicbanitem.configuration.BanItem;
+import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
@@ -51,7 +51,7 @@ public class EpicBanItem {
     public static void reload() {
         logger.info("reloading");
         Settings.reload();
-        BanItem.reload();
+        BanItemConfig.reload();
         logger.info("reloaded");
     }
 
@@ -67,7 +67,7 @@ public class EpicBanItem {
         }
         TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(CheckRule.class), new CheckRule.Serializer());
         Settings.init();
-        BanItem.init();
+        BanItemConfig.init();
     }
 
     @Listener
