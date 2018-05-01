@@ -139,7 +139,7 @@ public class CheckRule {
             }
             if (rule.update != null) {
                 //todo:Expression序列化？
-                node.getNode("update").setValue(rule.query);
+                node.getNode("update").setValue(rule.update);
             }
             node.getNode("remove").setValue(rule.remove);
 //            TypeToken<List<String>> strType = new TypeToken<List<String>>() {};
