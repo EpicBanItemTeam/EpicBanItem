@@ -15,7 +15,7 @@ import java.nio.file.ProviderNotFoundException;
 /**
  * @author yinyangshi & dalaos
  */
-public class GetItemListener {
+public class InventoryListener {
 
     @Listener
     public void onChangeInv(ChangeInventoryEvent event) {

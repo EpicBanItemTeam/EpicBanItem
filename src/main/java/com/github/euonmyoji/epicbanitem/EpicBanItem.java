@@ -5,7 +5,7 @@ import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
 import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
-import com.github.euonmyoji.epicbanitem.listener.GetItemListener;
+import com.github.euonmyoji.epicbanitem.listener.InventoryListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -73,7 +73,7 @@ public class EpicBanItem {
     @Listener
     public void onStarted(GameStartedServerEvent event) {
         Sponge.getCommandManager().register(this, EpicBanItemCommand.ebi, "epicbanitem", "ebi", "banitem");
-        Sponge.getEventManager().registerListeners(this, new GetItemListener());
+        Sponge.getEventManager().registerListeners(this, new InventoryListener());
         Sponge.getEventManager().registerListeners(this, new WorldItemMoveListener());
         Sponge.getEventManager().registerListeners(this, new ChunkListener());
     }
