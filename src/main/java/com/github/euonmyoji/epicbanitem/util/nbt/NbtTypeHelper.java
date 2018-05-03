@@ -219,12 +219,12 @@ final class NbtTypeHelper {
         int[] ints = getAsIntegerArray(value);
         if (Objects.nonNull(ints)) {
             IntStream range = IntStream.range(0, ints.length);
-            return "[I;" + range.mapToObj(i -> ints[i] + "b").reduce((a, b) -> a + ", " + b).orElse("") + "]";
+            return "[I;" + range.mapToObj(i -> ints[i] + "").reduce((a, b) -> a + ", " + b).orElse("") + "]";
         }
         long[] longs = getAsLongArray(value);
         if (Objects.nonNull(longs)) {
             IntStream range = IntStream.range(0, longs.length);
-            return "[L;" + range.mapToObj(i -> longs[i] + "b").reduce((a, b) -> a + ", " + b).orElse("") + "]";
+            return "[L;" + range.mapToObj(i -> longs[i] + "l").reduce((a, b) -> a + ", " + b).orElse("") + "]";
         }
         throw new IllegalArgumentException("The value is a list or a compound");
     }

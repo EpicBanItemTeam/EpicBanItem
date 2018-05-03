@@ -11,6 +11,7 @@ import org.spongepowered.api.util.Tuple;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -23,9 +24,12 @@ public class UpdateExpression implements DataTransformer {
         ImmutableMap.Builder<String, BiFunction<String, ConfigurationNode, DataTransformer>> builder;
         builder = ImmutableMap.builder();
 
-        builder.put("$set", (k, n) -> new Set(n, k));
         builder.put("$unset", (k, n) -> new Unset(k));
         builder.put("$rename", (k, n) -> new Rename(k, n.getString(k)));
+
+        builder.put("$set", (k, n) -> new Transform(o -> NbtTypeHelper.convert(o, n), k));
+        builder.put("$inc", (k, n) -> new Transform(o -> increaseValue(o, NbtTypeHelper.convert(o, n)), k));
+        builder.put("$mul", (k, n) -> new Transform(o -> multiplyValue(o, NbtTypeHelper.convert(o, n)), k));
 
         operators = builder.build();
     }
@@ -127,13 +131,81 @@ public class UpdateExpression implements DataTransformer {
         return parts.stream().map(tuple -> DataQuery.of(tuple.getFirst())).collect(Collectors.toList());
     }
 
-    private static class Set implements DataTransformer {
-        private final ConfigurationNode value;
+    private static Object multiplyValue(Object previousValue, Object multiplier) {
+        if (Objects.isNull(previousValue)) {
+            return multiplyValue(multiplier, 0);
+        }
+        if (multiplier instanceof Boolean) {
+            multiplier = (Boolean) multiplier ? (byte) 1 : (byte) 0;
+        }
+        if (!(multiplier instanceof Number)) {
+            throw new IllegalArgumentException("Cannot multiply with non-numeric argument: " + multiplier);
+        }
+        if (previousValue instanceof Boolean) {
+            return ((Boolean) previousValue ? (byte) 1 : (byte) 0) * ((Number) multiplier).byteValue();
+        }
+        if (previousValue instanceof Byte) {
+            return (Byte) previousValue * ((Number) multiplier).byteValue();
+        }
+        if (previousValue instanceof Short) {
+            return (Short) previousValue * ((Number) multiplier).shortValue();
+        }
+        if (previousValue instanceof Integer) {
+            return (Integer) previousValue * ((Number) multiplier).intValue();
+        }
+        if (previousValue instanceof Long) {
+            return (Long) previousValue * ((Number) multiplier).longValue();
+        }
+        if (previousValue instanceof Float) {
+            return (Float) previousValue * ((Number) multiplier).floatValue();
+        }
+        if (previousValue instanceof Double) {
+            return (Double) previousValue * ((Number) multiplier).doubleValue();
+        }
+        throw new IllegalArgumentException("Cannot apply $mul to a value of non-numeric type");
+    }
+
+    private static Object increaseValue(Object previousValue, Object increment) {
+        if (Objects.isNull(previousValue)) {
+            return increment;
+        }
+        if (increment instanceof Boolean) {
+            increment = (Boolean) increment ? (byte) 1 : (byte) 0;
+        }
+        if (!(increment instanceof Number)) {
+            throw new IllegalArgumentException("Cannot increase with non-numeric argument: " + increment);
+        }
+        if (previousValue instanceof Boolean) {
+            return ((Boolean) previousValue ? (byte) 1 : (byte) 0) + ((Number) increment).byteValue();
+        }
+        if (previousValue instanceof Byte) {
+            return (Byte) previousValue + ((Number) increment).byteValue();
+        }
+        if (previousValue instanceof Short) {
+            return (Short) previousValue + ((Number) increment).shortValue();
+        }
+        if (previousValue instanceof Integer) {
+            return (Integer) previousValue + ((Number) increment).intValue();
+        }
+        if (previousValue instanceof Long) {
+            return (Long) previousValue + ((Number) increment).longValue();
+        }
+        if (previousValue instanceof Float) {
+            return (Float) previousValue + ((Number) increment).floatValue();
+        }
+        if (previousValue instanceof Double) {
+            return (Double) previousValue + ((Number) increment).doubleValue();
+        }
+        throw new IllegalArgumentException("Cannot apply $inc to a value of non-numeric type");
+    }
+
+    private static class Transform implements DataTransformer {
+        private final Function<Object, Object> valueTransformer;
         private final DataQuery queryFirst;
         private final DataQuery query;
 
-        private Set(ConfigurationNode value, String key) {
-            this.value = value;
+        private Transform(Function<Object, ?> valueTransformer, String key) {
+            this.valueTransformer = valueTransformer::apply;
             this.query = DataQuery.of('.', key);
             this.queryFirst = DataQuery.of(this.query.getParts().get(0));
         }
@@ -145,7 +217,7 @@ public class UpdateExpression implements DataTransformer {
             List<DataQuery> transformedQueries = transformQuery(this.query, result);
             view.get(this.queryFirst).ifPresent(v -> copy.set(this.queryFirst, v));
             for (DataQuery query : transformedQueries) {
-                NbtTypeHelper.setObject(query, copy, o -> NbtTypeHelper.convert(o, this.value));
+                NbtTypeHelper.setObject(query, copy, this.valueTransformer);
             }
             UpdateResult updateResult = UpdateResult.nothing();
             for (DataQuery query : transformedQueries) {
