@@ -30,6 +30,8 @@ public class CheckRule {
     private boolean remove;
     private QueryExpression query;
     private UpdateExpression update;
+    private ConfigurationNode queryNode;
+    private ConfigurationNode updateNode;
 
     //todo:Builder
     private CheckRule(String name) {
@@ -113,11 +115,15 @@ public class CheckRule {
                     rule.enableTrigger.add(entry.getKey());
                 }
             }
-            if (!node.getNode("query").isVirtual()) {
-                rule.query = new QueryExpression(node.getNode("query"));
+            ConfigurationNode queryNode = node.getNode("query");
+            if (!queryNode.isVirtual()) {
+                rule.query = new QueryExpression(queryNode);
+                rule.queryNode = queryNode;
             }
-            if (!node.getNode("update").isVirtual()) {
-                rule.update = new UpdateExpression(node.getNode("update"));
+            ConfigurationNode updateNode = node.getNode("update");
+            if (!updateNode.isVirtual()) {
+                rule.update = new UpdateExpression(updateNode);
+                rule.updateNode = updateNode;
             }
             rule.remove = node.getNode("remove").getBoolean(rule.update == null);
             return rule;
@@ -134,12 +140,10 @@ public class CheckRule {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
             }
             if (rule.query != null) {
-                //todo:Expression序列化？
-                node.getNode("query").setValue(rule.query);
+                node.getNode("query").setValue(rule.queryNode);
             }
             if (rule.update != null) {
-                //todo:Expression序列化？
-                node.getNode("update").setValue(rule.update);
+                node.getNode("update").setValue(rule.updateNode);
             }
             node.getNode("remove").setValue(rule.remove);
 //            TypeToken<List<String>> strType = new TypeToken<List<String>>() {};
