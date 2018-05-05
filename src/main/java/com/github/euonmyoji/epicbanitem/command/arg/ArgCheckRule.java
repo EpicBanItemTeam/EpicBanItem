@@ -45,8 +45,7 @@ class ArgCheckRule extends CommandElement {
         if (rule != null) {
             context.putArg(getKey(), rule);
         } else {
-            //todo:提示信息
-            throw args.createError(Text.EMPTY);
+            throw args.createError(Text.of("rule为null"));
         }
     }
 

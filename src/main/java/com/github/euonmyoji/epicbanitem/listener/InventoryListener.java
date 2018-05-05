@@ -34,6 +34,7 @@ public class InventoryListener {
             for (SlotTransaction slotTransaction : event.getTransactions()) {
                 ItemStack item = slotTransaction.getOriginal().createStack();
                 CheckResult result;
+                boolean execute = false;
                 while ((result = service.check(item, p.getWorld(), trigger, p)).isBanned()) {
                     event.setCancelled(true);
                     if (result.shouldRemove()) {
@@ -42,8 +43,11 @@ public class InventoryListener {
                         //如果要remove 告辞
                     }
                     result.getFinalView().ifPresent(item::setRawData);
+                    execute = true;
                 }
-                slotTransaction.setCustom(item);
+                if (execute) {
+                    slotTransaction.setCustom(item);
+                }
             }
         }
     }

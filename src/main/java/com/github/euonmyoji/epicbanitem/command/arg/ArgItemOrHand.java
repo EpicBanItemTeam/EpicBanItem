@@ -42,13 +42,11 @@ class ArgItemOrHand extends CommandElement {
         } else if (isPlayer && !explicitHand) {
             return getItemTypeFormHand((Player) source,args);
         } else {
-            //todo:消息提示
             throw args.createError(Text.of("无法找到物品"+argString));
         }
     }
 
     private ItemType getItemTypeFormHand(Player player,CommandArgs args) throws ArgumentParseException {
-        //todo:消息提示
         return player.getItemInHand(HandTypes.MAIN_HAND).orElseThrow(()->args.createError(Text.of("not support air"))).getType();
     }
 
