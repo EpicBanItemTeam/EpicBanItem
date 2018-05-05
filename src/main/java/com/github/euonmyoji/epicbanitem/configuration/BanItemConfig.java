@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class BanItemConfig {
     private static CommentedConfigurationNode cfg;
     private static ConfigurationLoader<CommentedConfigurationNode> loader;
-    private static final TypeToken<CheckRule> CHECK_RULE_TYPE_TOKEN = TypeToken.of(CheckRule.class);
+    public static final TypeToken<CheckRule> CHECK_RULE_TYPE_TOKEN = TypeToken.of(CheckRule.class);
 
     private BanItemConfig() {
         //nothing here

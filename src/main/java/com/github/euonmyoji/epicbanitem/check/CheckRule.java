@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
@@ -9,6 +10,7 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -93,6 +95,10 @@ public class CheckRule {
     public Text getText() {
         //todo:改个好听的名字
         throw new UnsupportedOperationException("TODO");
+    }
+
+    static {
+        TypeSerializers.getDefaultSerializers().registerType(BanItemConfig.CHECK_RULE_TYPE_TOKEN, new Serializer());
     }
 
     public static class Serializer implements TypeSerializer<CheckRule> {

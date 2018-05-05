@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.check;
 
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
