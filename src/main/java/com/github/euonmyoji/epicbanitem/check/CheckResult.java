@@ -45,13 +45,13 @@ public class CheckResult {
         return this.breakRules.size() > 0;
     }
 
-    public Text getText() {
+    public Text toText() {
         //todo:
         throw new UnsupportedOperationException("TODO");
     }
 
 
-    static CheckResult empty() {
+    public static CheckResult empty() {
         return new CheckResult();
     }
 }

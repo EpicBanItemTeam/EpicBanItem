@@ -26,9 +26,9 @@ import java.util.*;
  */
 public class CheckRule {
     private String name;
-    private Set<String> enableWorlds;
+    private Set<String> enableWorlds = new HashSet<>();
     private String ignorePermission;
-    private Set<String> enableTrigger;
+    private Set<String> enableTrigger = new HashSet<>();
     private boolean remove;
     private QueryExpression query;
     private UpdateExpression update;
@@ -42,6 +42,14 @@ public class CheckRule {
 
     public String getName() {
         return name;
+    }
+
+    public Set<String> getEnableTrigger() {
+        return Collections.unmodifiableSet(enableTrigger);
+    }
+
+    public Set<String> getEnableWorlds() {
+        return Collections.unmodifiableSet(enableWorlds);
     }
 
     /**
@@ -66,7 +74,7 @@ public class CheckRule {
         if (!enableTrigger.contains(trigger)) {
             return origin;
         }
-        if (enableWorlds != null && !enableWorlds.contains(world.getName())) {
+        if (!enableWorlds.isEmpty() && !enableWorlds.contains(world.getName())) {
             return origin;
         }
         if (ignorePermission != null && subject != null && subject.hasPermission(ignorePermission)) {
@@ -107,11 +115,7 @@ public class CheckRule {
             CheckRule rule = new CheckRule(node.getNode("name").getString());
             rule.ignorePermission = node.getNode("bypass-permissions").getString(null);
             if (!node.getNode("enabled-worlds").isVirtual()) {
-                rule.enableWorlds = new HashSet<>(node.getNode("enabled-worlds").getList(TypeToken.of(String.class)));
-                //有必要么
-                if (rule.enableWorlds.size() == 0) {
-                    rule.enableWorlds = null;
-                }
+                rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class)));
             }
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             rule.enableTrigger = new HashSet<>();
@@ -139,8 +143,7 @@ public class CheckRule {
             node.getNode("name").setValue(rule.name);
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
             if (rule.enableWorlds != null) {
-                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {
-                }, new ArrayList<>(rule.enableWorlds));
+                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {}, new ArrayList<>(rule.enableWorlds));
             }
             for (String trigger : Settings.getDefaultTriggers().keySet()) {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
