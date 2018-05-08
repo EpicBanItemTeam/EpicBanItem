@@ -37,7 +37,7 @@ public class CheckRule {
 
     //todo:Builder
     private CheckRule(String name) {
-        this.name = name;
+        this.name = Objects.requireNonNull(name);
     }
 
     public String getName() {
@@ -92,8 +92,7 @@ public class CheckRule {
         return origin;
     }
 
-    public Text getText() {
-        //todo:改个好听的名字
+    public Text toText() {
         throw new UnsupportedOperationException("TODO");
     }
 
@@ -105,7 +104,7 @@ public class CheckRule {
 
         @Override
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
-            CheckRule rule = new CheckRule(node.getKey().toString());
+            CheckRule rule = new CheckRule(node.getNode("name").getString());
             rule.ignorePermission = node.getNode("bypass-permissions").getString(null);
             if (!node.getNode("enabled-worlds").isVirtual()) {
                 rule.enableWorlds = new HashSet<>(node.getNode("enabled-worlds").getList(TypeToken.of(String.class)));
@@ -137,6 +136,7 @@ public class CheckRule {
 
         @Override
         public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) throws ObjectMappingException {
+            node.getNode("name").setValue(rule.name);
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
             if (rule.enableWorlds != null) {
                 node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {
@@ -152,13 +152,6 @@ public class CheckRule {
                 node.getNode("update").setValue(rule.updateNode);
             }
             node.getNode("remove").setValue(rule.remove);
-//            TypeToken<List<String>> strType = new TypeToken<List<String>>() {};
-//
-//            value.getNode("bypass-permissions").setValue(strType, obj.ignorePermissions);
-//            value.getNode("enabled-worlds").setValue(strType, obj.enableWorlds);
-//            value.getNode("use-trigger").setValue(strType, obj.enableTrigger);
-//            value.getNode("query").setValue(obj.query);
-//            value.getNode("update").setValue(obj.update);
         }
     }
 }
