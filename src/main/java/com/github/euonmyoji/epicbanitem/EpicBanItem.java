@@ -7,6 +7,7 @@ import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.listener.InventoryListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
@@ -17,6 +18,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.plugin.Plugin;
 
 import java.io.IOException;
@@ -58,6 +60,8 @@ public class EpicBanItem {
     @Listener
     public void onStarting(GameStartingServerEvent event) {
         plugin = this;
+        logger.debug("Item to Block matching: ");
+        NbtTagDataUtil.printLog().forEachRemaining(log -> logger.debug(log));
         if (!Files.exists(cfgDir)) {
             try {
                 Files.createDirectory(cfgDir);
