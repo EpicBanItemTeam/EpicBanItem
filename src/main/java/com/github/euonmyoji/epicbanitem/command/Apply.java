@@ -81,9 +81,7 @@ class Apply {
             throw new CommandException(Text.of("应用规则时出错: ", e.toString()));
         }
         try {
-            ItemStack newStack = NbtTagDataUtil.toItemStack(nbt);
-            newStack.setQuantity(quantity);
-            ((ArmorEquipable) src).setItemInHand(handType, newStack);
+            ((ArmorEquipable) src).setItemInHand(handType, NbtTagDataUtil.toItemStack(nbt, quantity));
             src.sendMessage(Text.of("成功应用物品。"));
         } catch (Exception e) {
             EpicBanItem.logger.error("应用物品时出错: ",e);

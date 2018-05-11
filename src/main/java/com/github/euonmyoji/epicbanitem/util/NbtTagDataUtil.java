@@ -76,10 +76,10 @@ public class NbtTagDataUtil {
     }
 
     @SuppressWarnings("deprecation")
-    public static ItemStack toItemStack(DataView view) {
+    public static ItemStack toItemStack(DataView view, int stackSize) {
         DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
 
-        result.set(DataQuery.of("Count"), 1);
+        result.set(DataQuery.of("Count"), stackSize);
         view.get(DataQuery.of("id")).ifPresent(id -> result.set(DataQuery.of("ItemType"), id));
         view.get(DataQuery.of("tag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
         view.get(DataQuery.of("Damage")).ifPresent(damage -> result.set(DataQuery.of("UnsafeDamage"), damage));
