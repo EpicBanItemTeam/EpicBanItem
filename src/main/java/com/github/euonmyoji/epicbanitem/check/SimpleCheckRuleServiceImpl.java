@@ -8,7 +8,10 @@ import org.spongepowered.api.world.World;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class SimpleCheckRuleService implements CheckRuleService {
+/**
+ * @author GINYAI yinyangshi
+ */
+public class SimpleCheckRuleServiceImpl implements CheckRuleService {
     private Map<ItemType, Map<String, CheckRule>> rules = new HashMap<>();
 
     @Override

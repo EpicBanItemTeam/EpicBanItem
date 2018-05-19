@@ -26,7 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * @author 主yinyangshi #调用dalao写的各种方法
+ * @author EpicBanItem Team
  */
 @Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION, authors = {"yinyangshi", "GINYAI", "ustc-zzzz"},
         description = "a banitem plugin with nbt")
