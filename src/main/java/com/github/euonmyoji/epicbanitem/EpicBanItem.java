@@ -7,6 +7,7 @@ import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.listener.InventoryListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
+import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -39,6 +40,12 @@ public class EpicBanItem {
     public Path cfgDir;
 
     public static Logger logger;
+
+    private Messages messages;
+
+    public Messages getMessages() {
+        return messages;
+    }
 
     @Inject
     public void setLogger(Logger logger) {

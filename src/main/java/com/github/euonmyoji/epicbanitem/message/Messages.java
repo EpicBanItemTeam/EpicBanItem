@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class Messages {
+    //todo:
     private TextTemplate MISSING;
 
     private final EpicBanItem plugin;

@@ -1,11 +1,17 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import org.spongepowered.api.command.CommandCallable;
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.args.*;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractCommand implements ICommand,CommandExecutor {
 
@@ -21,18 +27,32 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
     }
 
 
-    public String getPermission(){
+    public String getRootPermission(){
         return "epicbanitem.command."+name;
     }
 
-    public Text getDescription(){
-        //todo:翻译支持？
-        return Text.EMPTY;
+    protected String getPermission(String s){
+        return getRootPermission()+"."+s;
     }
 
-    public Text getUsageHelp(CommandSource source){
-        //todo:翻译支持？需要提供CommandSource么?
-        return Text.EMPTY;
+    protected String getMessageKey(String s){
+        return "epicbanitem.command."+name+"."+s;
+    }
+
+    protected Text getMessage(String s){
+        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s));
+    }
+
+    public Text getDescription(){
+        return getMessage("description");
+    }
+
+    public Text getExtendedDescription(){
+        return getMessage("extendedDescription");
+    }
+
+    public Text getArgHelp(CommandSource source){
+        return getMessage("argHelp");
     }
 
     public abstract CommandElement getArgument();
@@ -50,14 +70,96 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
     @Override
     public CommandSpec getCallable() {
         if(commandSpec == null){
+            Help help = new Help();
             commandSpec = CommandSpec.builder()
-                    .permission(getPermission())
+                    .permission(getRootPermission())
                     .description(getDescription())
-                    .arguments(getArgument())
-                    .executor(this)
+                    .extendedDescription(getExtendedDescription())
+                    .arguments(help)
+                    .executor(help)
                     .build();
         }
         return commandSpec;
+    }
+
+    private class Help extends CommandElement implements CommandExecutor{
+        private CommandElement commandElement = getArgument();
+
+        private Help() {
+            super(Text.of("help"));
+        }
+
+        @Override
+        public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
+            Object state = args.getState();
+            try {
+                commandElement.parse(source,args,context);
+            }catch (ArgumentParseException e){
+                args.setState(state);
+                if(args.next().equalsIgnoreCase("help")){
+                    context.putArg("help",true);
+                }else {
+                    throw e;
+                }
+            }
+        }
+
+        @Nullable
+        @Override
+        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+            //do nothing here
+            return null;
+        }
+
+        @Override
+        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+            try {
+                if(!args.hasNext()||"help".startsWith(args.peek().toLowerCase())){
+                    List<String> stringList = new ArrayList<>();
+                    stringList.add("help");
+                    stringList.addAll(getCallable().complete(src,args,context));
+                    return stringList;
+                }else {
+                    return getCallable().complete(src,args,context);
+                }
+            } catch (ArgumentParseException e) {
+                e.printStackTrace();
+                return getCallable().complete(src,args,context);
+            }
+        }
+
+        @Override
+        public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+            if(args.hasAny("help")){
+                //todo:使用翻译 , 颜色
+                Text.Builder builder = Text.builder();
+                builder.append(Text.of("Command:",getName()),Text.NEW_LINE);
+                builder.append(getDescription(),Text.NEW_LINE);
+                if(getAlias().length>0){
+                    builder.append(Text.of("Alias:"));
+                    for(String alias:getAlias()){
+                        builder.append(Text.of(alias," "));
+                    }
+                    builder.append(Text.NEW_LINE);
+                }
+                builder.append(Text.of("Usages:"),getUsage(src),Text.NEW_LINE);
+                builder.append(getArgHelp(src),Text.NEW_LINE);
+//                builder.append(getExtendedDescription(),Text.NEW_LINE);
+                return CommandResult.success();
+            }else {
+                return AbstractCommand.this.execute(src,args);
+            }
+        }
+
+        @Override
+        public Text getUsage(CommandSource src) {
+            Text usage = commandElement.getUsage(src);
+            if(usage.isEmpty()){
+                return Text.of("help");
+            }else {
+                return Text.of("help|",usage);
+            }
+        }
     }
 
 }
