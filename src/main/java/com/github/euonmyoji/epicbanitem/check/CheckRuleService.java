@@ -12,9 +12,6 @@ import java.util.Set;
 
 //填充命令用
 
-/**
- * @author EpicBanItem Team
- */
 public interface CheckRuleService {
     //Map<ItemType,Map<String,CheckRule>>?
     //Map<ItemType,Collection<CheckRule>>?

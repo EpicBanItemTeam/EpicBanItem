@@ -1,7 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
-import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * @author GINYAI yinyangshi
+ * @author GiNYAi yinyangshi
  */
 public class CheckRule {
     private String name;
@@ -119,7 +119,7 @@ public class CheckRule {
             }
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             rule.enableTrigger = new HashSet<>();
-            for (Map.Entry<String, Boolean> entry : Settings.getDefaultTriggers().entrySet()) {
+            for (Map.Entry<String, Boolean> entry : EpicBanItem.plugin.getSettings().getDefaultTriggers().entrySet()) {
                 if (triggerNode.getNode(entry.getKey()).getBoolean(entry.getValue())) {
                     rule.enableTrigger.add(entry.getKey());
                 }
@@ -145,7 +145,7 @@ public class CheckRule {
             if (rule.enableWorlds != null) {
                 node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {}, new ArrayList<>(rule.enableWorlds));
             }
-            for (String trigger : Settings.getDefaultTriggers().keySet()) {
+            for (String trigger : EpicBanItem.plugin.getSettings().getDefaultTriggers().keySet()) {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
             }
             if (rule.query != null) {

@@ -8,9 +8,6 @@ import org.spongepowered.api.world.World;
 import javax.annotation.Nullable;
 import java.util.*;
 
-/**
- * @author GINYAI yinyangshi
- */
 public class SimpleCheckRuleServiceImpl implements CheckRuleService {
     private Map<ItemType, Map<String, CheckRule>> rules = new HashMap<>();
 
@@ -35,5 +32,9 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
         getCheckRules(itemStack.getType()).forEach(checkRule -> checkRule.check(itemStack, result,
                 world, trigger, subject));
         return result;
+    }
+
+    public void reload() {
+        //todo:如果无法正常载入新的配置 要不要恢复为之前的
     }
 }
