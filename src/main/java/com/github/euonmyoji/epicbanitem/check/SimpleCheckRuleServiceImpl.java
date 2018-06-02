@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 public class SimpleCheckRuleServiceImpl implements CheckRuleService {
-    private Map<ItemType, Map<String, CheckRule>> rules = new HashMap<>();
+    private Map<ItemType, List<CheckRule>> rules = new HashMap<>();
 
     @Override
     public Set<ItemType> getCheckItemTypes() {
@@ -17,13 +17,18 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
     }
 
     @Override
-    public Collection<CheckRule> getCheckRules(ItemType itemType) {
-        return rules.get(itemType).values();
+    public List<CheckRule> getCheckRules(ItemType itemType) {
+        return rules.getOrDefault(itemType,Collections.emptyList());
     }
 
     @Override
     public Optional<CheckRule> getCheckRule(ItemType itemType, String name) {
-        return Optional.ofNullable(rules.get(itemType).get(name));
+        for(CheckRule rule:getCheckRules(itemType)){
+            if(rule.getName().equals(name)){
+                return Optional.of(rule);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override

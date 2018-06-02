@@ -6,9 +6,10 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 @NonnullByDefault
+@SuppressWarnings("WeakerAccess")
 public class EpicBanItemArgs {
 
-    private static CommandElement itemOrHand(Text key, boolean explicitHand) {
+    public static CommandElement itemOrHand(Text key, boolean explicitHand) {
         return new ArgItemOrHand(key, explicitHand);
     }
 

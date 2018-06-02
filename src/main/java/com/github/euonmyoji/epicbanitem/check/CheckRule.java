@@ -3,6 +3,7 @@ package com.github.euonmyoji.epicbanitem.check;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
@@ -16,9 +17,11 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -50,6 +53,37 @@ public class CheckRule {
 
     public Set<String> getEnableWorlds() {
         return Collections.unmodifiableSet(enableWorlds);
+    }
+
+    public boolean remove(){
+        return remove;
+    }
+
+    //todo:或许需要样式处理 比如上色？ 删除换行和空格？
+    public Text getQueryInfo() {
+        if(queryNode == null){
+            return Text.of("No Query");
+        }
+        try {
+            return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
+        } catch (IOException e) {
+            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String",e);
+            //todo:翻译
+            return Text.of(TextColors.RED,"Failed to deserialize");
+        }
+    }
+
+    public Text getUpdateInfo() {
+        if(updateNode == null){
+            return Text.of("No Update");
+        }
+        try {
+            return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
+        } catch (IOException e) {
+            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String",e);
+            //todo:翻译
+            return Text.of(TextColors.RED,"Failed to deserialize");
+        }
     }
 
     /**

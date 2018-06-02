@@ -8,11 +8,13 @@ import org.spongepowered.api.command.args.*;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class AbstractCommand implements ICommand,CommandExecutor {
 
     protected CommandSpec commandSpec;
@@ -41,6 +43,10 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
 
     protected Text getMessage(String s){
         return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s));
+    }
+
+    protected Text getMessage(String s,String k1,Object v1){
+        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s),k1,v1);
     }
 
     public Text getDescription(){
@@ -82,6 +88,7 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
         return commandSpec;
     }
 
+    @NonnullByDefault
     private class Help extends CommandElement implements CommandExecutor{
         private CommandElement commandElement = getArgument();
 
@@ -106,7 +113,7 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
 
         @Nullable
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Object parseValue(CommandSource source, CommandArgs args){
             //do nothing here
             return null;
         }

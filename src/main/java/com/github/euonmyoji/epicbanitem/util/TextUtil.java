@@ -90,15 +90,25 @@ public class TextUtil {
         }
     }
 
-    private static BufferedReader delegation;
+    private static BufferedReader delegationReader;
+    private static BufferedWriter delegationWriter;
 
     private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
-            .setSource(() -> delegation).setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true)).build();
+            .setSource(() -> delegationReader).setSink(()->delegationWriter)
+            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true)).build();
 
     public static ConfigurationNode serializeStringToConfigNode(String string) throws IOException {
         try (StringReader in = new StringReader(string); BufferedReader bufferedReader = new BufferedReader(in)) {
-            delegation = bufferedReader;
+            delegationReader = bufferedReader;
             return LOADER.load();
+        }
+    }
+
+    public static String deserializeConfigNodeToString(ConfigurationNode configNode) throws IOException {
+        try (StringWriter out = new StringWriter(); BufferedWriter bufferedWriter = new BufferedWriter(out)) {
+            delegationWriter = bufferedWriter;
+            LOADER.save(configNode);
+            return out.toString();
         }
     }
 }
