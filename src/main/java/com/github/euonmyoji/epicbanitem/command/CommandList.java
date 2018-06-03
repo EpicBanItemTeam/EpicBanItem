@@ -60,11 +60,7 @@ class CommandList extends AbstractCommand {
             builder.append(getMessage("itemTypeLine","item_type",entry.getKey().getId()),Text.NEW_LINE);
             if(entry.getValue().size()>0){
                 for(CheckRule checkRule:entry.getValue()){
-                    builder.append(Text.of(checkRule.getName()),Text.NEW_LINE);
-                    builder.append(getMessage("worlds"),Text.of(checkRule.getEnableWorlds().toString()),Text.NEW_LINE);
-                    builder.append(getMessage("triggers"),Text.of(checkRule.getEnableWorlds().toString()),Text.NEW_LINE);
-                    builder.append(getMessage("remove"),Text.of(checkRule.remove()),Text.NEW_LINE);
-                    builder.append(getMessage("query"),checkRule.getQueryInfo(),Text.NEW_LINE);
+                    builder.append(checkRule.toText(),Text.NEW_LINE);
                 }
             }else {
                 builder.append(getMessage("noRule"),Text.NEW_LINE);

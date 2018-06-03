@@ -33,7 +33,7 @@ public class EpicBanItemCommand {
             .child(Create.create, "create", "c")
 //            .child(CommandList.list, "list", "l")
             .child(Query.query, "query", "q")
-            .child(Show.show, "show", "s")
+//            .child(CommandShow.show, "show", "s")
             .child(Update.update, "update", "u")
 //            .child(Plugin.reload, "reload", "r")
             .build();

@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
+import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
@@ -17,6 +18,7 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.World;
 
@@ -135,7 +137,28 @@ public class CheckRule {
     }
 
     public Text toText() {
-        throw new UnsupportedOperationException("TODO");
+        Messages messages = EpicBanItem.plugin.getMessages();
+        Text.Builder builder = Text.builder();
+        builder.append(Text.of(this.getName()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.remove"),Text.of(this.remove()),Text.NEW_LINE);
+//        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
+//        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
+        return Text.builder(getName()).onHover(TextActions.showText(builder.build())).build();
+    }
+
+    public Text info(){
+        //todo:点击补全指令?
+        Messages messages = EpicBanItem.plugin.getMessages();
+        Text.Builder builder = Text.builder();
+        builder.append(Text.of(this.getName()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.remove"),Text.of(this.remove()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
+        return builder.build();
     }
 
     static {
