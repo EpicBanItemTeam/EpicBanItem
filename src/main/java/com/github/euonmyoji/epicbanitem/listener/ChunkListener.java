@@ -20,7 +20,7 @@ public class ChunkListener {
 
     @Listener
     public void onLoadChunk(LoadChunkEvent event) {
-        if (Settings.ListenLoadingChunk) testChunk(event.getTargetChunk());
+        if (EpicBanItem.plugin.getSettings().ListenLoadingChunk) testChunk(event.getTargetChunk());
     }
 
     private void testChunk(Chunk chunk) {

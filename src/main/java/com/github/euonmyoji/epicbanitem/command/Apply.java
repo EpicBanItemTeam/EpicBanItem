@@ -77,14 +77,14 @@ class Apply {
             Text.Builder prefix = Text.builder("成功应用规则: ").onHover(TextActions.showText(text));
             src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, queryResult)));
         } catch (Exception e) {
-            EpicBanItem.logger.error("应用规则时出错: ",e);
+            EpicBanItem.logger.error("应用规则时出错: ", e);
             throw new CommandException(Text.of("应用规则时出错: ", e.toString()));
         }
         try {
             ((ArmorEquipable) src).setItemInHand(handType, NbtTagDataUtil.toItemStack(nbt, quantity));
             src.sendMessage(Text.of("成功应用物品。"));
         } catch (Exception e) {
-            EpicBanItem.logger.error("应用物品时出错: ",e);
+            EpicBanItem.logger.error("应用物品时出错: ", e);
             throw new CommandException(Text.of("应用物品时出错: ", e.toString()));
         }
         return CommandResult.success();

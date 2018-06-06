@@ -6,15 +6,12 @@ import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 //填充命令用
 
-/**
- * @author EpicBanItem Team
- */
 public interface CheckRuleService {
     //Map<ItemType,Map<String,CheckRule>>?
     //Map<ItemType,Collection<CheckRule>>?
@@ -32,7 +29,7 @@ public interface CheckRuleService {
      * @param itemType 物品类型
      * @return 适用的规则
      */
-    Collection<CheckRule> getCheckRules(ItemType itemType);
+    List<CheckRule> getCheckRules(ItemType itemType);
 
     /**
      * 返回一个物品对应的规则名的规则 or empty

@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.check.SimpleCheckRuleServiceImpl;
 import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
 import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
@@ -17,6 +18,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
@@ -28,7 +30,7 @@ import java.nio.file.Path;
 /**
  * @author EpicBanItem Team
  */
-@Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION, authors = {"yinyangshi", "GINYAI", "ustc-zzzz"},
+@Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION, authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"},
         description = "a banitem plugin with nbt")
 public class EpicBanItem {
     public static EpicBanItem plugin;
@@ -46,38 +48,28 @@ public class EpicBanItem {
         return messages;
     }
 
+    private Settings settings;
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    private SimpleCheckRuleServiceImpl service;
+
     @Inject
     public void setLogger(Logger logger) {
         EpicBanItem.logger = logger;
     }
 
     @Listener
-    public void onReload(GameReloadEvent event) {
-        reload();
-    }
-
-    public static void reload() {
-        logger.info("reloading");
-        Settings.reload();
-        BanItemConfig.reload();
-        logger.info("reloaded");
+    public void onPreInit(GamePreInitializationEvent event) {
+        plugin = this;
     }
 
     @Listener
     public void onStarting(GameStartingServerEvent event) {
-        plugin = this;
         logger.debug("Item to Block matching: ");
         NbtTagDataUtil.printLog().forEachRemaining(log -> logger.debug(log));
-        if (!Files.exists(cfgDir)) {
-            try {
-                Files.createDirectory(cfgDir);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(CheckRule.class), new CheckRule.Serializer());
-        Settings.init();
-        BanItemConfig.init();
     }
 
     @Listener
@@ -87,4 +79,32 @@ public class EpicBanItem {
         Sponge.getEventManager().registerListeners(this, new WorldItemMoveListener());
         Sponge.getEventManager().registerListeners(this, new ChunkListener());
     }
+
+    @Listener
+    public void onReload(GameReloadEvent event) {
+        try {
+            reload();
+        } catch (IOException e) {
+            //todo:
+            e.printStackTrace();
+        }
+    }
+
+
+    public void reload() throws IOException {
+        logger.info("reloading");
+        if (!Files.exists(cfgDir)) {
+            Files.createDirectory(cfgDir);
+        }
+        if (settings == null) {
+            settings = new Settings(cfgDir.resolve("settings.conf"));
+        }
+        settings.reload();
+        TypeSerializers.getDefaultSerializers().registerType(TypeToken.of(CheckRule.class), new CheckRule.Serializer());
+        BanItemConfig.init();
+        BanItemConfig.reload();
+        service.reload();
+        logger.info("reloaded");
+    }
+
 }

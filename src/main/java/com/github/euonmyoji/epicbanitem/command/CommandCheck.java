@@ -42,12 +42,10 @@ public class CommandCheck extends AbstractCommand {
     @Override
     @Nonnull
     public CommandResult execute(@Nonnull CommandSource src,@Nonnull  CommandContext args) throws CommandException {
-        if(service == null){
-            service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        }
         if(!(src instanceof Player)){
             throw new CommandException(Text.of("Player only."));
         }
+        CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         boolean lookAt = args.hasAny("l");
         List<CheckRule> breakRules = new ArrayList<>();
         //todo:lookat

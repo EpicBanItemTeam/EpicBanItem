@@ -1,8 +1,10 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
-import com.github.euonmyoji.epicbanitem.configuration.Settings;
+import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
@@ -16,13 +18,16 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 
 /**
- * @author GINYAI yinyangshi
+ * @author GiNYAi yinyangshi
  */
 public class CheckRule {
     private String name;
@@ -50,6 +55,37 @@ public class CheckRule {
 
     public Set<String> getEnableWorlds() {
         return Collections.unmodifiableSet(enableWorlds);
+    }
+
+    public boolean remove(){
+        return remove;
+    }
+
+    //todo:或许需要样式处理 比如上色？ 删除换行和空格？
+    public Text getQueryInfo() {
+        if(queryNode == null){
+            return Text.of("No Query");
+        }
+        try {
+            return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
+        } catch (IOException e) {
+            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String",e);
+            //todo:翻译
+            return Text.of(TextColors.RED,"Failed to deserialize");
+        }
+    }
+
+    public Text getUpdateInfo() {
+        if(updateNode == null){
+            return Text.of("No Update");
+        }
+        try {
+            return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
+        } catch (IOException e) {
+            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String",e);
+            //todo:翻译
+            return Text.of(TextColors.RED,"Failed to deserialize");
+        }
     }
 
     /**
@@ -101,7 +137,28 @@ public class CheckRule {
     }
 
     public Text toText() {
-        throw new UnsupportedOperationException("TODO");
+        Messages messages = EpicBanItem.plugin.getMessages();
+        Text.Builder builder = Text.builder();
+        builder.append(Text.of(this.getName()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.remove"),Text.of(this.remove()),Text.NEW_LINE);
+//        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
+//        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
+        return Text.builder(getName()).onHover(TextActions.showText(builder.build())).build();
+    }
+
+    public Text info(){
+        //todo:点击补全指令?
+        Messages messages = EpicBanItem.plugin.getMessages();
+        Text.Builder builder = Text.builder();
+        builder.append(Text.of(this.getName()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.remove"),Text.of(this.remove()),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
+        return builder.build();
     }
 
     static {
@@ -119,7 +176,7 @@ public class CheckRule {
             }
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             rule.enableTrigger = new HashSet<>();
-            for (Map.Entry<String, Boolean> entry : Settings.getDefaultTriggers().entrySet()) {
+            for (Map.Entry<String, Boolean> entry : EpicBanItem.plugin.getSettings().getDefaultTriggers().entrySet()) {
                 if (triggerNode.getNode(entry.getKey()).getBoolean(entry.getValue())) {
                     rule.enableTrigger.add(entry.getKey());
                 }
@@ -145,7 +202,7 @@ public class CheckRule {
             if (rule.enableWorlds != null) {
                 node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {}, new ArrayList<>(rule.enableWorlds));
             }
-            for (String trigger : Settings.getDefaultTriggers().keySet()) {
+            for (String trigger : EpicBanItem.plugin.getSettings().getDefaultTriggers().keySet()) {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
             }
             if (rule.query != null) {

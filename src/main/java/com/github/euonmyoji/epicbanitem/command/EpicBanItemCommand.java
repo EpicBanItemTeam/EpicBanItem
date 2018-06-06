@@ -31,10 +31,10 @@ public class EpicBanItemCommand {
             })
             .child(Apply.apply, "apply", "a")
             .child(Create.create, "create", "c")
-            .child(List.list, "list", "l")
+//            .child(CommandList.list, "list", "l")
             .child(Query.query, "query", "q")
-            .child(Show.show, "show", "s")
+//            .child(CommandShow.show, "show", "s")
             .child(Update.update, "update", "u")
-            .child(Plugin.reload, "reload", "r")
+//            .child(Plugin.reload, "reload", "r")
             .build();
 }

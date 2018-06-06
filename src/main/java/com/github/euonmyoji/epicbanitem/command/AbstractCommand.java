@@ -4,16 +4,21 @@ import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.*;
+import org.spongepowered.api.command.args.ArgumentParseException;
+import org.spongepowered.api.command.args.CommandArgs;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractCommand implements ICommand,CommandExecutor {
+@SuppressWarnings("WeakerAccess")
+public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     protected CommandSpec commandSpec;
 
@@ -21,37 +26,41 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
 
     protected String[] alias;
 
-    public AbstractCommand(String name,String... alias){
+    public AbstractCommand(String name, String... alias) {
         this.name = name;
         this.alias = alias;
     }
 
 
-    public String getRootPermission(){
-        return "epicbanitem.command."+name;
+    public String getRootPermission() {
+        return "epicbanitem.command." + name;
     }
 
-    protected String getPermission(String s){
-        return getRootPermission()+"."+s;
+    protected String getPermission(String s) {
+        return getRootPermission() + "." + s;
     }
 
-    protected String getMessageKey(String s){
-        return "epicbanitem.command."+name+"."+s;
+    protected String getMessageKey(String s) {
+        return "epicbanitem.command." + name + "." + s;
     }
 
-    protected Text getMessage(String s){
+    protected Text getMessage(String s) {
         return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s));
     }
 
-    public Text getDescription(){
+    protected Text getMessage(String s, String k1, Object v1) {
+        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s), k1, v1);
+    }
+
+    public Text getDescription() {
         return getMessage("description");
     }
 
-    public Text getExtendedDescription(){
+    public Text getExtendedDescription() {
         return getMessage("extendedDescription");
     }
 
-    public Text getArgHelp(CommandSource source){
+    public Text getArgHelp(CommandSource source) {
         return getMessage("argHelp");
     }
 
@@ -69,7 +78,7 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
 
     @Override
     public CommandSpec getCallable() {
-        if(commandSpec == null){
+        if (commandSpec == null) {
             Help help = new Help();
             commandSpec = CommandSpec.builder()
                     .permission(getRootPermission())
@@ -82,7 +91,8 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
         return commandSpec;
     }
 
-    private class Help extends CommandElement implements CommandExecutor{
+    @NonnullByDefault
+    private class Help extends CommandElement implements CommandExecutor {
         private CommandElement commandElement = getArgument();
 
         private Help() {
@@ -93,12 +103,12 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
         public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
             Object state = args.getState();
             try {
-                commandElement.parse(source,args,context);
-            }catch (ArgumentParseException e){
+                commandElement.parse(source, args, context);
+            } catch (ArgumentParseException e) {
                 args.setState(state);
-                if(args.next().equalsIgnoreCase("help")){
-                    context.putArg("help",true);
-                }else {
+                if (args.next().equalsIgnoreCase("help")) {
+                    context.putArg("help", true);
+                } else {
                     throw e;
                 }
             }
@@ -106,7 +116,7 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
 
         @Nullable
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Object parseValue(CommandSource source, CommandArgs args) {
             //do nothing here
             return null;
         }
@@ -114,50 +124,50 @@ public abstract class AbstractCommand implements ICommand,CommandExecutor {
         @Override
         public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
             try {
-                if(!args.hasNext()||"help".startsWith(args.peek().toLowerCase())){
+                if (!args.hasNext() || "help".startsWith(args.peek().toLowerCase())) {
                     List<String> stringList = new ArrayList<>();
                     stringList.add("help");
-                    stringList.addAll(getCallable().complete(src,args,context));
+                    stringList.addAll(getCallable().complete(src, args, context));
                     return stringList;
-                }else {
-                    return getCallable().complete(src,args,context);
+                } else {
+                    return getCallable().complete(src, args, context);
                 }
             } catch (ArgumentParseException e) {
                 e.printStackTrace();
-                return getCallable().complete(src,args,context);
+                return getCallable().complete(src, args, context);
             }
         }
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            if(args.hasAny("help")){
+            if (args.hasAny("help")) {
                 //todo:使用翻译 , 颜色
                 Text.Builder builder = Text.builder();
-                builder.append(Text.of("Command:",getName()),Text.NEW_LINE);
-                builder.append(getDescription(),Text.NEW_LINE);
-                if(getAlias().length>0){
+                builder.append(Text.of("Command:", getName()), Text.NEW_LINE);
+                builder.append(getDescription(), Text.NEW_LINE);
+                if (getAlias().length > 0) {
                     builder.append(Text.of("Alias:"));
-                    for(String alias:getAlias()){
-                        builder.append(Text.of(alias," "));
+                    for (String alias : getAlias()) {
+                        builder.append(Text.of(alias, " "));
                     }
                     builder.append(Text.NEW_LINE);
                 }
-                builder.append(Text.of("Usages:"),getUsage(src),Text.NEW_LINE);
-                builder.append(getArgHelp(src),Text.NEW_LINE);
+                builder.append(Text.of("Usages:"), getUsage(src), Text.NEW_LINE);
+                builder.append(getArgHelp(src), Text.NEW_LINE);
 //                builder.append(getExtendedDescription(),Text.NEW_LINE);
                 return CommandResult.success();
-            }else {
-                return AbstractCommand.this.execute(src,args);
+            } else {
+                return AbstractCommand.this.execute(src, args);
             }
         }
 
         @Override
         public Text getUsage(CommandSource src) {
             Text usage = commandElement.getUsage(src);
-            if(usage.isEmpty()){
+            if (usage.isEmpty()) {
                 return Text.of("help");
-            }else {
-                return Text.of("help|",usage);
+            } else {
+                return Text.of("help|", usage);
             }
         }
     }

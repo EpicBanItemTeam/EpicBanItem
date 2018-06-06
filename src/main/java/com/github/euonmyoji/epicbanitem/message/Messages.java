@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+@SuppressWarnings("WeakerAccess")
 /**
  * @author EpicBanItem Authors
  */
@@ -55,23 +56,23 @@ public class Messages {
         return getMessage(key, Collections.emptyMap());
     }
 
-    public Text getMessage(String key, String k1, Objects v1) {
+    public Text getMessage(String key, String k1, Object v1) {
         return getMessage(key, ImmutableMap.of(k1, v1));
     }
 
-    public Text getMessage(String key, String k1, Objects v1, String k2, Objects v2) {
+    public Text getMessage(String key, String k1, Object v1, String k2, Object v2) {
         return getMessage(key, ImmutableMap.of(k1, v1, k2, v2));
     }
 
-    public Text getMessage(String key, String k1, Objects v1, String k2, Objects v2, String k3, Objects v3) {
+    public Text getMessage(String key, String k1, Object v1, String k2, Object v2, String k3, Object v3) {
         return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3));
     }
 
-    public Text getMessage(String key, String k1, Objects v1, String k2, Objects v2, String k3, Objects v3, String k4, Objects v4) {
+    public Text getMessage(String key, String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4) {
         return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3, k4, v4));
     }
 
-    public Text getMessage(String key, String k1, Objects v1, String k2, Objects v2, String k3, Objects v3, String k4, Objects v4, String k5, Objects v5) {
+    public Text getMessage(String key, String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4, String k5, Object v5) {
         return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3, k4, v4, k5, v5));
     }
 
