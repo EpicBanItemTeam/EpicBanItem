@@ -11,6 +11,10 @@ import java.util.Map;
 
 //应该在BanConfig之前
 //静态?
+
+/**
+ * @author EpicBanItem Authors
+ */
 public class Settings {
     private static CommentedConfigurationNode cfg;
     private static ConfigurationLoader<CommentedConfigurationNode> loader;
@@ -28,6 +32,7 @@ public class Settings {
                 .setPath(EpicBanItem.plugin.cfgDir.resolve("settings.conf")).build();
         reload();
         cfg.getNode(LISTEN_CHUNK_LOAD).setValue(LISTEN_CHUNK_LOAD);
+        save();
     }
 
     public static void reload() {
@@ -43,17 +48,15 @@ public class Settings {
         }
     }
 
-    public static boolean save() {
+    private static void save() {
         try {
             loader.save(cfg);
-            return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
     }
 
-    public static Map<String,Boolean> getDefaultTriggers(){
+    public static Map<String, Boolean> getDefaultTriggers() {
         //todo:
         throw new UnsupportedOperationException("TODO :D");
     }

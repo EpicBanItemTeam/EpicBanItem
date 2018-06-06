@@ -19,7 +19,6 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
-import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.plugin.Plugin;
 
 import java.io.IOException;

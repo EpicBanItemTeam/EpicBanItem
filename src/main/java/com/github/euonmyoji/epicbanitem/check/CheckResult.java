@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,12 +26,6 @@ public class CheckResult {
         return this.breakRules;
     }
 
-    public CheckResult(List<CheckRule> breakRules, boolean remove, DataView view) {
-        this.breakRules = breakRules;
-        this.remove = remove;
-        this.view = view;
-    }
-
     public boolean shouldRemove() {
         return this.remove;
     }
@@ -44,12 +37,6 @@ public class CheckResult {
     public boolean isBanned() {
         return this.breakRules.size() > 0;
     }
-
-    public Text toText() {
-        //todo:
-        throw new UnsupportedOperationException("TODO");
-    }
-
 
     public static CheckResult empty() {
         return new CheckResult();
