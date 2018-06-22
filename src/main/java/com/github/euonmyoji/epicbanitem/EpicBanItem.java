@@ -70,6 +70,7 @@ public class EpicBanItem {
     public void onStarting(GameStartingServerEvent event) {
         logger.debug("Item to Block matching: ");
         NbtTagDataUtil.printLog().forEachRemaining(log -> logger.debug(log));
+        messages = new Messages(this, cfgDir);
     }
 
     @Listener
@@ -89,7 +90,6 @@ public class EpicBanItem {
             e.printStackTrace();
         }
     }
-
 
     public void reload() throws IOException {
         logger.info("reloading");

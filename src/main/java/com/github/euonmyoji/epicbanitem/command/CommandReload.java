@@ -14,7 +14,7 @@ import java.io.IOException;
 @NonnullByDefault
 public class CommandReload extends AbstractCommand {
     public CommandReload() {
-        super("reload","r");
+        super("reload", "r");
     }
 
     @Override
@@ -29,7 +29,7 @@ public class CommandReload extends AbstractCommand {
             src.sendMessage(getMessage("succeed"));
             return CommandResult.success();
         } catch (IOException e) {
-            throw new CommandException(getMessage("failed"),e);
+            throw new CommandException(getMessage("failed"), e);
         }
     }
 }

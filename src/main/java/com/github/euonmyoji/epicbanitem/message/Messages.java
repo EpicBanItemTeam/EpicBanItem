@@ -15,9 +15,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-@SuppressWarnings("WeakerAccess")
 /**
- * @author EpicBanItem Authors
+ * @author EpicBanItem Team
  */
 public class Messages {
     //todo:

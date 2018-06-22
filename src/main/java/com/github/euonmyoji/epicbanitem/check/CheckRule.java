@@ -19,7 +19,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
-import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
@@ -40,7 +39,6 @@ public class CheckRule {
     private ConfigurationNode queryNode;
     private ConfigurationNode updateNode;
 
-    //todo:Builder
     private CheckRule(String name) {
         this.name = Objects.requireNonNull(name);
     }
@@ -57,34 +55,33 @@ public class CheckRule {
         return Collections.unmodifiableSet(enableWorlds);
     }
 
-    public boolean remove(){
+    public boolean remove() {
         return remove;
     }
 
-    //todo:或许需要样式处理 比如上色？ 删除换行和空格？
     public Text getQueryInfo() {
-        if(queryNode == null){
+        if (queryNode == null) {
             return Text.of("No Query");
         }
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String",e);
-            //todo:翻译
-            return Text.of(TextColors.RED,"Failed to deserialize");
+            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String", e);
+            //todo:翻译 "Failed to deserialize" 的 key
+            return EpicBanItem.plugin.getMessages().getMessage("key");
         }
     }
 
     public Text getUpdateInfo() {
-        if(updateNode == null){
+        if (updateNode == null) {
             return Text.of("No Update");
         }
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String",e);
-            //todo:翻译
-            return Text.of(TextColors.RED,"Failed to deserialize");
+            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String", e);
+            //todo:翻译 "Failed to deserialize" 的 key
+            return EpicBanItem.plugin.getMessages().getMessage("key");
         }
     }
 
@@ -139,25 +136,25 @@ public class CheckRule {
     public Text toText() {
         Messages messages = EpicBanItem.plugin.getMessages();
         Text.Builder builder = Text.builder();
-        builder.append(Text.of(this.getName()),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.remove"),Text.of(this.remove()),Text.NEW_LINE);
+        builder.append(Text.of(this.getName()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.remove"), Text.of(this.remove()), Text.NEW_LINE);
 //        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
 //        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
         return Text.builder(getName()).onHover(TextActions.showText(builder.build())).build();
     }
 
-    public Text info(){
+    public Text info() {
         //todo:点击补全指令?
         Messages messages = EpicBanItem.plugin.getMessages();
         Text.Builder builder = Text.builder();
-        builder.append(Text.of(this.getName()),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"),Text.of(this.getEnableWorlds().toString()),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.remove"),Text.of(this.remove()),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
+        builder.append(Text.of(this.getName()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.remove"), Text.of(this.remove()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.query"), this.getQueryInfo(), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.update"), this.getUpdateInfo(), Text.NEW_LINE);
         return builder.build();
     }
 
@@ -171,9 +168,7 @@ public class CheckRule {
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
             CheckRule rule = new CheckRule(node.getNode("name").getString());
             rule.ignorePermission = node.getNode("bypass-permissions").getString(null);
-            if (!node.getNode("enabled-worlds").isVirtual()) {
-                rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class)));
-            }
+            rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class), Collections.emptyList()));
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             rule.enableTrigger = new HashSet<>();
             for (Map.Entry<String, Boolean> entry : EpicBanItem.plugin.getSettings().getDefaultTriggers().entrySet()) {
@@ -200,7 +195,8 @@ public class CheckRule {
             node.getNode("name").setValue(rule.name);
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
             if (rule.enableWorlds != null) {
-                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {}, new ArrayList<>(rule.enableWorlds));
+                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {
+                }, new ArrayList<>(rule.enableWorlds));
             }
             for (String trigger : EpicBanItem.plugin.getSettings().getDefaultTriggers().keySet()) {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
