@@ -86,8 +86,7 @@ public class EpicBanItem {
         try {
             reload();
         } catch (IOException e) {
-            //todo:
-            e.printStackTrace();
+            logger.warn("IOException when reload epicbanitem", e);
         }
     }
 
