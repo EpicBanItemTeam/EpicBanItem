@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.World;
 
@@ -50,5 +51,16 @@ public interface CheckRuleService {
      * @return 检查结果
      */
     CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject);
+
+    /**
+     * 检查一个物品并返回一个result
+     *
+     * @param itemStack 被检查的物品
+     * @param world     检查发生世界
+     * @param trigger   触发器
+     * @param subject   subject
+     * @return 检查结果
+     */
+    CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject);
 
 }

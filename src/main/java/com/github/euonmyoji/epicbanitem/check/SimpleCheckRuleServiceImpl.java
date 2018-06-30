@@ -1,7 +1,10 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.World;
 
@@ -36,9 +39,17 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
 
     @Override
     public CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject) {
+        return check(itemStack.getType(),NbtTagDataUtil.toNbt(itemStack),world,trigger,subject);
+    }
+
+    @Override
+    public CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject) {
+        return check(itemStack.getType(),NbtTagDataUtil.toNbt(itemStack),world,trigger,subject);
+    }
+
+    public CheckResult check(ItemType itemType,DataView itemStack,World world,String trigger,@Nullable Subject subject){
         CheckResult result = CheckResult.empty();
-        getCheckRules(itemStack.getType()).forEach(checkRule -> checkRule.check(itemStack, result,
-                world, trigger, subject));
+        getCheckRules(itemType).forEach(checkRule -> checkRule.check(itemStack, result, world, trigger, subject));
         return result;
     }
 

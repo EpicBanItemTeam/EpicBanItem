@@ -28,8 +28,10 @@ import java.util.*;
 /**
  * @author GiNYAi yinyangshi
  */
+@SuppressWarnings("WeakerAccess")
 public class CheckRule {
     private String name;
+    private int priority;
     private Set<String> enableWorlds = new HashSet<>();
     private String ignorePermission;
     private Set<String> enableTrigger = new HashSet<>();
@@ -66,9 +68,8 @@ public class CheckRule {
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String", e);
-            //todo:翻译 "Failed to deserialize" 的 key
-            return EpicBanItem.plugin.getMessages().getMessage("key");
+            EpicBanItem.logger.error("Failed to deserialize ConfigNode to String", e);
+            return EpicBanItem.plugin.getMessages().getMessage("error.failDeserialize");
         }
     }
 
@@ -79,9 +80,8 @@ public class CheckRule {
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to deserialize cConfigNode to String", e);
-            //todo:翻译 "Failed to deserialize" 的 key
-            return EpicBanItem.plugin.getMessages().getMessage("key");
+            EpicBanItem.logger.error("Failed to deserialize ConfigNode to String", e);
+            return EpicBanItem.plugin.getMessages().getMessage("error.failDeserialize");
         }
     }
 
@@ -103,7 +103,7 @@ public class CheckRule {
      * @param subject 被检查的权限主体
      * @return 检查结果
      */
-    private CheckResult check(DataView view, CheckResult origin, World world, String trigger, @Nullable Subject subject) {
+    public CheckResult check(DataView view, CheckResult origin, World world, String trigger, @Nullable Subject subject) {
         if (!enableTrigger.contains(trigger)) {
             return origin;
         }
