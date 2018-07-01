@@ -10,12 +10,17 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.text.channel.MessageReceiver;
 import org.spongepowered.api.text.format.TextStyles;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static org.spongepowered.api.text.Text.builder;
 import static org.spongepowered.api.text.Text.of;
@@ -24,6 +29,7 @@ import static org.spongepowered.api.text.action.TextActions.*;
 /**
  * @author yinyangshi
  */
+@SuppressWarnings("WeakerAccess")
 public class TextUtil {
 
     /**
@@ -75,6 +81,47 @@ public class TextUtil {
     public static void suggestCommandGuiThenSend(MessageReceiver receiver, String command, String describe, @Nonnull String commandArgs) {
         receiver.sendMessage(suggestCommandGui(command, describe, commandArgs));
     }
+
+    /**
+     * @param origin origin string support FormatText
+     * @param keySet placeholders in the string
+     * @return TextTemplate
+     */
+    public static TextTemplate parseTextTemplate(String origin, Set<String> keySet) {
+        boolean checkFirst = origin.startsWith("{");
+        List<Object> objects = new ArrayList<>();
+        String[] subStrings = origin.split("\\{");
+        for (int i = 0; i < subStrings.length; i++) {
+            String subString = subStrings[i];
+            if (i == 0 && !checkFirst) {
+                objects.add(parseFormatText(subString));
+                continue;
+            }
+            String[] muSub = subString.split("}");
+            if (muSub.length == 1 && subString.endsWith("}") && keySet.contains(muSub[0])) {
+                objects.add(TextTemplate.arg(muSub[0]));
+            } else if (muSub.length > 1 && keySet.contains(muSub[0])) {
+                objects.add(TextTemplate.arg(muSub[0]));
+                StringBuilder left = new StringBuilder(muSub[1]);
+                for (int j = 2; j < muSub.length; j++) {
+                    left.append("}");
+                    left.append(muSub[j]);
+                }
+                if (subString.endsWith("}")) {
+                    left.append("}");
+                }
+                objects.add(parseFormatText(left.toString()));
+            } else {
+                objects.add(parseFormatText("{" + subString));
+            }
+        }
+        return TextTemplate.of(objects.toArray());
+    }
+
+    public static Text parseFormatText(String in) {
+        return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
+    }
+
 
     public static Text serializeNbtToString(DataView nbt, QueryResult result) {
         return new NbtTagRenderer(result).render(nbt);

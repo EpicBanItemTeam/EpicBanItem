@@ -125,7 +125,6 @@ public class CheckRule {
                     origin.remove = true;
                 } else if (update != null) {
                     update.update(optionalQueryResult.get(), view).apply(view);
-                    //todo:返回ItemStack 而不是DataView？
                     origin.view = view;
                 }
             }

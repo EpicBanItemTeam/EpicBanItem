@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.message;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import org.spongepowered.api.Sponge;
@@ -18,8 +19,8 @@ import java.util.*;
 /**
  * @author EpicBanItem Team
  */
+@SuppressWarnings("WeakerAccess")
 public class Messages {
-    //todo:
     private TextTemplate MISSING;
 
     private final EpicBanItem plugin;
@@ -30,8 +31,7 @@ public class Messages {
 
     public Messages(EpicBanItem plugin, Path configDir) {
         this.plugin = plugin;
-        //todo:语言文件叫什么名字
-        this.messagePath = configDir.resolve("");
+        this.messagePath = configDir.resolve("message.lang");
     }
 
     public void load() throws IOException {
@@ -39,13 +39,17 @@ public class Messages {
         assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
                 assetManager.getAsset(plugin, "lang/en_us.lang").get()).copyToFile(messagePath, false);
         res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
+        MISSING = TextUtil.parseTextTemplate(res.getString("error.missingMessage"),Collections.emptySet());
     }
 
     public Text getMessage(String key, Map<String, ?> params) {
         if (!cache.containsKey(key)) {
-            //todo:MissingResourceException
-            String rawString = res.getString(key);
-            cache.put(key, parseTextTemplate(rawString, params.keySet()));
+            if(res.containsKey(key)){
+                String rawString = res.getString(key);
+                cache.put(key, TextUtil.parseTextTemplate(rawString, params.keySet()));
+            }else {
+                EpicBanItem.logger.warn("Missing message for key:"+key);
+            }
         }
         return cache.getOrDefault(key, MISSING).apply(params).build();
     }
@@ -75,38 +79,4 @@ public class Messages {
         return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3, k4, v4, k5, v5));
     }
 
-    private static TextTemplate parseTextTemplate(String origin, Set<String> keySet) {
-        boolean checkFirst = origin.startsWith("{");
-        List<Object> objects = new ArrayList<>();
-        String[] subStrings = origin.split("\\{");
-        for (int i = 0; i < subStrings.length; i++) {
-            String subString = subStrings[i];
-            if (i == 0 && !checkFirst) {
-                objects.add(parseFormatText(subString));
-                continue;
-            }
-            String[] muSub = subString.split("}");
-            if (muSub.length == 1 && subString.endsWith("}") && keySet.contains(muSub[0])) {
-                objects.add(TextTemplate.arg(muSub[0]));
-            } else if (muSub.length > 1 && keySet.contains(muSub[0])) {
-                objects.add(TextTemplate.arg(muSub[0]));
-                StringBuilder left = new StringBuilder(muSub[1]);
-                for (int j = 2; j < muSub.length; j++) {
-                    left.append("}");
-                    left.append(muSub[j]);
-                }
-                if (subString.endsWith("}")) {
-                    left.append("}");
-                }
-                objects.add(parseFormatText(left.toString()));
-            } else {
-                objects.add(parseFormatText("{" + subString));
-            }
-        }
-        return TextTemplate.of(objects.toArray());
-    }
-
-    public static Text parseFormatText(String in) {
-        return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
-    }
 }
