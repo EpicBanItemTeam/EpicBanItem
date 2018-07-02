@@ -29,19 +29,6 @@ public class InventoryListener {
             .orElseThrow(() -> new ProviderNotFoundException("No CheckRuleService found!"));
 
     @Listener(order = Order.FIRST,beforeModifications = true)
-    public void onChangeInv(ChangeInventoryEvent event) {
-        //判断trigger 可能有点乱:D
-        String trigger = event instanceof ClickInventoryEvent.Drag
-                || event instanceof ClickInventoryEvent.Shift ? "click"
-                : event instanceof ChangeInventoryEvent.Pickup ? "pickup"
-                : event instanceof ChangeInventoryEvent.Transfer ? "transfer"
-                : event instanceof ChangeInventoryEvent.SwapHand ? "drop" : null;
-        if (trigger != null) {
-            Player p = event.getCause().first(Player.class).orElseThrow(NoSuchFieldError::new);
-        }
-    }
-
-    @Listener(order = Order.FIRST,beforeModifications = true)
     public void onDrop(ClickInventoryEvent.Drop event,@First Player player){
         onChangeInv(event,player,"drop");
     }
