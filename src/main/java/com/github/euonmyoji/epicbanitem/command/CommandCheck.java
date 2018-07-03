@@ -41,31 +41,31 @@ public class CommandCheck extends AbstractCommand {
 
     @Override
     @Nonnull
-    public CommandResult execute(@Nonnull CommandSource src,@Nonnull  CommandContext args) throws CommandException {
-        if(!(src instanceof Player)){
+    public CommandResult execute(@Nonnull CommandSource src, @Nonnull CommandContext args) throws CommandException {
+        if (!(src instanceof Player)) {
             throw new CommandException(Text.of("Player only."));
         }
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         boolean lookAt = args.hasAny("l");
         List<CheckRule> breakRules = new ArrayList<>();
         //todo:lookat
-        ItemStack itemStack = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElseThrow(()->new CommandException(Text.of("Nothing in hand.")));
-        for(CheckRule rule:service.getCheckRules(itemStack.getType())){
+        ItemStack itemStack = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElseThrow(() -> new CommandException(Text.of("Nothing in hand.")));
+        for (CheckRule rule : service.getCheckRules(itemStack.getType())) {
             CheckResult result = CheckResult.empty();
-            rule.check(itemStack,result,getEnabledWorld(rule),getEnabledTrigger(rule),null);
+            rule.check(itemStack, result, getEnabledWorld(rule), getEnabledTrigger(rule), null);
             breakRules.addAll(result.getBreakRules());
         }
         Text.Builder info = Text.builder();
-        for(CheckRule rule:breakRules){
-            info.append(rule.toText(),Text.NEW_LINE);
+        for (CheckRule rule : breakRules) {
+            info.append(rule.toText(), Text.NEW_LINE);
         }
         src.sendMessage(info.toText());
         return CommandResult.success();
     }
 
-    private static World getEnabledWorld(CheckRule rule){
-        for(World world:Sponge.getServer().getWorlds()){
-            if(rule.getEnableWorlds().isEmpty()||rule.getEnableWorlds().contains(world.getName())){
+    private static World getEnabledWorld(CheckRule rule) {
+        for (World world : Sponge.getServer().getWorlds()) {
+            if (rule.getEnableWorlds().isEmpty() || rule.getEnableWorlds().contains(world.getName())) {
                 return world;
             }
         }
@@ -73,8 +73,8 @@ public class CommandCheck extends AbstractCommand {
         return null;
     }
 
-    private static String getEnabledTrigger(CheckRule rule){
-        if(rule.getEnableTrigger().size()>0){
+    private static String getEnabledTrigger(CheckRule rule) {
+        if (rule.getEnableTrigger().size() > 0) {
             return rule.getEnableTrigger().iterator().next();
         }
         //emmmmmmm

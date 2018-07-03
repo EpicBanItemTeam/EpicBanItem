@@ -22,7 +22,7 @@ public class Settings {
 
     private static final String LISTEN_CHUNK_LOAD = "Listen-chunk-load";
 
-    public boolean ListenLoadingChunk = false;
+    public boolean listenLoadingChunk = false;
 
     public Settings(Path settingPath) {
         this.settingPath = settingPath;
@@ -32,7 +32,7 @@ public class Settings {
     public void reload() throws IOException {
         Sponge.getAssetManager().getAsset(EpicBanItem.plugin, "default_settings.conf").get().copyToFile(settingPath, false);
         cfg = loader.load();
-        ListenLoadingChunk = cfg.getNode(LISTEN_CHUNK_LOAD).getBoolean(false);
+        listenLoadingChunk = cfg.getNode(LISTEN_CHUNK_LOAD).getBoolean(false);
     }
 
     public Map<String, Boolean> getDefaultTriggers() {

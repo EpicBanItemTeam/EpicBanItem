@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.listener;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.world.GenerateChunkEvent;
@@ -20,7 +19,7 @@ public class ChunkListener {
 
     @Listener
     public void onLoadChunk(LoadChunkEvent event) {
-        if (EpicBanItem.plugin.getSettings().ListenLoadingChunk) testChunk(event.getTargetChunk());
+        if (EpicBanItem.plugin.getSettings().listenLoadingChunk) testChunk(event.getTargetChunk());
     }
 
     private void testChunk(Chunk chunk) {

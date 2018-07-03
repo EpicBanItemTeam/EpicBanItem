@@ -31,10 +31,10 @@ class ArgCheckRule extends CommandElement {
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         CheckRule rule = null;
-        Optional<CheckRule> optionalCheckRule = service.getCheckRule(itemType,argString);
-        if(optionalCheckRule.isPresent()){
+        Optional<CheckRule> optionalCheckRule = service.getCheckRule(itemType, argString);
+        if (optionalCheckRule.isPresent()) {
             rule = optionalCheckRule.get();
-        }else {
+        } else {
             for (CheckRule rule1 : service.getCheckRules(itemType)) {
                 if (rule1.getName().equalsIgnoreCase(argString)) {
                     rule = rule1;

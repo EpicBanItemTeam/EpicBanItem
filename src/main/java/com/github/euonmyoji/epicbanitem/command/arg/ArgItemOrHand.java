@@ -30,24 +30,24 @@ class ArgItemOrHand extends CommandElement {
     protected ItemType parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         boolean isPlayer = source instanceof Player;
         if (!args.hasNext() && isPlayer && !explicitHand) {
-            return getItemTypeFormHand((Player) source,args);
+            return getItemTypeFormHand((Player) source, args);
         }
         String argString = args.next();
         if (isPlayer && explicitHand && argString.equalsIgnoreCase("hand")) {
-            return getItemTypeFormHand((Player) source,args);
+            return getItemTypeFormHand((Player) source, args);
         }
         Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class, argString);
         if (optionalItemType.isPresent()) {
             return optionalItemType.get();
         } else if (isPlayer && !explicitHand) {
-            return getItemTypeFormHand((Player) source,args);
+            return getItemTypeFormHand((Player) source, args);
         } else {
-            throw args.createError(Text.of("无法找到物品"+argString));
+            throw args.createError(Text.of("无法找到物品" + argString));
         }
     }
 
-    private ItemType getItemTypeFormHand(Player player,CommandArgs args) throws ArgumentParseException {
-        return player.getItemInHand(HandTypes.MAIN_HAND).orElseThrow(()->args.createError(Text.of("not support air"))).getType();
+    private ItemType getItemTypeFormHand(Player player, CommandArgs args) throws ArgumentParseException {
+        return player.getItemInHand(HandTypes.MAIN_HAND).orElseThrow(() -> args.createError(Text.of("not support air"))).getType();
     }
 
     @Override

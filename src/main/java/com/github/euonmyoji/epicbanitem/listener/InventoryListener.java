@@ -28,34 +28,34 @@ public class InventoryListener {
     private CheckRuleService service = Sponge.getServiceManager().provide(CheckRuleService.class)
             .orElseThrow(() -> new ProviderNotFoundException("No CheckRuleService found!"));
 
-    @Listener(order = Order.FIRST,beforeModifications = true)
-    public void onDrop(ClickInventoryEvent.Drop event,@First Player player){
-        onChangeInv(event,player,"drop");
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onDrop(ClickInventoryEvent.Drop event, @First Player player) {
+        onChangeInv(event, player, "drop");
     }
 
-    @Listener(order = Order.FIRST,beforeModifications = true)
-    @Exclude({ClickInventoryEvent.Drop.class,ClickInventoryEvent.Creative.class})
-    public void onClick(ClickInventoryEvent event,@First Player player){
-        onChangeInv(event,player,"click");
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    @Exclude({ClickInventoryEvent.Drop.class, ClickInventoryEvent.Creative.class})
+    public void onClick(ClickInventoryEvent event, @First Player player) {
+        onChangeInv(event, player, "click");
     }
 
-    @Listener(order = Order.FIRST,beforeModifications = true)
-    public void onPickUp(ChangeInventoryEvent.Pickup.Pre event,@First Player player){
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onPickUp(ChangeInventoryEvent.Pickup.Pre event, @First Player player) {
         ItemStackSnapshot item = event.getOriginalStack();
         CheckResult result;
         if ((result = service.check(item, player.getWorld(), "pickup", player)).isBanned()) {
             event.setCancelled(true);
             if (result.shouldRemove()) {
                 event.setCustom(Collections.emptyList());
-            }else if (result.getFinalView().isPresent()){
+            } else if (result.getFinalView().isPresent()) {
                 event.setCustom(Collections.singletonList(
-                        NbtTagDataUtil.toItemStack(result.getFinalView().get(),item.getQuantity()).createSnapshot()
+                        NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()).createSnapshot()
                 ));
             }
         }
     }
 
-    private void onChangeInv(ChangeInventoryEvent event,Player player,String trigger){
+    private void onChangeInv(ChangeInventoryEvent event, Player player, String trigger) {
         for (SlotTransaction slotTransaction : event.getTransactions()) {
             ItemStackSnapshot item = slotTransaction.getOriginal();
             CheckResult result;
@@ -63,17 +63,15 @@ public class InventoryListener {
                 event.setCancelled(true);
                 if (result.shouldRemove()) {
                     slotTransaction.setCustom(ItemStack.empty());
-                }else if (result.getFinalView().isPresent()){
-                    slotTransaction.setCustom(NbtTagDataUtil.toItemStack(result.getFinalView().get(),item.getQuantity()));
+                } else if (result.getFinalView().isPresent()) {
+                    slotTransaction.setCustom(NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()));
                 }
             }
         }
     }
 
-    @Listener(order = Order.FIRST,beforeModifications = true)
+    @Listener(order = Order.FIRST, beforeModifications = true)
     public void onUseItem(InteractItemEvent event, @First Player player) {
-//        Player p = event.getCause().first(Player.class).orElseThrow(NoSuchFieldError::new);
-        // 是否应该处理非玩家使用的事件呢
         ItemStack item = event.getItemStack().createStack();
         CheckResult result;
         if ((result = service.check(item, player.getWorld(), "use", player)).isBanned()) {
@@ -81,16 +79,16 @@ public class InventoryListener {
             ItemStack newItemStack;
             if (result.shouldRemove()) {
                 newItemStack = ItemStack.empty();
-            }else if(result.getFinalView().isPresent()){
-                newItemStack = NbtTagDataUtil.toItemStack(result.getFinalView().get(),item.getQuantity());
-            }else {
+            } else if (result.getFinalView().isPresent()) {
+                newItemStack = NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity());
+            } else {
                 return;
             }
-            if(event instanceof HandInteractEvent){
+
+            //应该只可能有这一种情况 所以没有else
+            if (event instanceof HandInteractEvent) {
                 HandType handType = ((HandInteractEvent) event).getHandType();
-                player.setItemInHand(handType,newItemStack);
-            }else {
-                //should not exist
+                player.setItemInHand(handType, newItemStack);
             }
         }
     }
