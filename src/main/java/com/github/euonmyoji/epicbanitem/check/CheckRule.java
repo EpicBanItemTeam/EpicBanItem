@@ -1,7 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.configuration.BanItemConfig;
+import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -47,6 +47,10 @@ public class CheckRule {
 
     public String getName() {
         return name;
+    }
+
+    public int getPriority() {
+        return priority;
     }
 
     public Set<String> getEnableTrigger() {
@@ -158,7 +162,7 @@ public class CheckRule {
     }
 
     static {
-        TypeSerializers.getDefaultSerializers().registerType(BanItemConfig.CHECK_RULE_TYPE_TOKEN, new Serializer());
+        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new Serializer());
     }
 
     public static class Serializer implements TypeSerializer<CheckRule> {
@@ -166,6 +170,7 @@ public class CheckRule {
         @Override
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
             CheckRule rule = new CheckRule(node.getNode("name").getString());
+            rule.priority = node.getNode("priority").getInt(5);
             rule.ignorePermission = node.getNode("bypass-permissions").getString(null);
             rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class), Collections.emptyList()));
             ConfigurationNode triggerNode = node.getNode("use-trigger");
@@ -192,6 +197,7 @@ public class CheckRule {
         @Override
         public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) throws ObjectMappingException {
             node.getNode("name").setValue(rule.name);
+            node.getNode("priority").setValue(rule.priority);
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
             if (rule.enableWorlds != null) {
                 node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {

@@ -53,7 +53,38 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
         return result;
     }
 
-    public void reload() {
-        //todo:如果无法正常载入新的配置 要不要恢复为之前的
+    public Map<ItemType, List<CheckRule>> getRules() {
+        return rules;
     }
+
+    public void setRules(Map<ItemType, List<CheckRule>> rules) {
+        this.rules = rules;
+    }
+
+    public void clear() {
+        rules = new HashMap<>();
+    }
+
+    public void addRules(Map<ItemType, List<CheckRule>> addRules) {
+        for(Map.Entry<ItemType,List<CheckRule>> entry:addRules.entrySet()){
+            if(rules.containsKey(entry.getKey())){
+                List<CheckRule> origin = rules.get(entry.getKey());
+                l1:for(CheckRule addRule:entry.getValue()){
+                    for(CheckRule originRule:origin){
+                        if(originRule.getName().equals(addRule.getName())){
+                            //todo:处理重复
+                            continue l1;
+                        }
+                    }
+                    origin.add(addRule);
+                }
+                origin.sort(Comparator.comparingInt(CheckRule::getPriority));
+            }else {
+                List<CheckRule> ruleList = new ArrayList<>(entry.getValue());
+                ruleList.sort(Comparator.comparingInt(CheckRule::getPriority));
+                rules.put(entry.getKey(),ruleList);
+            }
+        }
+    }
+
 }

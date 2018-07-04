@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -28,7 +29,7 @@ public class CommandReload extends AbstractCommand {
             EpicBanItem.plugin.reload();
             src.sendMessage(getMessage("succeed"));
             return CommandResult.success();
-        } catch (IOException e) {
+        } catch (IOException|ObjectMappingException e) {
             throw new CommandException(getMessage("failed"), e);
         }
     }
