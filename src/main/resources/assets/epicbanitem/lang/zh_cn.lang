@@ -1,0 +1,26 @@
+#command
+epicbanitem.command.check.description=
+epicbanitem.command.check.extendedDescription=
+epicbanitem.command.check.argHelp=
+epicbanitem.command.list.description=
+epicbanitem.command.list.extendedDescription=
+epicbanitem.command.list.argHelp=
+epicbanitem.command.list.noRule=
+epicbanitem.command.list.itemTypeLine={item_type}
+epicbanitem.command.reload.description=
+epicbanitem.command.reload.extendedDescription=
+epicbanitem.command.reload.argHelp=
+epicbanitem.command.reload.succeed=
+epicbanitem.command.reload.failed=
+epicbanitem.command.show.description=
+epicbanitem.command.show.extendedDescription=
+epicbanitem.command.show.argHelp=
+#checkrule
+epicbanitem.checkrule.worlds=
+epicbanitem.checkrule.triggers=
+epicbanitem.checkrule.remove=
+epicbanitem.checkrule.query=
+epicbanitem.checkrule.update=
+#error
+epicbanitem.error.failDeserialize=Failed to deserialize ConfigNode to String
+epicbanitem.error.missingMessage=

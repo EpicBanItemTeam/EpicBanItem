@@ -108,6 +108,7 @@ public class EpicBanItem {
     public void reload() throws IOException, ObjectMappingException {
         //todo:更好的异常处理?
         logger.info("reloading");
+        messages.load();
         Files.createDirectories(cfgDir);
         if (settings == null) {
             settings = new Settings(cfgDir.resolve("settings.conf"));

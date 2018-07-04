@@ -21,7 +21,7 @@ import java.util.*;
  */
 @SuppressWarnings("WeakerAccess")
 public class Messages {
-    private TextTemplate MISSING;
+    private Text MISSING;
 
     private final EpicBanItem plugin;
     private final Path messagePath;
@@ -39,7 +39,10 @@ public class Messages {
         assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
                 assetManager.getAsset(plugin, "lang/en_us.lang").get()).copyToFile(messagePath, false);
         res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
-        MISSING = TextUtil.parseTextTemplate(res.getString("error.missingMessage"),Collections.emptySet());
+        MISSING = getMessage("epicbanitem.error.missingMessage");
+        if(MISSING == null){
+            MISSING = Text.of("Missing Message.");
+        }
     }
 
     public Text getMessage(String key, Map<String, ?> params) {
@@ -51,7 +54,11 @@ public class Messages {
                 EpicBanItem.logger.warn("Missing message for key:"+key);
             }
         }
-        return cache.getOrDefault(key, MISSING).apply(params).build();
+        if(cache.containsKey(key)){
+            return cache.get(key).apply(params).build();
+        }else {
+            return MISSING;
+        }
     }
 
     public Text getMessage(String key) {

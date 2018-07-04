@@ -73,7 +73,7 @@ public class CheckRule {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
             EpicBanItem.logger.error("Failed to deserialize ConfigNode to String", e);
-            return EpicBanItem.plugin.getMessages().getMessage("error.failDeserialize");
+            return EpicBanItem.plugin.getMessages().getMessage("epicbanitem.error.failDeserialize");
         }
     }
 
@@ -85,7 +85,7 @@ public class CheckRule {
             return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
         } catch (IOException e) {
             EpicBanItem.logger.error("Failed to deserialize ConfigNode to String", e);
-            return EpicBanItem.plugin.getMessages().getMessage("error.failDeserialize");
+            return EpicBanItem.plugin.getMessages().getMessage("epicbanitem.error.failDeserialize");
         }
     }
 
