@@ -21,14 +21,14 @@ public class BanConfig {
     private ConfigurationLoader<CommentedConfigurationNode> loader;
     private CommentedConfigurationNode node;
 
-    private Map<String,List<CheckRule>> rules;
+    private Map<String, List<CheckRule>> rules;
 
-    public BanConfig(Path path){
+    public BanConfig(Path path) {
         this.path = path;
         this.loader = HoconConfigurationLoader.builder().setPath(path).build();
     }
 
-    public BanConfig(Path path,boolean editable){
+    public BanConfig(Path path, boolean editable) {
         this(path);
         this.editable = editable;
     }
@@ -46,33 +46,33 @@ public class BanConfig {
     public void reload() throws ObjectMappingException, IOException {
         this.node = loader.load();
         rules = new LinkedHashMap<>();
-        for(Map.Entry<Object,? extends CommentedConfigurationNode> entry:node.getNode("epicbanitem").getChildrenMap().entrySet()){
-            rules.put(entry.getKey().toString(),entry.getValue().getList(RULE_TOKEN));
+        for (Map.Entry<Object, ? extends CommentedConfigurationNode> entry : node.getNode("epicbanitem").getChildrenMap().entrySet()) {
+            rules.put(entry.getKey().toString(), entry.getValue().getList(RULE_TOKEN));
         }
-        if(editable){
+        if (editable) {
             save();
-        }
-        else {
+        } else {
             rules = Collections.unmodifiableMap(rules);
         }
     }
 
     //todo:先备份再保存?
     public void save() throws IOException, ObjectMappingException {
-        if(editable){
-            node.getNode("epicbanitem").setValue(new TypeToken<Map<String,List<CheckRule>>>() {},rules);
+        if (editable) {
+            node.getNode("epicbanitem").setValue(new TypeToken<Map<String, List<CheckRule>>>() {
+            }, rules);
             loader.save(node);
         }
     }
 
-    public static Map<ItemType,List<CheckRule>> findType(Map<String,List<CheckRule>> rules){
-        Map<ItemType,List<CheckRule>> map = new HashMap<>();
-        for(Map.Entry<String,List<CheckRule>> entry:rules.entrySet()){
-            Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class,entry.getKey());
-            if(optionalItemType.isPresent()){
-                map.put(optionalItemType.get(),entry.getValue());
-            }else {
-                EpicBanItem.logger.error("Cannot find item type :"+entry.getKey(),",rules for it won't load.");
+    public static Map<ItemType, List<CheckRule>> findType(Map<String, List<CheckRule>> rules) {
+        Map<ItemType, List<CheckRule>> map = new HashMap<>();
+        for (Map.Entry<String, List<CheckRule>> entry : rules.entrySet()) {
+            Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class, entry.getKey());
+            if (optionalItemType.isPresent()) {
+                map.put(optionalItemType.get(), entry.getValue());
+            } else {
+                EpicBanItem.logger.error("Cannot find item type :" + entry.getKey(), ",rules for it won't load.");
             }
         }
         return map;

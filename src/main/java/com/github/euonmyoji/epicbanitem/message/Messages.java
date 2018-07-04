@@ -8,7 +8,6 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.AssetManager;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
-import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,23 +39,23 @@ public class Messages {
                 assetManager.getAsset(plugin, "lang/en_us.lang").get()).copyToFile(messagePath, false);
         res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
         MISSING = getMessage("epicbanitem.error.missingMessage");
-        if(MISSING == null){
+        if (MISSING == null) {
             MISSING = Text.of("Missing Message.");
         }
     }
 
     public Text getMessage(String key, Map<String, ?> params) {
         if (!cache.containsKey(key)) {
-            if(res.containsKey(key)){
+            if (res.containsKey(key)) {
                 String rawString = res.getString(key);
                 cache.put(key, TextUtil.parseTextTemplate(rawString, params.keySet()));
-            }else {
-                EpicBanItem.logger.warn("Missing message for key:"+key);
+            } else {
+                EpicBanItem.logger.warn("Missing message for key:" + key);
             }
         }
-        if(cache.containsKey(key)){
+        if (cache.containsKey(key)) {
             return cache.get(key).apply(params).build();
-        }else {
+        } else {
             return MISSING;
         }
     }

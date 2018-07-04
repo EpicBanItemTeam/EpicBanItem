@@ -28,7 +28,6 @@ import org.spongepowered.api.plugin.Plugin;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,7 +72,7 @@ public class EpicBanItem {
     public void onPreInit(GamePreInitializationEvent event) {
         plugin = this;
         service = new SimpleCheckRuleServiceImpl();
-        Sponge.getServiceManager().setProvider(this,CheckRuleService.class,service);
+        Sponge.getServiceManager().setProvider(this, CheckRuleService.class, service);
         messages = new Messages(this, cfgDir);
     }
 
@@ -83,7 +82,7 @@ public class EpicBanItem {
         NbtTagDataUtil.printLog().forEachRemaining(log -> logger.debug(log));
         try {
             reload();
-        } catch (IOException|ObjectMappingException e) {
+        } catch (IOException | ObjectMappingException e) {
             logger.warn("Failed to load epicbanitem", e);
         }
     }
@@ -100,7 +99,7 @@ public class EpicBanItem {
     public void onReload(GameReloadEvent event) {
         try {
             reload();
-        } catch (IOException|ObjectMappingException e) {
+        } catch (IOException | ObjectMappingException e) {
             logger.warn("IOException when reload epicbanitem", e);
         }
     }
@@ -115,21 +114,21 @@ public class EpicBanItem {
         }
         settings.reload();
         //example
-        Optional<Asset> exampleAsset = Sponge.getAssetManager().getAsset(this,"example_check_rules.conf");
-        if(exampleAsset.isPresent()){
+        Optional<Asset> exampleAsset = Sponge.getAssetManager().getAsset(this, "example_check_rules.conf");
+        if (exampleAsset.isPresent()) {
             try {
-                exampleAsset.get().copyToFile(cfgDir.resolve("example.conf"),true);
-            }catch (IOException e){
-                logger.warn("Failed to copy example ban config.",e);
+                exampleAsset.get().copyToFile(cfgDir.resolve("example.conf"), true);
+            } catch (IOException e) {
+                logger.warn("Failed to copy example ban config.", e);
             }
-        }else {
+        } else {
             logger.warn("Cannot find example ban config.");
         }
-        if(banConfig==null){
-            banConfig = new BanConfig(cfgDir.resolve("banitem.conf"),true);
+        if (banConfig == null) {
+            banConfig = new BanConfig(cfgDir.resolve("banitem.conf"), true);
         }
         banConfig.reload();
-        Map<ItemType,List<CheckRule>> rules = service.getRules();
+        Map<ItemType, List<CheckRule>> rules = service.getRules();
         service.clear();
         service.addRules(BanConfig.findType(banConfig.getRules()));
         logger.info("reloaded");
