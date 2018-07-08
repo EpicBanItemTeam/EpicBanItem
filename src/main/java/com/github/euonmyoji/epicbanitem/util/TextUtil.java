@@ -1,9 +1,9 @@
 package com.github.euonmyoji.epicbanitem.util;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.nbt.NbtTagRenderer;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.google.gson.stream.JsonWriter;
-import com.typesafe.config.ConfigParseOptions;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -18,6 +18,8 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -140,9 +142,32 @@ public class TextUtil {
     private static BufferedReader delegationReader;
     private static BufferedWriter delegationWriter;
 
-    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
-            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
-            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true)).build();
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
+//    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
+//            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+//            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))
+//            .build();
+
+    private static ConfigurationLoader<CommentedConfigurationNode> getLoader(){
+        HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
+                .setSource(() -> delegationReader).setSink(() -> delegationWriter);
+        try {
+            for(Method method:HoconConfigurationLoader.Builder.class.getMethods()){
+                if(method.getName().equals("setParseOptions")){
+                    Class<?> parseOptionsClass = method.getParameterTypes()[0];
+                    Method setAllowMissingMethod = parseOptionsClass.getMethod("setAllowMissing",boolean.class);
+                    Object defaultParseOptions = parseOptionsClass.getMethod("defaults").invoke(null);
+                    builder = (HoconConfigurationLoader.Builder) method.invoke(builder,setAllowMissingMethod.invoke(defaultParseOptions,true));
+                    return builder.build();
+                }
+            }
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            EpicBanItem.logger.error("Error",e);
+            return builder.build();
+        }
+        EpicBanItem.logger.error("Failed to find method 'setParseOptions'",new Exception());
+        return builder.build();
+    }
 
     public static ConfigurationNode serializeStringToConfigNode(String string) throws IOException {
         try (StringReader in = new StringReader(string); BufferedReader bufferedReader = new BufferedReader(in)) {
