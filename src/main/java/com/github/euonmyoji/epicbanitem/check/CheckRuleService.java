@@ -13,6 +13,9 @@ import java.util.Set;
 
 //填充命令用
 
+/**
+ * @author EBI TEAM
+ */
 public interface CheckRuleService {
     //Map<ItemType,Map<String,CheckRule>>?
     //Map<ItemType,Collection<CheckRule>>?

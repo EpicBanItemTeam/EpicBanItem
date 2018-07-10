@@ -17,6 +17,9 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author EBI TEAM
+ */
 @SuppressWarnings("WeakerAccess")
 public abstract class AbstractCommand implements ICommand, CommandExecutor {
 

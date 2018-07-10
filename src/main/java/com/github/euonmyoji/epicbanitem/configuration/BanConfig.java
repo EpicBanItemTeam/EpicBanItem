@@ -24,7 +24,7 @@ public class BanConfig {
     private Map<String, List<CheckRule>> rules;
 
     public BanConfig(Path path) {
-        this(path,false);
+        this(path, false);
     }
 
     public BanConfig(Path path, boolean editable) {
@@ -44,6 +44,7 @@ public class BanConfig {
     //todo:epicbanitem-version
     //todo:何时加载
     //todo:出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
+
     public void reload() throws ObjectMappingException, IOException {
         this.node = loader.load();
         rules = new LinkedHashMap<>();
@@ -58,6 +59,7 @@ public class BanConfig {
     }
 
     //todo:先备份再保存?
+
     public void save() throws IOException, ObjectMappingException {
         if (editable) {
             node.getNode("epicbanitem").setValue(new TypeToken<Map<String, List<CheckRule>>>() {

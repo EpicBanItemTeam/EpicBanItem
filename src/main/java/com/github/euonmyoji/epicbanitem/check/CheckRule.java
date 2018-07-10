@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -12,7 +11,6 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.inventory.ItemStack;

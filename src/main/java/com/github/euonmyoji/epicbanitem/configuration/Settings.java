@@ -18,12 +18,13 @@ import java.util.Map;
  * @author epicbanitem authors
  */
 public class Settings {
-    private static Map<String,Boolean> triggers = new LinkedHashMap<>();
+    private static Map<String, Boolean> triggers = new LinkedHashMap<>();
+
     static {
-        triggers.put("use",true);
-        triggers.put("throw",true);
-        triggers.put("pickup",true);
-        triggers.put("click",true);
+        triggers.put("use", true);
+        triggers.put("throw", true);
+        triggers.put("pickup", true);
+        triggers.put("click", true);
     }
 
     private Path settingPath;
@@ -33,8 +34,8 @@ public class Settings {
     private static final String LISTEN_CHUNK_LOAD = "listen-chunk-load";
 
     public boolean listenLoadingChunk = false;
-    private Map<String,Boolean> defaultTriggers;
-    private Map<String,Boolean> immutableDefaultTriggers;
+    private Map<String, Boolean> defaultTriggers;
+    private Map<String, Boolean> immutableDefaultTriggers;
 
     public Settings(Path settingPath) {
         this.settingPath = settingPath;
@@ -47,12 +48,12 @@ public class Settings {
         CommentedConfigurationNode node = cfg.getNode("epicbanitem");
         listenLoadingChunk = node.getNode(LISTEN_CHUNK_LOAD).getBoolean(false);
         defaultTriggers = new LinkedHashMap<>();
-        for(Map.Entry<String,Boolean> entry:triggers.entrySet()){
-            defaultTriggers.put(entry.getKey(),node.getNode("default-trigger",entry.getKey()).getBoolean(entry.getValue()));
+        for (Map.Entry<String, Boolean> entry : triggers.entrySet()) {
+            defaultTriggers.put(entry.getKey(), node.getNode("default-trigger", entry.getKey()).getBoolean(entry.getValue()));
         }
-        for(Map.Entry<?,? extends CommentedConfigurationNode> entry:node.getNode("default-trigger").getChildrenMap().entrySet()){
-            if(!defaultTriggers.containsKey(entry.getKey().toString())){
-                defaultTriggers.put(entry.getKey().toString(),entry.getValue().getBoolean());
+        for (Map.Entry<?, ? extends CommentedConfigurationNode> entry : node.getNode("default-trigger").getChildrenMap().entrySet()) {
+            if (!defaultTriggers.containsKey(entry.getKey().toString())) {
+                defaultTriggers.put(entry.getKey().toString(), entry.getValue().getBoolean());
             }
         }
         immutableDefaultTriggers = Collections.unmodifiableMap(defaultTriggers);

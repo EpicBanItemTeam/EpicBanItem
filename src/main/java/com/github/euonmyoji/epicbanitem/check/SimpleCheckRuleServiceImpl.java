@@ -66,12 +66,13 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
     }
 
     public void addRules(Map<ItemType, List<CheckRule>> addRules) {
-        for(Map.Entry<ItemType,List<CheckRule>> entry:addRules.entrySet()){
-            if(rules.containsKey(entry.getKey())){
+        for (Map.Entry<ItemType, List<CheckRule>> entry : addRules.entrySet()) {
+            if (rules.containsKey(entry.getKey())) {
                 List<CheckRule> origin = rules.get(entry.getKey());
-                l1:for(CheckRule addRule:entry.getValue()){
-                    for(CheckRule originRule:origin){
-                        if(originRule.getName().equals(addRule.getName())){
+                l1:
+                for (CheckRule addRule : entry.getValue()) {
+                    for (CheckRule originRule : origin) {
+                        if (originRule.getName().equals(addRule.getName())) {
                             //todo:处理重复
                             continue l1;
                         }
@@ -79,10 +80,10 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
                     origin.add(addRule);
                 }
                 origin.sort(Comparator.comparingInt(CheckRule::getPriority));
-            }else {
+            } else {
                 List<CheckRule> ruleList = new ArrayList<>(entry.getValue());
                 ruleList.sort(Comparator.comparingInt(CheckRule::getPriority));
-                rules.put(entry.getKey(),ruleList);
+                rules.put(entry.getKey(), ruleList);
             }
         }
     }

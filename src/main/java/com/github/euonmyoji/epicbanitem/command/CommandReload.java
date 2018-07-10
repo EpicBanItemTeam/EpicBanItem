@@ -29,7 +29,7 @@ public class CommandReload extends AbstractCommand {
             EpicBanItem.plugin.reload();
             src.sendMessage(getMessage("succeed"));
             return CommandResult.success();
-        } catch (IOException|ObjectMappingException e) {
+        } catch (IOException | ObjectMappingException e) {
             throw new CommandException(getMessage("failed"), e);
         }
     }
