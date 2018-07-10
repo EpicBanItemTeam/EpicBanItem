@@ -24,12 +24,12 @@ public class BanConfig {
     private Map<String, List<CheckRule>> rules;
 
     public BanConfig(Path path) {
-        this.path = path;
-        this.loader = HoconConfigurationLoader.builder().setPath(path).build();
+        this(path,false);
     }
 
     public BanConfig(Path path, boolean editable) {
-        this(path);
+        this.path = path;
+        this.loader = HoconConfigurationLoader.builder().setPath(path).build();
         this.editable = editable;
     }
 
@@ -41,6 +41,7 @@ public class BanConfig {
         return rules;
     }
 
+    //todo:epicbanitem-version
     //todo:何时加载
     //todo:出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
     public void reload() throws ObjectMappingException, IOException {

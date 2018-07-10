@@ -13,6 +13,7 @@ import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
@@ -74,6 +75,7 @@ public class EpicBanItem {
         service = new SimpleCheckRuleServiceImpl();
         Sponge.getServiceManager().setProvider(this, CheckRuleService.class, service);
         messages = new Messages(this, cfgDir);
+        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
     @Listener

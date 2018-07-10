@@ -161,10 +161,6 @@ public class CheckRule {
         return builder.build();
     }
 
-    static {
-        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new Serializer());
-    }
-
     public static class Serializer implements TypeSerializer<CheckRule> {
 
         @Override
