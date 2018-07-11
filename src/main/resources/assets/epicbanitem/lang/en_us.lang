@@ -15,6 +15,11 @@ epicbanitem.command.reload.failed=
 epicbanitem.command.show.description=
 epicbanitem.command.show.extendedDescription=
 epicbanitem.command.show.argHelp=
+epicbanitem.command.ebi.description=
+epicbanitem.command.ebi.extendedDescription=
+epicbanitem.command.ebi.argHelp=
+epicbanitem.command.ebi.version={version}
+epicbanitem.command.ebi.useHelp={help_command}
 #checkrule
 epicbanitem.checkrule.worlds=
 epicbanitem.checkrule.triggers=
@@ -23,4 +28,4 @@ epicbanitem.checkrule.query=
 epicbanitem.checkrule.update=
 #error
 epicbanitem.error.failDeserialize=Failed to deserialize ConfigNode to String
-epicbanitem.error.missingMessage=missing message
+epicbanitem.error.missingMessage=Missing Message of {message_key}

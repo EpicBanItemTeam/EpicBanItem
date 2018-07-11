@@ -20,7 +20,7 @@ import java.util.*;
  */
 @SuppressWarnings("WeakerAccess")
 public class Messages {
-    private Text MISSING;
+    private static final String MISSING_MESSAGE_KEY = "epicbanitem.error.missingMessage";
 
     private final EpicBanItem plugin;
     private final Path messagePath;
@@ -38,10 +38,15 @@ public class Messages {
         assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
                 assetManager.getAsset(plugin, "lang/en_us.lang").get()).copyToFile(messagePath, false);
         res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
-        MISSING = getMessage("epicbanitem.error.missingMessage");
-        if (MISSING == null) {
-            MISSING = Text.of("Missing Message.");
+
+        String rawString;
+        if(res.containsKey(MISSING_MESSAGE_KEY)){
+            rawString = res.getString(MISSING_MESSAGE_KEY);
+        }else {
+            rawString = "Missing Message of {message_key}";
+            EpicBanItem.logger.warn("Missing message for key:" + MISSING_MESSAGE_KEY);
         }
+        cache.put(MISSING_MESSAGE_KEY,TextUtil.parseTextTemplate(rawString,Collections.singleton("message_key")));
     }
 
     public Text getMessage(String key, Map<String, ?> params) {
@@ -56,7 +61,7 @@ public class Messages {
         if (cache.containsKey(key)) {
             return cache.get(key).apply(params).build();
         } else {
-            return MISSING;
+            return getMessage("epicbanitem.error.missingMessage","message_key",key);
         }
     }
 

@@ -62,8 +62,7 @@ public class BanConfig {
 
     public void save() throws IOException, ObjectMappingException {
         if (editable) {
-            node.getNode("epicbanitem").setValue(new TypeToken<Map<String, List<CheckRule>>>() {
-            }, rules);
+            node.getNode("epicbanitem").setValue(new TypeToken<Map<String, List<CheckRule>>>(){}, rules);
             loader.save(node);
         }
     }

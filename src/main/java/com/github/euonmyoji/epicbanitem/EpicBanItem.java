@@ -3,7 +3,7 @@ package com.github.euonmyoji.epicbanitem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.SimpleCheckRuleServiceImpl;
-import com.github.euonmyoji.epicbanitem.command.EpicBanItemCommand;
+import com.github.euonmyoji.epicbanitem.command.CommandEbi;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
@@ -17,6 +17,7 @@ import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
+import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
@@ -40,7 +41,7 @@ import java.util.Optional;
         description = "a banitem plugin with nbt")
 public class EpicBanItem {
     public static EpicBanItem plugin;
-    static final String VERSION = "1.0";
+    public static final String VERSION = "1.0";
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -61,6 +62,16 @@ public class EpicBanItem {
     }
 
     private BanConfig banConfig;
+
+    public BanConfig getBanConfig() {
+        return banConfig;
+    }
+
+    private String mainCommandAlias;
+
+    public String getMainCommandAlias() {
+        return mainCommandAlias;
+    }
 
     private SimpleCheckRuleServiceImpl service;
 
@@ -91,7 +102,14 @@ public class EpicBanItem {
 
     @Listener
     public void onStarted(GameStartedServerEvent event) {
-        Sponge.getCommandManager().register(this, EpicBanItemCommand.ebi, "epicbanitem", "ebi", "banitem");
+        CommandEbi commandEbi = new CommandEbi();
+        Optional<CommandMapping> commandMapping = Sponge.getCommandManager()
+                .register(this, commandEbi.getCallable(), commandEbi.getNameList());
+        if(!commandMapping.isPresent()){
+            //none registered
+        }else {
+            mainCommandAlias = commandMapping.get().getPrimaryAlias();
+        }
         Sponge.getEventManager().registerListeners(this, new InventoryListener());
         Sponge.getEventManager().registerListeners(this, new WorldItemMoveListener());
         Sponge.getEventManager().registerListeners(this, new ChunkListener());

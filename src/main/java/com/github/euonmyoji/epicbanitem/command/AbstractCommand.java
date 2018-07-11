@@ -34,7 +34,6 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         this.alias = alias;
     }
 
-
     public String getRootPermission() {
         return "epicbanitem.command." + name;
     }
@@ -67,6 +66,25 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         return getMessage("argHelp");
     }
 
+    public Text getHelpMessage(CommandSource src, CommandContext args){
+        //todo:使用翻译 , 颜色
+        Text.Builder builder = Text.builder();
+        builder.append(Text.of("Command:", getName()), Text.NEW_LINE);
+        builder.append(getDescription(), Text.NEW_LINE);
+        if (getAlias().length > 0) {
+            builder.append(Text.of("Alias:"));
+            for (String alias : getAlias()) {
+                builder.append(Text.of(alias, " "));
+            }
+            builder.append(Text.NEW_LINE);
+        }
+        //todo:父命令？
+        builder.append(Text.of("Usages:"), getCallable().getUsage(src), Text.NEW_LINE);
+        builder.append(getArgHelp(src), Text.NEW_LINE);
+//                builder.append(getExtendedDescription(),Text.NEW_LINE);
+        return builder.build();
+    }
+
     public abstract CommandElement getArgument();
 
     @Override
@@ -84,7 +102,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         if (commandSpec == null) {
             Help help = new Help();
             commandSpec = CommandSpec.builder()
-                    .permission(getRootPermission())
+                    .permission(getPermission("base"))
                     .description(getDescription())
                     .extendedDescription(getExtendedDescription())
                     .arguments(help)
@@ -112,7 +130,9 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 if (args.next().equalsIgnoreCase("help")) {
                     context.putArg("help", true);
                 } else {
-                    throw e;
+                    //temp catch parse exception here
+                    context.putArg("help", true);
+                    //throw e;
                 }
             }
         }
@@ -144,20 +164,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (args.hasAny("help")) {
-                //todo:使用翻译 , 颜色
-                Text.Builder builder = Text.builder();
-                builder.append(Text.of("Command:", getName()), Text.NEW_LINE);
-                builder.append(getDescription(), Text.NEW_LINE);
-                if (getAlias().length > 0) {
-                    builder.append(Text.of("Alias:"));
-                    for (String alias : getAlias()) {
-                        builder.append(Text.of(alias, " "));
-                    }
-                    builder.append(Text.NEW_LINE);
-                }
-                builder.append(Text.of("Usages:"), getUsage(src), Text.NEW_LINE);
-                builder.append(getArgHelp(src), Text.NEW_LINE);
-//                builder.append(getExtendedDescription(),Text.NEW_LINE);
+                src.sendMessage(getHelpMessage(src,args));
                 return CommandResult.success();
             } else {
                 return AbstractCommand.this.execute(src, args);
