@@ -90,12 +90,14 @@ public class TextUtil {
      * @return TextTemplate
      */
     public static TextTemplate parseTextTemplate(String origin, Set<String> keySet) {
-        boolean checkFirst = origin.startsWith("{");
         List<Object> objects = new ArrayList<>();
         String[] subStrings = origin.split("\\{");
         for (int i = 0; i < subStrings.length; i++) {
             String subString = subStrings[i];
-            if (i == 0 && !checkFirst) {
+            if(subString.isEmpty()){
+                continue;
+            }
+            if (i == 0) {
                 objects.add(parseFormatText(subString));
                 continue;
             }

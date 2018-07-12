@@ -23,7 +23,7 @@ public class CommandEbi extends AbstractCommand {
     private Map<List<String>,CommandCallable> childrenMap = new HashMap<>();
 
     public CommandEbi() {
-        super("ebi","epicbanitem","banitem ","bi");
+        super("ebi","epicbanitem","banitem","bi");
         addChildCommand(new CommandReload());
         addChildCommand(new CommandList());
         //todo:query

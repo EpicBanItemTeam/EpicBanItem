@@ -18,8 +18,8 @@ epicbanitem.command.show.argHelp=
 epicbanitem.command.ebi.description=EpicBanItem的命令
 epicbanitem.command.ebi.extendedDescription=
 epicbanitem.command.ebi.argHelp=
-epicbanitem.command.ebi.version={version}
-epicbanitem.command.ebi.useHelp={help_command}
+epicbanitem.command.ebi.version=EpicBanItem 版本:{version}
+epicbanitem.command.ebi.useHelp=使用:{help_command}获取更多信息
 #checkrule
 epicbanitem.checkrule.worlds=世界
 epicbanitem.checkrule.triggers=监听
