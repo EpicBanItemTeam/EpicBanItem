@@ -26,12 +26,10 @@ public class CommandEbi extends AbstractCommand {
         super("ebi","epicbanitem","banitem","bi");
         addChildCommand(new CommandReload());
         addChildCommand(new CommandList());
-        //todo:query
-        childrenMap.put(Arrays.asList("query", "q"),Query.query);
+        addChildCommand(new CommandQuery());
         addChildCommand(new CommandShow());
         addChildCommand(new CommandCheck());
-        //todo:create
-        childrenMap.put(Arrays.asList("create", "c"),Create.create);
+        addChildCommand(new CommandCreate());
         //todo:update
         childrenMap.put(Arrays.asList("update", "u"),Update.update);
         //todo:apply

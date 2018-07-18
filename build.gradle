@@ -1,5 +1,26 @@
-version = '1.0'
-group = 'com.github.euonmyoji.epicbanitem'
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.ajoberstar:grgit:1.7.0'
+    }
+}
+
+
+def buildNumber = ""
+ext {
+    git = org.ajoberstar.grgit.Grgit.open(file(".git"))
+    parents = git.head().parentIds;
+    index = 0;  // Offset to match CI
+    for (;parents != null && !parents.isEmpty();index++) {
+        parents = git.getResolve().toCommit(parents.get(0)).getParentIds()
+    }
+    buildNumber = "${index}"
+}
+
+version = "$version-b$buildNumber"
 
 apply plugin: 'java'
 apply plugin: 'idea'

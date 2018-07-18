@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -13,6 +14,7 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
@@ -28,7 +30,40 @@ import java.util.*;
  */
 @SuppressWarnings("WeakerAccess")
 public class CheckRule {
-    private String name;
+    //todo editable
+//    public static Builder builder(){
+//        return new Builder();
+//    }
+//
+//    public static class Builder {
+//
+//        private String name;
+//        private ItemType itemType;
+//        private BanConfig source;
+//        private int priority;
+//        private Set<String> enableWorlds = new HashSet<>();
+//        private String ignorePermission;
+//        private Set<String> enableTrigger = new HashSet<>();
+//        private boolean remove;
+//        private QueryExpression query;
+//        private UpdateExpression update;
+//        private ConfigurationNode queryNode;
+//        private ConfigurationNode updateNode;
+//
+//        private Builder(){
+//
+//        }
+//
+//        public CheckRule build(){
+//
+//        }
+//
+//
+//    }
+
+    private final String name;
+    private  ItemType itemType;
+    private BanConfig source;
     private int priority;
     private Set<String> enableWorlds = new HashSet<>();
     private String ignorePermission;
@@ -38,14 +73,37 @@ public class CheckRule {
     private UpdateExpression update;
     private ConfigurationNode queryNode;
     private ConfigurationNode updateNode;
+    //todo:reason?
 
-    private CheckRule(String name) {
+    public CheckRule(String name) {
         this.name = Objects.requireNonNull(name);
+    }
+
+    public CheckRule(String name,ConfigurationNode queryNode) {
+        this.name = Objects.requireNonNull(name);
+        this.queryNode = queryNode;
     }
 
     public String getName() {
         return name;
     }
+
+//    public void setName(String name){
+//
+//    }
+//
+//    public void rename(String name){
+//        //todo:
+//    }
+//
+//    public ItemType getItemType() {
+//        return itemType;
+//    }
+//
+//    public void setItemType(ItemType itemType) {
+//        this.itemType = itemType;
+//    }
+
 
     public int getPriority() {
         return priority;
@@ -61,6 +119,14 @@ public class CheckRule {
 
     public boolean remove() {
         return remove;
+    }
+
+    public boolean isEditable(){
+        if(source!=null){
+            return source.isEditable();
+        }else {
+            return false;
+        }
     }
 
     public Text getQueryInfo() {

@@ -12,15 +12,15 @@ import org.spongepowered.api.world.Chunk;
  * @author yinyangshi
  */
 public class ChunkListener {
-    @Listener
-    public void onGenerateChunk(GenerateChunkEvent event) {
-        testChunk(event.getTargetChunk());
-    }
-
-    @Listener
-    public void onLoadChunk(LoadChunkEvent event) {
-        if (EpicBanItem.plugin.getSettings().listenLoadingChunk) testChunk(event.getTargetChunk());
-    }
+//    @Listener
+//    public void onGenerateChunk(GenerateChunkEvent event) {
+//        testChunk(event.getTargetChunk());
+//    }
+//
+//    @Listener
+//    public void onLoadChunk(LoadChunkEvent event) {
+//        if (EpicBanItem.plugin.getSettings().listenLoadingChunk) testChunk(event.getTargetChunk());
+//    }
 
     private void testChunk(Chunk chunk) {
         Task.builder().async().execute(() -> {

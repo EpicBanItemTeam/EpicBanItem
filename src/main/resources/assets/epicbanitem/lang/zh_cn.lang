@@ -20,6 +20,14 @@ epicbanitem.command.ebi.extendedDescription=
 epicbanitem.command.ebi.argHelp=
 epicbanitem.command.ebi.version=EpicBanItem 版本:{version}
 epicbanitem.command.ebi.useHelp=使用:{help_command}获取更多信息
+epicbanitem.command.query.description=使用特定规则检查手中物品，并列出NBT等信息
+epicbanitem.command.query.extendedDescription=
+epicbanitem.command.query.argHelp=
+epicbanitem.command.query.noItem=找不到物品。可能因为你不是玩家，或者手上没拿东西？
+epicbanitem.command.query.succeed=成功匹配物品:
+epicbanitem.command.query.failed=未成功匹配物品。
+epicbanitem.command.query.error=解析匹配时出错:
+
 #checkrule
 epicbanitem.checkrule.worlds=世界
 epicbanitem.checkrule.triggers=监听
