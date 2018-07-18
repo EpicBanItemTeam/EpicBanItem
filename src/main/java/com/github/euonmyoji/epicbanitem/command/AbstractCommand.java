@@ -125,15 +125,23 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             Object state = args.getState();
             try {
                 commandElement.parse(source, args, context);
-            } catch (ArgumentParseException e) {
-                args.setState(state);
-                if (args.next().equalsIgnoreCase("help")) {
+                if(args.hasNext()){
+                    //avoid too many arguments
                     context.putArg("help", true);
-                } else {
-                    //temp catch parse exception here
-                    context.putArg("help", true);
-                    //throw e;
+                    while (args.hasNext()){
+                        args.next();
+                    }
                 }
+            } catch (ArgumentParseException e) {
+                context.putArg("help", true);
+//                args.setState(state);
+//                if (args.peek().equalsIgnoreCase("help")) {
+//                    context.putArg("help", true);
+//                } else {
+//                    //temp catch parse exception here
+//                    context.putArg("help", true);
+//                    //throw e;
+//                }
             }
         }
 
