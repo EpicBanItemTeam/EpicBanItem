@@ -7,11 +7,11 @@ epicbanitem.command.list.extendedDescription=列出被封禁的物品
 epicbanitem.command.list.argHelp=
 epicbanitem.command.list.noRule=
 epicbanitem.command.list.itemTypeLine={item_type}
-epicbanitem.command.reload.description="&a重载插件配置文件"
+epicbanitem.command.reload.description=&a重载插件配置文件
 epicbanitem.command.reload.extendedDescription=
 epicbanitem.command.reload.argHelp=
-epicbanitem.command.reload.succeed="&6[EpicBanItem]&b重载插件配置文件成功"
-epicbanitem.command.reload.failed="&6[EpicBanItem]&b重载插件配置文件失败！"
+epicbanitem.command.reload.succeed=&6[EpicBanItem]&b重载插件配置文件成功
+epicbanitem.command.reload.failed=&6[EpicBanItem]&b重载插件配置文件失败！
 epicbanitem.command.show.description=展示物品的特定的规则﻿
 epicbanitem.command.show.extendedDescription=
 epicbanitem.command.show.argHelp=
@@ -27,6 +27,12 @@ epicbanitem.command.query.noItem=找不到物品。可能因为你不是玩家�
 epicbanitem.command.query.succeed=成功匹配物品:
 epicbanitem.command.query.failed=未成功匹配物品。
 epicbanitem.command.query.error=解析匹配时出错:
+epicbanitem.command.create.description=创建一个新的规则
+epicbanitem.command.create.extendedDescription=
+epicbanitem.command.create.argHelp=
+epicbanitem.command.help.description=显示帮助
+epicbanitem.command.help.extendedDescription=
+epicbanitem.command.help.argHelp=
 
 #checkrule
 epicbanitem.checkrule.worlds=世界

@@ -34,7 +34,7 @@ public class CommandEbi extends AbstractCommand {
         childrenMap.put(Arrays.asList("update", "u"),Update.update);
         //todo:apply
         childrenMap.put(Arrays.asList("apply", "a"),Apply.apply);
-        //todo:help
+        addChildCommand(new CommandHelp(childrenMap));
         commandSpec = CommandSpec.builder()
                 .permission(getPermission("base"))
                 .description(getDescription())
@@ -61,4 +61,5 @@ public class CommandEbi extends AbstractCommand {
     private void addChildCommand(ICommand command){
         childrenMap.put(command.getNameList(), command.getCallable());
     }
+
 }

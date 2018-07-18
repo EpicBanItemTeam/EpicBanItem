@@ -175,9 +175,9 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         public Text getUsage(CommandSource src) {
             Text usage = commandElement.getUsage(src);
             if (usage.isEmpty()) {
-                return Text.of("help");
+                return Text.of("[help]");
             } else {
-                return Text.of("help|", usage);
+                return Text.of(usage,"|help");
             }
         }
     }
