@@ -35,6 +35,7 @@ public class Messages {
 
     public void load() throws IOException {
         AssetManager assetManager = Sponge.getAssetManager();
+        Files.createDirectories(messagePath.getParent());
         assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
                 assetManager.getAsset(plugin, "lang/en_us.lang").get()).copyToFile(messagePath, false);
         res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
