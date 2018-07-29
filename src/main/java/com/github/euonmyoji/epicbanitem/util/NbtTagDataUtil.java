@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.util;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import org.spongepowered.api.Sponge;
@@ -109,10 +110,14 @@ public class NbtTagDataUtil {
             for (BlockType blockType : Sponge.getRegistry().getAllOf(BlockType.class)) {
                 if (blockType.getItem().isPresent()) {
                     for (BlockState state : blockType.getAllBlockStates()) {
-                        DataContainer nbt = ItemStack.builder().fromBlockState(state).build().toContainer();
-                        Optional<Object> damage = nbt.get(DataQuery.of("UnsafeDamage"));
-                        Optional<Object> id = nbt.get(DataQuery.of("ItemType"));
-                        map.put(Tuple.of(id, damage), state);
+                        try {
+                            DataContainer nbt = ItemStack.builder().fromBlockState(state).build().toContainer();
+                            Optional<Object> damage = nbt.get(DataQuery.of("UnsafeDamage"));
+                            Optional<Object> id = nbt.get(DataQuery.of("ItemType"));
+                            map.put(Tuple.of(id, damage), state);
+                        }catch (Exception e){
+                            EpicBanItem.logger.error("Failed to get itemstack form "+state,e);
+                        }
                     }
                 }
             }

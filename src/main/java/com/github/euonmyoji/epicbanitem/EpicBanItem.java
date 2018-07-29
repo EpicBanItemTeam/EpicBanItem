@@ -91,13 +91,13 @@ public class EpicBanItem {
 
     @Listener
     public void onStarting(GameStartingServerEvent event) {
-        logger.debug("Item to Block matching: ");
-        NbtTagDataUtil.printLog().forEachRemaining(log -> logger.debug(log));
         try {
             reload();
         } catch (IOException | ObjectMappingException e) {
             logger.warn("Failed to load epicbanitem", e);
         }
+        logger.debug("Item to Block matching: ");
+        NbtTagDataUtil.printLog().forEachRemaining(log -> logger.debug(log));
     }
 
     @Listener
