@@ -66,4 +66,12 @@ public interface CheckRuleService {
      */
     CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject);
 
+    /**
+     * Add a rule to the service and save it in the default config.
+     * @param type item type of the rule
+     * @param rule the rule to add
+     *             //todo throws exceptions
+     */
+    void addRule(ItemType type,CheckRule rule);
+
 }

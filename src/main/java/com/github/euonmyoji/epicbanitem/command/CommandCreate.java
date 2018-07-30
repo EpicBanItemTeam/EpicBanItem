@@ -1,9 +1,12 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -36,19 +39,24 @@ class CommandCreate extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        throw new CommandException(Text.of("Not Support Yet."));
-//        ItemType itemType = args.<ItemType>getOne("item-type").get();
-//        String ruleName = args.<String>getOne("rule-name").get();
-//        //todo:use histories in Query?
-//        String rule = args.<String>getOne("query-rule").orElse("");
-//        try {
-//            CheckRule checkRule = new CheckRule(ruleName);
-//            if(!rule.isEmpty()){
-//                ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule);
-//            }
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+//        throw new CommandException(Text.of("Not Support Yet."));
+        ItemType itemType = args.<ItemType>getOne("item-type").get();
+        String ruleName = args.<String>getOne("rule-name").get();
+        //todo:use histories in Query?
+        String rule = args.<String>getOne("query-rule").orElse("");
+        try {
+            CheckRule checkRule;
+            if(!rule.isEmpty()){
+                ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule);
+                checkRule = new CheckRule(ruleName,node);
+            }else {
+                checkRule = new CheckRule(ruleName);
+            }
+            Sponge.getServiceManager().provideUnchecked(CheckRuleService.class).addRule(itemType,checkRule);
+        } catch (Exception e) {
+            throw new CommandException(getMessage("failed"),e);
+        }
+        src.sendMessage(getMessage("succeed","rule_name",ruleName));
+        return CommandResult.success();
     }
 }

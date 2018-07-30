@@ -64,10 +64,10 @@ public class CheckRule {
     private final String name;
     private  ItemType itemType;
     private BanConfig source;
-    private int priority;
+    private int priority = 5;
     private Set<String> enableWorlds = new HashSet<>();
     private String ignorePermission;
-    private Set<String> enableTrigger = new HashSet<>();
+    private Set<String> enableTrigger = EpicBanItem.plugin.getSettings().getDefaultTriggerSet();
     private boolean remove;
     private QueryExpression query;
     private UpdateExpression update;
@@ -82,6 +82,10 @@ public class CheckRule {
     public CheckRule(String name,ConfigurationNode queryNode) {
         this.name = Objects.requireNonNull(name);
         this.queryNode = queryNode;
+    }
+
+    public void setSource(BanConfig source) {
+        this.source = source;
     }
 
     public String getName() {

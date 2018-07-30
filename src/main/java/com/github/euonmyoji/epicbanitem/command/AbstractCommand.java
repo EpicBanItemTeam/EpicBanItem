@@ -158,14 +158,14 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 if (!args.hasNext() || "help".startsWith(args.peek().toLowerCase())) {
                     List<String> stringList = new ArrayList<>();
                     stringList.add("help");
-                    stringList.addAll(getCallable().complete(src, args, context));
+                    stringList.addAll(commandElement.complete(src, args, context));
                     return stringList;
                 } else {
-                    return getCallable().complete(src, args, context);
+                    return commandElement.complete(src, args, context);
                 }
             } catch (ArgumentParseException e) {
                 e.printStackTrace();
-                return getCallable().complete(src, args, context);
+                return commandElement.complete(src, args, context);
             }
         }
 

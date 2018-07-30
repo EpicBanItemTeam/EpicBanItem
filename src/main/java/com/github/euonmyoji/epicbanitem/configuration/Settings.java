@@ -8,9 +8,7 @@ import org.spongepowered.api.Sponge;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 //应该在BanConfig之前
 
@@ -36,6 +34,7 @@ public class Settings {
     public boolean listenLoadingChunk = false;
     private Map<String, Boolean> defaultTriggers;
     private Map<String, Boolean> immutableDefaultTriggers;
+    private Set<String> defaultTriggerSet;
 
     public Settings(Path settingPath) {
         this.settingPath = settingPath;
@@ -57,10 +56,19 @@ public class Settings {
             }
         }
         immutableDefaultTriggers = Collections.unmodifiableMap(defaultTriggers);
+        defaultTriggerSet = new HashSet<>();
+        for(Map.Entry<String,Boolean> entry:defaultTriggers.entrySet()){
+            if(entry.getValue()){
+                defaultTriggerSet.add(entry.getKey());
+            }
+        }
     }
 
     public Map<String, Boolean> getDefaultTriggers() {
         return immutableDefaultTriggers;
     }
 
+    public Set<String> getDefaultTriggerSet() {
+        return new HashSet<>(defaultTriggerSet);
+    }
 }

@@ -5,10 +5,12 @@ import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.asset.AssetManager;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
@@ -25,6 +27,7 @@ public class Messages {
     private final EpicBanItem plugin;
     private final Path messagePath;
     private ResourceBundle res;
+    private ResourceBundle fallbackRes;
 
     private Map<String, TextTemplate> cache = new HashMap<>();
 
@@ -36,33 +39,42 @@ public class Messages {
     public void load() throws IOException {
         AssetManager assetManager = Sponge.getAssetManager();
         Files.createDirectories(messagePath.getParent());
-        assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
-                assetManager.getAsset(plugin, "lang/en_us.lang").get()).copyToFile(messagePath, false);
+        Asset fallback = assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
+                assetManager.getAsset(plugin, "lang/en_us.lang").get());
+        fallback.copyToFile(messagePath, false);
         res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
+        fallbackRes = new PropertyResourceBundle(new InputStreamReader(fallback.getUrl().openStream(), Charsets.UTF_8));
 
-        String rawString;
-        if(res.containsKey(MISSING_MESSAGE_KEY)){
-            rawString = res.getString(MISSING_MESSAGE_KEY);
-        }else {
+        String rawString = getRawString(MISSING_MESSAGE_KEY);
+        if(rawString == null){
             rawString = "Missing Message of {message_key}";
-            EpicBanItem.logger.warn("Missing message for key:" + MISSING_MESSAGE_KEY);
         }
         cache.put(MISSING_MESSAGE_KEY,TextUtil.parseTextTemplate(rawString,Collections.singleton("message_key")));
     }
 
+    @Nullable
+    private String getRawString(String key){
+        if (res.containsKey(key)) {
+            return res.getString(key);
+        }
+        if (fallbackRes.containsKey(key)){
+            return fallbackRes.getString(key);
+        }
+        EpicBanItem.logger.warn("Missing message for key:" + key);
+        return null;
+    }
+
     public Text getMessage(String key, Map<String, ?> params) {
         if (!cache.containsKey(key)) {
-            if (res.containsKey(key)) {
-                String rawString = res.getString(key);
+            String rawString = getRawString(key);
+            if(rawString!=null){
                 cache.put(key, TextUtil.parseTextTemplate(rawString, params.keySet()));
-            } else {
-                EpicBanItem.logger.warn("Missing message for key:" + key);
             }
         }
         if (cache.containsKey(key)) {
             return cache.get(key).apply(params).build();
         } else {
-            return getMessage("epicbanitem.error.missingMessage","message_key",key);
+            return getMessage(MISSING_MESSAGE_KEY,"message_key",key);
         }
     }
 

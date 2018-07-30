@@ -1,6 +1,9 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.google.common.collect.Lists;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -9,6 +12,7 @@ import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -63,6 +67,31 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
 
     public void clear() {
         rules = new HashMap<>();
+    }
+
+    @Override
+    public void addRule(ItemType type, CheckRule rule) {
+        List<CheckRule> ruleList;
+        if(rules.containsKey(type)){
+            ruleList = rules.get(type);
+            //check multi name
+            for(CheckRule rule1:ruleList){
+                if(rule1.getName().equals(rule.getName())){
+                    throw new IllegalArgumentException("Rule with the same name already exits");
+                }
+            }
+        }else {
+            ruleList = Lists.newArrayList();
+            rules.put(type,ruleList);
+        }
+        ruleList.add(rule);
+        ruleList.sort(Comparator.comparingInt(CheckRule::getPriority));
+        try {
+            EpicBanItem.plugin.getBanConfig().addRule(type,rule);
+        } catch (IOException | ObjectMappingException e) {
+            EpicBanItem.logger.error("Failed to save ban config.",e);
+            throw new RuntimeException("Failed to save ban config.",e);
+        }
     }
 
     public void addRules(Map<ItemType, List<CheckRule>> addRules) {

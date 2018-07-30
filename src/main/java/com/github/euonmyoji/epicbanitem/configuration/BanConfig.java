@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -15,6 +16,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class BanConfig {
+    public static final int CURRENT_VERSION = 1;
     public static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
     private boolean editable;
     private Path path;
@@ -37,16 +39,37 @@ public class BanConfig {
         return editable;
     }
 
+    public boolean addRule(ItemType type,CheckRule rule) throws IOException, ObjectMappingException {
+        if(!editable){
+            return false;
+        }
+        rule.setSource(this);
+        String typeId = type.getId();
+        if(!rules.containsKey(typeId)){
+            rules.put(typeId, Lists.newArrayList());
+        }
+        List<CheckRule> ruleList = rules.get(typeId);
+        ruleList.add(rule);
+        save();
+        return true;
+    }
+
     public Map<String, List<CheckRule>> getRules() {
         return rules;
     }
 
-    //todo:epicbanitem-version
     //todo:何时加载
     //todo:出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
 
     public void reload() throws ObjectMappingException, IOException {
         this.node = loader.load();
+        Integer version = node.getNode("epicbanitem-version").getValue(TypeToken.of(Integer.class));
+        if ( version == null){
+            EpicBanItem.logger.warn("Ban Config at {} is missing epicbanitem-version,try loading using current version {}.",path,CURRENT_VERSION);
+            version = CURRENT_VERSION;
+            node.getNode("epicbanitem-version").setValue(version);
+        }
+        //todo:load according to version
         rules = new LinkedHashMap<>();
         for (Map.Entry<Object, ? extends CommentedConfigurationNode> entry : node.getNode("epicbanitem").getChildrenMap().entrySet()) {
             rules.put(entry.getKey().toString(), entry.getValue().getList(RULE_TOKEN));

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+//todo:use messages
 @NonnullByDefault
 class ArgItemOrHand extends CommandElement {
     private boolean explicitHand;
@@ -32,16 +33,19 @@ class ArgItemOrHand extends CommandElement {
         if (!args.hasNext() && isPlayer && !explicitHand) {
             return getItemTypeFormHand((Player) source, args);
         }
-        String argString = args.next();
+        String argString = args.peek();
         if (isPlayer && explicitHand && argString.equalsIgnoreCase("hand")) {
+            args.next();
             return getItemTypeFormHand((Player) source, args);
         }
         Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class, argString);
         if (optionalItemType.isPresent()) {
+            args.next();
             return optionalItemType.get();
         } else if (isPlayer && !explicitHand) {
             return getItemTypeFormHand((Player) source, args);
         } else {
+            args.next();
             throw args.createError(Text.of("无法找到物品" + argString));
         }
     }
