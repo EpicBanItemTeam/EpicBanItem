@@ -209,7 +209,9 @@ final class NbtTypeHelper {
             return value.toString() + "d";
         }
         if (value instanceof String) {
-            return "\"" + ((String) value).replace("\"", "\\\"") + "\"";
+            return "\"" + ((String) value).replace("\"", "\\\"")
+                    .replace("§","\\u00a7")
+                    .replace("\\","\\\\")+ "\"";
         }
         byte[] bytes = getAsByteArray(value);
         if (Objects.nonNull(bytes)) {

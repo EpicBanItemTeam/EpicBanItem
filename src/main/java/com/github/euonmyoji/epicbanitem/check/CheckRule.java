@@ -81,7 +81,8 @@ public class CheckRule {
 
     public CheckRule(String name,ConfigurationNode queryNode) {
         this.name = Objects.requireNonNull(name);
-        this.queryNode = queryNode;
+        this.queryNode = queryNode.copy();
+        this.query = new QueryExpression(queryNode);
     }
 
     public void setSource(BanConfig source) {
@@ -247,12 +248,12 @@ public class CheckRule {
             ConfigurationNode queryNode = node.getNode("query");
             if (!queryNode.isVirtual()) {
                 rule.query = new QueryExpression(queryNode);
-                rule.queryNode = queryNode;
+                rule.queryNode = queryNode.copy();
             }
             ConfigurationNode updateNode = node.getNode("update");
             if (!updateNode.isVirtual()) {
                 rule.update = new UpdateExpression(updateNode);
-                rule.updateNode = updateNode;
+                rule.updateNode = updateNode.copy();
             }
             rule.remove = node.getNode("remove").getBoolean(rule.update == null);
             return rule;
