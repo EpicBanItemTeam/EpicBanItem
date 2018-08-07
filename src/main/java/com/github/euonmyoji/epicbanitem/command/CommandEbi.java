@@ -20,10 +20,10 @@ import java.util.Map;
 @NonnullByDefault
 public class CommandEbi extends AbstractCommand {
 
-    private Map<List<String>,CommandCallable> childrenMap = new HashMap<>();
+    private Map<List<String>, CommandCallable> childrenMap = new HashMap<>();
 
     public CommandEbi() {
-        super("ebi","epicbanitem","banitem","bi");
+        super("ebi", "epicbanitem", "banitem", "bi");
         addChildCommand(new CommandReload());
         addChildCommand(new CommandList());
         addChildCommand(new CommandQuery());
@@ -31,9 +31,9 @@ public class CommandEbi extends AbstractCommand {
         addChildCommand(new CommandCheck());
         addChildCommand(new CommandCreate());
         //todo:update
-        childrenMap.put(Arrays.asList("update", "u"),Update.update);
+        childrenMap.put(Arrays.asList("update", "u"), Update.update);
         //todo:apply
-        childrenMap.put(Arrays.asList("apply", "a"),Apply.apply);
+        childrenMap.put(Arrays.asList("apply", "a"), Apply.apply);
         addChildCommand(new CommandHelp(childrenMap));
         commandSpec = CommandSpec.builder()
                 .permission(getPermission("base"))
@@ -53,12 +53,12 @@ public class CommandEbi extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        src.sendMessage(getMessage("version","version",EpicBanItem.VERSION));
-        src.sendMessage(getMessage("useHelp","help_command","/"+EpicBanItem.plugin.getMainCommandAlias()+" help"));
+        src.sendMessage(getMessage("version", "version", EpicBanItem.VERSION));
+        src.sendMessage(getMessage("useHelp", "help_command", "/" + EpicBanItem.plugin.getMainCommandAlias() + " help"));
         return CommandResult.success();
     }
 
-    private void addChildCommand(ICommand command){
+    private void addChildCommand(ICommand command) {
         childrenMap.put(command.getNameList(), command.getCallable());
     }
 

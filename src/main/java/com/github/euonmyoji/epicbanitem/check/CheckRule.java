@@ -62,7 +62,7 @@ public class CheckRule {
 //    }
 
     private final String name;
-    private  ItemType itemType;
+    private ItemType itemType;
     private BanConfig source;
     private int priority = 5;
     private Set<String> enableWorlds = new HashSet<>();
@@ -79,7 +79,7 @@ public class CheckRule {
         this.name = Objects.requireNonNull(name);
     }
 
-    public CheckRule(String name,ConfigurationNode queryNode) {
+    public CheckRule(String name, ConfigurationNode queryNode) {
         this.name = Objects.requireNonNull(name);
         this.queryNode = queryNode.copy();
         this.query = new QueryExpression(queryNode);
@@ -126,10 +126,10 @@ public class CheckRule {
         return remove;
     }
 
-    public boolean isEditable(){
-        if(source!=null){
+    public boolean isEditable() {
+        if (source != null) {
             return source.isEditable();
-        }else {
+        } else {
             return false;
         }
     }

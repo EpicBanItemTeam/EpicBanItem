@@ -57,8 +57,8 @@ public class Settings {
         }
         immutableDefaultTriggers = Collections.unmodifiableMap(defaultTriggers);
         defaultTriggerSet = new HashSet<>();
-        for(Map.Entry<String,Boolean> entry:defaultTriggers.entrySet()){
-            if(entry.getValue()){
+        for (Map.Entry<String, Boolean> entry : defaultTriggers.entrySet()) {
+            if (entry.getValue()) {
                 defaultTriggerSet.add(entry.getKey());
             }
         }

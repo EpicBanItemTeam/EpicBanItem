@@ -1,12 +1,11 @@
 package com.github.euonmyoji.epicbanitem.listener;
 
-import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
+import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Transaction;
-import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
@@ -20,10 +19,7 @@ import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
-
-import java.util.Collections;
 
 public class InventoryListener {
 
@@ -34,7 +30,7 @@ public class InventoryListener {
         for (SlotTransaction slotTransaction : event.getTransactions()) {
             ItemStackSnapshot item = slotTransaction.getOriginal();
             CheckResult result;
-            if ((result = service.check(item, player.getWorld(),Triggers.THROW, player)).isBanned()) {
+            if ((result = service.check(item, player.getWorld(), Triggers.THROW, player)).isBanned()) {
                 event.setCancelled(true);
                 //todo:How to edit throw out items?
             }
@@ -42,6 +38,7 @@ public class InventoryListener {
     }
 
     //todo:Remove -> cancel the event then remove;
+
     @Listener(order = Order.FIRST, beforeModifications = true)
     @Exclude({ClickInventoryEvent.Drop.class})
     public void onClick(ClickInventoryEvent event, @First Player player) {
@@ -110,7 +107,7 @@ public class InventoryListener {
                     slotTransaction.setCustom(ItemStack.empty());
                 } else if (result.getFinalView().isPresent()) {
                     slotTransaction.setCustom(NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()));
-                }else {
+                } else {
                     event.setCancelled(true);
                 }
             }

@@ -39,13 +39,13 @@ public class BanConfig {
         return editable;
     }
 
-    public boolean addRule(ItemType type,CheckRule rule) throws IOException, ObjectMappingException {
-        if(!editable){
+    public boolean addRule(ItemType type, CheckRule rule) throws IOException, ObjectMappingException {
+        if (!editable) {
             return false;
         }
         rule.setSource(this);
         String typeId = type.getId();
-        if(!rules.containsKey(typeId)){
+        if (!rules.containsKey(typeId)) {
             rules.put(typeId, Lists.newArrayList());
         }
         List<CheckRule> ruleList = rules.get(typeId);
@@ -64,8 +64,8 @@ public class BanConfig {
     public void reload() throws ObjectMappingException, IOException {
         this.node = loader.load();
         Integer version = node.getNode("epicbanitem-version").getValue(TypeToken.of(Integer.class));
-        if ( version == null){
-            EpicBanItem.logger.warn("Ban Config at {} is missing epicbanitem-version,try loading using current version {}.",path,CURRENT_VERSION);
+        if (version == null) {
+            EpicBanItem.logger.warn("Ban Config at {} is missing epicbanitem-version,try loading using current version {}.", path, CURRENT_VERSION);
             version = CURRENT_VERSION;
             node.getNode("epicbanitem-version").setValue(version);
         }
@@ -85,7 +85,8 @@ public class BanConfig {
 
     public void save() throws IOException, ObjectMappingException {
         if (editable) {
-            node.getNode("epicbanitem").setValue(new TypeToken<Map<String, List<CheckRule>>>(){}, rules);
+            node.getNode("epicbanitem").setValue(new TypeToken<Map<String, List<CheckRule>>>() {
+            }, rules);
             loader.save(node);
         }
     }

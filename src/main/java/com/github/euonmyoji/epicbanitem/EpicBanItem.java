@@ -105,9 +105,9 @@ public class EpicBanItem {
         CommandEbi commandEbi = new CommandEbi();
         Optional<CommandMapping> commandMapping = Sponge.getCommandManager()
                 .register(this, commandEbi.getCallable(), commandEbi.getNameList());
-        if(!commandMapping.isPresent()){
+        if (!commandMapping.isPresent()) {
             //none registered
-        }else {
+        } else {
             mainCommandAlias = commandMapping.get().getPrimaryAlias();
         }
         Sponge.getEventManager().registerListeners(this, new InventoryListener());

@@ -13,7 +13,7 @@ public interface ICommand {
 
     String[] getAlias();
 
-    default List<String> getNameList(){
+    default List<String> getNameList() {
         List<String> list = new ArrayList<>();
         list.add(getName());
         list.addAll(Arrays.asList(getAlias()));

@@ -18,7 +18,7 @@ import java.util.Map;
 @NonnullByDefault
 public class CommandHelp extends AbstractCommand {
     private static final EpicBanItem plugin = EpicBanItem.plugin;
-    private Map<List<String>,CommandCallable> childrenMap;
+    private Map<List<String>, CommandCallable> childrenMap;
 
     public CommandHelp(Map<List<String>, CommandCallable> childrenMap) {
         super("help");
@@ -34,24 +34,24 @@ public class CommandHelp extends AbstractCommand {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Text.Builder builder = Text.builder();
         boolean first = true;
-        for(Map.Entry<List<String>,CommandCallable> entry:childrenMap.entrySet()){
-            if(entry.getValue().testPermission(src)){
-                if(!first){
+        for (Map.Entry<List<String>, CommandCallable> entry : childrenMap.entrySet()) {
+            if (entry.getValue().testPermission(src)) {
+                if (!first) {
                     builder.append(Text.NEW_LINE);
-                }else {
+                } else {
                     first = false;
                 }
                 builder.append(
-                        Text.of(TextColors.GRAY,"/"+plugin.getMainCommandAlias()+ " "+entry.getKey().get(0)+" "),
-                        entry.getValue().getUsage(src),Text.NEW_LINE,
+                        Text.of(TextColors.GRAY, "/" + plugin.getMainCommandAlias() + " " + entry.getKey().get(0) + " "),
+                        entry.getValue().getUsage(src), Text.NEW_LINE,
                         entry.getValue().getShortDescription(src).orElse(Text.of("no description"))
                 );
             }
         }
         Text text = builder.build();
-        if(text.isEmpty()){
+        if (text.isEmpty()) {
             //todo:没有权限执行任何命令
-        }else {
+        } else {
             src.sendMessage(text);
         }
         return CommandResult.success();

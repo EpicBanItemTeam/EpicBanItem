@@ -68,10 +68,11 @@ public interface CheckRuleService {
 
     /**
      * Add a rule to the service and save it in the default config.
+     *
      * @param type item type of the rule
      * @param rule the rule to add
      *             //todo throws exceptions
      */
-    void addRule(ItemType type,CheckRule rule);
+    void addRule(ItemType type, CheckRule rule);
 
 }

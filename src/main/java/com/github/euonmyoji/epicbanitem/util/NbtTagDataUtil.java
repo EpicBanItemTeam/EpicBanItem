@@ -115,8 +115,8 @@ public class NbtTagDataUtil {
                             Optional<Object> damage = nbt.get(DataQuery.of("UnsafeDamage"));
                             Optional<Object> id = nbt.get(DataQuery.of("ItemType"));
                             map.put(Tuple.of(id, damage), state);
-                        }catch (Exception e){
-                            EpicBanItem.logger.error("Failed to get itemstack form "+state,e);
+                        } catch (Exception e) {
+                            EpicBanItem.logger.error("Failed to get itemstack form " + state, e);
                         }
                     }
                 }

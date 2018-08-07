@@ -66,7 +66,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         return getMessage("argHelp");
     }
 
-    public Text getHelpMessage(CommandSource src, CommandContext args){
+    public Text getHelpMessage(CommandSource src, CommandContext args) {
         //todo:使用翻译 , 颜色
         Text.Builder builder = Text.builder();
         builder.append(Text.of("Command:", getName()), Text.NEW_LINE);
@@ -125,10 +125,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             Object state = args.getState();
             try {
                 commandElement.parse(source, args, context);
-                if(args.hasNext()){
+                if (args.hasNext()) {
                     //avoid too many arguments
                     context.putArg("help", true);
-                    while (args.hasNext()){
+                    while (args.hasNext()) {
                         args.next();
                     }
                 }
@@ -172,7 +172,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (args.hasAny("help")) {
-                src.sendMessage(getHelpMessage(src,args));
+                src.sendMessage(getHelpMessage(src, args));
                 return CommandResult.success();
             } else {
                 return AbstractCommand.this.execute(src, args);
@@ -185,7 +185,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             if (usage.isEmpty()) {
                 return Text.of("[help]");
             } else {
-                return Text.of(usage,"|help");
+                return Text.of(usage, "|help");
             }
         }
     }

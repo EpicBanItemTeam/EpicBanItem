@@ -72,25 +72,25 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
     @Override
     public void addRule(ItemType type, CheckRule rule) {
         List<CheckRule> ruleList;
-        if(rules.containsKey(type)){
+        if (rules.containsKey(type)) {
             ruleList = rules.get(type);
             //check multi name
-            for(CheckRule rule1:ruleList){
-                if(rule1.getName().equals(rule.getName())){
+            for (CheckRule rule1 : ruleList) {
+                if (rule1.getName().equals(rule.getName())) {
                     throw new IllegalArgumentException("Rule with the same name already exits");
                 }
             }
-        }else {
+        } else {
             ruleList = Lists.newArrayList();
-            rules.put(type,ruleList);
+            rules.put(type, ruleList);
         }
         ruleList.add(rule);
         ruleList.sort(Comparator.comparingInt(CheckRule::getPriority));
         try {
-            EpicBanItem.plugin.getBanConfig().addRule(type,rule);
+            EpicBanItem.plugin.getBanConfig().addRule(type, rule);
         } catch (IOException | ObjectMappingException e) {
-            EpicBanItem.logger.error("Failed to save ban config.",e);
-            throw new RuntimeException("Failed to save ban config.",e);
+            EpicBanItem.logger.error("Failed to save ban config.", e);
+            throw new RuntimeException("Failed to save ban config.", e);
         }
     }
 

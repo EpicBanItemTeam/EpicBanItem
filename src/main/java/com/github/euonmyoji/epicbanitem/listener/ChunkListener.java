@@ -2,9 +2,6 @@ package com.github.euonmyoji.epicbanitem.listener;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import org.spongepowered.api.block.BlockState;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.world.GenerateChunkEvent;
-import org.spongepowered.api.event.world.chunk.LoadChunkEvent;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.Chunk;
 

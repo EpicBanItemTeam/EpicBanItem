@@ -94,7 +94,7 @@ public class TextUtil {
         String[] subStrings = origin.split("\\{");
         for (int i = 0; i < subStrings.length; i++) {
             String subString = subStrings[i];
-            if(subString.isEmpty()){
+            if (subString.isEmpty()) {
                 continue;
             }
             if (i == 0) {
@@ -150,24 +150,24 @@ public class TextUtil {
 //            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))
 //            .build();
 
-    private static ConfigurationLoader<CommentedConfigurationNode> getLoader(){
+    private static ConfigurationLoader<CommentedConfigurationNode> getLoader() {
         HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
                 .setSource(() -> delegationReader).setSink(() -> delegationWriter);
         try {
-            for(Method method:HoconConfigurationLoader.Builder.class.getMethods()){
-                if(method.getName().equals("setParseOptions")){
+            for (Method method : HoconConfigurationLoader.Builder.class.getMethods()) {
+                if (method.getName().equals("setParseOptions")) {
                     Class<?> parseOptionsClass = method.getParameterTypes()[0];
-                    Method setAllowMissingMethod = parseOptionsClass.getMethod("setAllowMissing",boolean.class);
+                    Method setAllowMissingMethod = parseOptionsClass.getMethod("setAllowMissing", boolean.class);
                     Object defaultParseOptions = parseOptionsClass.getMethod("defaults").invoke(null);
-                    builder = (HoconConfigurationLoader.Builder) method.invoke(builder,setAllowMissingMethod.invoke(defaultParseOptions,true));
+                    builder = (HoconConfigurationLoader.Builder) method.invoke(builder, setAllowMissingMethod.invoke(defaultParseOptions, true));
                     return builder.build();
                 }
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            EpicBanItem.logger.error("Error",e);
+            EpicBanItem.logger.error("Error", e);
             return builder.build();
         }
-        EpicBanItem.logger.error("Failed to find method 'setParseOptions'",new Exception());
+        EpicBanItem.logger.error("Failed to find method 'setParseOptions'", new Exception());
         return builder.build();
     }
 

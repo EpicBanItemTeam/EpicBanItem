@@ -40,24 +40,24 @@ public class Messages {
         AssetManager assetManager = Sponge.getAssetManager();
         Files.createDirectories(messagePath.getParent());
         Asset fallback = assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
-                assetManager.getAsset(plugin, "lang/en_us.lang").get());
+                assetManager.getAsset(plugin, "lang/en_us.lang").orElseThrow(NoSuchFieldError::new));
         fallback.copyToFile(messagePath, false);
         res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
         fallbackRes = new PropertyResourceBundle(new InputStreamReader(fallback.getUrl().openStream(), Charsets.UTF_8));
 
         String rawString = getRawString(MISSING_MESSAGE_KEY);
-        if(rawString == null){
+        if (rawString == null) {
             rawString = "Missing Message of {message_key}";
         }
-        cache.put(MISSING_MESSAGE_KEY,TextUtil.parseTextTemplate(rawString,Collections.singleton("message_key")));
+        cache.put(MISSING_MESSAGE_KEY, TextUtil.parseTextTemplate(rawString, Collections.singleton("message_key")));
     }
 
     @Nullable
-    private String getRawString(String key){
+    private String getRawString(String key) {
         if (res.containsKey(key)) {
             return res.getString(key);
         }
-        if (fallbackRes.containsKey(key)){
+        if (fallbackRes.containsKey(key)) {
             return fallbackRes.getString(key);
         }
         EpicBanItem.logger.warn("Missing message for key:" + key);
@@ -67,14 +67,14 @@ public class Messages {
     public Text getMessage(String key, Map<String, ?> params) {
         if (!cache.containsKey(key)) {
             String rawString = getRawString(key);
-            if(rawString!=null){
+            if (rawString != null) {
                 cache.put(key, TextUtil.parseTextTemplate(rawString, params.keySet()));
             }
         }
         if (cache.containsKey(key)) {
             return cache.get(key).apply(params).build();
         } else {
-            return getMessage(MISSING_MESSAGE_KEY,"message_key",key);
+            return getMessage(MISSING_MESSAGE_KEY, "message_key", key);
         }
     }
 
