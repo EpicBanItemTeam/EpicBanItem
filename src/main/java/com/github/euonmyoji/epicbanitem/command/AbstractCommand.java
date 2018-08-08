@@ -20,7 +20,6 @@ import java.util.List;
 /**
  * @author EBI TEAM
  */
-@SuppressWarnings("WeakerAccess")
 public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     protected CommandSpec commandSpec;

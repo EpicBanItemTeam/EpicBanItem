@@ -29,6 +29,9 @@ import java.util.UUID;
 import static org.spongepowered.api.command.args.GenericArguments.optional;
 import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
 
+/**
+ * @author EBI
+ */
 @NonnullByDefault
 public class CommandQuery extends AbstractCommand {
     static Map<UUID, String> histories = new HashMap<>();

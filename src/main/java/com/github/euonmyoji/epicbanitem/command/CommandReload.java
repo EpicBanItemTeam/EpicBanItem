@@ -12,6 +12,9 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.io.IOException;
 
+/**
+ * @author EBI
+ */
 @NonnullByDefault
 public class CommandReload extends AbstractCommand {
     public CommandReload() {
@@ -28,8 +31,11 @@ public class CommandReload extends AbstractCommand {
         try {
             EpicBanItem.plugin.reload();
             src.sendMessage(getMessage("succeed"));
+            EpicBanItem.plugin.getBanConfig().setEditable(true);
             return CommandResult.success();
         } catch (IOException | ObjectMappingException e) {
+            EpicBanItem.plugin.getBanConfig().setEditable(false);
+            EpicBanItem.logger.warn(getMessage("failed").toPlain(), e);
             throw new CommandException(getMessage("failed"), e);
         }
     }

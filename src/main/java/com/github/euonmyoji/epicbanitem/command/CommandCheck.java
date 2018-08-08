@@ -20,6 +20,9 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author EBI
+ */
 public class CommandCheck extends AbstractCommand {
 
     private CheckRuleService service;

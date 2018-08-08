@@ -15,6 +15,9 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author EBI
+ */
 @NonnullByDefault
 public class CommandHelp extends AbstractCommand {
     private static final EpicBanItem plugin = EpicBanItem.plugin;

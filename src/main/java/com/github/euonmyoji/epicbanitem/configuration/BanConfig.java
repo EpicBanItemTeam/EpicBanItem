@@ -92,7 +92,7 @@ public class BanConfig {
     }
 
     public static Map<ItemType, List<CheckRule>> findType(Map<String, List<CheckRule>> rules) {
-        Map<ItemType, List<CheckRule>> map = new HashMap<>();
+        Map<ItemType, List<CheckRule>> map = new HashMap<>(rules.size());
         for (Map.Entry<String, List<CheckRule>> entry : rules.entrySet()) {
             Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class, entry.getKey());
             if (optionalItemType.isPresent()) {
@@ -102,5 +102,10 @@ public class BanConfig {
             }
         }
         return map;
+    }
+
+    public BanConfig setEditable(boolean editable) {
+        this.editable = editable;
+        return this;
     }
 }

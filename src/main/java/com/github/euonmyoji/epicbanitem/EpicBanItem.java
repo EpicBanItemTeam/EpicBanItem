@@ -24,14 +24,11 @@ import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
-import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.plugin.Plugin;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -148,7 +145,7 @@ public class EpicBanItem {
             banConfig = new BanConfig(cfgDir.resolve("banitem.conf"), true);
         }
         banConfig.reload();
-        Map<ItemType, List<CheckRule>> rules = service.getRules();
+//        Map<ItemType, List<CheckRule>> rules = service.getRules();   //fixme: 这里有一个没用到的操作
         service.clear();
         service.addRules(BanConfig.findType(banConfig.getRules()));
         logger.info("reloaded");

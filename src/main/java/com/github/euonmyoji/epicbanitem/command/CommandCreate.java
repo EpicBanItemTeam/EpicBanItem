@@ -18,6 +18,9 @@ import org.spongepowered.api.text.Text;
 import static org.spongepowered.api.command.args.GenericArguments.optional;
 import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
 
+/**
+ * @author EBI
+ */
 class CommandCreate extends AbstractCommand {
 
     public CommandCreate() {
@@ -35,7 +38,7 @@ class CommandCreate extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-//        throw new CommandException(Text.of("Not Support Yet."));
+//        throw new CommandException(Text.of("Not Support Yet.")); ???? 这什么玩意啊 咸鱼姐姐
         ItemType itemType = args.<ItemType>getOne("item-type").get();
         String ruleName = args.<String>getOne("rule-name").get();
         //todo:use histories in Query?

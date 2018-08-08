@@ -18,6 +18,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 //todo:use messages
+
+/**
+ * @author EBI
+ */
 @NonnullByDefault
 class ArgItemOrHand extends CommandElement {
     private boolean explicitHand;
