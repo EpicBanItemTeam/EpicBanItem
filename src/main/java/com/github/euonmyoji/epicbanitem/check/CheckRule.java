@@ -247,13 +247,13 @@ public class CheckRule {
             }
             ConfigurationNode queryNode = node.getNode("query");
             if (!queryNode.isVirtual()) {
-                rule.query = new QueryExpression(queryNode);
                 rule.queryNode = queryNode.copy();
+                rule.query = new QueryExpression(rule.queryNode);
             }
             ConfigurationNode updateNode = node.getNode("update");
             if (!updateNode.isVirtual()) {
-                rule.update = new UpdateExpression(updateNode);
                 rule.updateNode = updateNode.copy();
+                rule.update = new UpdateExpression(rule.updateNode);
             }
             rule.remove = node.getNode("remove").getBoolean(rule.update == null);
             return rule;
