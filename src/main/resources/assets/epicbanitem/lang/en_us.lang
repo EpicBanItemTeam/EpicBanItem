@@ -20,6 +20,7 @@ epicbanitem.command.ebi.extendedDescription=
 epicbanitem.command.ebi.argHelp=
 epicbanitem.command.ebi.version={version}
 epicbanitem.command.ebi.useHelp={help_command}
+epicbanitem.command.ebi.suggestCommand=Do you mean {suggest}?
 epicbanitem.command.query.description=
 epicbanitem.command.query.extendedDescription=
 epicbanitem.command.query.argHelp=

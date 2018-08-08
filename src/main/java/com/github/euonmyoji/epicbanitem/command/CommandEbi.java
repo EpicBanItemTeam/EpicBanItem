@@ -77,7 +77,8 @@ public class CommandEbi extends AbstractCommand {
                 }
             }
             if (lastMatchCommand != null) {
-                src.sendMessage(Text.of(String.format("Do you mean /ebi %s?", lastMatchCommand)));
+                src.sendMessage(getMessage("suggestCommand","suggest",
+                        "/"+EpicBanItem.plugin.getMainCommandAlias()+" "+lastMatchCommand));
             }
         });
         return CommandResult.success();

@@ -26,6 +26,7 @@ public class Messages {
 
     private final EpicBanItem plugin;
     private final Path messagePath;
+    @Nullable
     private ResourceBundle res;
     private ResourceBundle fallbackRes;
 
@@ -41,8 +42,10 @@ public class Messages {
         Files.createDirectories(messagePath.getParent());
         Asset fallback = assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
                 assetManager.getAsset(plugin, "lang/en_us.lang").orElseThrow(NoSuchFieldError::new));
-        fallback.copyToFile(messagePath, false);
-        res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
+//        fallback.copyToFile(messagePath, false);
+        if(Files.exists(messagePath)){
+            res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
+        }
         fallbackRes = new PropertyResourceBundle(new InputStreamReader(fallback.getUrl().openStream(), Charsets.UTF_8));
 
         String rawString = getRawString(MISSING_MESSAGE_KEY);
@@ -54,7 +57,7 @@ public class Messages {
 
     @Nullable
     private String getRawString(String key) {
-        if (res.containsKey(key)) {
+        if (res!=null&&res.containsKey(key)) {
             return res.getString(key);
         }
         if (fallbackRes.containsKey(key)) {
