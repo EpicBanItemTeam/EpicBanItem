@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.check.Triggers;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -47,8 +48,8 @@ public class Settings {
         CommentedConfigurationNode node = cfg.getNode("epicbanitem");
         listenLoadingChunk = node.getNode(LISTEN_CHUNK_LOAD).getBoolean(false);
         defaultTriggers = new LinkedHashMap<>();
-        for (Map.Entry<String, Boolean> entry : triggers.entrySet()) {
-            defaultTriggers.put(entry.getKey(), node.getNode("default-trigger", entry.getKey()).getBoolean(entry.getValue()));
+        for (String trigger : Triggers.getDefaultTriggers()) {
+            defaultTriggers.put(trigger, node.getNode("default-trigger", trigger).getBoolean(true));
         }
         for (Map.Entry<?, ? extends CommentedConfigurationNode> entry : node.getNode("default-trigger").getChildrenMap().entrySet()) {
             if (!defaultTriggers.containsKey(entry.getKey().toString())) {
