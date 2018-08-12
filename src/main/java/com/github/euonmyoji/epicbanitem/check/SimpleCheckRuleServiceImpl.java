@@ -42,16 +42,16 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
     }
 
     @Override
-    public CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject) {
-        return check(itemStack.getType(), NbtTagDataUtil.toNbt(itemStack), world, trigger, subject);
+    public CheckResult check(ItemStack item, World world, String trigger, @Nullable Subject subject) {
+        return item.isEmpty() ? CheckResult.empty() : check(item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
     }
 
     @Override
-    public CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject) {
-        return check(itemStack.getType(), NbtTagDataUtil.toNbt(itemStack), world, trigger, subject);
+    public CheckResult check(ItemStackSnapshot item, World world, String trigger, @Nullable Subject subject) {
+        return item.isEmpty() ? CheckResult.empty() : check(item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
     }
 
-    public CheckResult check(ItemType itemType, DataView itemStack, World world, String trigger, @Nullable Subject subject) {
+    private CheckResult check(ItemType itemType, DataView itemStack, World world, String trigger, @Nullable Subject subject) {
         CheckResult result = CheckResult.empty();
         getCheckRules(itemType).forEach(checkRule -> checkRule.check(itemStack, result, world, trigger, subject));
         return result;
