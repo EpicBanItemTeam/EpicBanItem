@@ -17,15 +17,6 @@ import java.util.*;
  * @author epicbanitem authors
  */
 public class Settings {
-    private static Map<String, Boolean> triggers = new LinkedHashMap<>();
-
-    static {
-        triggers.put("use", true);
-        triggers.put("throw", true);
-        triggers.put("pickup", true);
-        triggers.put("click", true);
-    }
-
     private Path settingPath;
     private CommentedConfigurationNode cfg;
     private ConfigurationLoader<CommentedConfigurationNode> loader;
