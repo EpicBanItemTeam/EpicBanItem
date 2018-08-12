@@ -19,7 +19,7 @@ import java.util.*;
  * @author EpicBanItem Team
  */
 public class SimpleCheckRuleServiceImpl implements CheckRuleService {
-    private Map<ItemType, List<CheckRule>> rules = new HashMap<>();
+    private Map<ItemType, List<CheckRule>> rules = new TreeMap<>(Comparator.comparing(ItemType::getId));
 
     @Override
     public Set<ItemType> getCheckItemTypes() {
