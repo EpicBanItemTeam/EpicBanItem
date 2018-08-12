@@ -57,23 +57,23 @@ public class NbtTagDataUtil {
 
         view.get(DataQuery.of("tag", "BlockEntityTag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
 
-        view.set(DataQuery.of("WorldUuid"), location.getExtent().getUniqueId());
-        view.set(DataQuery.of("Position", "X"), location.getBlockX());
-        view.set(DataQuery.of("Position", "Y"), location.getBlockY());
-        view.set(DataQuery.of("Position", "Z"), location.getBlockZ());
+        result.set(DataQuery.of("WorldUuid"), location.getExtent().getUniqueId());
+        result.set(DataQuery.of("Position", "X"), location.getBlockX());
+        result.set(DataQuery.of("Position", "Y"), location.getBlockY());
+        result.set(DataQuery.of("Position", "Z"), location.getBlockZ());
 
         Collection<BlockState> blockStates = findStatesForItemStack(view);
 
         if (blockStates.contains(oldState)) {
-            view.set(DataQuery.of("BlockState"), oldState.toContainer());
+            result.set(DataQuery.of("BlockState"), oldState.toContainer());
         } else if (blockStates.isEmpty()) {
-            view.set(DataQuery.of("BlockState"), BlockSnapshot.NONE.getState());
+            result.set(DataQuery.of("BlockState"), BlockSnapshot.NONE.getState());
         } else {
-            view.set(DataQuery.of("BlockState"), blockStates.iterator().next());
+            result.set(DataQuery.of("BlockState"), blockStates.iterator().next());
         }
 
         // noinspection ConstantConditions
-        return BlockSnapshot.builder().build(view).get();
+        return BlockSnapshot.builder().build(result).get();
     }
 
     @SuppressWarnings("deprecation")
