@@ -67,7 +67,7 @@ public class CheckRule {
     private int priority = 5;
     private Set<String> enableWorlds = new HashSet<>();
     private String ignorePermission;
-    private Set<String> enableTrigger = EpicBanItem.plugin.getSettings().getDefaultTriggerSet();
+    private Set<String> enableTrigger = EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers();
     private boolean remove;
     private QueryExpression query;
     private UpdateExpression update;
@@ -239,12 +239,14 @@ public class CheckRule {
             rule.ignorePermission = node.getNode("bypass-permissions").getString(null);
             rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class), Collections.emptyList()));
             ConfigurationNode triggerNode = node.getNode("use-trigger");
-            rule.enableTrigger = new HashSet<>();
-            for (Map.Entry<String, Boolean> entry : EpicBanItem.plugin.getSettings().getDefaultTriggers().entrySet()) {
-                if (triggerNode.getNode(entry.getKey()).getBoolean(entry.getValue())) {
-                    rule.enableTrigger.add(entry.getKey());
+            rule.enableTrigger = new HashSet<>(EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers());
+            triggerNode.getChildrenMap().forEach((k, v) -> {
+                if (v.getBoolean()) {
+                    rule.enableTrigger.add(k.toString());
+                } else {
+                    rule.enableTrigger.remove(k.toString());
                 }
-            }
+            });
             ConfigurationNode queryNode = node.getNode("query");
             if (!queryNode.isVirtual()) {
                 rule.queryNode = queryNode.copy();
@@ -268,7 +270,10 @@ public class CheckRule {
                 node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {
                 }, new ArrayList<>(rule.enableWorlds));
             }
-            for (String trigger : EpicBanItem.plugin.getSettings().getDefaultTriggers().keySet()) {
+            for (String trigger : EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers()) {
+                node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
+            }
+            for (String trigger : EpicBanItem.plugin.getSettings().getDisabledDefaultTriggers()) {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
             }
             if (rule.query != null) {

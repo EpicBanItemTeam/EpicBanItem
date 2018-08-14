@@ -129,7 +129,8 @@ public class EpicBanItem {
         if (settings == null) {
             settings = new Settings(cfgDir.resolve("settings.conf"));
         }
-        settings.reload();
+        settings.load();
+        settings.save();
         //example
         Optional<Asset> exampleAsset = Sponge.getAssetManager().getAsset(this, "example_check_rules.conf");
         if (exampleAsset.isPresent()) {
