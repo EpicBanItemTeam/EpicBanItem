@@ -126,14 +126,6 @@ public class CheckRule {
         return remove;
     }
 
-    public boolean isEditable() {
-        if (source != null) {
-            return source.isEditable();
-        } else {
-            return false;
-        }
-    }
-
     public Text getQueryInfo() {
         if (queryNode == null) {
             return Text.of("No Query");

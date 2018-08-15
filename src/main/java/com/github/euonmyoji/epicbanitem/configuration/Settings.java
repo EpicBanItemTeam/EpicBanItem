@@ -44,7 +44,7 @@ public class Settings {
     }
 
     public void save() throws IOException {
-        cfg.getNode("epicbanitem-version").setValue(1);
+        cfg.getNode("epicbanitem-version").setValue(BanConfig.CURRENT_VERSION);
         cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).setValue(listenLoadingChunk);
         enabledDefaultTriggers.forEach(k -> cfg.getNode("epicbanitem", "default-trigger", k).setValue(true));
         disabledDefaultTriggers.forEach(k -> cfg.getNode("epicbanitem", "default-trigger", k).setValue(false));

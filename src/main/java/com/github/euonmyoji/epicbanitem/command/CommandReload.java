@@ -18,7 +18,7 @@ import java.io.IOException;
 @NonnullByDefault
 public class CommandReload extends AbstractCommand {
     public CommandReload() {
-        super("reload", "r");
+        super("load", "r");
     }
 
     @Override
@@ -31,10 +31,8 @@ public class CommandReload extends AbstractCommand {
         try {
             EpicBanItem.plugin.reload();
             src.sendMessage(getMessage("succeed"));
-            EpicBanItem.plugin.getBanConfig().setEditable(true);
             return CommandResult.success();
-        } catch (IOException | ObjectMappingException e) {
-            EpicBanItem.plugin.getBanConfig().setEditable(false);
+        } catch (IOException e) {
             EpicBanItem.logger.warn(getMessage("failed").toPlain(), e);
             throw new CommandException(getMessage("failed"), e);
         }

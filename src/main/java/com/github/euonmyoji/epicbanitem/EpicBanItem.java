@@ -83,6 +83,8 @@ public class EpicBanItem {
         service = new SimpleCheckRuleServiceImpl();
         Sponge.getServiceManager().setProvider(this, CheckRuleService.class, service);
         messages = new Messages(this, cfgDir);
+        settings = new Settings(cfgDir.resolve("settings.conf"));
+        banConfig = new BanConfig(service, cfgDir.resolve("banitem.conf"));
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
@@ -90,7 +92,7 @@ public class EpicBanItem {
     public void onStarting(GameStartingServerEvent event) {
         try {
             reload();
-        } catch (IOException | ObjectMappingException e) {
+        } catch (IOException e) {
             logger.warn("Failed to load epicbanitem", e);
         }
         logger.debug("Item to Block matching: ");
@@ -116,22 +118,22 @@ public class EpicBanItem {
     public void onReload(GameReloadEvent event) {
         try {
             reload();
-        } catch (IOException | ObjectMappingException e) {
-            logger.warn("IOException when reload epicbanitem", e);
+        } catch (IOException e) {
+            logger.warn("IOException when load epicbanitem", e);
         }
     }
 
-    public void reload() throws IOException, ObjectMappingException {
+    public void reload() throws IOException {
         //todo:更好的异常处理?
         logger.info("reloading");
-        messages.load();
         Files.createDirectories(cfgDir);
-        if (settings == null) {
-            settings = new Settings(cfgDir.resolve("settings.conf"));
-        }
+        messages.load();
         settings.load();
         settings.save();
+        banConfig.load();
+        banConfig.save();
         //example
+        /*
         Optional<Asset> exampleAsset = Sponge.getAssetManager().getAsset(this, "example_check_rules.conf");
         if (exampleAsset.isPresent()) {
             try {
@@ -142,13 +144,8 @@ public class EpicBanItem {
         } else {
             logger.warn("Cannot find example ban config.");
         }
-        if (banConfig == null) {
-            banConfig = new BanConfig(cfgDir.resolve("banitem.conf"), true);
-        }
-        banConfig.reload();
+        */
 //        Map<ItemType, List<CheckRule>> rules = service.getRules();   //fixme: 这里有一个没用到的操作
-        service.clear();
-        service.addRules(BanConfig.findType(banConfig.getRules()));
         logger.info("reloaded");
     }
 
