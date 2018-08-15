@@ -57,14 +57,6 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
         return result;
     }
 
-    public Map<ItemType, List<CheckRule>> getRules() {
-        return rules;
-    }
-
-    public void setRules(Map<ItemType, List<CheckRule>> rules) {
-        this.rules = rules;
-    }
-
     public void clear() {
         rules = new HashMap<>();
     }
@@ -88,7 +80,7 @@ public class SimpleCheckRuleServiceImpl implements CheckRuleService {
         ruleList.sort(Comparator.comparingInt(CheckRule::getPriority));
         try {
             EpicBanItem.plugin.getBanConfig().addRule(type, rule);
-        } catch (IOException | ObjectMappingException e) {
+        } catch (IOException e) {
             EpicBanItem.logger.error("Failed to save ban config.", e);
             throw new RuntimeException("Failed to save ban config.", e);
         }

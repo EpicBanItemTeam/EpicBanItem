@@ -62,8 +62,6 @@ public class CheckRule {
 //    }
 
     private final String name;
-    private ItemType itemType;
-    private BanConfig source;
     private int priority = 5;
     private Set<String> enableWorlds = new HashSet<>();
     private String ignorePermission;
@@ -85,30 +83,9 @@ public class CheckRule {
         this.query = new QueryExpression(queryNode);
     }
 
-    public void setSource(BanConfig source) {
-        this.source = source;
-    }
-
     public String getName() {
         return name;
     }
-
-//    public void setName(String name){
-//
-//    }
-//
-//    public void rename(String name){
-//        //todo:
-//    }
-//
-//    public ItemType getItemType() {
-//        return itemType;
-//    }
-//
-//    public void setItemType(ItemType itemType) {
-//        this.itemType = itemType;
-//    }
-
 
     public int getPriority() {
         return priority;

@@ -36,8 +36,7 @@ public class BanConfig {
         this.rules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
     }
 
-    public boolean addRule(ItemType type, CheckRule rule) throws IOException, ObjectMappingException {
-        rule.setSource(this);
+    public boolean addRule(ItemType type, CheckRule rule) throws IOException {
         rules.put(type.getId(), rule);
         save();
         return true;
@@ -68,6 +67,7 @@ public class BanConfig {
     }
 
     public void save() throws IOException {
+        node = loader.createEmptyNode();
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
         try {
             for (Map.Entry<String, CheckRule> entry : rules.entries()) {
