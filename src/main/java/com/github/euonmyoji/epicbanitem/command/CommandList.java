@@ -54,8 +54,8 @@ class CommandList extends AbstractCommand {
         //   remove: false
         //   query:{}
         //   update:{}
-        //todo:翻页
-        //todo:点击补全的命令
+        // TODO: 翻页
+        // TODO: 点击补全的命令
         Text.Builder builder = Text.builder();
         for (Map.Entry<ItemType, List<CheckRule>> entry : toShow.entrySet()) {
             builder.append(getMessage("itemTypeLine", "item_type", entry.getKey().getId()), Text.NEW_LINE);

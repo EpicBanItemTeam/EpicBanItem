@@ -41,7 +41,7 @@ class CommandCreate extends AbstractCommand {
 //        throw new CommandException(Text.of("Not Support Yet.")); ???? 这什么玩意啊 咸鱼姐姐
         ItemType itemType = args.<ItemType>getOne("item-type").get();
         String ruleName = args.<String>getOne("rule-name").get();
-        //todo:use histories in Query?
+        // TODO: use histories in Query?
         String rule = args.<String>getOne("query-rule").orElse("");
         try {
             CheckRule checkRule;

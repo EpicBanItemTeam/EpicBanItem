@@ -52,7 +52,7 @@ public class BanConfig {
         save();
     }
 
-    //todo:出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
+    // TODO: 出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
 
     public void load() throws IOException {
         node = loader.load();

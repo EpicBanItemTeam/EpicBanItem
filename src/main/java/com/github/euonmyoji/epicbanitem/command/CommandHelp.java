@@ -53,7 +53,7 @@ public class CommandHelp extends AbstractCommand {
         }
         Text text = builder.build();
         if (text.isEmpty()) {
-            //todo:没有权限执行任何命令
+            // TODO: 没有权限执行任何命令
         } else {
             src.sendMessage(text);
         }

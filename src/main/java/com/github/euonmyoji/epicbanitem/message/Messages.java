@@ -43,7 +43,7 @@ public class Messages {
         Asset fallback = assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
                 assetManager.getAsset(plugin, "lang/en_us.lang").orElseThrow(NoSuchFieldError::new));
 //        fallback.copyToFile(messagePath, false);
-        if(Files.exists(messagePath)){
+        if (Files.exists(messagePath)) {
             res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
         }
         fallbackRes = new PropertyResourceBundle(new InputStreamReader(fallback.getUrl().openStream(), Charsets.UTF_8));
@@ -57,7 +57,7 @@ public class Messages {
 
     @Nullable
     private String getRawString(String key) {
-        if (res!=null&&res.containsKey(key)) {
+        if (res != null && res.containsKey(key)) {
             return res.getString(key);
         }
         if (fallbackRes.containsKey(key)) {

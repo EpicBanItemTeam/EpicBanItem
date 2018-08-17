@@ -32,9 +32,9 @@ public class CommandEbi extends AbstractCommand {
         addChildCommand(new CommandShow());
         addChildCommand(new CommandCheck());
         addChildCommand(new CommandCreate());
-        //todo:update
+        // TODO: update
         childrenMap.put(Arrays.asList("update", "u"), Update.update);
-        //todo:apply
+        // TODO: apply
         childrenMap.put(Arrays.asList("apply", "a"), Apply.apply);
         addChildCommand(new CommandHelp(childrenMap));
         commandSpec = CommandSpec.builder()
@@ -77,8 +77,8 @@ public class CommandEbi extends AbstractCommand {
                 }
             }
             if (lastMatchCommand != null) {
-                src.sendMessage(getMessage("suggestCommand","suggest",
-                        "/"+EpicBanItem.plugin.getMainCommandAlias()+" "+lastMatchCommand));
+                src.sendMessage(getMessage("suggestCommand", "suggest",
+                        "/" + EpicBanItem.plugin.getMainCommandAlias() + " " + lastMatchCommand));
             }
         });
         return CommandResult.success();

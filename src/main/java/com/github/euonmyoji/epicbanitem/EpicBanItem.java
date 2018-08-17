@@ -12,11 +12,9 @@ import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.inject.Inject;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
@@ -124,7 +122,7 @@ public class EpicBanItem {
     }
 
     public void reload() throws IOException {
-        //todo:更好的异常处理?
+        // TODO: 更好的异常处理?
         logger.info("reloading");
         Files.createDirectories(cfgDir);
         messages.load();

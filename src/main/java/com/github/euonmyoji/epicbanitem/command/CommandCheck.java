@@ -33,8 +33,8 @@ public class CommandCheck extends AbstractCommand {
 
     @Override
     public CommandElement getArgument() {
-        //todo: 可选的世界?
-        //todo: 可选的Trigger?
+        // TODO: 可选的世界?
+        // TODO: 可选的Trigger?
         return GenericArguments.flags()
                 .flag("-l")
                 .buildWith(
@@ -51,7 +51,7 @@ public class CommandCheck extends AbstractCommand {
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         boolean lookAt = args.hasAny("l");
         List<CheckRule> breakRules = new ArrayList<>();
-        //todo:lookat
+        // TODO: lookat
         ItemStack itemStack = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElseThrow(() -> new CommandException(Text.of("Nothing in hand.")));
         for (CheckRule rule : service.getCheckRules(itemStack.getType())) {
             CheckResult result = CheckResult.empty();
@@ -72,7 +72,7 @@ public class CommandCheck extends AbstractCommand {
                 return world;
             }
         }
-        //todo:这个规则并没有能够匹配到的世界
+        // TODO: 这个规则并没有能够匹配到的世界
         return null;
     }
 

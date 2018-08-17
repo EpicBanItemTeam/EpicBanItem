@@ -66,7 +66,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     public Text getHelpMessage(CommandSource src, CommandContext args) {
-        //todo:使用翻译 , 颜色
+        // TODO: 使用翻译 , 颜色
         Text.Builder builder = Text.builder();
         builder.append(Text.of("Command:", getName()), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
@@ -77,7 +77,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             }
             builder.append(Text.NEW_LINE);
         }
-        //todo:父命令？
+        // TODO: 父命令？
         builder.append(Text.of("Usages:"), getCallable().getUsage(src), Text.NEW_LINE);
         builder.append(getArgHelp(src), Text.NEW_LINE);
 //                builder.append(getExtendedDescription(),Text.NEW_LINE);

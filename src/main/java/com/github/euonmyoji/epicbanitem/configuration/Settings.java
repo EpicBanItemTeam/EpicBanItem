@@ -7,7 +7,9 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 //应该在BanConfig之前
 

@@ -71,7 +71,7 @@ public interface CheckRuleService {
      *
      * @param type item type of the rule
      * @param rule the rule to add
-     *             //todo throws exceptions
+     *             // TODO: throws exceptions
      */
     void addRule(ItemType type, CheckRule rule);
 

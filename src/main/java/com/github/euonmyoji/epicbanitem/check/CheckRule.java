@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -14,7 +13,6 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
@@ -30,7 +28,7 @@ import java.util.*;
  */
 @SuppressWarnings("WeakerAccess")
 public class CheckRule {
-    //todo editable
+    // TODO: editable
 //    public static Builder builder(){
 //        return new Builder();
 //    }
@@ -71,7 +69,7 @@ public class CheckRule {
     private UpdateExpression update;
     private ConfigurationNode queryNode;
     private ConfigurationNode updateNode;
-    //todo:reason?
+    // TODO: reason?
 
     public CheckRule(String name) {
         this.name = Objects.requireNonNull(name);
@@ -187,7 +185,7 @@ public class CheckRule {
     }
 
     public Text info() {
-        //todo:点击补全指令?
+        // TODO: 点击补全指令?
         Messages messages = EpicBanItem.plugin.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
