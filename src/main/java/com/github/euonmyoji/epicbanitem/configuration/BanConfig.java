@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
-import com.github.euonmyoji.epicbanitem.check.SimpleCheckRuleServiceImpl;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.reflect.TypeToken;
@@ -24,16 +23,14 @@ public class BanConfig {
     public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority);
 
     private final Path path;
-    private final SimpleCheckRuleServiceImpl service;
     private final ListMultimap<String, CheckRule> rules;
     private final ConfigurationLoader<CommentedConfigurationNode> loader;
     private final Set<ItemType> items = new TreeSet<>(Comparator.comparing(ItemType::getId));
 
     private CommentedConfigurationNode node;
 
-    public BanConfig(SimpleCheckRuleServiceImpl service, Path path) {
+    public BanConfig(Path path) {
         this.path = path;
-        this.service = service;
         this.loader = HoconConfigurationLoader.builder().setPath(path).build();
         this.rules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
     }

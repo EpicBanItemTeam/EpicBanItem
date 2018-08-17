@@ -1,8 +1,7 @@
 package com.github.euonmyoji.epicbanitem;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
-import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
-import com.github.euonmyoji.epicbanitem.check.SimpleCheckRuleServiceImpl;
+import com.github.euonmyoji.epicbanitem.check.CheckRuleServiceImpl;
 import com.github.euonmyoji.epicbanitem.command.CommandEbi;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
@@ -68,7 +67,7 @@ public class EpicBanItem {
         return mainCommandAlias;
     }
 
-    private SimpleCheckRuleServiceImpl service;
+    private CheckRuleServiceImpl service;
 
     @Inject
     public void setLogger(Logger logger) {
@@ -78,11 +77,10 @@ public class EpicBanItem {
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
         plugin = this;
-        service = new SimpleCheckRuleServiceImpl();
-        Sponge.getServiceManager().setProvider(this, CheckRuleService.class, service);
+        service = new CheckRuleServiceImpl();
         messages = new Messages(this, cfgDir);
         settings = new Settings(cfgDir.resolve("settings.conf"));
-        banConfig = new BanConfig(service, cfgDir.resolve("banitem.conf"));
+        banConfig = new BanConfig(cfgDir.resolve("banitem.conf"));
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
