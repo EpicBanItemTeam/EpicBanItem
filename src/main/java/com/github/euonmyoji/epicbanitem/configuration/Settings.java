@@ -1,9 +1,8 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.check.Triggers;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
+import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,28 +15,23 @@ import java.util.Set;
 /**
  * @author epicbanitem authors
  */
+@NonnullByDefault
 public class Settings {
-    private Path settingPath;
-    private CommentedConfigurationNode cfg;
-    private ConfigurationLoader<CommentedConfigurationNode> loader;
 
     private static final String LISTEN_CHUNK_LOAD = "listen-chunk-load";
 
-    public boolean listenLoadingChunk = false;
-    private Set<String> enabledDefaultTriggers;
-    private Set<String> disabledDefaultTriggers;
+    private boolean listenLoadingChunk = false;
+    private Set<String> enabledDefaultTriggers = Collections.emptySet();
+    private Set<String> disabledDefaultTriggers = Collections.emptySet();
 
-    public Settings(Path settingPath) {
-        this.settingPath = settingPath;
-        this.loader = HoconConfigurationLoader.builder().setPath(settingPath).build();
+    public Settings(AutoFileLoader fileLoader, Path settingPath) {
+        fileLoader.addListener(settingPath, this::load, this::save);
     }
 
-    public void load() throws IOException {
-        cfg = loader.load();
-
+    private void load(ConfigurationNode cfg) throws IOException {
         listenLoadingChunk = cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).getBoolean(false);
 
-        CommentedConfigurationNode defauldTriggers = cfg.getNode("epicbanitem", "default-trigger");
+        ConfigurationNode defauldTriggers = cfg.getNode("epicbanitem", "default-trigger");
         Set<String> enabled = new LinkedHashSet<>(Triggers.getDefaultTriggers()), disabled = new LinkedHashSet<>();
         defauldTriggers.getChildrenMap().forEach((k, v) -> (v.getBoolean() ? enabled : disabled).add(k.toString()));
 
@@ -45,13 +39,15 @@ public class Settings {
         disabledDefaultTriggers = Collections.unmodifiableSet(disabled);
     }
 
-    public void save() throws IOException {
+    private void save(ConfigurationNode cfg) throws IOException {
         cfg.getNode("epicbanitem-version").setValue(BanConfig.CURRENT_VERSION);
         cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).setValue(listenLoadingChunk);
         enabledDefaultTriggers.forEach(k -> cfg.getNode("epicbanitem", "default-trigger", k).setValue(true));
         disabledDefaultTriggers.forEach(k -> cfg.getNode("epicbanitem", "default-trigger", k).setValue(false));
+    }
 
-        loader.save(cfg);
+    public boolean isListeningLoadingChunk() {
+        return listenLoadingChunk;
     }
 
     public Set<String> getEnabledDefaultTriggers() {

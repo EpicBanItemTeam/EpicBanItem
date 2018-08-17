@@ -2,37 +2,42 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.reflect.TypeToken;
+import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+@NonnullByDefault
 public class BanConfig {
     public static final int CURRENT_VERSION = 1;
     public static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
     public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority);
 
     private final Path path;
+    private final AutoFileLoader fileLoader;
     private final ListMultimap<String, CheckRule> rules;
-    private final ConfigurationLoader<CommentedConfigurationNode> loader;
     private final Set<ItemType> items = new TreeSet<>(Comparator.comparing(ItemType::getId));
 
-    private CommentedConfigurationNode node;
-
-    public BanConfig(Path path) {
+    public BanConfig(AutoFileLoader fileLoader, Path path) {
         this.path = path;
-        this.loader = HoconConfigurationLoader.builder().setPath(path).build();
+        this.fileLoader = fileLoader;
+        fileLoader.addListener(path, this::load, this::save);
+        EpicBanItem.logger.debug("Generating Item to Block mapping: ");
+        NbtTagDataUtil.printLog().forEachRemaining(EpicBanItem.logger::debug);
         this.rules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
+        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
     public Set<ItemType> getItems() {
@@ -44,15 +49,15 @@ public class BanConfig {
     }
 
     public void addRule(ItemType type, CheckRule newRule) throws IOException {
-        rules.putAll(type.getId(), addAndSort(rules.removeAll(type.getId()), newRule));
         items.add(type);
-        save();
+        String typeId = type.getId();
+        rules.putAll(typeId, addAndSort(rules.removeAll(typeId), newRule));
+        fileLoader.forceSaving(path);
     }
 
     // TODO: 出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
 
-    public void load() throws IOException {
-        node = loader.load();
+    private void load(ConfigurationNode node) throws IOException {
         // noinspection unused
         int version = node.getNode("epicbanitem-version").<Integer>getValue(Types::asInt, () -> {
             EpicBanItem.logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
@@ -62,8 +67,8 @@ public class BanConfig {
         try {
             rules.clear();
             items.clear();
-            Map<Object, ? extends CommentedConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
-            for (Map.Entry<Object, ? extends CommentedConfigurationNode> entry : checkRules.entrySet()) {
+            Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
+            for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
                 String item = entry.getKey().toString();
                 Sponge.getRegistry().getType(ItemType.class, item).ifPresent(items::add);
                 rules.putAll(item, entry.getValue().getList(RULE_TOKEN).stream().sorted(COMPARATOR)::iterator);
@@ -73,8 +78,7 @@ public class BanConfig {
         }
     }
 
-    public void save() throws IOException {
-        node = loader.createEmptyNode();
+    private void save(ConfigurationNode node) throws IOException {
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
         try {
             for (Map.Entry<String, CheckRule> entry : rules.entries()) {
@@ -83,7 +87,6 @@ public class BanConfig {
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
-        loader.save(node);
     }
 
     private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) throws IOException {

@@ -1,30 +1,27 @@
 package com.github.euonmyoji.epicbanitem;
 
-import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleServiceImpl;
 import com.github.euonmyoji.epicbanitem.command.CommandEbi;
+import com.github.euonmyoji.epicbanitem.configuration.AutoFileLoader;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.listener.InventoryListener;
 import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
 import com.github.euonmyoji.epicbanitem.message.Messages;
-import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.inject.Inject;
-import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -67,7 +64,7 @@ public class EpicBanItem {
         return mainCommandAlias;
     }
 
-    private CheckRuleServiceImpl service;
+    private AutoFileLoader autoFileLoader;
 
     @Inject
     public void setLogger(Logger logger) {
@@ -77,22 +74,20 @@ public class EpicBanItem {
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
         plugin = this;
-        service = new CheckRuleServiceImpl();
         messages = new Messages(this, cfgDir);
-        settings = new Settings(cfgDir.resolve("settings.conf"));
-        banConfig = new BanConfig(cfgDir.resolve("banitem.conf"));
-        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
+        Sponge.getServiceManager().setProvider(this, CheckRuleService.class, new CheckRuleServiceImpl());
     }
 
     @Listener
     public void onStarting(GameStartingServerEvent event) {
         try {
-            reload();
-        } catch (IOException e) {
-            logger.warn("Failed to load epicbanitem", e);
+            messages.load();
+            autoFileLoader = new AutoFileLoader(this, cfgDir);
+            settings = new Settings(autoFileLoader, cfgDir.resolve("settings.conf"));
+            banConfig = new BanConfig(autoFileLoader, cfgDir.resolve("banitem.conf"));
+        } catch (Exception e) {
+            logger.error("Failed to load EpicBanItem", e);
         }
-        logger.debug("Item to Block matching: ");
-        NbtTagDataUtil.printLog().forEachRemaining(log -> logger.debug(log));
     }
 
     @Listener
@@ -111,38 +106,11 @@ public class EpicBanItem {
     }
 
     @Listener
-    public void onReload(GameReloadEvent event) {
+    public void onStopping(GameStoppingServerEvent event) {
         try {
-            reload();
-        } catch (IOException e) {
-            logger.warn("IOException when load epicbanitem", e);
+            autoFileLoader.close();
+        } catch (Exception e) {
+            logger.error("Failed to save EpicBanItem", e);
         }
     }
-
-    public void reload() throws IOException {
-        // TODO: 更好的异常处理?
-        logger.info("reloading");
-        Files.createDirectories(cfgDir);
-        messages.load();
-        settings.load();
-        settings.save();
-        banConfig.load();
-        banConfig.save();
-        //example
-        /*
-        Optional<Asset> exampleAsset = Sponge.getAssetManager().getAsset(this, "example_check_rules.conf");
-        if (exampleAsset.isPresent()) {
-            try {
-                exampleAsset.get().copyToFile(cfgDir.resolve("example.conf"), true);
-            } catch (IOException e) {
-                logger.warn("Failed to copy example ban config.", e);
-            }
-        } else {
-            logger.warn("Cannot find example ban config.");
-        }
-        */
-//        Map<ItemType, List<CheckRule>> rules = service.getRules();   //fixme: 这里有一个没用到的操作
-        logger.info("reloaded");
-    }
-
 }

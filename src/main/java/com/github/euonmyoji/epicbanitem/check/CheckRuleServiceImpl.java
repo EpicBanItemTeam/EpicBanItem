@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -22,10 +21,6 @@ import java.util.Set;
  */
 @NonnullByDefault
 public class CheckRuleServiceImpl implements CheckRuleService {
-    public CheckRuleServiceImpl() {
-        Sponge.getServiceManager().setProvider(EpicBanItem.plugin, CheckRuleService.class, this);
-    }
-
     @Override
     public void addRule(ItemType type, CheckRule rule) {
         try {

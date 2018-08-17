@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -8,8 +7,6 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import java.io.IOException;
 
 /**
  * @author EBI
@@ -27,6 +24,7 @@ public class CommandReload extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+        return CommandResult.success(); /* TODO: Remove this command
         try {
             EpicBanItem.plugin.reload();
             src.sendMessage(getMessage("succeed"));
@@ -35,5 +33,6 @@ public class CommandReload extends AbstractCommand {
             EpicBanItem.logger.warn(getMessage("failed").toPlain(), e);
             throw new CommandException(getMessage("failed"), e);
         }
+        */
     }
 }
