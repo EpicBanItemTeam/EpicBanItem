@@ -78,7 +78,7 @@ public class BanConfig {
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
         try {
             for (Map.Entry<String, CheckRule> entry : rules.entries()) {
-                node.getNode("epicbanitem", entry.getKey()).setValue(RULE_TOKEN, entry.getValue());
+                node.getNode("epicbanitem", entry.getKey()).getAppendedNode().setValue(RULE_TOKEN, entry.getValue());
             }
         } catch (ObjectMappingException e) {
             throw new IOException(e);
