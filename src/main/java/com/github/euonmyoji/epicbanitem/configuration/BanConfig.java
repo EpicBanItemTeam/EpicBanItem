@@ -21,11 +21,13 @@ import java.util.*;
 public class BanConfig {
     public static final int CURRENT_VERSION = 1;
     public static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
+    public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority);
 
     private final Path path;
     private final SimpleCheckRuleServiceImpl service;
     private final ListMultimap<String, CheckRule> rules;
     private final ConfigurationLoader<CommentedConfigurationNode> loader;
+    private final Set<ItemType> items = new TreeSet<>(Comparator.comparing(ItemType::getId));
 
     private CommentedConfigurationNode node;
 
@@ -36,13 +38,20 @@ public class BanConfig {
         this.rules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
     }
 
-    public boolean addRule(ItemType type, CheckRule rule) throws IOException {
-        rules.put(type.getId(), rule);
-        save();
-        return true;
+    public Set<ItemType> getItems() {
+        return Collections.unmodifiableSet(items);
     }
 
-    //todo:何时加载
+    public List<CheckRule> getRules(ItemType itemType) {
+        return Collections.unmodifiableList(rules.get(itemType.getId()));
+    }
+
+    public void addRule(ItemType type, CheckRule newRule) throws IOException {
+        rules.putAll(type.getId(), addAndSort(rules.removeAll(type.getId()), newRule));
+        items.add(type);
+        save();
+    }
+
     //todo:出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
 
     public void load() throws IOException {
@@ -55,15 +64,16 @@ public class BanConfig {
         });
         try {
             rules.clear();
+            items.clear();
             Map<Object, ? extends CommentedConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
             for (Map.Entry<Object, ? extends CommentedConfigurationNode> entry : checkRules.entrySet()) {
-                rules.putAll(entry.getKey().toString(), entry.getValue().getList(RULE_TOKEN));
+                String item = entry.getKey().toString();
+                Sponge.getRegistry().getType(ItemType.class, item).ifPresent(items::add);
+                rules.putAll(item, entry.getValue().getList(RULE_TOKEN).stream().sorted(COMPARATOR)::iterator);
             }
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
-        service.clear();
-        service.addRules(BanConfig.findType(Multimaps.asMap(rules)));
     }
 
     public void save() throws IOException {
@@ -79,16 +89,19 @@ public class BanConfig {
         loader.save(node);
     }
 
-    private static Map<ItemType, List<CheckRule>> findType(Map<String, List<CheckRule>> rules) {
-        Map<ItemType, List<CheckRule>> map = new HashMap<>(rules.size());
-        for (Map.Entry<String, List<CheckRule>> entry : rules.entrySet()) {
-            Optional<ItemType> optionalItemType = Sponge.getRegistry().getType(ItemType.class, entry.getKey());
-            if (optionalItemType.isPresent()) {
-                map.put(optionalItemType.get(), entry.getValue());
-            } else {
-                EpicBanItem.logger.error("Cannot find item type :" + entry.getKey(), ", rules for it won't load.");
+    private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) throws IOException {
+        CheckRule[] newCheckRules;
+        int ruleSize = original.size();
+        newCheckRules = new CheckRule[ruleSize + 1];
+        newCheckRules[ruleSize] = newCheckRule;
+        for (int i = 0; i < ruleSize; ++i) {
+            CheckRule checkRule = original.get(i);
+            if (checkRule.getName().equals(newCheckRule.getName())) {
+                throw new IOException("Rule with the same name already exits");
             }
+            newCheckRules[i] = checkRule;
         }
-        return map;
+        Arrays.sort(newCheckRules, COMPARATOR);
+        return Arrays.asList(newCheckRules);
     }
 }
