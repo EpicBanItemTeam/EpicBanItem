@@ -9,11 +9,7 @@ import org.spongepowered.api.scheduler.Task;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.*;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -22,38 +18,48 @@ import static java.nio.file.StandardWatchEventKinds.*;
  */
 public class AutoFileLoader implements Closeable {
     private final Path cfgDir;
-    private final EpicBanItem plugin;
     private final WatchService service;
+    private final Queue<Runnable> pendingTaskList;
     private final Map<String, FileConsumer> readListeners;
     private final Map<String, FileConsumer> writeListeners;
     private final Map<String, ConfigurationLoader<? extends ConfigurationNode>> configurationLoaders;
 
-    public AutoFileLoader(EpicBanItem plugin, Path configDir) {
-        try {
-            this.plugin = EpicBanItem.plugin;
-            this.cfgDir = configDir.toAbsolutePath();
-            this.readListeners = new LinkedHashMap<>();
-            this.writeListeners = new LinkedHashMap<>();
-            this.configurationLoaders = new LinkedHashMap<>();
-            this.service = FileSystems.getDefault().newWatchService();
-            configDir.register(this.service, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-            Task.builder().execute(this::tick).name("EpicBanItemAutoFileLoader").intervalTicks(1).submit(plugin);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public AutoFileLoader(EpicBanItem plugin, Path configDir) throws IOException {
+        this.cfgDir = configDir.toAbsolutePath();
+        this.pendingTaskList = new ArrayDeque<>();
+        this.readListeners = new LinkedHashMap<>();
+        this.writeListeners = new LinkedHashMap<>();
+        this.configurationLoaders = new LinkedHashMap<>();
+        this.service = FileSystems.getDefault().newWatchService();
+        configDir.register(this.service, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+        Task.builder().execute(this::tick).name("EpicBanItemAutoFileLoader").intervalTicks(1).submit(plugin);
     }
 
     private void tick(Task task) {
+        this.tickPendingTaskList();
+        this.tickWatchEvents(task);
+    }
+
+    private void tickPendingTaskList() {
+        while (!this.pendingTaskList.isEmpty()) {
+            this.pendingTaskList.remove().run();
+        }
+    }
+
+    private void tickWatchEvents(Task task) {
         WatchKey key = this.service.poll();
         if (Objects.nonNull(key)) {
+            Set<String> pathStrings = new LinkedHashSet<>();
             for (WatchEvent<?> event : key.pollEvents()) {
                 if (event.kind() != OVERFLOW) {
-                    Path path = (Path) event.context();
-                    String pathString = path.toString();
-                    if (this.configurationLoaders.containsKey(pathString)) {
-                        EpicBanItem.logger.info(pathString + " has been changed. Try reloading now.");
-                        this.loadFile(pathString, pathString + " reloaded successfully.");
-                    }
+                    Object path = event.context();
+                    pathStrings.add(path.toString());
+                }
+            }
+            for (String pathString : pathStrings) {
+                if (this.configurationLoaders.containsKey(pathString)) {
+                    EpicBanItem.logger.info(pathString + " has been changed. Try reloading now.");
+                    this.loadFile(pathString, pathString + " reloaded successfully.");
                 }
             }
             if (!key.reset()) {
@@ -88,19 +94,21 @@ public class AutoFileLoader implements Closeable {
         return HoconConfigurationLoader.builder().setPath(path).build();
     }
 
+    private static String toString(Path path, Path cfgDir) {
+        return cfgDir.relativize(path).toString();
+    }
+
     public void forceSaving(Path path) {
-        String pathString = this.cfgDir.relativize(path).toString();
-        this.saveFile(pathString, pathString + " saved successfully.");
+        String pathString = toString(path, this.cfgDir);
+        this.pendingTaskList.offer(() -> this.saveFile(pathString, pathString + " saved successfully."));
     }
 
     public void addListener(Path path, FileConsumer readListener, FileConsumer writeListener) {
-        String pathString = this.cfgDir.relativize(path).toString();
-        Consumer<Task> executor = task -> this.loadFile(pathString, pathString + " loaded successfully.");
-
+        String pathString = toString(path, this.cfgDir);
         this.readListeners.put(pathString, readListener);
         this.writeListeners.put(pathString, writeListener);
         this.configurationLoaders.put(pathString, toLoader(path));
-        Task.builder().execute(executor).name("EpicBanItemAutoFileLoader").submit(this.plugin);
+        this.pendingTaskList.offer(() -> this.loadFile(pathString, pathString + " loaded successfully."));
     }
 
     @Override
