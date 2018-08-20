@@ -19,31 +19,28 @@ import static java.nio.file.StandardWatchEventKinds.*;
 public class AutoFileLoader implements Closeable {
     private final Path cfgDir;
     private final WatchService service;
-    private final Queue<Runnable> pendingTaskList;
+    private final Set<String> pendingPathStringSaveTasks;
+    private final Set<String> pendingPathStringLoadTasks;
     private final Map<String, FileConsumer> readListeners;
     private final Map<String, FileConsumer> writeListeners;
     private final Map<String, ConfigurationLoader<? extends ConfigurationNode>> configurationLoaders;
 
     public AutoFileLoader(EpicBanItem plugin, Path configDir) throws IOException {
         this.cfgDir = configDir.toAbsolutePath();
-        this.pendingTaskList = new ArrayDeque<>();
         this.readListeners = new LinkedHashMap<>();
         this.writeListeners = new LinkedHashMap<>();
         this.configurationLoaders = new LinkedHashMap<>();
+        this.pendingPathStringSaveTasks = new LinkedHashSet<>();
+        this.pendingPathStringLoadTasks = new LinkedHashSet<>();
         this.service = FileSystems.getDefault().newWatchService();
         configDir.register(this.service, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
         Task.builder().execute(this::tick).name("EpicBanItemAutoFileLoader").intervalTicks(1).submit(plugin);
     }
 
     private void tick(Task task) {
-        this.tickPendingTaskList();
+        this.tickPendingSaveTask();
         this.tickWatchEvents(task);
-    }
-
-    private void tickPendingTaskList() {
-        while (!this.pendingTaskList.isEmpty()) {
-            this.pendingTaskList.remove().run();
-        }
+        this.tickPendingLoadTask();
     }
 
     private void tickWatchEvents(Task task) {
@@ -57,6 +54,7 @@ public class AutoFileLoader implements Closeable {
                 }
             }
             for (String pathString : pathStrings) {
+                this.pendingPathStringLoadTasks.remove(pathString);
                 if (this.configurationLoaders.containsKey(pathString)) {
                     EpicBanItem.logger.info(pathString + " has been changed. Try reloading now.");
                     this.loadFile(pathString, pathString + " reloaded successfully.");
@@ -64,6 +62,24 @@ public class AutoFileLoader implements Closeable {
             }
             if (!key.reset()) {
                 task.cancel();
+            }
+        }
+    }
+
+    private void tickPendingLoadTask() {
+        if (!this.pendingPathStringLoadTasks.isEmpty()) {
+            for (Iterator<String> i = this.pendingPathStringLoadTasks.iterator(); i.hasNext(); i.remove()) {
+                String pathString = i.next();
+                this.loadFile(pathString, pathString + " loaded successfully.");
+            }
+        }
+    }
+
+    private void tickPendingSaveTask() {
+        if (!this.pendingPathStringSaveTasks.isEmpty()) {
+            for (Iterator<String> i = this.pendingPathStringSaveTasks.iterator(); i.hasNext(); i.remove()) {
+                String pathString = i.next();
+                this.saveFile(pathString, pathString + " saved successfully.");
             }
         }
     }
@@ -100,15 +116,15 @@ public class AutoFileLoader implements Closeable {
 
     public void forceSaving(Path path) {
         String pathString = toString(path, this.cfgDir);
-        this.pendingTaskList.offer(() -> this.saveFile(pathString, pathString + " saved successfully."));
+        this.pendingPathStringSaveTasks.add(pathString);
     }
 
     public void addListener(Path path, FileConsumer readListener, FileConsumer writeListener) {
         String pathString = toString(path, this.cfgDir);
+        this.pendingPathStringLoadTasks.add(pathString);
         this.readListeners.put(pathString, readListener);
         this.writeListeners.put(pathString, writeListener);
         this.configurationLoaders.put(pathString, toLoader(path));
-        this.pendingTaskList.offer(() -> this.loadFile(pathString, pathString + " loaded successfully."));
     }
 
     @Override
