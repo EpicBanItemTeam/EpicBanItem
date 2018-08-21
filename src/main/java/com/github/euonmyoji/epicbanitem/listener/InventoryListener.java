@@ -22,6 +22,7 @@ import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.entity.Hotbar;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 
 import java.util.List;
@@ -112,6 +113,13 @@ public class InventoryListener {
             } else if (result.getFinalView().isPresent()) {
                 item = NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity());
                 player.setItemInHand(((HandInteractEvent) event).getHandType(), item);
+            } else{
+                Hotbar hotbar = player.getInventory().query(Hotbar.class);
+                if (hotbar.getSelectedSlotIndex() == 8) {
+                    hotbar.setSelectedSlotIndex(0);
+                } else {
+                    hotbar.setSelectedSlotIndex(hotbar.getSelectedSlotIndex() + 1);
+                }
             }
         }
     }
