@@ -32,6 +32,9 @@ public class TextUtil {
      * @return TextTemplate
      */
     public static TextTemplate parseTextTemplate(String origin, Set<String> keySet) {
+        if(keySet.isEmpty()){
+            return TextTemplate.of(parseFormatText(origin));
+        }
         List<Object> objects = new ArrayList<>();
         String[] subStrings = origin.split("\\{");
         for (int i = 0; i < subStrings.length; i++) {
@@ -69,6 +72,14 @@ public class TextUtil {
         return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
     }
 
+    public static Text adjustLength(Text text,int length){
+        int spaces = length - text.toPlain().length();
+        if(spaces<=0){
+            return text;
+        }else {
+            return Text.of(text,String.format("%"+spaces+"s",""));
+        }
+    }
 
     public static Text serializeNbtToString(DataView nbt, QueryResult result) {
         return new NbtTagRenderer(result).render(nbt);

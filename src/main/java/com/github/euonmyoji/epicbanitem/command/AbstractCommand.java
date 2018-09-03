@@ -1,36 +1,59 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.ArgumentParseException;
-import org.spongepowered.api.command.args.CommandArgs;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.args.*;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author EBI TEAM
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     protected CommandSpec commandSpec;
+
+    protected Help help;
 
     protected String name;
 
     protected String[] alias;
 
+    protected String parent = "";
+
     public AbstractCommand(String name, String... alias) {
         this.name = name;
         this.alias = alias;
+    }
+
+    private void init(){
+        if (commandSpec == null) {
+            help = new Help();
+            commandSpec = CommandSpec.builder()
+                    .permission(getPermission("base"))
+                    .description(getDescription())
+                    .extendedDescription(getExtendedDescription())
+                    .arguments(help)
+                    .executor(help)
+                    .build();
+        }
+    }
+
+    public String getCommandString(){
+        return "/"+parent+name+" ";
     }
 
     public String getRootPermission() {
@@ -62,23 +85,109 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     public Text getArgHelp(CommandSource source) {
-        return getMessage("argHelp");
+        init();
+        CommandElement element = help.element;
+        if(element.equals(GenericArguments.none())){
+            return Text.EMPTY;
+        }
+        Text.Builder builder = Text.builder();
+        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.args"));
+        if(element instanceof CommandFlags){
+            try {
+                Field field = CommandFlags.class.getDeclaredField("usageFlags");
+                field.setAccessible(true);
+                //noinspection unchecked
+                Map<List<String>, CommandElement> usageFlags = (Map<List<String>, CommandElement>) field.get(element);
+                for(Map.Entry<List<String>,CommandElement> entry:usageFlags.entrySet()){
+                    List<String> availableFlags = entry.getKey();
+                    CommandElement childElement = entry.getValue();
+                    List<Object> objects = new ArrayList<>();
+                    objects.add("[");
+                    Iterator it = availableFlags.iterator();
+                    while(it.hasNext()) {
+                        String flag = (String)it.next();
+                        objects.add(flag.length() > 1 ? "--" : "-");
+                        objects.add(flag);
+                        if (it.hasNext()) {
+                            objects.add("|");
+                        }
+                    }
+                    Text usage = childElement.getUsage(source);
+                    if (usage.toPlain().trim().length() > 0) {
+                        objects.add(" ");
+                        objects.add(usage);
+                    }
+                    objects.add("]");
+                    objects.add(" ");
+                    String id = availableFlags.get(0);
+                    builder.append(Text.NEW_LINE,
+                            Text.of("    "),TextUtil.adjustLength(Text.of(objects.toArray()),30)
+                            ,getMessage("flags."+id));
+                }
+                Field field1 = CommandFlags.class.getDeclaredField("childElement");
+                field1.setAccessible(true);
+                element = (CommandElement) field1.get(element);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                EpicBanItem.logger.error("Failed to parse help for CommandFlags");
+            }
+        }
+        if(element!=null){
+            scanArg(element,source,builder);
+        }
+        return builder.toText();
+    }
+
+    private void scanArg(CommandElement commandElement,CommandSource source,Text.Builder builder){
+        // Need Permission Check?
+        String id = commandElement.getUntranslatedKey();
+        if(id == null){
+            Class<? extends CommandElement> clazz = commandElement.getClass();
+            try {
+                Field field = clazz.getDeclaredField("elements");
+                field.setAccessible(true);
+                Object elements = field.get(commandElement);
+                if(elements instanceof List){
+                    for(Object element:(List)elements){
+                        if(element instanceof CommandElement){
+                            scanArg((CommandElement) element,source,builder);
+                        }
+                    }
+                    return;
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                //do nothing
+            }
+            try {
+                Field field = clazz.getDeclaredField("element");
+                field.setAccessible(true);
+                Object element = field.get(commandElement);
+                if(element instanceof CommandElement){
+                    scanArg((CommandElement) element,source,builder);
+                }
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                //do nothing
+            }
+        }else {
+            builder.append(Text.NEW_LINE,
+                    Text.of("    "),TextUtil.adjustLength(commandElement.getUsage(source),30),
+                    getMessage("args."+id));
+        }
+
     }
 
     public Text getHelpMessage(CommandSource src, CommandContext args) {
-        // TODO: 使用翻译 , 颜色
+        init();
         Text.Builder builder = Text.builder();
-        builder.append(Text.of("Command:", getName()), Text.NEW_LINE);
+        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.command","name",getName()), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
         if (getAlias().length > 0) {
-            builder.append(Text.of("Alias:"));
+            builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.alias"));
             for (String alias : getAlias()) {
                 builder.append(Text.of(alias, " "));
             }
             builder.append(Text.NEW_LINE);
         }
-        // TODO: 父命令？
-        builder.append(Text.of("Usages:"), getCallable().getUsage(src), Text.NEW_LINE);
+        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.usage","usage",Text.of(getCommandString(),getCallable().getUsage(src))), Text.NEW_LINE);
         builder.append(getArgHelp(src), Text.NEW_LINE);
 //                builder.append(getExtendedDescription(),Text.NEW_LINE);
         return builder.build();
@@ -98,22 +207,13 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     @Override
     public CommandSpec getCallable() {
-        if (commandSpec == null) {
-            Help help = new Help();
-            commandSpec = CommandSpec.builder()
-                    .permission(getPermission("base"))
-                    .description(getDescription())
-                    .extendedDescription(getExtendedDescription())
-                    .arguments(help)
-                    .executor(help)
-                    .build();
-        }
+        init();
         return commandSpec;
     }
 
     @NonnullByDefault
     private class Help extends CommandElement implements CommandExecutor {
-        private CommandElement commandElement = getArgument();
+        private CommandElement element = getArgument();
 
         private Help() {
             super(Text.of("help"));
@@ -121,9 +221,8 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
         @Override
         public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
-            Object state = args.getState();
             try {
-                commandElement.parse(source, args, context);
+                element.parse(source, args, context);
                 if (args.hasNext()) {
                     //avoid too many arguments
                     context.putArg("help", true);
@@ -133,14 +232,9 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 }
             } catch (ArgumentParseException e) {
                 context.putArg("help", true);
-//                args.setState(state);
-//                if (args.peek().equalsIgnoreCase("help")) {
-//                    context.putArg("help", true);
-//                } else {
-//                    //temp catch parse exception here
-//                    context.putArg("help", true);
-//                    //throw e;
-//                }
+                while (args.hasNext()) {
+                    args.next();
+                }
             }
         }
 
@@ -157,14 +251,14 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 if (!args.hasNext() || "help".startsWith(args.peek().toLowerCase())) {
                     List<String> stringList = new ArrayList<>();
                     stringList.add("help");
-                    stringList.addAll(commandElement.complete(src, args, context));
+                    stringList.addAll(element.complete(src, args, context));
                     return stringList;
                 } else {
-                    return commandElement.complete(src, args, context);
+                    return element.complete(src, args, context);
                 }
             } catch (ArgumentParseException e) {
                 e.printStackTrace();
-                return commandElement.complete(src, args, context);
+                return element.complete(src, args, context);
             }
         }
 
@@ -180,7 +274,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
         @Override
         public Text getUsage(CommandSource src) {
-            Text usage = commandElement.getUsage(src);
+            Text usage = element.getUsage(src);
             if (usage.isEmpty()) {
                 return Text.of("[help]");
             } else {

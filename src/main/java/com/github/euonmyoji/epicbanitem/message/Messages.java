@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author EpicBanItem Team
@@ -30,7 +31,7 @@ public class Messages {
     private ResourceBundle res;
     private ResourceBundle fallbackRes;
 
-    private Map<String, TextTemplate> cache = new HashMap<>();
+    private Map<String, TextTemplate> cache = new ConcurrentHashMap<>();
 
     public Messages(EpicBanItem plugin, Path configDir) {
         this.plugin = plugin;
