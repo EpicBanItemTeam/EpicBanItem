@@ -36,7 +36,7 @@ public class CommandCheck extends AbstractCommand {
         // TODO: 可选的世界?
         // TODO: 可选的Trigger?
         return GenericArguments.flags()
-                .flag("-l")
+                .flag("l")
                 .buildWith(
                         GenericArguments.none()
                 );

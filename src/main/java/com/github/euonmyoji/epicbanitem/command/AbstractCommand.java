@@ -178,15 +178,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public Text getHelpMessage(CommandSource src, CommandContext args) {
         init();
         Text.Builder builder = Text.builder();
-        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.command","name",getName()), Text.NEW_LINE);
+        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.name",
+                "name",getName(),
+                "alias",String.join(" ",getAlias())), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
-        if (getAlias().length > 0) {
-            builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.alias"));
-            for (String alias : getAlias()) {
-                builder.append(Text.of(alias, " "));
-            }
-            builder.append(Text.NEW_LINE);
-        }
         builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.usage","usage",Text.of(getCommandString(),getCallable().getUsage(src))), Text.NEW_LINE);
         builder.append(getArgHelp(src), Text.NEW_LINE);
 //                builder.append(getExtendedDescription(),Text.NEW_LINE);

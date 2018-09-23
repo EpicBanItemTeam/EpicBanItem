@@ -1,41 +1,44 @@
+
 #command
+epicbanitem.commands.name=命令:{name} {alias}
+epicbanitem.commands.usage=用法:{usage}
+epicbanitem.commands.help=显示命令帮助
+epicbanitem.commands.args=参数:
+
 epicbanitem.command.check.description=检查手中的物品
-epicbanitem.command.check.extendedDescription=
-epicbanitem.command.check.argHelp=
-epicbanitem.command.list.description=列出的物品
+epicbanitem.command.check.extendedDescription=检查手中的物品
+epicbanitem.command.check.flags.l=目前尚无作用
+epicbanitem.command.list.description=列出被封禁的物品
 epicbanitem.command.list.extendedDescription=列出被封禁的物品
-epicbanitem.command.list.argHelp=
-epicbanitem.command.list.noRule=
-epicbanitem.command.list.itemTypeLine={item_type}
+epicbanitem.command.list.noRule=无规则
+epicbanitem.command.list.itemTypeLine={item_type}:
+epicbanitem.command.list.args.item-type=要查询的物品,输入hand则查询主手中的物品,留空则列出所有物品
 epicbanitem.command.reload.description=&a重载插件配置文件
-epicbanitem.command.reload.extendedDescription=
-epicbanitem.command.reload.argHelp=
+epicbanitem.command.reload.extendedDescription=&a重载插件配置文件
 epicbanitem.command.reload.succeed=&6[EpicBanItem]&b重载插件配置文件成功
 epicbanitem.command.reload.failed=&6[EpicBanItem]&b重载插件配置文件失败！
 epicbanitem.command.show.description=展示物品的特定的规则﻿
-epicbanitem.command.show.extendedDescription=
-epicbanitem.command.show.argHelp=
+epicbanitem.command.show.extendedDescription=展示物品的特定的规则﻿
+epicbanitem.command.show.args.check-rule=要查看的规则名
 epicbanitem.command.ebi.description=EpicBanItem的命令
-epicbanitem.command.ebi.extendedDescription=
-epicbanitem.command.ebi.argHelp=
+epicbanitem.command.ebi.extendedDescription=EpicBanItem的命令
 epicbanitem.command.ebi.version=EpicBanItem 版本:{version}
 epicbanitem.command.ebi.useHelp=使用:{help_command}获取更多信息
 epicbanitem.command.ebi.suggestCommand=你可能是指{suggest}?
 epicbanitem.command.query.description=使用特定规则检查手中物品，并列出NBT等信息
-epicbanitem.command.query.extendedDescription=
-epicbanitem.command.query.argHelp=
+epicbanitem.command.query.extendedDescription=使用特定规则检查手中物品，并列出NBT等信息
 epicbanitem.command.query.noItem=找不到物品。可能因为你不是玩家，或者手上没拿东西？
 epicbanitem.command.query.succeed=成功匹配物品:
 epicbanitem.command.query.failed=未成功匹配物品。
 epicbanitem.command.query.error=解析匹配时出错:
+epicbanitem.command.query.args.query-rule=用来匹配的规则,阅读wiki获取更多信息
 epicbanitem.command.create.description=创建一个新的规则
-epicbanitem.command.create.extendedDescription=
-epicbanitem.command.create.argHelp=
+epicbanitem.command.create.extendedDescription=创建一个新的规则
 epicbanitem.command.create.succeed=成功添加规则&a {rule_name}
 epicbanitem.command.create.failed=创建规则失败
+#TODO 2018/09/23 wait the new create command
 epicbanitem.command.help.description=显示帮助
-epicbanitem.command.help.extendedDescription=
-epicbanitem.command.help.argHelp=
+epicbanitem.command.help.extendedDescription=显示帮助
 
 #checkrule
 epicbanitem.checkrule.worlds=世界
