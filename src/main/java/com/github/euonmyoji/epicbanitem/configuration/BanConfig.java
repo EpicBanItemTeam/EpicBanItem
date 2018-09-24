@@ -3,9 +3,7 @@ package com.github.euonmyoji.epicbanitem.configuration;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
@@ -24,11 +22,12 @@ public class BanConfig {
     public static final int CURRENT_VERSION = 1;
     public static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
     public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority);
+    public static final Comparator<ItemType> ITEM_TYPE_COMPARATOR = Comparator.comparing(ItemType::getId);
 
     private final Path path;
     private final AutoFileLoader fileLoader;
-    private final ListMultimap<String, CheckRule> rules;
-    private final Set<ItemType> items = new TreeSet<>(Comparator.comparing(ItemType::getId));
+    private ImmutableListMultimap<String, CheckRule> checkRules = ImmutableListMultimap.of();
+    private ImmutableSortedSet<ItemType> itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).build();
 
     public BanConfig(AutoFileLoader fileLoader, Path path) {
         this.path = path;
@@ -36,23 +35,30 @@ public class BanConfig {
         fileLoader.addListener(path, this::load, this::save);
         EpicBanItem.logger.debug("Generating Item to Block mapping: ");
         NbtTagDataUtil.printLog().forEachRemaining(EpicBanItem.logger::debug);
-        this.rules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
     public Set<ItemType> getItems() {
-        return Collections.unmodifiableSet(items);
+        return Objects.requireNonNull(itemTypes);
     }
 
     public List<CheckRule> getRules(ItemType itemType) {
-        return Collections.unmodifiableList(rules.get(itemType.getId()));
+        return Objects.requireNonNull(checkRules).get(itemType.getId());
     }
 
     public void addRule(ItemType type, CheckRule newRule) throws IOException {
-        items.add(type);
         String typeId = type.getId();
-        rules.putAll(typeId, addAndSort(rules.removeAll(typeId), newRule));
-        fileLoader.forceSaving(path);
+        ListMultimap<String, CheckRule> newRules;
+        Set<ItemType> newItems = new TreeSet<>(this.itemTypes);
+
+        newItems.add(type);
+        this.itemTypes = ImmutableSortedSet.copyOf(ITEM_TYPE_COMPARATOR, newItems);
+
+        newRules = Multimaps.newListMultimap(new LinkedHashMap<>(this.checkRules.asMap()), ArrayList::new);
+        newRules.putAll(typeId, addAndSort(newRules.removeAll(typeId), newRule));
+        this.checkRules = ImmutableListMultimap.copyOf(newRules);
+
+        this.fileLoader.forceSaving(path);
     }
 
     // TODO: 出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
@@ -65,14 +71,16 @@ public class BanConfig {
             return CURRENT_VERSION;
         });
         try {
-            rules.clear();
-            items.clear();
+            Set<ItemType> newItems = new TreeSet<>(Comparator.comparing(ItemType::getId));
+            Multimap<String, CheckRule> newRules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
             Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
             for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
                 String item = entry.getKey().toString();
-                Sponge.getRegistry().getType(ItemType.class, item).ifPresent(items::add);
-                rules.putAll(item, entry.getValue().getList(RULE_TOKEN).stream().sorted(COMPARATOR)::iterator);
+                Sponge.getRegistry().getType(ItemType.class, item).ifPresent(newItems::add);
+                newRules.putAll(item, entry.getValue().getList(RULE_TOKEN).stream().sorted(COMPARATOR)::iterator);
             }
+            this.itemTypes = ImmutableSortedSet.copyOf(ITEM_TYPE_COMPARATOR, newItems);
+            this.checkRules = ImmutableListMultimap.copyOf(newRules);
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
@@ -81,7 +89,7 @@ public class BanConfig {
     private void save(ConfigurationNode node) throws IOException {
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
         try {
-            for (Map.Entry<String, CheckRule> entry : rules.entries()) {
+            for (Map.Entry<String, CheckRule> entry : checkRules.entries()) {
                 node.getNode("epicbanitem", entry.getKey()).getAppendedNode().setValue(RULE_TOKEN, entry.getValue());
             }
         } catch (ObjectMappingException e) {
