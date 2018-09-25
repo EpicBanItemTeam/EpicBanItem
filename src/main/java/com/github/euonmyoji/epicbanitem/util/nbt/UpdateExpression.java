@@ -6,7 +6,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.util.Tuple;
 
 import java.util.*;
@@ -212,8 +211,7 @@ public class UpdateExpression implements DataTransformer {
 
         @Override
         public UpdateResult update(QueryResult result, DataView view) {
-            @SuppressWarnings("deprecation")
-            DataContainer copy = new MemoryDataContainer(DataView.SafetyMode.ALL_DATA_CLONED);
+            DataContainer copy = DataContainer.createNew(DataView.SafetyMode.ALL_DATA_CLONED);
             List<DataQuery> transformedQueries = transformQuery(this.query, result);
             view.get(this.queryFirst).ifPresent(v -> copy.set(this.queryFirst, v));
             for (DataQuery query : transformedQueries) {

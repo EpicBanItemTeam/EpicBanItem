@@ -10,7 +10,6 @@ import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.util.Tuple;
@@ -51,9 +50,8 @@ public class NbtTagDataUtil {
         return fromSpongeDataToNbt(stack.toContainer());
     }
 
-    @SuppressWarnings("deprecation")
     public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, Location<World> location) {
-        DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
+        DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
         view.get(DataQuery.of("tag", "BlockEntityTag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
 
@@ -76,9 +74,8 @@ public class NbtTagDataUtil {
         return BlockSnapshot.builder().build(result).get();
     }
 
-    @SuppressWarnings("deprecation")
     public static ItemStack toItemStack(DataView view, int stackSize) {
-        DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
+        DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
         result.set(DataQuery.of("Count"), stackSize);
         view.get(DataQuery.of("id")).ifPresent(id -> result.set(DataQuery.of("ItemType"), id));
@@ -88,9 +85,8 @@ public class NbtTagDataUtil {
         return ItemStack.builder().build(result).orElseGet(ItemStack::empty);
     }
 
-    @SuppressWarnings("deprecation")
     private static DataContainer fromSpongeDataToNbt(DataContainer view) {
-        DataContainer result = new MemoryDataContainer(DataView.SafetyMode.NO_DATA_CLONED);
+        DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
         view.get(DataQuery.of("ItemType")).ifPresent(id -> result.set(DataQuery.of("id"), id));
         view.get(DataQuery.of("UnsafeData")).ifPresent(nbt -> result.set(DataQuery.of("tag"), nbt));

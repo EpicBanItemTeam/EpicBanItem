@@ -32,7 +32,7 @@ public class TextUtil {
      * @return TextTemplate
      */
     public static TextTemplate parseTextTemplate(String origin, Set<String> keySet) {
-        if(keySet.isEmpty()){
+        if (keySet.isEmpty()) {
             return TextTemplate.of(parseFormatText(origin));
         }
         List<Object> objects = new ArrayList<>();
@@ -72,12 +72,12 @@ public class TextUtil {
         return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
     }
 
-    public static Text adjustLength(Text text,int length){
+    public static Text adjustLength(Text text, int length) {
         int spaces = length - text.toPlain().length();
-        if(spaces<=0){
+        if (spaces <= 0) {
             return text;
-        }else {
-            return Text.of(text,String.format("%"+spaces+"s",""));
+        } else {
+            return Text.of(text, String.format("%" + spaces + "s", ""));
         }
     }
 

@@ -39,7 +39,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         this.alias = alias;
     }
 
-    private void init(){
+    private void init() {
         if (commandSpec == null) {
             help = new Help();
             commandSpec = CommandSpec.builder()
@@ -52,8 +52,8 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         }
     }
 
-    public String getCommandString(){
-        return "/"+parent+name+" ";
+    public String getCommandString() {
+        return "/" + parent + name + " ";
     }
 
     public String getRootPermission() {
@@ -87,25 +87,24 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public Text getArgHelp(CommandSource source) {
         init();
         CommandElement element = help.element;
-        if(element.equals(GenericArguments.none())){
+        if (element.equals(GenericArguments.none())) {
             return Text.EMPTY;
         }
         Text.Builder builder = Text.builder();
         builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.args"));
-        if(element instanceof CommandFlags){
+        if (element instanceof CommandFlags) {
             try {
                 Field field = CommandFlags.class.getDeclaredField("usageFlags");
                 field.setAccessible(true);
-                //noinspection unchecked
-                Map<List<String>, CommandElement> usageFlags = (Map<List<String>, CommandElement>) field.get(element);
-                for(Map.Entry<List<String>,CommandElement> entry:usageFlags.entrySet()){
-                    List<String> availableFlags = entry.getKey();
-                    CommandElement childElement = entry.getValue();
+                Map<?, ?> usageFlags = (Map<?, ?>) field.get(element);
+                for (Map.Entry<?, ?> entry : usageFlags.entrySet()) {
+                    List<?> availableFlags = (List<?>) entry.getKey();
+                    CommandElement childElement = (CommandElement) entry.getValue();
                     List<Object> objects = new ArrayList<>();
                     objects.add("[");
-                    Iterator it = availableFlags.iterator();
-                    while(it.hasNext()) {
-                        String flag = (String)it.next();
+                    Iterator<?> it = availableFlags.iterator();
+                    while (it.hasNext()) {
+                        String flag = (String) it.next();
                         objects.add(flag.length() > 1 ? "--" : "-");
                         objects.add(flag);
                         if (it.hasNext()) {
@@ -119,10 +118,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                     }
                     objects.add("]");
                     objects.add(" ");
-                    String id = availableFlags.get(0);
+                    String id = availableFlags.get(0).toString();
                     builder.append(Text.NEW_LINE,
-                            Text.of("    "),TextUtil.adjustLength(Text.of(objects.toArray()),30)
-                            ,getMessage("flags."+id));
+                            Text.of("    "), TextUtil.adjustLength(Text.of(objects.toArray()), 30),
+                            getMessage("flags." + id));
                 }
                 Field field1 = CommandFlags.class.getDeclaredField("childElement");
                 field1.setAccessible(true);
@@ -131,25 +130,25 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 EpicBanItem.logger.error("Failed to parse help for CommandFlags");
             }
         }
-        if(element!=null){
-            scanArg(element,source,builder);
+        if (element != null) {
+            scanArg(element, source, builder);
         }
         return builder.toText();
     }
 
-    private void scanArg(CommandElement commandElement,CommandSource source,Text.Builder builder){
+    private void scanArg(CommandElement commandElement, CommandSource source, Text.Builder builder) {
         // Need Permission Check?
         String id = commandElement.getUntranslatedKey();
-        if(id == null){
+        if (id == null) {
             Class<? extends CommandElement> clazz = commandElement.getClass();
             try {
                 Field field = clazz.getDeclaredField("elements");
                 field.setAccessible(true);
                 Object elements = field.get(commandElement);
-                if(elements instanceof List){
-                    for(Object element:(List)elements){
-                        if(element instanceof CommandElement){
-                            scanArg((CommandElement) element,source,builder);
+                if (elements instanceof List) {
+                    for (Object element : (List) elements) {
+                        if (element instanceof CommandElement) {
+                            scanArg((CommandElement) element, source, builder);
                         }
                     }
                     return;
@@ -161,16 +160,16 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 Field field = clazz.getDeclaredField("element");
                 field.setAccessible(true);
                 Object element = field.get(commandElement);
-                if(element instanceof CommandElement){
-                    scanArg((CommandElement) element,source,builder);
+                if (element instanceof CommandElement) {
+                    scanArg((CommandElement) element, source, builder);
                 }
             } catch (IllegalAccessException | NoSuchFieldException e) {
                 //do nothing
             }
-        }else {
+        } else {
             builder.append(Text.NEW_LINE,
-                    Text.of("    "),TextUtil.adjustLength(commandElement.getUsage(source),30),
-                    getMessage("args."+id));
+                    Text.of("    "), TextUtil.adjustLength(commandElement.getUsage(source), 30),
+                    getMessage("args." + id));
         }
 
     }
@@ -179,10 +178,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         init();
         Text.Builder builder = Text.builder();
         builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.name",
-                "name",getName(),
-                "alias",String.join(" ",getAlias())), Text.NEW_LINE);
+                "name", getName(),
+                "alias", String.join(" ", getAlias())), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
-        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.usage","usage",Text.of(getCommandString(),getCallable().getUsage(src))), Text.NEW_LINE);
+        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))), Text.NEW_LINE);
         builder.append(getArgHelp(src), Text.NEW_LINE);
 //                builder.append(getExtendedDescription(),Text.NEW_LINE);
         return builder.build();

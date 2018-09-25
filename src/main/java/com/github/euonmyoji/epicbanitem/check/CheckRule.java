@@ -234,8 +234,9 @@ public class CheckRule {
             node.getNode("priority").setValue(rule.priority);
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
             if (rule.enableWorlds != null) {
-                node.getNode("enabled-worlds").setValue(new TypeToken<List<String>>() {
-                }, new ArrayList<>(rule.enableWorlds));
+                for (String world : rule.enableWorlds) {
+                    node.getNode("enabled-worlds").getAppendedNode().setValue(world);
+                }
             }
             for (String trigger : EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers()) {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
