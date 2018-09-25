@@ -13,9 +13,12 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @NonnullByDefault
 public class BanConfig {
@@ -26,7 +29,8 @@ public class BanConfig {
 
     private final Path path;
     private final AutoFileLoader fileLoader;
-    private ImmutableListMultimap<String, CheckRule> checkRules = ImmutableListMultimap.of();
+    private ImmutableMap<String, CheckRule> checkRulesByName = ImmutableMap.of();
+    private ImmutableListMultimap<String, CheckRule> checkRulesByItem = ImmutableListMultimap.of();
     private ImmutableSortedSet<ItemType> itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).build();
 
     public BanConfig(AutoFileLoader fileLoader, Path path) {
@@ -42,21 +46,22 @@ public class BanConfig {
         return Objects.requireNonNull(itemTypes);
     }
 
-    public List<CheckRule> getRules(ItemType itemType) {
-        return Objects.requireNonNull(checkRules).get(itemType.getId());
+    public List<CheckRule> getRules(@Nullable ItemType itemType) {
+        return Objects.requireNonNull(checkRulesByItem).get(getTypeId(itemType));
     }
 
-    public void addRule(ItemType type, CheckRule newRule) throws IOException {
-        String typeId = type.getId();
+    public void addRule(@Nullable ItemType itemType, CheckRule newRule) throws IOException {
+        String typeId = getTypeId(itemType);
         ListMultimap<String, CheckRule> newRules;
-        Set<ItemType> newItems = new TreeSet<>(this.itemTypes);
 
-        newItems.add(type);
-        this.itemTypes = ImmutableSortedSet.copyOf(ITEM_TYPE_COMPARATOR, newItems);
+        if (Objects.nonNull(itemType) && !this.itemTypes.contains(itemType)) {
+            Stream<ItemType> stream = Stream.concat(this.itemTypes.stream(), Stream.of(itemType));
+            this.itemTypes = stream.collect(ImmutableSortedSet.toImmutableSortedSet(ITEM_TYPE_COMPARATOR));
+        }
 
-        newRules = Multimaps.newListMultimap(new LinkedHashMap<>(this.checkRules.asMap()), ArrayList::new);
+        newRules = Multimaps.newListMultimap(new LinkedHashMap<>(this.checkRulesByItem.asMap()), ArrayList::new);
         newRules.putAll(typeId, addAndSort(newRules.removeAll(typeId), newRule));
-        this.checkRules = ImmutableListMultimap.copyOf(newRules);
+        this.checkRulesByItem = ImmutableListMultimap.copyOf(newRules);
 
         this.fileLoader.forceSaving(path);
     }
@@ -71,16 +76,18 @@ public class BanConfig {
             return CURRENT_VERSION;
         });
         try {
+            // TODO: remove duplicate names
+            Map<String, CheckRule> rulesByName = new LinkedHashMap<>();
             Set<ItemType> newItems = new TreeSet<>(Comparator.comparing(ItemType::getId));
-            Multimap<String, CheckRule> newRules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
+            Multimap<String, CheckRule> rulesByItem = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
             Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
             for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
                 String item = entry.getKey().toString();
                 Sponge.getRegistry().getType(ItemType.class, item).ifPresent(newItems::add);
-                newRules.putAll(item, entry.getValue().getList(RULE_TOKEN).stream().sorted(COMPARATOR)::iterator);
+                rulesByItem.putAll(item, entry.getValue().getList(RULE_TOKEN).stream().sorted(COMPARATOR)::iterator);
             }
             this.itemTypes = ImmutableSortedSet.copyOf(ITEM_TYPE_COMPARATOR, newItems);
-            this.checkRules = ImmutableListMultimap.copyOf(newRules);
+            this.checkRulesByItem = ImmutableListMultimap.copyOf(rulesByItem);
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
@@ -89,12 +96,36 @@ public class BanConfig {
     private void save(ConfigurationNode node) throws IOException {
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
         try {
-            for (Map.Entry<String, CheckRule> entry : checkRules.entries()) {
+            for (Map.Entry<String, CheckRule> entry : checkRulesByItem.entries()) {
                 node.getNode("epicbanitem", entry.getKey()).getAppendedNode().setValue(RULE_TOKEN, entry.getValue());
             }
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
+    }
+
+    private static String getTypeId(@Nullable ItemType itemType) {
+        return Objects.isNull(itemType) ? "*" : itemType.getId();
+    }
+
+    private static int parseOrElse(String string, int orElse) {
+        try {
+            return Integer.parseUnsignedInt(string);
+        } catch (NumberFormatException e) {
+            return orElse;
+        }
+    }
+
+    private static String findNewName(String name, Predicate<String> alreadyExists) {
+        if (alreadyExists.test(name)) {
+            int dashIndex = name.lastIndexOf('-');
+            int number = parseOrElse(name.substring(dashIndex + 1), 2);
+            String prefix = dashIndex >= 0 ? name.substring(0, dashIndex) : name;
+            for (name = prefix + '-' + number; alreadyExists.test(name); name = prefix + '-' + number) {
+                ++number;
+            }
+        }
+        return name;
     }
 
     private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) throws IOException {

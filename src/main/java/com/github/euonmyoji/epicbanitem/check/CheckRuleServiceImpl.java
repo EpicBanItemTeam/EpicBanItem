@@ -36,12 +36,12 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     @Override
-    public List<CheckRule> getCheckRules(ItemType itemType) {
+    public List<CheckRule> getCheckRules(@Nullable ItemType itemType) {
         return EpicBanItem.plugin.getBanConfig().getRules(itemType);
     }
 
     @Override
-    public Optional<CheckRule> getCheckRule(ItemType itemType, String name) {
+    public Optional<CheckRule> getCheckRule(@Nullable ItemType itemType, String name) {
         return getCheckRules(itemType).stream().filter(c -> c.getName().equals(name)).findFirst();
     }
 

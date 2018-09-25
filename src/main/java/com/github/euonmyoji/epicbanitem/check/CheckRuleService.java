@@ -4,6 +4,7 @@ import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
@@ -16,6 +17,7 @@ import java.util.Set;
 /**
  * @author EBI TEAM
  */
+@NonnullByDefault
 public interface CheckRuleService {
     //Map<ItemType,Map<String,CheckRule>>?
     //Map<ItemType,Collection<CheckRule>>?
@@ -33,7 +35,7 @@ public interface CheckRuleService {
      * @param itemType 物品类型
      * @return 适用的规则
      */
-    List<CheckRule> getCheckRules(ItemType itemType);
+    List<CheckRule> getCheckRules(@Nullable ItemType itemType);
 
     /**
      * 返回一个物品对应的规则名的规则 or empty
@@ -42,7 +44,7 @@ public interface CheckRuleService {
      * @param name     规则名
      * @return 检查规则
      */
-    Optional<CheckRule> getCheckRule(ItemType itemType, String name);
+    Optional<CheckRule> getCheckRule(@Nullable ItemType itemType, String name);
 
     /**
      * 检查一个物品并返回一个result
