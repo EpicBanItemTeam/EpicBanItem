@@ -26,7 +26,6 @@ public class CommandEbi extends AbstractCommand {
 
     public CommandEbi() {
         super("ebi", "epicbanitem", "banitem", "bi");
-        addChildCommand(new CommandReload());
         addChildCommand(new CommandList());
         addChildCommand(new CommandQuery());
         addChildCommand(new CommandShow());
