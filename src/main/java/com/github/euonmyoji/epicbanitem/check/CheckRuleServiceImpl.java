@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author EpicBanItem Team
@@ -47,27 +48,24 @@ public class CheckRuleServiceImpl implements CheckRuleService {
 
     @Override
     public CheckResult check(ItemStack item, World world, String trigger, @Nullable Subject subject) {
-        if (item.isEmpty()) {
-            return CheckResult.empty();
-        } else {
-            return check(item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
+        CheckResult result = CheckResult.empty();
+        if (!item.isEmpty()) {
+            check(result, item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
         }
+        return result;
     }
 
     @Override
     public CheckResult check(ItemStackSnapshot item, World world, String trigger, @Nullable Subject subject) {
-        if (item.isEmpty()) {
-            return CheckResult.empty();
-        } else {
-            return check(item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
-        }
-    }
-
-    private CheckResult check(ItemType type, DataView view, World world, String trigger, @Nullable Subject subject) {
         CheckResult result = CheckResult.empty();
-        for (CheckRule checkRule : getCheckRules(type)) {
-            checkRule.check(view, result, world, trigger, subject);
+        if (!item.isEmpty()) {
+            check(result, item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
         }
         return result;
+    }
+
+    private void check(CheckResult result, ItemType type, DataView view, World world, String trigger, @Nullable Subject subject) {
+        Stream<CheckRule> rules = Stream.concat(getCheckRules(null).stream(), getCheckRules(type).stream());
+        rules.forEach(rule -> rule.check(view, result, world, trigger, subject));
     }
 }
