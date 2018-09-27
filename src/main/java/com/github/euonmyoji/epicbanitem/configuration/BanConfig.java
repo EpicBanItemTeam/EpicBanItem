@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 @NonnullByDefault
 public class BanConfig {
@@ -51,19 +50,22 @@ public class BanConfig {
     }
 
     public void addRule(@Nullable ItemType itemType, CheckRule newRule) throws IOException {
-        String typeId = getTypeId(itemType);
-        ListMultimap<String, CheckRule> newRules;
+        try {
+            ListMultimap<String, CheckRule> newRules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
+            SortedSet<ItemType> newItems = new TreeSet<>(this.itemTypes);
+            newRules.putAll(this.checkRulesByItem);
 
-        if (Objects.nonNull(itemType) && !this.itemTypes.contains(itemType)) {
-            Stream<ItemType> stream = Stream.concat(this.itemTypes.stream(), Stream.of(itemType));
-            this.itemTypes = stream.collect(ImmutableSortedSet.toImmutableSortedSet(ITEM_TYPE_COMPARATOR));
+            String typeId = getTypeId(itemType);
+            Optional.ofNullable(itemType).ifPresent(newItems::add);
+            newRules.putAll(typeId, addAndSort(newRules.removeAll(typeId), newRule));
+
+            this.checkRulesByItem = ImmutableListMultimap.copyOf(newRules);
+            this.itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).addAll(this.itemTypes).build();
+
+            this.fileLoader.forceSaving(this.path);
+        } catch (Exception e) {
+            throw new IOException(e);
         }
-
-        newRules = Multimaps.newListMultimap(new LinkedHashMap<>(this.checkRulesByItem.asMap()), ArrayList::new);
-        newRules.putAll(typeId, addAndSort(newRules.removeAll(typeId), newRule));
-        this.checkRulesByItem = ImmutableListMultimap.copyOf(newRules);
-
-        this.fileLoader.forceSaving(path);
     }
 
     // TODO: 出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
@@ -128,7 +130,7 @@ public class BanConfig {
         return name;
     }
 
-    private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) throws IOException {
+    private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) {
         CheckRule[] newCheckRules;
         int ruleSize = original.size();
         newCheckRules = new CheckRule[ruleSize + 1];
@@ -136,7 +138,7 @@ public class BanConfig {
         for (int i = 0; i < ruleSize; ++i) {
             CheckRule checkRule = original.get(i);
             if (checkRule.getName().equals(newCheckRule.getName())) {
-                throw new IOException("Rule with the same name already exits");
+                throw new IllegalArgumentException("Rule with the same name already exits");
             }
             newCheckRules[i] = checkRule;
         }

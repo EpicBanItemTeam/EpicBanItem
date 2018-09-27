@@ -11,12 +11,15 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
@@ -26,6 +29,7 @@ import java.util.*;
 /**
  * @author GiNYAi yinyangshi
  */
+@NonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public class CheckRule {
     // TODO: editable
@@ -60,16 +64,17 @@ public class CheckRule {
 //    }
 
     private final String name;
+
     private int priority = 5;
+    private String ignorePermission = "";
     private Set<String> enableWorlds = new HashSet<>();
-    private String ignorePermission;
     private Set<String> enableTrigger = EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers();
-    private boolean remove;
-    private QueryExpression query;
-    private UpdateExpression update;
-    private ConfigurationNode queryNode;
-    private ConfigurationNode updateNode;
-    // TODO: reason?
+
+    private boolean remove = true;
+    private @Nullable QueryExpression query = null;
+    private @Nullable UpdateExpression update = null;
+    private @Nullable ConfigurationNode queryNode = null;
+    private @Nullable ConfigurationNode updateNode = null;
 
     public CheckRule(String name) {
         this.name = Objects.requireNonNull(name);
@@ -150,7 +155,7 @@ public class CheckRule {
         if (!enableWorlds.isEmpty() && !enableWorlds.contains(world.getName())) {
             return origin;
         }
-        if (ignorePermission != null && subject != null && subject.hasPermission(ignorePermission)) {
+        if (!ignorePermission.isEmpty() && subject != null && subject.hasPermission(ignorePermission)) {
             return origin;
         }
 
@@ -203,7 +208,7 @@ public class CheckRule {
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
             CheckRule rule = new CheckRule(node.getNode("name").getString());
             rule.priority = node.getNode("priority").getInt(5);
-            rule.ignorePermission = node.getNode("bypass-permissions").getString(null);
+            rule.ignorePermission = node.getNode("bypass-permissions").getString("");
             rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class), Collections.emptyList()));
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             rule.enableTrigger = new HashSet<>(EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers());
@@ -229,11 +234,11 @@ public class CheckRule {
         }
 
         @Override
-        public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) throws ObjectMappingException {
+        public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) {
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
             node.getNode("bypass-permissions").setValue(rule.ignorePermission);
-            if (rule.enableWorlds != null) {
+            if (!rule.enableWorlds.isEmpty()) {
                 for (String world : rule.enableWorlds) {
                     node.getNode("enabled-worlds").getAppendedNode().setValue(world);
                 }

@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
-import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -11,51 +10,80 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
-import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.data.type.HandType;
+import org.spongepowered.api.entity.ArmorEquipable;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import static org.spongepowered.api.command.args.GenericArguments.optional;
-import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
+import java.util.Optional;
+
+import static org.spongepowered.api.command.args.GenericArguments.*;
 
 /**
  * @author EBI
  */
+@NonnullByDefault
 class CommandCreate extends AbstractCommand {
 
-    public CommandCreate() {
+    CommandCreate() {
         super("create", "c");
     }
 
     @Override
     public CommandElement getArgument() {
-        return GenericArguments.seq(
-                EpicBanItemArgs.itemOrHand(Text.of("item-type"), false),
-                GenericArguments.string(Text.of("rule-name")),
-                optional(remainingRawJoinedStrings(Text.of("query-rule")))
-        );
+        return seq(string(Text.of("rule-name")),
+                flags().flag("-no-capture").buildWith(none()),
+                optional(remainingRawJoinedStrings(Text.of("query-rule"))));
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-//        throw new CommandException(Text.of("Not Support Yet.")); ???? 这什么玩意啊 咸鱼姐姐
-        ItemType itemType = args.<ItemType>getOne("item-type").get();
-        String ruleName = args.<String>getOne("rule-name").get();
+        boolean noCapture = args.hasAny("no-capture");
+        // noinspection ConstantConditions
+        String name = args.<String>getOne("rule-name").get();
         // TODO: use histories in Query?
-        String rule = args.<String>getOne("query-rule").orElse("");
+        String query = args.<String>getOne("query-rule").orElse("{}");
         try {
-            CheckRule checkRule;
-            if (!rule.isEmpty()) {
-                ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule);
-                checkRule = new CheckRule(ruleName, node);
-            } else {
-                checkRule = new CheckRule(ruleName);
+            ConfigurationNode queryNode = TextUtil.serializeStringToConfigNode(query);
+            Optional<String> id = Optional.ofNullable(queryNode.getNode("id").getString());
+            CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+            Optional<ItemStack> handItem = src instanceof ArmorEquipable ? getItemInHand((ArmorEquipable) src) : Optional.empty();
+            if (!noCapture) {
+                if (handItem.isPresent()) {
+                    if (!id.isPresent()) {
+                        String s = handItem.get().getType().getId();
+                        queryNode.getNode("id").setValue(s);
+                        id = Optional.of(s);
+                    } else {
+                        throw new CommandException(getMessage("override"));
+                    }
+                } else {
+                    if (!id.isPresent()) {
+                        throw new CommandException(getMessage("empty"));
+                    }
+                }
             }
-            Sponge.getServiceManager().provideUnchecked(CheckRuleService.class).addRule(itemType, checkRule);
+            CheckRule checkRule = new CheckRule(name, queryNode);
+            service.addRule(id.flatMap(s -> Sponge.getRegistry().getType(ItemType.class, s)).orElse(null), checkRule);
+        } catch (CommandException e) {
+            throw e;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new CommandException(getMessage("failed"), e);
         }
-        src.sendMessage(getMessage("succeed", "rule_name", ruleName));
+        src.sendMessage(getMessage("succeed", "rule_name", name));
         return CommandResult.success();
+    }
+
+    private static Optional<ItemStack> getItemInHand(ArmorEquipable armorEquipable) {
+        for (HandType handType : Sponge.getRegistry().getAllOf(HandType.class)) {
+            Optional<ItemStack> handItem = armorEquipable.getItemInHand(handType);
+            if (handItem.isPresent() && !handItem.get().isEmpty()) {
+                return handItem;
+            }
+        }
+        return Optional.empty();
     }
 }

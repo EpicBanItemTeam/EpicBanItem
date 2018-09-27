@@ -36,6 +36,8 @@ epicbanitem.command.create.description=create a new rule
 epicbanitem.command.create.extendedDescription=
 epicbanitem.command.create.succeed={rule_name}
 epicbanitem.command.create.failed=
+epicbanitem.command.create.override=
+epicbanitem.command.create.empty=
 epicbanitem.command.help.description=show helps
 epicbanitem.command.help.extendedDescription=
 #checkrule

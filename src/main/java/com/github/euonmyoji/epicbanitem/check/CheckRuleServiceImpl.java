@@ -22,7 +22,7 @@ import java.util.Set;
 @NonnullByDefault
 public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
-    public void addRule(ItemType type, CheckRule rule) {
+    public void addRule(@Nullable ItemType type, CheckRule rule) {
         try {
             EpicBanItem.plugin.getBanConfig().addRule(type, rule);
         } catch (IOException e) {
