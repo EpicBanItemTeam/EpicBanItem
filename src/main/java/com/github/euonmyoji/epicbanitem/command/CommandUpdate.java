@@ -12,7 +12,8 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.type.HandType;
@@ -21,49 +22,42 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.LiteralText;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.util.Tuple;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.spongepowered.api.command.args.GenericArguments.firstParsing;
 import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
 
 /**
  * @author ustc_zzzz
  */
-class Apply {
+@NonnullByDefault
+public class CommandUpdate extends AbstractCommand {
+    CommandUpdate() {
+        super("update", "u");
+    }
 
-    static CommandSpec apply = CommandSpec.builder()
-            .arguments(firstParsing(// TODO: rule name first (command element needed)
-                    remainingRawJoinedStrings(Text.of("apply-rule"))))
-            .permission("epicbanitem.apply")
-            .executor(Apply::execute)
-            .build();
+    @Override
+    public CommandElement getArgument() {
+        return GenericArguments.firstParsing(remainingRawJoinedStrings(Text.of("update-rule")));
+    }
 
-    private static CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        HandType handType = null;
-        Optional<ItemStack> itemStackOptional = Optional.empty();
-        if (src instanceof ArmorEquipable) {
-            for (HandType type : Sponge.getRegistry().getAllOf(HandType.class)) {
-                itemStackOptional = ((ArmorEquipable) src).getItemInHand(type);
-                if (itemStackOptional.isPresent()) {
-                    handType = type;
-                    break;
-                }
-            }
-        }
-        if (!itemStackOptional.isPresent()) {
+    @Override
+    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+        if (!(src instanceof ArmorEquipable)) {
             throw new CommandException(Text.of("找不到物品。可能因为你不是玩家，或者手上没拿东西？"));
         }
-        // noinspection ConstantConditions
-        if (false) { // TODO: checkItemStack and apply rule name first
-            return CommandResult.success();
+        Optional<Tuple<HandType, ItemStack>> handItem = CommandCreate.getItemInHand(src);
+        if (!handItem.isPresent()) {
+            throw new CommandException(Text.of("找不到物品。可能因为你不是玩家，或者手上没拿东西？"));
         }
         UUID uuid = ((ArmorEquipable) src).getUniqueId();
-        int quantity = itemStackOptional.get().getQuantity();
-        DataContainer nbt = NbtTagDataUtil.toNbt(itemStackOptional.get());
+        int quantity = handItem.get().getSecond().getQuantity();
+        DataContainer nbt = NbtTagDataUtil.toNbt(handItem.get().getSecond());
         // noinspection ConstantConditions
-        String updateRule = args.<String>getOne("apply-rule").get();
+        String updateRule = args.<String>getOne("update-rule").get();
         String queryRule = CommandQuery.histories.getOrDefault(uuid, "{}");
         try {
             UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
@@ -81,7 +75,7 @@ class Apply {
             throw new CommandException(Text.of("应用规则时出错: ", e.toString()));
         }
         try {
-            ((ArmorEquipable) src).setItemInHand(handType, NbtTagDataUtil.toItemStack(nbt, quantity));
+            ((ArmorEquipable) src).setItemInHand(handItem.get().getFirst(), NbtTagDataUtil.toItemStack(nbt, quantity));
             src.sendMessage(Text.of("成功应用物品。"));
         } catch (Exception e) {
             EpicBanItem.logger.error("应用物品时出错: ", e);

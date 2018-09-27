@@ -31,10 +31,7 @@ public class CommandEbi extends AbstractCommand {
         addChildCommand(new CommandShow());
         addChildCommand(new CommandCheck());
         addChildCommand(new CommandCreate());
-        // TODO: update
-        childrenMap.put(Arrays.asList("update", "u"), Update.update);
-        // TODO: apply
-        childrenMap.put(Arrays.asList("apply", "a"), Apply.apply);
+        addChildCommand(new CommandUpdate());
         addChildCommand(new CommandHelp(childrenMap));
         commandSpec = CommandSpec.builder()
                 .permission(getPermission("base"))

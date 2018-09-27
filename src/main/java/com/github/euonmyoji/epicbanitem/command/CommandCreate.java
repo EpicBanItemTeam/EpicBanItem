@@ -15,6 +15,7 @@ import org.spongepowered.api.entity.ArmorEquipable;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Optional;
@@ -46,14 +47,14 @@ class CommandCreate extends AbstractCommand {
         // TODO: use histories in Query?
         String query = args.<String>getOne("query-rule").orElse("{}");
         try {
+            Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
             ConfigurationNode queryNode = TextUtil.serializeStringToConfigNode(query);
             Optional<String> id = Optional.ofNullable(queryNode.getNode("id").getString());
             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-            Optional<ItemStack> handItem = src instanceof ArmorEquipable ? getItemInHand((ArmorEquipable) src) : Optional.empty();
             if (!noCapture) {
                 if (handItem.isPresent()) {
                     if (!id.isPresent()) {
-                        String s = handItem.get().getType().getId();
+                        String s = handItem.get().getSecond().getType().getId();
                         queryNode.getNode("id").setValue(s);
                         id = Optional.of(s);
                     } else {
@@ -77,11 +78,13 @@ class CommandCreate extends AbstractCommand {
         return CommandResult.success();
     }
 
-    private static Optional<ItemStack> getItemInHand(ArmorEquipable armorEquipable) {
-        for (HandType handType : Sponge.getRegistry().getAllOf(HandType.class)) {
-            Optional<ItemStack> handItem = armorEquipable.getItemInHand(handType);
-            if (handItem.isPresent() && !handItem.get().isEmpty()) {
-                return handItem;
+    static Optional<Tuple<HandType, ItemStack>> getItemInHand(CommandSource src) {
+        if (src instanceof ArmorEquipable) {
+            for (HandType handType : Sponge.getRegistry().getAllOf(HandType.class)) {
+                Optional<ItemStack> handItem = ((ArmorEquipable) src).getItemInHand(handType);
+                if (handItem.isPresent() && !handItem.get().isEmpty()) {
+                    return Optional.of(Tuple.of(handType, handItem.get()));
+                }
             }
         }
         return Optional.empty();
