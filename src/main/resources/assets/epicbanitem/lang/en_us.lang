@@ -38,6 +38,9 @@ epicbanitem.command.create.succeed={rule_name}
 epicbanitem.command.create.failed=
 epicbanitem.command.create.override=
 epicbanitem.command.create.empty=
+epicbanitem.command.create.args.rule-name=
+epicbanitem.command.create.flags.no-capture=
+epicbanitem.command.create.args.query-rule=
 epicbanitem.command.help.description=show helps
 epicbanitem.command.help.extendedDescription=
 #checkrule

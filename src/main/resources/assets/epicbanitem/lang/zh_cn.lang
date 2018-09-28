@@ -38,7 +38,9 @@ epicbanitem.command.create.succeed=成功添加规则&a {rule_name}
 epicbanitem.command.create.failed=创建规则失败
 epicbanitem.command.create.override=id将会被手中物品覆盖，如欲不覆盖，请加--no-capture参数重试
 epicbanitem.command.create.empty=id不存在，同时手中物品为空，这会导致匹配物品时性能下降，如欲不指定id，请加--no-capture参数重试
-#TODO 2018/09/23 wait the new create command
+epicbanitem.command.create.args.rule-name=新创建的规则名
+epicbanitem.command.create.flags.no-capture=如果你需要创建不指定ID的规则,请使用这个参数
+epicbanitem.command.create.args.query-rule=要匹配的规则,默认为{}
 epicbanitem.command.help.description=显示帮助
 epicbanitem.command.help.extendedDescription=显示帮助
 

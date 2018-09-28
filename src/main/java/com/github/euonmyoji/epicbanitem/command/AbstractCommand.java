@@ -96,11 +96,20 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         }
         Text.Builder builder = Text.builder();
         builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.args"));
-        if (element instanceof CommandFlags) {
+        scanArg(element, source, builder);
+        return builder.toText();
+    }
+
+    private void scanArg(CommandElement commandElement, CommandSource source, Text.Builder builder) {
+        // Need Permission Check?
+        if (commandElement == null){
+            return;
+        }
+        if (commandElement instanceof CommandFlags) {
             try {
                 Field field = CommandFlags.class.getDeclaredField("usageFlags");
                 field.setAccessible(true);
-                Map<?, ?> usageFlags = (Map<?, ?>) field.get(element);
+                Map<?, ?> usageFlags = (Map<?, ?>) field.get(commandElement);
                 for (Map.Entry<?, ?> entry : usageFlags.entrySet()) {
                     List<?> availableFlags = (List<?>) entry.getKey();
                     CommandElement childElement = (CommandElement) entry.getValue();
@@ -129,19 +138,11 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 }
                 Field field1 = CommandFlags.class.getDeclaredField("childElement");
                 field1.setAccessible(true);
-                element = (CommandElement) field1.get(element);
+                scanArg((CommandElement) field1.get(commandElement),source,builder);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 EpicBanItem.logger.error("Failed to parse help for CommandFlags");
             }
         }
-        if (element != null) {
-            scanArg(element, source, builder);
-        }
-        return builder.toText();
-    }
-
-    private void scanArg(CommandElement commandElement, CommandSource source, Text.Builder builder) {
-        // Need Permission Check?
         String id = commandElement.getUntranslatedKey();
         if (id == null) {
             Class<? extends CommandElement> clazz = commandElement.getClass();
