@@ -4,6 +4,7 @@ epicbanitem.commands.name=
 epicbanitem.commands.usage=
 epicbanitem.commands.help=
 epicbanitem.commands.args=
+epicbanitem.commands.tooManyArgs=
 
 epicbanitem.command.check.description=
 epicbanitem.command.check.extendedDescription=
@@ -43,6 +44,8 @@ epicbanitem.command.create.flags.no-capture=
 epicbanitem.command.create.args.query-rule=
 epicbanitem.command.help.description=show helps
 epicbanitem.command.help.extendedDescription=
+epicbanitem.command.help.noHelp=
+epicbanitem.command.help.args.sub-command=
 #checkrule
 epicbanitem.checkrule.worlds=
 epicbanitem.checkrule.triggers=

@@ -50,19 +50,19 @@ class CommandList extends AbstractCommand {
             for (ItemType itemType : service.getCheckItemTypes()) {
                 toShow.put(itemType.getId(), service.getCheckRules(itemType));
             }
-            toShow.put("*",service.getCheckRules(null));
+            toShow.put("*", service.getCheckRules(null));
         }
         List<Text> lines = new ArrayList<>();
         for (Map.Entry<String, List<CheckRule>> entry : toShow.entrySet()) {
             for (CheckRule checkRule : entry.getValue()) {
                 lines.add(Text.of(
-                        TextUtil.adjustLength(getMessage("firstHalfLine", "item_type", entry.getKey(),"check_rule",checkRule.toText()),20),
-                        getMessage("secondHalfLine", "item_type", entry.getKey(),"check_rule",checkRule.toText())
+                        TextUtil.adjustLength(getMessage("firstHalfLine", "item_type", entry.getKey(), "check_rule", checkRule.toText()), 20),
+                        getMessage("secondHalfLine", "item_type", entry.getKey(), "check_rule", checkRule.toText())
                 ));
             }
         }
 
-        if(lines.isEmpty()){
+        if (lines.isEmpty()) {
             lines.add(getMessage("noRule"));
         }
 
@@ -70,10 +70,10 @@ class CommandList extends AbstractCommand {
                 .title(getMessage("title"))
                 .contents(lines)
                 .padding(getMessage("padding"));
-        if(src instanceof Player){
+        if (src instanceof Player) {
             paginationList.linesPerPage(15);
-        }else {
-            paginationList.linesPerPage(lines.size()+5);
+        } else {
+            paginationList.linesPerPage(lines.size() + 5);
         }
         // TODO: 点击补全的命令
         paginationList.build().sendTo(src);

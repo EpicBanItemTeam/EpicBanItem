@@ -4,6 +4,7 @@ epicbanitem.commands.name=命令:{name} {alias}
 epicbanitem.commands.usage=用法:{usage}
 epicbanitem.commands.help=显示命令帮助
 epicbanitem.commands.args=参数:
+epicbanitem.commands.tooManyArgs=参数过多
 
 epicbanitem.command.check.description=检查手中的物品
 epicbanitem.command.check.extendedDescription=检查手中的物品
@@ -43,6 +44,8 @@ epicbanitem.command.create.flags.no-capture=如果你需要创建不指定ID的�
 epicbanitem.command.create.args.query-rule=要匹配的规则,默认为{}
 epicbanitem.command.help.description=显示帮助
 epicbanitem.command.help.extendedDescription=显示帮助
+epicbanitem.command.help.noHelp=无帮助
+epicbanitem.command.help.args.sub-command=要查询的子命令
 
 #checkrule
 epicbanitem.checkrule.worlds=世界

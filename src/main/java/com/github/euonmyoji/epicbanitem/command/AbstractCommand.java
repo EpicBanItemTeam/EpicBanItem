@@ -77,7 +77,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     protected Text getMessage(String s, String k1, Object v1, String k2, Object v2) {
-        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s), k1, v1,k2,v2);
+        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s), k1, v1, k2, v2);
     }
 
     public Text getDescription() {
@@ -102,7 +102,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     private void scanArg(CommandElement commandElement, CommandSource source, Text.Builder builder) {
         // Need Permission Check?
-        if (commandElement == null){
+        if (commandElement == null) {
             return;
         }
         if (commandElement instanceof CommandFlags) {
@@ -138,7 +138,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 }
                 Field field1 = CommandFlags.class.getDeclaredField("childElement");
                 field1.setAccessible(true);
-                scanArg((CommandElement) field1.get(commandElement),source,builder);
+                scanArg((CommandElement) field1.get(commandElement), source, builder);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 EpicBanItem.logger.error("Failed to parse help for CommandFlags");
             }
@@ -211,7 +211,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     @NonnullByDefault
-    private class Help extends CommandElement implements CommandExecutor {
+    protected class Help extends CommandElement implements CommandExecutor {
         private CommandElement element = getArgument();
 
         private Help() {
@@ -223,14 +223,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             try {
                 element.parse(source, args, context);
                 if (args.hasNext()) {
-                    //avoid too many arguments
-                    context.putArg("help", true);
-                    while (args.hasNext()) {
-                        args.next();
-                    }
+                    throw args.createError(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.tooManyArgs"));
                 }
             } catch (ArgumentParseException e) {
-                context.putArg("help", true);
+                context.putArg("help", e);
                 while (args.hasNext()) {
                     args.next();
                 }
@@ -246,24 +242,18 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
         @Override
         public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-            try {
-                if (!args.hasNext() || "help".startsWith(args.peek().toLowerCase())) {
-                    List<String> stringList = new ArrayList<>();
-                    stringList.add("help");
-                    stringList.addAll(element.complete(src, args, context));
-                    return stringList;
-                } else {
-                    return element.complete(src, args, context);
-                }
-            } catch (ArgumentParseException e) {
-                e.printStackTrace();
-                return element.complete(src, args, context);
-            }
+            return element.complete(src, args, context);
         }
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (args.hasAny("help")) {
+                //noinspection ConstantConditions
+                ArgumentParseException exception = args.<ArgumentParseException>getOne("help").get();
+                Text exceptionText = exception.getText();
+                if (exceptionText != null) {
+                    src.sendMessage(exceptionText);
+                }
                 src.sendMessage(getHelpMessage(src, args));
                 return CommandResult.success();
             } else {
@@ -273,12 +263,11 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
         @Override
         public Text getUsage(CommandSource src) {
-            Text usage = element.getUsage(src);
-            if (usage.isEmpty()) {
-                return Text.of("[help]");
-            } else {
-                return Text.of(usage, "|help");
-            }
+            return element.getUsage(src);
+        }
+
+        protected Text getHelpMessage(CommandSource src, CommandContext args) {
+            return AbstractCommand.this.getHelpMessage(src, args);
         }
     }
 
