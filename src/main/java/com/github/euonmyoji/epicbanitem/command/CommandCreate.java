@@ -12,13 +12,19 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.ArmorEquipable;
+import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
+import org.spongepowered.api.util.blockray.BlockRay;
+import org.spongepowered.api.util.blockray.BlockRayHit;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
@@ -76,6 +82,15 @@ class CommandCreate extends AbstractCommand {
         }
         src.sendMessage(getMessage("succeed", "rule_name", name));
         return CommandResult.success();
+    }
+
+    static Optional<Location<World>> getBlockLookAt(CommandSource src) {
+        if (src instanceof Entity) {
+            Predicate<BlockRayHit<World>> filter = BlockRay.continueAfterFilter(BlockRay.onlyAirFilter(), 1);
+            BlockRay.BlockRayBuilder<World> builder = BlockRay.from((Entity) src).stopFilter(filter);
+            return builder.distanceLimit(5).build().end().map(BlockRayHit::getLocation);
+        }
+        return Optional.empty();
     }
 
     static Optional<Tuple<HandType, ItemStack>> getItemInHand(CommandSource src) {

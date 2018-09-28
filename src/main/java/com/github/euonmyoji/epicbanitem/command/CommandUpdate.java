@@ -7,7 +7,6 @@ import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateResult;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -26,7 +25,6 @@ import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
 
@@ -46,19 +44,16 @@ public class CommandUpdate extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (!(src instanceof ArmorEquipable)) {
-            throw new CommandException(Text.of("找不到物品。可能因为你不是玩家，或者手上没拿东西？"));
-        }
         Optional<Tuple<HandType, ItemStack>> handItem = CommandCreate.getItemInHand(src);
         if (!handItem.isPresent()) {
             throw new CommandException(Text.of("找不到物品。可能因为你不是玩家，或者手上没拿东西？"));
         }
-        UUID uuid = ((ArmorEquipable) src).getUniqueId();
+        String id = src.getIdentifier();
         int quantity = handItem.get().getSecond().getQuantity();
         DataContainer nbt = NbtTagDataUtil.toNbt(handItem.get().getSecond());
         // noinspection ConstantConditions
         String updateRule = args.<String>getOne("update-rule").get();
-        String queryRule = CommandQuery.histories.getOrDefault(uuid, "{}");
+        String queryRule = CommandQuery.histories.getOrDefault(id, "{}");
         try {
             UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
             QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
