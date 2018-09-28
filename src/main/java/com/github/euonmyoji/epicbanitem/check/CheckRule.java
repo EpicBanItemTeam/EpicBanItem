@@ -11,10 +11,8 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
@@ -70,20 +68,25 @@ public class CheckRule {
     private Set<String> enableWorlds = new HashSet<>();
     private Set<String> enableTrigger = EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers();
 
-    private boolean remove = true;
-    private @Nullable QueryExpression query = null;
+    private QueryExpression query;
+    private ConfigurationNode queryNode;
     private @Nullable UpdateExpression update = null;
-    private @Nullable ConfigurationNode queryNode = null;
     private @Nullable ConfigurationNode updateNode = null;
 
-    public CheckRule(String name) {
-        this.name = Objects.requireNonNull(name);
+    public CheckRule(String ruleName) {
+        this(ruleName, getDefaultQueryNode());
     }
 
-    public CheckRule(String name, ConfigurationNode queryNode) {
-        this.name = Objects.requireNonNull(name);
+    public CheckRule(String ruleName, ConfigurationNode queryNode) {
+        this(ruleName, queryNode, getDefaultUpdateNode());
+    }
+
+    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode) {
         this.queryNode = queryNode.copy();
         this.query = new QueryExpression(queryNode);
+        this.name = Objects.requireNonNull(ruleName);
+        this.updateNode = Objects.isNull(updateNode) ? null : updateNode.copy();
+        this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
     }
 
     public String getName() {
@@ -102,14 +105,7 @@ public class CheckRule {
         return Collections.unmodifiableSet(enableWorlds);
     }
 
-    public boolean remove() {
-        return remove;
-    }
-
     public Text getQueryInfo() {
-        if (queryNode == null) {
-            return Text.of("No Query");
-        }
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
@@ -159,19 +155,12 @@ public class CheckRule {
             return origin;
         }
 
-        if (query == null) {
+        Optional<QueryResult> optionalQueryResult = query.query(DataQuery.of(), view);
+        if (optionalQueryResult.isPresent()) {
             origin.breakRules.add(this);
-            origin.remove = origin.remove || remove;
-        } else {
-            Optional<QueryResult> optionalQueryResult = query.query(DataQuery.of(), view);
-            if (optionalQueryResult.isPresent()) {
-                origin.breakRules.add(this);
-                if (remove) {
-                    origin.remove = true;
-                } else if (update != null) {
-                    update.update(optionalQueryResult.get(), view).apply(view);
-                    origin.view = view;
-                }
+            if (update != null) {
+                update.update(optionalQueryResult.get(), view).apply(view);
+                origin.view = view;
             }
         }
         return origin;
@@ -183,7 +172,6 @@ public class CheckRule {
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.triggers"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.remove"), Text.of(this.remove()), Text.NEW_LINE);
 //        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
 //        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
         return Text.builder(getName()).onHover(TextActions.showText(builder.build())).build();
@@ -196,10 +184,25 @@ public class CheckRule {
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.triggers"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.remove"), Text.of(this.remove()), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.query"), this.getQueryInfo(), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.update"), this.getUpdateInfo(), Text.NEW_LINE);
         return builder.build();
+    }
+
+    private static ConfigurationNode getDefaultQueryNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static ConfigurationNode getDefaultUpdateNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\"}}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public static class Serializer implements TypeSerializer<CheckRule> {
@@ -220,16 +223,18 @@ public class CheckRule {
                 }
             });
             ConfigurationNode queryNode = node.getNode("query");
-            if (!queryNode.isVirtual()) {
+            ConfigurationNode updateNode = node.getNode("update");
+            if (Objects.nonNull(queryNode.getValue())) {
                 rule.queryNode = queryNode.copy();
                 rule.query = new QueryExpression(rule.queryNode);
             }
-            ConfigurationNode updateNode = node.getNode("update");
-            if (!updateNode.isVirtual()) {
+            if (Objects.nonNull(updateNode.getValue())) {
                 rule.updateNode = updateNode.copy();
                 rule.update = new UpdateExpression(rule.updateNode);
+            } else if (!node.getNode("remove").getBoolean(false)) {
+                rule.updateNode = null;
+                rule.update = null;
             }
-            rule.remove = node.getNode("remove").getBoolean(rule.update == null);
             return rule;
         }
 
@@ -249,13 +254,8 @@ public class CheckRule {
             for (String trigger : EpicBanItem.plugin.getSettings().getDisabledDefaultTriggers()) {
                 node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
             }
-            if (rule.query != null) {
-                node.getNode("query").setValue(rule.queryNode);
-            }
-            if (rule.update != null) {
-                node.getNode("update").setValue(rule.updateNode);
-            }
-            node.getNode("remove").setValue(rule.remove);
+            node.getNode("query").setValue(rule.queryNode);
+            node.getNode("update").setValue(rule.updateNode);
         }
     }
 }

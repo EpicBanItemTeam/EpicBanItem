@@ -13,21 +13,15 @@ import java.util.Optional;
  */
 public class CheckResult {
     List<CheckRule> breakRules;
-    boolean remove;
     DataView view;
 
     private CheckResult() {
         breakRules = new ArrayList<>();
-        remove = false;
         view = null;
     }
 
     public List<CheckRule> getBreakRules() {
         return this.breakRules;
-    }
-
-    public boolean shouldRemove() {
-        return this.remove;
     }
 
     public Optional<DataView> getFinalView() {

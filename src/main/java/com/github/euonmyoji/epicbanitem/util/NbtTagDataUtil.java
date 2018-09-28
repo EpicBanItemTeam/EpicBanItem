@@ -10,6 +10,7 @@ import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.util.Tuple;
@@ -50,7 +51,7 @@ public class NbtTagDataUtil {
         return fromSpongeDataToNbt(stack.toContainer());
     }
 
-    public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, Location<World> location) {
+    public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, Location<World> location) throws InvalidDataException {
         DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
         view.get(DataQuery.of("tag", "BlockEntityTag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
@@ -71,10 +72,10 @@ public class NbtTagDataUtil {
         }
 
         // noinspection ConstantConditions
-        return BlockSnapshot.builder().build(result).get();
+        return BlockSnapshot.builder().build(result).orElse(BlockSnapshot.NONE);
     }
 
-    public static ItemStack toItemStack(DataView view, int stackSize) {
+    public static ItemStack toItemStack(DataView view, int stackSize) throws InvalidDataException {
         DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
         result.set(DataQuery.of("Count"), stackSize);
@@ -82,7 +83,7 @@ public class NbtTagDataUtil {
         view.get(DataQuery.of("tag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
         view.get(DataQuery.of("Damage")).ifPresent(damage -> result.set(DataQuery.of("UnsafeDamage"), damage));
 
-        return ItemStack.builder().build(result).orElseGet(ItemStack::empty);
+        return ItemStack.builder().build(result).orElse(ItemStack.empty());
     }
 
     private static DataContainer fromSpongeDataToNbt(DataContainer view) {

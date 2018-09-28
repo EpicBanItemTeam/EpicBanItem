@@ -5,6 +5,7 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
@@ -25,6 +26,7 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 
 import java.util.List;
+import java.util.Optional;
 
 public class InventoryListener {
 
@@ -37,11 +39,10 @@ public class InventoryListener {
             CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
             if (result.isBanned()) {
                 event.setCancelled(true);
-                if (result.shouldRemove()) {
-                    transaction.setCustom(ItemStackSnapshot.NONE);
-                } else if (result.getFinalView().isPresent()) {
-                    transaction.setCustom(NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()).createSnapshot());
-                }
+                result.getFinalView().ifPresent(view -> {
+                    ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
+                    transaction.setCustom(stack.createSnapshot());
+                });
             }
         }
     }
@@ -54,11 +55,11 @@ public class InventoryListener {
             ItemStackSnapshot item = droppedItems.get(i);
             CheckResult result = service.check(item, entity.getWorld(), Triggers.DROP, player);
             if (result.isBanned()) {
-                if (result.shouldRemove()) {
-                    droppedItems.set(i, ItemStackSnapshot.NONE);
-                } else if (result.getFinalView().isPresent()) {
-                    droppedItems.set(i, NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()).createSnapshot());
-                }
+                int immutableIndex = i;
+                result.getFinalView().ifPresent(view -> {
+                    ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
+                    droppedItems.set(immutableIndex, stack.createSnapshot());
+                });
             }
         }
     }
@@ -69,19 +70,19 @@ public class InventoryListener {
     public void onClicked(ClickInventoryEvent event, @First Player player) {
         Transaction<ItemStackSnapshot> transaction = event.getCursorTransaction();
         ItemStackSnapshot item = transaction.getFinal();
-        CheckResult result = service.check(item, player.getWorld(), Triggers.CLICK, player);
+        String trigger = Triggers.CLICK;
+        CheckResult result = service.check(item, player.getWorld(), trigger, player);
         if (result.isBanned()) {
-            if (result.shouldRemove()) {
-                transaction.setCustom(ItemStackSnapshot.NONE);
-            } else if (result.getFinalView().isPresent()) {
-                transaction.setCustom(NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()).createSnapshot());
+            Optional<DataView> viewOptional = result.getFinalView();
+            if (viewOptional.isPresent()) {
+                ItemStack stack = NbtTagDataUtil.toItemStack(viewOptional.get(), item.getQuantity());
+                transaction.setCustom(stack.createSnapshot());
             } else {
                 event.setCancelled(true);
-                //Event cancelled, so there is no need to check slots.
-                return;
+                return; // Event cancelled, so there is no need to check slots.
             }
         }
-        onInventoryChanged(event, player, Triggers.CLICK);
+        onInventoryChanged(event, player, trigger);
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
@@ -91,12 +92,10 @@ public class InventoryListener {
         CheckResult result = service.check(item, player.getWorld(), Triggers.PICKUP, player);
         if (result.isBanned()) {
             event.setCancelled(true);
-            if (result.shouldRemove()) {
-                itemEntity.remove();
-            } else if (result.getFinalView().isPresent()) {
-                item = NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()).createSnapshot();
-                itemEntity.offer(Keys.REPRESENTED_ITEM, item);
-            }
+            result.getFinalView().ifPresent(view -> {
+                ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
+                itemEntity.offer(Keys.REPRESENTED_ITEM, stack.createSnapshot());
+            });
         }
     }
 
@@ -107,12 +106,10 @@ public class InventoryListener {
         CheckResult result = service.check(item, player.getWorld(), Triggers.USE, player);
         if (result.isBanned()) {
             event.setCancelled(true);
-            if (result.shouldRemove()) {
-                player.setItemInHand(((HandInteractEvent) event).getHandType(), ItemStack.empty());
-            } else if (result.getFinalView().isPresent()) {
-                item = NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity());
-                player.setItemInHand(((HandInteractEvent) event).getHandType(), item);
-            }
+            result.getFinalView().ifPresent(view -> {
+                ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
+                player.setItemInHand(((HandInteractEvent) event).getHandType(), stack);
+            });
         }
     }
 
@@ -121,10 +118,10 @@ public class InventoryListener {
             ItemStackSnapshot item = slotTransaction.getFinal();
             CheckResult result = service.check(item, player.getWorld(), trigger, player);
             if (result.isBanned()) {
-                if (result.shouldRemove()) {
-                    slotTransaction.setCustom(ItemStack.empty());
-                } else if (result.getFinalView().isPresent()) {
-                    slotTransaction.setCustom(NbtTagDataUtil.toItemStack(result.getFinalView().get(), item.getQuantity()));
+                Optional<DataView> viewOptional = result.getFinalView();
+                if (viewOptional.isPresent()) {
+                    ItemStack stack = NbtTagDataUtil.toItemStack(viewOptional.get(), item.getQuantity());
+                    slotTransaction.setCustom(stack);
                 } else {
                     event.setCancelled(true);
                 }
