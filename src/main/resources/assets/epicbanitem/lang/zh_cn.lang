@@ -11,7 +11,10 @@ epicbanitem.command.check.flags.l=目前尚无作用
 epicbanitem.command.list.description=列出被封禁的物品
 epicbanitem.command.list.extendedDescription=列出被封禁的物品
 epicbanitem.command.list.noRule=无规则
-epicbanitem.command.list.itemTypeLine={item_type}:
+epicbanitem.command.list.firstHalfLine={check_rule}
+epicbanitem.command.list.secondHalfLine=&7{item_type}
+epicbanitem.command.list.title=规则列表
+epicbanitem.command.list.padding=&7-
 epicbanitem.command.list.args.item-type=要查询的物品,输入hand则查询主手中的物品,留空则列出所有物品
 epicbanitem.command.show.description=展示物品的特定的规则﻿
 epicbanitem.command.show.extendedDescription=展示物品的特定的规则﻿
@@ -48,3 +51,4 @@ epicbanitem.checkrule.update=更新
 #error
 epicbanitem.error.failDeserialize=无法将该节点解析为字符串
 epicbanitem.error.missingMessage=缺失文本{message_key}
+

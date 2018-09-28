@@ -76,6 +76,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s), k1, v1);
     }
 
+    protected Text getMessage(String s, String k1, Object v1, String k2, Object v2) {
+        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s), k1, v1,k2,v2);
+    }
+
     public Text getDescription() {
         return getMessage("description");
     }
