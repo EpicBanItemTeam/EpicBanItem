@@ -7,6 +7,7 @@ import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
+import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -14,6 +15,7 @@ import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
@@ -64,7 +66,6 @@ public class CheckRule {
     private final String name;
 
     private int priority = 5;
-    private String ignorePermission = "";
     private Set<String> enableWorlds = new HashSet<>();
     private Set<String> enableTrigger = EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers();
 
@@ -151,7 +152,7 @@ public class CheckRule {
         if (!enableWorlds.isEmpty() && !enableWorlds.contains(world.getName())) {
             return origin;
         }
-        if (!ignorePermission.isEmpty() && subject != null && subject.hasPermission(ignorePermission)) {
+        if (subject != null && hasBypassPermission(subject, trigger)) {
             return origin;
         }
 
@@ -189,6 +190,15 @@ public class CheckRule {
         return builder.build();
     }
 
+    private boolean hasBypassPermission(Subject subject, String trigger) {
+        return subject.hasPermission(getContext(subject, trigger), "epicbanitem.bypass." + name);
+    }
+
+    private Set<Context> getContext(Subject subject, String trigger) {
+        Context newContext = new Context("epicbanitem-trigger", trigger);
+        return Sets.union(subject.getActiveContexts(), Collections.singleton(newContext));
+    }
+
     private static ConfigurationNode getDefaultQueryNode() {
         try {
             return TextUtil.serializeStringToConfigNode("{}");
@@ -211,7 +221,6 @@ public class CheckRule {
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
             CheckRule rule = new CheckRule(node.getNode("name").getString());
             rule.priority = node.getNode("priority").getInt(5);
-            rule.ignorePermission = node.getNode("bypass-permissions").getString("");
             rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class), Collections.emptyList()));
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             rule.enableTrigger = new HashSet<>(EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers());
@@ -242,7 +251,6 @@ public class CheckRule {
         public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) {
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
-            node.getNode("bypass-permissions").setValue(rule.ignorePermission);
             if (!rule.enableWorlds.isEmpty()) {
                 for (String world : rule.enableWorlds) {
                     node.getNode("enabled-worlds").getAppendedNode().setValue(world);
