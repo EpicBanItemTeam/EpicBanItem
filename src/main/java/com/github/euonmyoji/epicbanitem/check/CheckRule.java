@@ -66,13 +66,15 @@ public class CheckRule {
     private final String name;
 
     private int priority = 5;
-    private Set<String> enableWorlds = new HashSet<>();
-    private Set<String> enableTrigger = EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers();
+    private Map<String, Boolean> enableWorlds = new HashMap<>();
+    private Map<String, Boolean> enableTrigger = new HashMap<>();
 
     private QueryExpression query;
     private ConfigurationNode queryNode;
-    private @Nullable UpdateExpression update = null;
-    private @Nullable ConfigurationNode updateNode = null;
+    private @Nullable
+    UpdateExpression update = null;
+    private @Nullable
+    ConfigurationNode updateNode = null;
 
     public CheckRule(String ruleName) {
         this(ruleName, getDefaultQueryNode());
@@ -98,12 +100,21 @@ public class CheckRule {
         return priority;
     }
 
-    public Set<String> getEnableTrigger() {
-        return Collections.unmodifiableSet(enableTrigger);
+    public Map<String, Boolean> getEnableTrigger() {
+        return enableTrigger;
     }
 
-    public Set<String> getEnableWorlds() {
-        return Collections.unmodifiableSet(enableWorlds);
+    public Map<String, Boolean> getEnableWorlds() {
+        return enableWorlds;
+    }
+
+    public boolean isEnabledWorld(World world) {
+        String worldName = world.getName();
+        return enableWorlds.getOrDefault(worldName, EpicBanItem.plugin.getSettings().isWorldDefaultEnabled(worldName));
+    }
+
+    public boolean isEnabledTrigger(String trigger) {
+        return enableTrigger.getOrDefault(trigger, EpicBanItem.plugin.getSettings().isTriggerDefaultEnabled(trigger));
     }
 
     public Text getQueryInfo() {
@@ -146,10 +157,10 @@ public class CheckRule {
      * @return 检查结果
      */
     public CheckResult check(DataView view, CheckResult origin, World world, String trigger, @Nullable Subject subject) {
-        if (!enableTrigger.contains(trigger)) {
+        if (!isEnabledTrigger(trigger)) {
             return origin;
         }
-        if (!enableWorlds.isEmpty() && !enableWorlds.contains(world.getName())) {
+        if (!isEnabledWorld(world)) {
             return origin;
         }
         if (subject != null && hasBypassPermission(subject, trigger)) {
@@ -221,16 +232,13 @@ public class CheckRule {
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
             CheckRule rule = new CheckRule(node.getNode("name").getString());
             rule.priority = node.getNode("priority").getInt(5);
-            rule.enableWorlds.addAll(node.getNode("enabled-worlds").getList(TypeToken.of(String.class), Collections.emptyList()));
+            if (node.getNode("enabled-worlds").hasListChildren()) {
+                node.getNode("enabled-worlds").getList(TypeToken.of(String.class)).forEach(s -> rule.enableWorlds.put(s, true));
+            } else {
+                node.getNode("enabled-worlds").getChildrenMap().forEach((k, v) -> rule.enableWorlds.put(k.toString(), v.getBoolean()));
+            }
             ConfigurationNode triggerNode = node.getNode("use-trigger");
-            rule.enableTrigger = new HashSet<>(EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers());
-            triggerNode.getChildrenMap().forEach((k, v) -> {
-                if (v.getBoolean()) {
-                    rule.enableTrigger.add(k.toString());
-                } else {
-                    rule.enableTrigger.remove(k.toString());
-                }
-            });
+            triggerNode.getChildrenMap().forEach((k, v) -> rule.enableTrigger.put(k.toString(), v.getBoolean()));
             ConfigurationNode queryNode = node.getNode("query");
             ConfigurationNode updateNode = node.getNode("update");
             if (Objects.nonNull(queryNode.getValue())) {
@@ -251,17 +259,8 @@ public class CheckRule {
         public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) {
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
-            if (!rule.enableWorlds.isEmpty()) {
-                for (String world : rule.enableWorlds) {
-                    node.getNode("enabled-worlds").getAppendedNode().setValue(world);
-                }
-            }
-            for (String trigger : EpicBanItem.plugin.getSettings().getEnabledDefaultTriggers()) {
-                node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
-            }
-            for (String trigger : EpicBanItem.plugin.getSettings().getDisabledDefaultTriggers()) {
-                node.getNode("use-trigger", trigger).setValue(rule.enableTrigger.contains(trigger));
-            }
+            rule.enableWorlds.forEach((k, v) -> node.getNode("enabled-worlds", k).setValue(v));
+            rule.enableTrigger.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
             node.getNode("query").setValue(rule.queryNode);
             node.getNode("update").setValue(rule.updateNode);
         }

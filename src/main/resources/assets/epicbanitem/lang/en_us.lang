@@ -8,6 +8,8 @@ epicbanitem.commands.tooManyArgs=
 
 epicbanitem.command.check.description=
 epicbanitem.command.check.extendedDescription=
+epicbanitem.command.check.noFitWorld=
+epicbanitem.command.check.noTrigger=
 epicbanitem.command.check.flags.l=
 epicbanitem.command.list.description=
 epicbanitem.command.list.extendedDescription=

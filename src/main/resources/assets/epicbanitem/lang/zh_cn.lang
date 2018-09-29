@@ -8,6 +8,8 @@ epicbanitem.commands.tooManyArgs=参数过多
 
 epicbanitem.command.check.description=检查手中的物品
 epicbanitem.command.check.extendedDescription=检查手中的物品
+epicbanitem.command.check.noFitWorld=这个规则没有适用的世界
+epicbanitem.command.check.noTrigger=这个规则开启任何触发开关
 epicbanitem.command.check.flags.l=目前尚无作用
 epicbanitem.command.list.description=列出被封禁的物品
 epicbanitem.command.list.extendedDescription=列出被封禁的物品

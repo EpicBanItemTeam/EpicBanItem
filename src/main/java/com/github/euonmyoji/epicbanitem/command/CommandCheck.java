@@ -3,6 +3,7 @@ package com.github.euonmyoji.epicbanitem.command;
 import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
+import com.github.euonmyoji.epicbanitem.check.Triggers;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -66,22 +67,22 @@ public class CommandCheck extends AbstractCommand {
         return CommandResult.success();
     }
 
-    private static World getEnabledWorld(CheckRule rule) {
+    private World getEnabledWorld(CheckRule rule)  throws CommandException {
         for (World world : Sponge.getServer().getWorlds()) {
-            if (rule.getEnableWorlds().isEmpty() || rule.getEnableWorlds().contains(world.getName())) {
+            if (rule.isEnabledWorld(world)) {
                 return world;
             }
         }
-        // TODO: 这个规则并没有能够匹配到的世界
-        return null;
+        throw new CommandException(getMessage("noFitWorld"));
     }
 
-    private static String getEnabledTrigger(CheckRule rule) {
-        if (rule.getEnableTrigger().size() > 0) {
-            return rule.getEnableTrigger().iterator().next();
+    private String getEnabledTrigger(CheckRule rule)  throws CommandException {
+        for(String trigger:Triggers.getDefaultTriggers()){
+            if(rule.isEnabledTrigger(trigger)){
+                return trigger;
+            }
         }
-        //emmmmmmm
-        return null;
+        throw new CommandException(getMessage("noTrigger"));
     }
 
 }
