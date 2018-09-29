@@ -28,7 +28,7 @@ public class CommandCheck extends AbstractCommand {
     private CheckRuleService service;
 
     public CommandCheck() {
-        super("check");
+        super("check", "k");
     }
 
     @Override
