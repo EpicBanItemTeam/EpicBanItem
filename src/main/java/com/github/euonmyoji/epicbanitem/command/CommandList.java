@@ -41,16 +41,16 @@ class CommandList extends AbstractCommand {
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         LinkedHashMap<String, List<CheckRule>> toShow = new LinkedHashMap<>();
         if (args.hasAny("item-type")) {
-            //noinspection ConstantConditions
+            // noinspection ConstantConditions
             ItemType itemType = args.<ItemType>getOne("item-type").get();
-            List<CheckRule> rules = service.getCheckRules(itemType);
-            toShow.put(itemType.getId(), rules);
+            toShow.put("*", service.getCheckRules(null));
+            toShow.put(itemType.getId(), service.getCheckRules(itemType));
         } else {
-            //all
+            // all
+            toShow.put("*", service.getCheckRules(null));
             for (ItemType itemType : service.getCheckItemTypes()) {
                 toShow.put(itemType.getId(), service.getCheckRules(itemType));
             }
-            toShow.put("*", service.getCheckRules(null));
         }
         List<Text> lines = new ArrayList<>();
         for (Map.Entry<String, List<CheckRule>> entry : toShow.entrySet()) {
