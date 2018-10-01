@@ -17,3 +17,6 @@
 !build.gradle
 !gradle.properties
 !settings.gradle
+
+# Circleci
+!.circleci/
