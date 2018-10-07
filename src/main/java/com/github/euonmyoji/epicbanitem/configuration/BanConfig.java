@@ -62,6 +62,10 @@ public class BanConfig {
             this.checkRulesByItem = ImmutableListMultimap.copyOf(newRules);
             this.itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).addAll(this.itemTypes).build();
 
+            Map<String, CheckRule> rulesByName = new LinkedHashMap<>(checkRulesByName);
+            rulesByName.put(newRule.getName(), newRule);
+            this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
+
             this.fileLoader.forceSaving(this.path);
         } catch (Exception e) {
             throw new IOException(e);
