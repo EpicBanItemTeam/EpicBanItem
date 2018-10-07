@@ -80,16 +80,27 @@ public class CheckRule {
         this(ruleName, getDefaultQueryNode());
     }
 
+    public CheckRule(String ruleName, CheckRule rule) {
+        this(ruleName, rule.queryNode, rule.updateNode, rule.priority, rule.enableWorlds, rule.enableTrigger);
+    }
+
     public CheckRule(String ruleName, ConfigurationNode queryNode) {
         this(ruleName, queryNode, getDefaultUpdateNode());
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode) {
+        this(ruleName, queryNode, updateNode, 5, new HashMap<>(), new HashMap<>());
+    }
+
+    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, int priority, Map<String, Boolean> enableWorlds, Map<String, Boolean> enableTrigger) {
+        this.name = Objects.requireNonNull(ruleName);
         this.queryNode = queryNode.copy();
         this.query = new QueryExpression(queryNode);
-        this.name = Objects.requireNonNull(ruleName);
         this.updateNode = Objects.isNull(updateNode) ? null : updateNode.copy();
         this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
+        this.priority = priority;
+        this.enableWorlds = Objects.requireNonNull(enableWorlds);
+        this.enableTrigger = Objects.requireNonNull(enableTrigger);
     }
 
     public String getName() {

@@ -78,18 +78,34 @@ public class BanConfig {
             return CURRENT_VERSION;
         });
         try {
-            // TODO: remove duplicate names
             Map<String, CheckRule> rulesByName = new LinkedHashMap<>();
             Set<ItemType> newItems = new TreeSet<>(Comparator.comparing(ItemType::getId));
             Multimap<String, CheckRule> rulesByItem = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
             Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
+            boolean renamed = false;
             for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
                 String item = entry.getKey().toString();
                 Sponge.getRegistry().getType(ItemType.class, item).ifPresent(newItems::add);
-                rulesByItem.putAll(item, entry.getValue().getList(RULE_TOKEN).stream().sorted(COMPARATOR)::iterator);
+                List<CheckRule> ruleList = new ArrayList<>();
+                for (ConfigurationNode node1 : entry.getValue().getChildrenList()) {
+                    CheckRule rule = node1.getValue(RULE_TOKEN);
+                    if (rulesByName.containsKey(rule.getName())) {
+                        // TODO: 2018/10/7 notify ?
+                        rule = new CheckRule(findNewName(rule.getName(), rulesByName::containsKey), rule);
+                        renamed = true;
+                    }
+                    rulesByName.put(rule.getName(), rule);
+                    ruleList.add(rule);
+                }
+                ruleList.sort(COMPARATOR);
+                rulesByItem.putAll(item, ruleList);
             }
             this.itemTypes = ImmutableSortedSet.copyOf(ITEM_TYPE_COMPARATOR, newItems);
             this.checkRulesByItem = ImmutableListMultimap.copyOf(rulesByItem);
+            this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
+            if (renamed) {
+                this.fileLoader.forceSaving(this.path);
+            }
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
