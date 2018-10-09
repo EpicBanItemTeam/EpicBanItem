@@ -86,7 +86,7 @@ public class BanConfig {
             Set<ItemType> newItems = new TreeSet<>(Comparator.comparing(ItemType::getId));
             Multimap<String, CheckRule> rulesByItem = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
             Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
-            boolean renamed = false;
+            boolean needSave = false;
             for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
                 String item = entry.getKey().toString();
                 Sponge.getRegistry().getType(ItemType.class, item).ifPresent(newItems::add);
@@ -94,9 +94,14 @@ public class BanConfig {
                 for (ConfigurationNode node1 : entry.getValue().getChildrenList()) {
                     CheckRule rule = node1.getValue(RULE_TOKEN);
                     if (rulesByName.containsKey(rule.getName())) {
-                        // TODO: 2018/10/7 notify ?
-                        rule = new CheckRule(findNewName(rule.getName(), rulesByName::containsKey), rule);
-                        renamed = true;
+                        String newName = findNewName(rule.getName(), rulesByName::containsKey);
+                        rule = new CheckRule(newName, rule);
+                        EpicBanItem.logger.warn("Find duplicate names {}, renamed one to {}", rule.getName(), newName);
+                        needSave = true;
+                    }
+                    //fix id
+                    if (!item.equals("*")) {
+                        needSave = rule.tryFixId(item) || needSave;
                     }
                     rulesByName.put(rule.getName(), rule);
                     ruleList.add(rule);
@@ -107,7 +112,7 @@ public class BanConfig {
             this.itemTypes = ImmutableSortedSet.copyOf(ITEM_TYPE_COMPARATOR, newItems);
             this.checkRulesByItem = ImmutableListMultimap.copyOf(rulesByItem);
             this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
-            if (renamed) {
+            if (needSave) {
                 this.fileLoader.forceSaving(this.path);
             }
         } catch (ObjectMappingException e) {

@@ -212,6 +212,15 @@ public class CheckRule {
         return builder.build();
     }
 
+    public boolean tryFixId(String itemId) {
+        if (queryNode.getNode("id").isVirtual()) {
+            queryNode.getNode("id").setValue(itemId);
+            query = new QueryExpression(queryNode);
+            return true;
+        }
+        return false;
+    }
+
     private boolean hasBypassPermission(Subject subject, String trigger) {
         return subject.hasPermission(getContext(subject, trigger), "epicbanitem.bypass." + name);
     }
