@@ -12,6 +12,7 @@ import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +33,16 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     @Override
+    public boolean removeRule(String name) {
+        try {
+            return EpicBanItem.plugin.getBanConfig().removeRule(name);
+        } catch (IOException e) {
+            EpicBanItem.logger.error("Failed to save ban config.", e);
+        }
+        return false;
+    }
+
+    @Override
     public Set<ItemType> getCheckItemTypes() {
         return EpicBanItem.plugin.getBanConfig().getItems();
     }
@@ -39,6 +50,21 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
     public List<CheckRule> getCheckRules(@Nullable ItemType itemType) {
         return EpicBanItem.plugin.getBanConfig().getRules(itemType);
+    }
+
+    @Override
+    public Collection<CheckRule> getCheckRules() {
+        return EpicBanItem.plugin.getBanConfig().getRules();
+    }
+
+    @Override
+    public Set<String> getRuleNames() {
+        return EpicBanItem.plugin.getBanConfig().getRuleNames();
+    }
+
+    @Override
+    public Optional<CheckRule> getCheckRule(String name) {
+        return EpicBanItem.plugin.getBanConfig().getRule(name);
     }
 
     @Override

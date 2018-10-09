@@ -14,13 +14,13 @@ public class EpicBanItemArgs {
     }
 
     public static CommandElement checkRule(Text key) {
-        return checkRule(key, false);
+        return new ArgCheckRule(key);
     }
 
-    public static CommandElement checkRule(Text key, boolean explicitHand) {
+    public static CommandElement checkRuleWithItem(Text key, boolean explicitHand) {
         return GenericArguments.seq(
                 itemOrHand(Text.of("item-type"), explicitHand),
-                new ArgCheckRule(key)
+                new ArgItemCheckRule(key)
         );
     }
 }

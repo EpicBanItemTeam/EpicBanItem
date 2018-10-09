@@ -9,6 +9,7 @@ import org.spongepowered.api.command.args.ArgumentParseException;
 import org.spongepowered.api.command.args.CommandArgs;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -21,29 +22,38 @@ import java.util.stream.Collectors;
  * @author EBI
  */
 @NonnullByDefault
-class ArgCheckRule extends CommandElement {
+class ArgItemCheckRule extends CommandElement {
 
-    ArgCheckRule(@Nullable Text key) {
+    ArgItemCheckRule(@Nullable Text key) {
         super(key);
     }
 
     @Override
-    protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+    public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
+        //noinspection ConstantConditions  不会传empty的 除非有什么改变了宇宙
+        ItemType itemType = context.<ItemType>getOne("item-type").get();
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        Optional<CheckRule> optionalCheckRule = service.getCheckRule(argString);
+        Optional<CheckRule> optionalCheckRule = service.getCheckRule(itemType,argString);
         if (optionalCheckRule.isPresent()) {
-            return optionalCheckRule.get();
+            context.putArg(getKey(), optionalCheckRule.get());
         } else {
             throw args.createError(EpicBanItem.plugin.getMessages()
-                    .getMessage("epicbanitem.args.checkRule.notFound", "name", argString));
+                    .getMessage("epicbanitem.args.itemCheckRule.notFound", "name", argString,"item",itemType.getId()));
         }
     }
 
     @Override
+    protected Object parseValue(CommandSource source, CommandArgs args) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+        //noinspection ConstantConditions  不会传empty的 除非有什么改变了宇宙
+        ItemType itemType = context.<ItemType>getOne("item-type").get();
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        return service.getRuleNames().stream().filter(s -> s.toLowerCase().startsWith(prefix)).collect(Collectors.toList());
+        return service.getCheckRules(itemType).stream().map(CheckRule::getName).filter(s -> s.toLowerCase().startsWith(prefix)).collect(Collectors.toList());
     }
 }

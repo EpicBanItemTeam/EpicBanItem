@@ -8,6 +8,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +37,28 @@ public interface CheckRuleService {
      * @return 适用的规则
      */
     List<CheckRule> getCheckRules(@Nullable ItemType itemType);
+
+    /**
+     * return all active rules
+     *
+     * @return 适用的规则
+     */
+    Collection<CheckRule> getCheckRules();
+
+    /**
+     * return name set of all active rules
+     *
+     * @return 适用的规则
+     */
+    Set<String> getRuleNames();
+
+    /**
+     * get check rule for the name or empty
+     *
+     * @param name     规则名
+     * @return 检查规则
+     */
+    Optional<CheckRule> getCheckRule(String name);
 
     /**
      * 返回一个物品对应的规则名的规则 or empty
@@ -76,4 +99,12 @@ public interface CheckRuleService {
      *
      */
     void addRule(@Nullable ItemType type, CheckRule rule);
+
+    /**
+     * Remove the rule with the given name. if present .
+     * @param name the name of the rule to remove , if present.
+     *
+     * @return <tt>true</tt> if a rule was removed as a result of this call
+     */
+    boolean removeRule(String name);
 }

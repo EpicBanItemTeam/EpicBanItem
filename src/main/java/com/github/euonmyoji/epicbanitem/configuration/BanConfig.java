@@ -49,6 +49,18 @@ public class BanConfig {
         return Objects.requireNonNull(checkRulesByItem).get(getTypeId(itemType));
     }
 
+    public Collection<CheckRule> getRules(){
+        return checkRulesByName.values();
+    }
+
+    public Set<String> getRuleNames() {
+        return checkRulesByName.keySet();
+    }
+
+    public Optional<CheckRule> getRule(String name) {
+        return Optional.ofNullable(checkRulesByName.get(name));
+    }
+
     public void addRule(@Nullable ItemType itemType, CheckRule newRule) throws IOException {
         try {
             ListMultimap<String, CheckRule> newRules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
@@ -66,7 +78,32 @@ public class BanConfig {
             rulesByName.put(newRule.getName(), newRule);
             this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
 
-            this.fileLoader.forceSaving(this.path);
+            forceSave();
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
+
+    public boolean removeRule(String name) throws IOException {
+        try {
+            CheckRule rule = checkRulesByName.get(name);
+            if(rule!=null){
+                Map<String, CheckRule> rulesByName = new LinkedHashMap<>(checkRulesByName);
+                rulesByName.remove(name);
+                ImmutableListMultimap.Builder<String,CheckRule> builder = ImmutableListMultimap.builder();
+                checkRulesByItem.forEach((s, rule1) -> {
+                    if(!rule1.getName().equals(name)){
+                        builder.put(s,rule1);
+                    }
+                });
+                this.checkRulesByItem = builder.build();
+                this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
+
+                forceSave();
+                return true;
+            }else {
+                return false;
+            }
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -113,11 +150,15 @@ public class BanConfig {
             this.checkRulesByItem = ImmutableListMultimap.copyOf(rulesByItem);
             this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
             if (needSave) {
-                this.fileLoader.forceSaving(this.path);
+                forceSave();
             }
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
+    }
+
+    public void forceSave(){
+        this.fileLoader.forceSaving(this.path);
     }
 
     private void save(ConfigurationNode node) throws IOException {

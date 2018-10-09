@@ -5,12 +5,16 @@ epicbanitem.commands.usage=
 epicbanitem.commands.help=
 epicbanitem.commands.args=
 epicbanitem.commands.tooManyArgs=
+epicbanitem.args.checkRule.notFound={name}
+epicbanitem.args.itemCheckRule.notFound={item}{name}
+epicbanitem.args.item.notFound=
 
 epicbanitem.command.check.description=
 epicbanitem.command.check.extendedDescription=
 epicbanitem.command.check.noFitWorld=
 epicbanitem.command.check.noTrigger=
 epicbanitem.command.check.flags.l=
+
 epicbanitem.command.list.description=
 epicbanitem.command.list.extendedDescription=
 epicbanitem.command.list.noRule=
@@ -19,14 +23,17 @@ epicbanitem.command.list.secondHalfLine={item_type}{check_rule}
 epicbanitem.command.list.title=
 epicbanitem.command.list.padding=&7-
 epicbanitem.command.list.args.item-type=
+
 epicbanitem.command.show.description=
 epicbanitem.command.show.extendedDescription=
 epicbanitem.command.show.args.check-rule=
+
 epicbanitem.command.ebi.description=
 epicbanitem.command.ebi.extendedDescription=
 epicbanitem.command.ebi.version={version}
 epicbanitem.command.ebi.useHelp={help_command}
 epicbanitem.command.ebi.suggestCommand=Do you mean {suggest}?
+
 epicbanitem.command.query.description=
 epicbanitem.command.query.extendedDescription=
 epicbanitem.command.query.noItem=
@@ -35,6 +42,7 @@ epicbanitem.command.query.succeed=
 epicbanitem.command.query.failed=
 epicbanitem.command.query.error=
 epicbanitem.command.query.args.query-rule=
+
 epicbanitem.command.create.description=create a new rule
 epicbanitem.command.create.extendedDescription=
 epicbanitem.command.create.succeed={rule_name}
@@ -44,6 +52,12 @@ epicbanitem.command.create.empty=
 epicbanitem.command.create.args.rule-name=
 epicbanitem.command.create.flags.no-capture=
 epicbanitem.command.create.args.query-rule=
+
+epicbanitem.command.remove.description=
+epicbanitem.command.remove.extendedDescription=
+epicbanitem.command.remove.succeed={rule}
+epicbanitem.command.remove.args.rule=
+
 epicbanitem.command.help.description=show helps
 epicbanitem.command.help.extendedDescription=
 epicbanitem.command.help.noHelp=
