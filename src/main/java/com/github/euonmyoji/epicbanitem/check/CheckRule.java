@@ -128,6 +128,25 @@ public class CheckRule {
         return enableTrigger.getOrDefault(trigger, EpicBanItem.plugin.getSettings().isTriggerDefaultEnabled(trigger));
     }
 
+    public ConfigurationNode getQueryNode() {
+        return queryNode;
+    }
+
+    public void setQueryNode(ConfigurationNode queryNode) {
+        this.queryNode = queryNode;
+        this.query = new QueryExpression(queryNode);
+    }
+
+    @Nullable
+    public ConfigurationNode getUpdateNode() {
+        return updateNode;
+    }
+
+    public void setUpdateNode(@Nullable ConfigurationNode updateNode) {
+        this.updateNode = updateNode;
+        this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
+    }
+
     public Text getQueryInfo() {
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));

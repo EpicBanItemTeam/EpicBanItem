@@ -53,11 +53,16 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     public String getCommandString() {
-        return "/" + parent + name + " ";
+        if (parent.isEmpty()) {
+            return "/" + EpicBanItem.plugin.getMainCommandAlias() + " " + name + " ";
+        }else {
+            return "/" + EpicBanItem.plugin.getMainCommandAlias() +
+                    String.join(" ",parent.split("\\.")) +" " + name + " ";
+        }
     }
 
     public String getRootPermission() {
-        return "epicbanitem.command." + name;
+        return "epicbanitem.command." + parent + name;
     }
 
     protected String getPermission(String s) {
@@ -65,7 +70,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     protected String getMessageKey(String s) {
-        return "epicbanitem.command." + name + "." + s;
+        return "epicbanitem.command." + parent + name + "." + s;
     }
 
     protected Text getMessage(String s) {
