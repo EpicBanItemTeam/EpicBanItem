@@ -1,27 +1,27 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+apply plugin: "java"
+apply plugin: "idea"
 
 def buildNumber = {
-    def command = 'git rev-list --count --first-parent HEAD'
+    def command = "git rev-list --count --first-parent HEAD"
     return command.execute().text.trim().toInteger() - 1
 }
 
 version = "$version-b${buildNumber()}"
 
-defaultTasks 'clean', 'build'
+defaultTasks "clean", "build"
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
     maven {
-        name = 'sponge'
-        url = 'https://repo.spongepowered.org/maven'
+        name = "sponge"
+        url = "https://repo.spongepowered.org/maven"
     }
 }
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+    compile "org.spongepowered:spongeapi:7.1.0-SNAPSHOT"
 }
 
 tasks.withType(JavaCompile) {

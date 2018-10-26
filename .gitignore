@@ -18,5 +18,5 @@
 !gradle.properties
 !settings.gradle
 
-# Circleci
-!.circleci/
+# Circle CI
+!.circleci/config.yml
