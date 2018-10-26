@@ -1,11 +1,11 @@
 version: 2
 
 jobs:
+  working_directory: ~/EpicBanItem
+
   build:
     docker:
       - image: circleci/openjdk:8-jdk
-
-    working_directory: ~/EpicBanItem
 
     environment:
       JVM_OPTS: -Xmx3200m
@@ -18,14 +18,14 @@ jobs:
           keys: [v1-dependencies-]
 
       - run:
-          command: ~/EpicBanItem/gradlew dependencies
+          command: ./gradlew dependencies
 
       - save_cache:
           paths: [~/.gradle]
           key: v1-dependencies-
 
       - run:
-          command: ~/EpicBanItem/gradlew clean build
+          command: ./gradlew clean build
 
       - store_artifacts:
           path: build/libs
