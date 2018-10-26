@@ -36,8 +36,7 @@ public class BanConfig {
         this.path = path;
         this.fileLoader = fileLoader;
         fileLoader.addListener(path, this::load, this::save);
-        EpicBanItem.logger.debug("Generating Item to Block mapping: ");
-        NbtTagDataUtil.printLog().forEachRemaining(EpicBanItem.logger::debug);
+        NbtTagDataUtil.printToLogger(EpicBanItem.logger::debug);
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 

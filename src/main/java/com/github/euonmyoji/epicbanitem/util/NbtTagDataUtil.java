@@ -20,18 +20,20 @@ import org.spongepowered.api.world.World;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * @author ustc_zzzz
  */
 public class NbtTagDataUtil {
-    public static Iterator<String> printLog() {
-        return Map.ITEM_TO_BLOCK.entries().stream().map(e -> {
-            BlockState states = e.getValue();
-            Object id = e.getKey().getFirst().orElse(null);
-            Object damage = e.getKey().getSecond().orElse(null);
-            return String.format("(%s, %s) -> %s", id, damage, states);
-        }).iterator();
+    public static void printToLogger(Consumer<String> logger) {
+        logger.accept("Generating Item to Block mapping: ");
+        Map.ITEM_TO_BLOCK.forEach((k, v) -> {
+            Object id = k.getFirst().orElse(null);
+            Object damage = k.getSecond().orElse(null);
+            logger.accept(String.format("(%s, %s) -> %s", id, damage, v));
+        });
     }
 
     public static Optional<DataContainer> toNbt(BlockSnapshot snapshot) {
