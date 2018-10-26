@@ -17,15 +17,13 @@ jobs:
       - restore_cache:
           keys: [v1-dependencies-]
 
-      - run:
-          command: ./gradlew dependencies
+      - run: ./gradlew dependencies
 
       - save_cache:
           paths: [~/.gradle]
           key: v1-dependencies-
 
-      - run:
-          command: ./gradlew clean build
+      - run: ./gradlew clean build
 
       - store_artifacts:
           path: build/libs
