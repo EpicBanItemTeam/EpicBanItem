@@ -10,6 +10,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.Function;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -19,20 +20,27 @@ import static java.nio.file.StandardWatchEventKinds.*;
 public class AutoFileLoader implements Closeable {
     private final Path cfgDir;
     private final WatchService service;
-    private final Set<String> pendingPathStringSaveTasks;
-    private final Set<String> pendingPathStringLoadTasks;
+
     private final Map<String, FileConsumer> readListeners;
     private final Map<String, FileConsumer> writeListeners;
+
+    private final Set<String> pendingLoadTasks;
+    private final Map<String, Function<ConfigurationNode, ConfigurationNode>> pendingSaveTasks;
+
     private final Map<String, ConfigurationLoader<? extends ConfigurationNode>> configurationLoaders;
 
     public AutoFileLoader(EpicBanItem plugin, Path configDir) throws IOException {
         this.cfgDir = configDir.toAbsolutePath();
+        this.service = FileSystems.getDefault().newWatchService();
+
         this.readListeners = new LinkedHashMap<>();
         this.writeListeners = new LinkedHashMap<>();
+
+        this.pendingLoadTasks = new LinkedHashSet<>();
+        this.pendingSaveTasks = new LinkedHashMap<>();
+
         this.configurationLoaders = new LinkedHashMap<>();
-        this.pendingPathStringSaveTasks = new LinkedHashSet<>();
-        this.pendingPathStringLoadTasks = new LinkedHashSet<>();
-        this.service = FileSystems.getDefault().newWatchService();
+
         configDir.register(this.service, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
         Task.builder().execute(this::tick).name("EpicBanItemAutoFileLoader").intervalTicks(1).submit(plugin);
     }
@@ -54,7 +62,7 @@ public class AutoFileLoader implements Closeable {
                 }
             }
             for (String pathString : pathStrings) {
-                this.pendingPathStringLoadTasks.remove(pathString);
+                this.pendingLoadTasks.remove(pathString);
                 if (this.configurationLoaders.containsKey(pathString)) {
                     EpicBanItem.logger.info(pathString + " has been changed. Try reloading now.");
                     this.loadFile(pathString, pathString + " reloaded successfully.");
@@ -67,8 +75,8 @@ public class AutoFileLoader implements Closeable {
     }
 
     private void tickPendingLoadTask() {
-        if (!this.pendingPathStringLoadTasks.isEmpty()) {
-            for (Iterator<String> i = this.pendingPathStringLoadTasks.iterator(); i.hasNext(); i.remove()) {
+        if (!this.pendingLoadTasks.isEmpty()) {
+            for (Iterator<String> i = this.pendingLoadTasks.iterator(); i.hasNext(); i.remove()) {
                 String pathString = i.next();
                 this.loadFile(pathString, pathString + " loaded successfully.");
             }
@@ -76,10 +84,11 @@ public class AutoFileLoader implements Closeable {
     }
 
     private void tickPendingSaveTask() {
-        if (!this.pendingPathStringSaveTasks.isEmpty()) {
-            for (Iterator<String> i = this.pendingPathStringSaveTasks.iterator(); i.hasNext(); i.remove()) {
-                String pathString = i.next();
-                this.saveFile(pathString, pathString + " saved successfully.");
+        if (!this.pendingSaveTasks.isEmpty()) {
+            Iterator<Map.Entry<String, Function<ConfigurationNode, ConfigurationNode>>> i;
+            for (i = this.pendingSaveTasks.entrySet().iterator(); i.hasNext(); i.remove()) {
+                Map.Entry<String, Function<ConfigurationNode, ConfigurationNode>> entry = i.next();
+                this.saveFile(entry.getKey(), entry.getValue(), entry.getKey() + " saved successfully.");
             }
         }
     }
@@ -94,10 +103,10 @@ public class AutoFileLoader implements Closeable {
         }
     }
 
-    private void saveFile(String pathString, String msg) {
+    private void saveFile(String pathString, Function<ConfigurationNode, ConfigurationNode> transformer, String msg) {
         try {
             ConfigurationLoader<? extends ConfigurationNode> loader = this.configurationLoaders.get(pathString);
-            ConfigurationNode configurationNode = loader.createEmptyNode();
+            ConfigurationNode configurationNode = transformer.apply(loader.createEmptyNode());
             this.writeListeners.get(pathString).accept(configurationNode);
             loader.save(configurationNode);
             EpicBanItem.logger.info(msg);
@@ -116,12 +125,17 @@ public class AutoFileLoader implements Closeable {
 
     public void forceSaving(Path path) {
         String pathString = toString(path, this.cfgDir);
-        this.pendingPathStringSaveTasks.add(pathString);
+        this.pendingSaveTasks.compute(pathString, (k, v) -> Objects.isNull(v) ? Function.identity() : v);
+    }
+
+    public void forceSaving(Path path, Function<ConfigurationNode, ConfigurationNode> transformer) {
+        String pathString = toString(path, this.cfgDir);
+        this.pendingSaveTasks.compute(pathString, (k, v) -> Objects.isNull(v) ? transformer : v.andThen(transformer));
     }
 
     public void addListener(Path path, FileConsumer readListener, FileConsumer writeListener) {
         String pathString = toString(path, this.cfgDir);
-        this.pendingPathStringLoadTasks.add(pathString);
+        this.pendingLoadTasks.add(pathString);
         this.readListeners.put(pathString, readListener);
         this.writeListeners.put(pathString, writeListener);
         this.configurationLoaders.put(pathString, toLoader(path));
@@ -131,7 +145,7 @@ public class AutoFileLoader implements Closeable {
     public void close() throws IOException {
         this.service.close();
         for (String pathString : this.configurationLoaders.keySet()) {
-            this.saveFile(pathString, pathString + " saved successfully.");
+            this.saveFile(pathString, Function.identity(), pathString + " saved successfully.");
         }
     }
 
