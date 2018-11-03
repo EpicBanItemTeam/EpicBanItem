@@ -15,6 +15,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Predicate;
@@ -35,7 +36,12 @@ public class BanConfig {
     public BanConfig(AutoFileLoader fileLoader, Path path) {
         this.path = path;
         this.fileLoader = fileLoader;
+
         fileLoader.addListener(path, this::load, this::save);
+        if (Files.notExists(path)) {
+            fileLoader.forceSaving(path, n -> n.getNode("epicbanitem-version").setValue(CURRENT_VERSION).getParent());
+        }
+
         NbtTagDataUtil.printToLogger(EpicBanItem.logger::debug);
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }

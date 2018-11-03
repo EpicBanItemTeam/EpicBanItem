@@ -5,6 +5,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -26,6 +27,9 @@ public class Settings {
 
     public Settings(AutoFileLoader fileLoader, Path settingPath) {
         fileLoader.addListener(settingPath, this::load, this::save);
+        if (Files.notExists(settingPath)) {
+            fileLoader.forceSaving(settingPath);
+        }
     }
 
     private void load(ConfigurationNode cfg) throws IOException {
