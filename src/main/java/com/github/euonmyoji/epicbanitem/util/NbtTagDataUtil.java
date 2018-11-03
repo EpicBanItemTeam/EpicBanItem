@@ -39,7 +39,19 @@ public class NbtTagDataUtil {
     public static Optional<DataContainer> toNbt(BlockSnapshot snapshot) {
         if (snapshot.getState().getType().getItem().isPresent()) {
             ItemStack stack = ItemStack.builder().fromBlockSnapshot(snapshot).build();
-            return Optional.of(fromSpongeDataToNbt(stack.toContainer()));
+            DataContainer container = fromSpongeDataToNbt(stack.toContainer());
+            Optional<Location<World>> optional = snapshot.getLocation();
+            if (optional.isPresent()) {
+                Location<World> location = optional.get();
+                container.set(DataQuery.of("tag", "BlockEntityTag", "x"), location.getX());
+                container.set(DataQuery.of("tag", "BlockEntityTag", "y"), location.getY());
+                container.set(DataQuery.of("tag", "BlockEntityTag", "z"), location.getZ());
+            } else {
+                container.remove(DataQuery.of("tag", "BlockEntityTag", "x"));
+                container.remove(DataQuery.of("tag", "BlockEntityTag", "y"));
+                container.remove(DataQuery.of("tag", "BlockEntityTag", "z"));
+            }
+            return Optional.of(container);
         } else {
             return Optional.empty();
         }
@@ -53,15 +65,16 @@ public class NbtTagDataUtil {
         return fromSpongeDataToNbt(stack.toContainer());
     }
 
-    public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, Location<World> location) throws InvalidDataException {
+    public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, World world) throws InvalidDataException {
         DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
         view.get(DataQuery.of("tag", "BlockEntityTag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
 
-        result.set(DataQuery.of("WorldUuid"), location.getExtent().getUniqueId());
-        result.set(DataQuery.of("Position", "X"), location.getBlockX());
-        result.set(DataQuery.of("Position", "Y"), location.getBlockY());
-        result.set(DataQuery.of("Position", "Z"), location.getBlockZ());
+        result.set(DataQuery.of("Position", "X"), view.get(DataQuery.of("tag", "BlockEntityTag", "x")));
+        result.set(DataQuery.of("Position", "Y"), view.get(DataQuery.of("tag", "BlockEntityTag", "y")));
+        result.set(DataQuery.of("Position", "Z"), view.get(DataQuery.of("tag", "BlockEntityTag", "z")));
+
+        result.set(DataQuery.of("WorldUuid"), world.getUniqueId());
 
         Collection<BlockState> blockStates = findStatesForItemStack(view);
 
@@ -80,10 +93,13 @@ public class NbtTagDataUtil {
     public static ItemStack toItemStack(DataView view, int stackSize) throws InvalidDataException {
         DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
-        result.set(DataQuery.of("Count"), stackSize);
+        view.get(DataQuery.of("tag", "SpongeData", "CustomManipulators")).ifPresent(data -> result.set(DataQuery.of("Data"), data));
+
         view.get(DataQuery.of("id")).ifPresent(id -> result.set(DataQuery.of("ItemType"), id));
         view.get(DataQuery.of("tag")).ifPresent(nbt -> result.set(DataQuery.of("UnsafeData"), nbt));
         view.get(DataQuery.of("Damage")).ifPresent(damage -> result.set(DataQuery.of("UnsafeDamage"), damage));
+
+        result.set(DataQuery.of("Count"), stackSize);
 
         return ItemStack.builder().build(result).orElse(ItemStack.empty());
     }
@@ -94,6 +110,9 @@ public class NbtTagDataUtil {
         view.get(DataQuery.of("ItemType")).ifPresent(id -> result.set(DataQuery.of("id"), id));
         view.get(DataQuery.of("UnsafeData")).ifPresent(nbt -> result.set(DataQuery.of("tag"), nbt));
         view.get(DataQuery.of("UnsafeDamage")).ifPresent(damage -> result.set(DataQuery.of("Damage"), damage));
+
+        view.get(DataQuery.of("Data")).ifPresent(data -> result.set(DataQuery.of("tag", "SpongeData", "CustomManipulators"), data));
+
         return result;
     }
 
