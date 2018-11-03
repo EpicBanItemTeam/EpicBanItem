@@ -65,13 +65,13 @@ public class NbtTagRenderer {
                 String key = Integer.toString(i);
                 if (children.containsKey(key)) {
                     Text childrenText = this.render(list.get(i), children.get(key), indent + INDENT);
-                    Text prefix = Text.of(TextColors.GREEN, Strings.repeat(" ", indent), key, ": ");
+                    Text prefix = Text.of(TextColors.GREEN, Strings.repeat(" ", indent));
                     builder.append(Text.of(separator)).append(prefix);
                     builder.append(childrenText);
                     separator = ", \n";
                 } else {
                     Text childrenText = this.render(list.get(i), null, indent + INDENT);
-                    Text prefix = Text.of(Strings.repeat(" ", indent), key, ": ");
+                    Text prefix = Text.of(Strings.repeat(" ", indent));
                     builder.append(Text.of(separator)).append(prefix);
                     builder.append(childrenText);
                     separator = ", \n";
