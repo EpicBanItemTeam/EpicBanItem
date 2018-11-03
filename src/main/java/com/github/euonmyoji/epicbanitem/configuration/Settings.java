@@ -1,12 +1,16 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.check.Triggers;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
+import org.spongepowered.api.world.storage.WorldProperties;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,22 +26,24 @@ public class Settings {
     private static final String LISTEN_CHUNK_LOAD = "listen-chunk-load";
 
     private boolean listenLoadingChunk = false;
-    private Map<String, Boolean> enabledDefaultTriggers = Collections.emptyMap();
-    private Map<String, Boolean> enabledDefaultWorlds = Collections.emptyMap();
+    private Map<String, Boolean> enabledDefaultTriggers;
+    private Map<String, Boolean> enabledDefaultWorlds;
 
     public Settings(AutoFileLoader fileLoader, Path settingPath) {
+        Collection<WorldProperties> worlds = Sponge.getServer().getAllWorldProperties();
+        this.enabledDefaultTriggers = Maps.toMap(Triggers.getDefaultTriggers(), k -> true);
+        this.enabledDefaultWorlds = Maps.toMap(Iterables.transform(worlds, WorldProperties::getWorldName), k -> true);
+
         fileLoader.addListener(settingPath, this::load, this::save);
         if (Files.notExists(settingPath)) {
             fileLoader.forceSaving(settingPath);
         }
     }
 
-    private void load(ConfigurationNode cfg) throws IOException {
+    private void load(ConfigurationNode cfg) {
         listenLoadingChunk = cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).getBoolean(false);
-
         ConfigurationNode defaultTriggers = cfg.getNode("epicbanitem", "default-trigger");
         Map<String, Boolean> enabledTrigger = new LinkedHashMap<>();
-        Triggers.getDefaultTriggers().forEach(s -> enabledTrigger.put(s, true));
         defaultTriggers.getChildrenMap().forEach((k, v) -> enabledTrigger.put(k.toString(), v.getBoolean()));
         enabledDefaultTriggers = Collections.unmodifiableMap(enabledTrigger);
         ConfigurationNode defaultWorlds = cfg.getNode("epicbanitem", "default-world");
@@ -46,7 +52,7 @@ public class Settings {
         enabledDefaultWorlds = Collections.unmodifiableMap(enabledWorld);
     }
 
-    private void save(ConfigurationNode cfg) throws IOException {
+    private void save(ConfigurationNode cfg) {
         cfg.getNode("epicbanitem-version").setValue(BanConfig.CURRENT_VERSION);
         cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).setValue(listenLoadingChunk);
         enabledDefaultTriggers.forEach((k, v) -> cfg.getNode("epicbanitem", "default-trigger", k).setValue(v));
