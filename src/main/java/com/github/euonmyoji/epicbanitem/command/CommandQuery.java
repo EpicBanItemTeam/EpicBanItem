@@ -70,7 +70,7 @@ public class CommandQuery extends AbstractCommand {
     private DataContainer toNbt(CommandSource src, boolean lookAtBlock) throws CommandException {
         if (lookAtBlock) {
             Optional<BlockSnapshot> b = CommandCreate.getBlockLookAt(src).map(Location::createSnapshot);
-            return b.flatMap(NbtTagDataUtil::toNbt).orElseThrow(() -> new CommandException(getMessage("noBlock")));
+            return b.map(NbtTagDataUtil::toNbt).orElseThrow(() -> new CommandException(getMessage("noBlock")));
         } else {
             Optional<ItemStack> i = CommandCreate.getItemInHand(src).map(Tuple::getSecond);
             return i.map(NbtTagDataUtil::toNbt).orElseThrow(() -> new CommandException(getMessage("noItem")));
