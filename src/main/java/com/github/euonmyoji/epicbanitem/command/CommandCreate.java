@@ -5,6 +5,7 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -20,7 +21,6 @@ import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
-import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.util.Optional;
@@ -84,11 +84,11 @@ class CommandCreate extends AbstractCommand {
         return CommandResult.success();
     }
 
-    static Optional<Location<World>> getBlockLookAt(CommandSource src) {
+    static Optional<BlockSnapshot> getBlockLookAt(CommandSource src) {
         if (src instanceof Entity) {
             Predicate<BlockRayHit<World>> filter = BlockRay.continueAfterFilter(BlockRay.onlyAirFilter(), 1);
-            BlockRay.BlockRayBuilder<World> builder = BlockRay.from((Entity) src).stopFilter(filter);
-            return builder.distanceLimit(5).build().end().map(BlockRayHit::getLocation);
+            BlockRay.BlockRayBuilder<World> blockRayBuilder = BlockRay.from((Entity) src).stopFilter(filter);
+            return blockRayBuilder.distanceLimit(5).build().end().map(h -> h.getLocation().createSnapshot());
         }
         return Optional.empty();
     }
@@ -103,5 +103,11 @@ class CommandCreate extends AbstractCommand {
             }
         }
         return Optional.empty();
+    }
+
+    static void setItemInHand(CommandSource src, Tuple<HandType, ItemStack> item) {
+        if (src instanceof ArmorEquipable) {
+            ((ArmorEquipable) src).setItemInHand(item.getFirst(), item.getSecond());
+        }
     }
 }

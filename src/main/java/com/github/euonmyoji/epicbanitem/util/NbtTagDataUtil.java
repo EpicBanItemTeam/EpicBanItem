@@ -16,11 +16,10 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.util.Tuple;
-import org.spongepowered.api.world.World;
 
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * @author ustc_zzzz
@@ -54,7 +53,7 @@ public class NbtTagDataUtil {
         return fromSpongeDataToNbt(stack.toContainer());
     }
 
-    public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, World world) throws InvalidDataException {
+    public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, UUID worldUniqueId) throws InvalidDataException {
         DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
         DataView nbt = view.getView(DataQuery.of("tag", "BlockEntityTag")).orElseThrow(InvalidDataException::new);
@@ -63,16 +62,14 @@ public class NbtTagDataUtil {
         result.set(DataQuery.of("Position", "Y"), nbt.get(DataQuery.of("y")).orElseThrow(InvalidDataException::new));
         result.set(DataQuery.of("Position", "Z"), nbt.get(DataQuery.of("z")).orElseThrow(InvalidDataException::new));
 
-        result.set(DataQuery.of("WorldUuid"), world.getUniqueId());
+        result.set(DataQuery.of("WorldUuid"), worldUniqueId.toString());
         result.set(DataQuery.of("UnsafeData"), nbt);
 
         Set<BlockState> blockStates = findStatesForItemStack(view);
 
         if (blockStates.contains(oldState)) {
-            result.set(DataQuery.of("BlockState"), oldState.toContainer());
-        } else if (blockStates.isEmpty()) {
-            result.set(DataQuery.of("BlockState"), BlockSnapshot.NONE.getState());
-        } else {
+            result.set(DataQuery.of("BlockState"), oldState);
+        } else if (!blockStates.isEmpty()) {
             result.set(DataQuery.of("BlockState"), blockStates.iterator().next());
         }
 
@@ -115,9 +112,11 @@ public class NbtTagDataUtil {
         static {
             SetMultimap<Tuple<Optional<?>, Optional<?>>, BlockState> map;
             map = MultimapBuilder.linkedHashKeys().linkedHashSetValues().build();
-            for (BlockType blockType : Sponge.getRegistry().getAllOf(BlockType.class)) {
-                boolean hasItem = blockType.getItem().isPresent();
-                for (BlockState state : blockType.getAllBlockStates()) {
+            Collection<BlockType> blocks = Sponge.getRegistry().getAllOf(BlockType.class);
+            List<BlockState> statesWithoutCorrespondingItems = new ArrayList<>(blocks.size() * 16);
+            for (BlockType type : blocks) {
+                boolean hasItem = type.getItem().isPresent();
+                Stream.concat(Stream.of(type.getDefaultState()), type.getAllBlockStates().stream()).forEach(state -> {
                     try {
                         Preconditions.checkArgument(hasItem);
                         DataContainer nbt = ItemStack.builder().fromBlockState(state).build().toContainer();
@@ -125,13 +124,16 @@ public class NbtTagDataUtil {
                         Optional<Object> id = nbt.get(DataQuery.of("ItemType"));
                         map.put(Tuple.of(id, damage), state);
                     } catch (Exception e) {
-                        DataContainer nbt = ItemStack.empty().toContainer();
-                        Optional<Object> damage = nbt.get(DataQuery.of("UnsafeDamage"));
-                        Optional<Object> id = nbt.get(DataQuery.of("ItemType"));
-                        map.put(Tuple.of(id, damage), state);
+                        statesWithoutCorrespondingItems.add(state);
                     }
-                }
+                });
             }
+            DataContainer nbt = ItemStack.empty().toContainer();
+            statesWithoutCorrespondingItems.forEach(state -> {
+                Optional<Object> damage = nbt.get(DataQuery.of("UnsafeDamage"));
+                Optional<Object> id = nbt.get(DataQuery.of("ItemType"));
+                map.put(Tuple.of(id, damage), state);
+            });
             ITEM_TO_BLOCK = Multimaps.unmodifiableSetMultimap(map);
         }
     }

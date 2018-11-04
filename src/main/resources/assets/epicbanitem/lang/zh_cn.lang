@@ -1,9 +1,9 @@
 
 #command
-epicbanitem.commands.name=命令:{name} {alias}
-epicbanitem.commands.usage=用法:{usage}
+epicbanitem.commands.name=命令: {name} {alias}
+epicbanitem.commands.usage=用法: {usage}
 epicbanitem.commands.help=显示命令帮助
-epicbanitem.commands.args=参数:
+epicbanitem.commands.args=参数: 
 epicbanitem.commands.tooManyArgs=参数过多
 epicbanitem.args.checkRule.notFound=未能找到规则{name}
 epicbanitem.args.itemCheckRule.notFound=未能找到适用于{item}的规则{name}
@@ -30,18 +30,28 @@ epicbanitem.command.show.args.check-rule=要查看的规则名
 
 epicbanitem.command.ebi.description=EpicBanItem的命令
 epicbanitem.command.ebi.extendedDescription=EpicBanItem的命令
-epicbanitem.command.ebi.version=EpicBanItem 版本:{version}
-epicbanitem.command.ebi.useHelp=使用:{help_command}获取更多信息
+epicbanitem.command.ebi.version=EpicBanItem 版本: {version}
+epicbanitem.command.ebi.useHelp=使用: {help_command}获取更多信息
 epicbanitem.command.ebi.suggestCommand=你可能是指{suggest}?
 
 epicbanitem.command.query.description=使用特定规则检查手中物品或目视方块，并列出NBT等信息
 epicbanitem.command.query.extendedDescription=使用特定规则检查手中物品或目视方块，并列出NBT等信息
 epicbanitem.command.query.noItem=找不到物品。可能因为你不是玩家，或者手上没拿东西？
 epicbanitem.command.query.noBlock=找不到方块。请保证目视目标方块，并拉近与它的距离。
-epicbanitem.command.query.succeed=成功匹配:
+epicbanitem.command.query.succeed=成功匹配: 
 epicbanitem.command.query.failed=未成功匹配。
-epicbanitem.command.query.error=解析匹配时出错:
+epicbanitem.command.query.error=解析匹配时出错: 
+epicbanitem.command.query.flags.l=对目视方块而非手中物品应用规则
 epicbanitem.command.query.args.query-rule=用来匹配的规则,阅读wiki获取更多信息
+
+epicbanitem.command.update.description=使用特定规则应用手中物品或目视方块
+epicbanitem.command.update.extendedDescription=使用特定规则应用手中物品或目视方块
+epicbanitem.command.update.noItem=找不到物品。可能因为你不是玩家，或者手上没拿东西？
+epicbanitem.command.update.noBlock=找不到方块。请保证目视目标方块，并拉近与它的距离。
+epicbanitem.command.update.succeed=成功应用规则: 
+epicbanitem.command.update.error=应用规则时出错: 
+epicbanitem.command.update.flags.l=对目视方块而非手中物品应用规则
+epicbanitem.command.update.args.update-rule=用来应用的规则,阅读wiki获取更多信息
 
 epicbanitem.command.create.description=创建一个新的规则
 epicbanitem.command.create.extendedDescription=创建一个新的规则
@@ -69,6 +79,7 @@ epicbanitem.checkrule.triggers=监听
 epicbanitem.checkrule.remove=移除
 epicbanitem.checkrule.query=查询
 epicbanitem.checkrule.update=更新
+
 #error
 epicbanitem.error.failDeserialize=无法将该节点解析为字符串
 epicbanitem.error.missingMessage=缺失文本{message_key}
