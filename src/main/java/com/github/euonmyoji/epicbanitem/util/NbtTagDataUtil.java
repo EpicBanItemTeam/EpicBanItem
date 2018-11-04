@@ -9,6 +9,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
@@ -114,6 +115,7 @@ public class NbtTagDataUtil {
             map = MultimapBuilder.linkedHashKeys().linkedHashSetValues().build();
             Collection<BlockType> blocks = Sponge.getRegistry().getAllOf(BlockType.class);
             List<BlockState> statesWithoutCorrespondingItems = new ArrayList<>(blocks.size() * 16);
+            statesWithoutCorrespondingItems.add(BlockTypes.AIR.getDefaultState()); // air first
             for (BlockType type : blocks) {
                 boolean hasItem = type.getItem().isPresent();
                 Stream.concat(Stream.of(type.getDefaultState()), type.getAllBlockStates().stream()).forEach(state -> {
