@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
+import com.google.common.base.CaseFormat;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -139,7 +140,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                     String id = availableFlags.get(0).toString();
                     builder.append(Text.NEW_LINE,
                             Text.of("    "), TextUtil.adjustLength(Text.of(objects.toArray()), 30),
-                            getMessage("flags." + id));
+                            getMessage("flags." + CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, id)));
                 }
                 Field field1 = CommandFlags.class.getDeclaredField("childElement");
                 field1.setAccessible(true);
@@ -179,7 +180,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         } else {
             builder.append(Text.NEW_LINE,
                     Text.of("    "), TextUtil.adjustLength(commandElement.getUsage(source), 30),
-                    getMessage("args." + id));
+                    getMessage("args." + CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, id)));
         }
 
     }

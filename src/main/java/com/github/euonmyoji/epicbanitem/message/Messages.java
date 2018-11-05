@@ -9,6 +9,7 @@ import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.asset.AssetManager;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
+import org.spongepowered.api.text.format.TextColors;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -78,7 +79,7 @@ public class Messages {
         if (cache.containsKey(key)) {
             return cache.get(key).apply(params).build();
         } else {
-            return getMessage(MISSING_MESSAGE_KEY, "message_key", key);
+            return getMessage(MISSING_MESSAGE_KEY, "message_key", key).toBuilder().color(TextColors.RED).build();
         }
     }
 

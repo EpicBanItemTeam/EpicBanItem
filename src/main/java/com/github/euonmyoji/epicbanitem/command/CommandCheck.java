@@ -11,15 +11,17 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.data.type.HandTypes;
+import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author EBI
@@ -50,10 +52,12 @@ public class CommandCheck extends AbstractCommand {
             throw new CommandException(Text.of("Player only."));
         }
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+        // TODO: looking at
+        // noinspection unused
         boolean lookAt = args.hasAny("l");
         List<CheckRule> breakRules = new ArrayList<>();
-        // TODO: lookat
-        ItemStack itemStack = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElseThrow(() -> new CommandException(Text.of("Nothing in hand.")));
+        Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
+        ItemStack itemStack = optional.orElseThrow(() -> new CommandException(getMessage("noItem"))).getSecond();
         for (CheckRule rule : service.getCheckRules(itemStack.getType())) {
             CheckResult result = CheckResult.empty();
             rule.check(itemStack, result, getEnabledWorld(rule), getEnabledTrigger(rule), null);
