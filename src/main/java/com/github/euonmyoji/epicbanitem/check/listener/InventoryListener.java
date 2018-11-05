@@ -1,4 +1,4 @@
-package com.github.euonmyoji.epicbanitem.listener;
+package com.github.euonmyoji.epicbanitem.check.listener;
 
 import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;

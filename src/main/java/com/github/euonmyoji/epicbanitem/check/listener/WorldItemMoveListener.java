@@ -1,4 +1,4 @@
-package com.github.euonmyoji.epicbanitem.listener;
+package com.github.euonmyoji.epicbanitem.check.listener;
 
 /**
  * @author EpicBanItem Team

@@ -2,13 +2,13 @@ package com.github.euonmyoji.epicbanitem;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleServiceImpl;
+import com.github.euonmyoji.epicbanitem.check.listener.ChunkListener;
+import com.github.euonmyoji.epicbanitem.check.listener.InventoryListener;
+import com.github.euonmyoji.epicbanitem.check.listener.WorldItemMoveListener;
 import com.github.euonmyoji.epicbanitem.command.CommandEbi;
 import com.github.euonmyoji.epicbanitem.configuration.AutoFileLoader;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
-import com.github.euonmyoji.epicbanitem.listener.ChunkListener;
-import com.github.euonmyoji.epicbanitem.listener.InventoryListener;
-import com.github.euonmyoji.epicbanitem.listener.WorldItemMoveListener;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
