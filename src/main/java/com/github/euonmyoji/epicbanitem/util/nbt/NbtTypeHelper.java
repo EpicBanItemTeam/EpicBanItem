@@ -210,7 +210,7 @@ final class NbtTypeHelper {
         }
         if (value instanceof String) {
             return "\"" + ((String) value).replace("\"", "\\\"")
-                    .replace("§", "\\u00a7")
+                    .replace("\u00a7", "\\u00a7")
                     .replace("\\", "\\\\") + "\"";
         }
         byte[] bytes = getAsByteArray(value);

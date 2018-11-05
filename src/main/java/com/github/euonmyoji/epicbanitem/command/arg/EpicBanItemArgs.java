@@ -13,7 +13,7 @@ import java.util.Map;
 @SuppressWarnings("WeakerAccess")
 public class EpicBanItemArgs {
 
-    private static final Map<String,Tristate> TRISTATE_MAP = ImmutableMap.<String, Tristate>builder()
+    private static final Map<String, Tristate> TRISTATE_MAP = ImmutableMap.<String, Tristate>builder()
             .put("false", Tristate.FALSE)
             .put("undefined", Tristate.UNDEFINED)
             .put("true", Tristate.TRUE)
@@ -35,11 +35,11 @@ public class EpicBanItemArgs {
         );
     }
 
-    public static CommandElement tristate(Text key){
-        return GenericArguments.choices(key,TRISTATE_MAP);
+    public static CommandElement tristate(Text key) {
+        return GenericArguments.choices(key, TRISTATE_MAP);
     }
 
-    public static CommandElement trigger(Text key){
+    public static CommandElement trigger(Text key) {
         return new ArgTrigger(key);
     }
 }

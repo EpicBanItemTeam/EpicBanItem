@@ -14,8 +14,8 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 @NonnullByDefault
 public class CommandRemove extends AbstractCommand {
-    public CommandRemove(){
-        super("remove","delete","del");
+    public CommandRemove() {
+        super("remove", "delete", "del");
     }
 
     @Override
@@ -26,10 +26,10 @@ public class CommandRemove extends AbstractCommand {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        //noinspection ConstantConditions
+        // noinspection ConstantConditions
         CheckRule checkRule = args.<CheckRule>getOne("rule").get();
         service.removeRule(checkRule.getName());
-        src.sendMessage(getMessage("succeed","rule",checkRule.getName()));
+        src.sendMessage(getMessage("succeed", "rule", checkRule.getName()));
         return CommandResult.success();
     }
 }

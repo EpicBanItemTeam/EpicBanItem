@@ -9,7 +9,6 @@ import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.ChildCommandElementExecutor;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
@@ -79,7 +78,7 @@ public class CommandEdit extends AbstractCommand {
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            //noinspection ConstantConditions
+            // noinspection ConstantConditions
             CheckRule rule = args.<CheckRule>getOne("rule").get();
             Optional<String> oldId = Optional.ofNullable(rule.getQueryNode().getNode("id").getString());
             String query = args.<String>getOne("query-rule").orElse("{}");
@@ -112,7 +111,7 @@ public class CommandEdit extends AbstractCommand {
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            //noinspection ConstantConditions
+            // noinspection ConstantConditions
             CheckRule rule = args.<CheckRule>getOne("rule").get();
             String update = args.<String>getOne("update-rule").orElse(null);
             try {

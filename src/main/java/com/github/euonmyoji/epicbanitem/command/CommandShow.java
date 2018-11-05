@@ -22,7 +22,7 @@ class CommandShow extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        //noinspection ConstantConditions
+        // noinspection ConstantConditions
         src.sendMessage(args.<CheckRule>getOne("check-rule").get().info());
         return CommandResult.success();
     }

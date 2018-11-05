@@ -13,15 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-//填充命令用
-
 /**
  * @author EBI TEAM
  */
 @NonnullByDefault
 public interface CheckRuleService {
-    //Map<ItemType,Map<String,CheckRule>>?
-    //Map<ItemType,Collection<CheckRule>>?
+    // Map<ItemType,Map<String,CheckRule>>?
+    // Map<ItemType,Collection<CheckRule>>?
 
     /**
      * 返回会被检查的物品类型
@@ -55,7 +53,7 @@ public interface CheckRuleService {
     /**
      * get check rule for the name or empty
      *
-     * @param name     规则名
+     * @param name 规则名
      * @return 检查规则
      */
     Optional<CheckRule> getCheckRule(String name);
@@ -96,14 +94,13 @@ public interface CheckRuleService {
      *
      * @param type item type of the rule
      * @param rule the rule to add
-     *
      */
     void addRule(@Nullable ItemType type, CheckRule rule);
 
     /**
      * Remove the rule with the given name. if present .
-     * @param name the name of the rule to remove , if present.
      *
+     * @param name the name of the rule to remove , if present.
      * @return <tt>true</tt> if a rule was removed as a result of this call
      */
     boolean removeRule(String name);

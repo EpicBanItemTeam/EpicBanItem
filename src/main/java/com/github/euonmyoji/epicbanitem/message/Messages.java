@@ -83,7 +83,7 @@ public class Messages {
     }
 
     public Text getMessage(String key) {
-        //如果文本不包含变量 也缓存TextTemplate么
+        // TODO: Should we also cache TextTemplate?
         return getMessage(key, Collections.emptyMap());
     }
 

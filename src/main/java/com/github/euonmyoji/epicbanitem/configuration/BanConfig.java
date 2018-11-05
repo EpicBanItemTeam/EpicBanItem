@@ -54,7 +54,7 @@ public class BanConfig {
         return Objects.requireNonNull(checkRulesByItem).get(getTypeId(itemType));
     }
 
-    public Collection<CheckRule> getRules(){
+    public Collection<CheckRule> getRules() {
         return checkRulesByName.values();
     }
 
@@ -92,13 +92,13 @@ public class BanConfig {
     public boolean removeRule(String name) throws IOException {
         try {
             CheckRule rule = checkRulesByName.get(name);
-            if(rule!=null){
+            if (rule != null) {
                 Map<String, CheckRule> rulesByName = new LinkedHashMap<>(checkRulesByName);
                 rulesByName.remove(name);
-                ImmutableListMultimap.Builder<String,CheckRule> builder = ImmutableListMultimap.builder();
+                ImmutableListMultimap.Builder<String, CheckRule> builder = ImmutableListMultimap.builder();
                 checkRulesByItem.forEach((s, rule1) -> {
-                    if(!rule1.getName().equals(name)){
-                        builder.put(s,rule1);
+                    if (!rule1.getName().equals(name)) {
+                        builder.put(s, rule1);
                     }
                 });
                 this.checkRulesByItem = builder.build();
@@ -106,7 +106,7 @@ public class BanConfig {
 
                 forceSave();
                 return true;
-            }else {
+            } else {
                 return false;
             }
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class BanConfig {
                         EpicBanItem.logger.warn("Find duplicate names {}, renamed one to {}", rule.getName(), newName);
                         needSave = true;
                     }
-                    //fix id
+                    // fix id
                     if (!item.equals("*")) {
                         needSave = rule.tryFixId(item) || needSave;
                     }
@@ -162,7 +162,7 @@ public class BanConfig {
         }
     }
 
-    public void forceSave(){
+    public void forceSave() {
         this.fileLoader.forceSaving(this.path);
     }
 

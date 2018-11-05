@@ -67,7 +67,7 @@ public class CommandCheck extends AbstractCommand {
         return CommandResult.success();
     }
 
-    private World getEnabledWorld(CheckRule rule)  throws CommandException {
+    private World getEnabledWorld(CheckRule rule) throws CommandException {
         for (World world : Sponge.getServer().getWorlds()) {
             if (rule.isEnabledWorld(world)) {
                 return world;
@@ -76,9 +76,9 @@ public class CommandCheck extends AbstractCommand {
         throw new CommandException(getMessage("noFitWorld"));
     }
 
-    private String getEnabledTrigger(CheckRule rule)  throws CommandException {
-        for(String trigger:Triggers.getDefaultTriggers()){
-            if(rule.isEnabledTrigger(trigger)){
+    private String getEnabledTrigger(CheckRule rule) throws CommandException {
+        for (String trigger : Triggers.getDefaultTriggers()) {
+            if (rule.isEnabledTrigger(trigger)) {
                 return trigger;
             }
         }

@@ -45,7 +45,7 @@ public class CommandHelp extends AbstractCommand {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (args.hasAny("sub-command")) {
-            //noinspection ConstantConditions
+            // noinspection ConstantConditions
             CommandCallable subCommand = args.<CommandCallable>getOne("sub-command").get();
             if (subCommand instanceof CommandSpec && ((CommandSpec) subCommand).getExecutor() instanceof AbstractCommand.Help) {
                 src.sendMessage(((AbstractCommand.Help) ((CommandSpec) subCommand).getExecutor()).getHelpMessage(src, args));

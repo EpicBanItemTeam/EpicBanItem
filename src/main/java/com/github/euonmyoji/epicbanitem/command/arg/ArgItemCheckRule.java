@@ -30,16 +30,16 @@ class ArgItemCheckRule extends CommandElement {
 
     @Override
     public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
-        //noinspection ConstantConditions  不会传empty的 除非有什么改变了宇宙
+        // noinspection ConstantConditions
         ItemType itemType = context.<ItemType>getOne("item-type").get();
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        Optional<CheckRule> optionalCheckRule = service.getCheckRule(itemType,argString);
+        Optional<CheckRule> optionalCheckRule = service.getCheckRule(itemType, argString);
         if (optionalCheckRule.isPresent()) {
             context.putArg(getKey(), optionalCheckRule.get());
         } else {
             throw args.createError(EpicBanItem.plugin.getMessages()
-                    .getMessage("epicbanitem.args.itemCheckRule.notFound", "name", argString,"item",itemType.getId()));
+                    .getMessage("epicbanitem.args.itemCheckRule.notFound", "name", argString, "item", itemType.getId()));
         }
     }
 
@@ -50,7 +50,7 @@ class ArgItemCheckRule extends CommandElement {
 
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-        //noinspection ConstantConditions  不会传empty的 除非有什么改变了宇宙
+        // noinspection ConstantConditions
         ItemType itemType = context.<ItemType>getOne("item-type").get();
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);

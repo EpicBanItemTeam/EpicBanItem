@@ -69,7 +69,7 @@ public class CommandEbi extends AbstractCommand {
                             lastM = d;
                         }
                     } catch (IndexOutOfBoundsException e) {
-                        EpicBanItem.logger.debug("未知IndexOut情况", e);
+                        EpicBanItem.logger.debug("Unexpected IndexOutOfBoundsException", e);
                     }
                 }
             }
@@ -87,7 +87,7 @@ public class CommandEbi extends AbstractCommand {
 
 
     private static int getHowClose(String raw, String s) {
-        //s长度不大于raw的1.5倍并且不匹配的字符不超过raw字符数 并且至少有一半字符匹配raw 才算接近
+        // s长度不大于raw的1.5倍并且不匹配的字符不超过raw字符数 并且至少有一半字符匹配raw 才算接近
         final float offset = 1.5f;
         final int rawLen = raw.length();
         int d = 0;

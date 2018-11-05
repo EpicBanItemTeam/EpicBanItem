@@ -55,9 +55,9 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public String getCommandString() {
         if (parent.isEmpty()) {
             return "/" + EpicBanItem.plugin.getMainCommandAlias() + " " + name + " ";
-        }else {
+        } else {
             return "/" + EpicBanItem.plugin.getMainCommandAlias() +
-                    String.join(" ",parent.split("\\.")) +" " + name + " ";
+                    String.join(" ", parent.split("\\.")) + " " + name + " ";
         }
     }
 
@@ -164,7 +164,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                     return;
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
-                //do nothing
+                // do nothing
             }
             try {
                 Field field = clazz.getDeclaredField("element");
@@ -174,7 +174,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                     scanArg((CommandElement) element, source, builder);
                 }
             } catch (IllegalAccessException | NoSuchFieldException e) {
-                //do nothing
+                // do nothing
             }
         } else {
             builder.append(Text.NEW_LINE,
@@ -241,7 +241,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         @Nullable
         @Override
         protected Object parseValue(CommandSource source, CommandArgs args) {
-            //do nothing here
+            // do nothing here
             return null;
         }
 
@@ -253,7 +253,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
             if (args.hasAny("help")) {
-                //noinspection ConstantConditions
+                // noinspection ConstantConditions
                 ArgumentParseException exception = args.<ArgumentParseException>getOne("help").get();
                 Text exceptionText = exception.getText();
                 if (exceptionText != null) {
