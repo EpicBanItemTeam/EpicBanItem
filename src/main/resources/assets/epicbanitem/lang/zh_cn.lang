@@ -1,90 +1,90 @@
 
 #command
-epicbanitem.commands.name=命令：{name} {alias}
-epicbanitem.commands.usage=用法：{usage}
-epicbanitem.commands.args=参数：
-epicbanitem.commands.tooManyArgs=参数过多
+epicbanitem.commands.name = 命令：{name} {alias}
+epicbanitem.commands.usage = 用法：{usage}
+epicbanitem.commands.args = 参数：
+epicbanitem.commands.tooManyArgs = 参数过多
 
-epicbanitem.args.checkRule.notFound=未能找到规则“{name}”
-epicbanitem.args.itemCheckRule.notFound=未能找到适用于“{item}”的规则“{name}”
-epicbanitem.args.item.notFound=未能找到物品“{name}”
-epicbanitem.args.trigger.notFound=未能找到监听条件“{name}”
+epicbanitem.args.checkRule.notFound = 未能找到规则“{name}”
+epicbanitem.args.itemCheckRule.notFound = 未能找到适用于“{item}”的规则“{name}”
+epicbanitem.args.item.notFound = 未能找到物品“{name}”
+epicbanitem.args.trigger.notFound = 未能找到监听条件“{name}”
 
-epicbanitem.command.ebi.description=EpicBanItem 的命令
-epicbanitem.command.ebi.extendedDescription=EpicBanItem 的命令
-epicbanitem.command.ebi.version=EpicBanItem 版本：{version}
-epicbanitem.command.ebi.useHelp=请使用 {help_command} 获取更多信息
-epicbanitem.command.ebi.suggestCommand=你可能是指 {suggest}？
+epicbanitem.command.ebi.description = EpicBanItem 的命令
+epicbanitem.command.ebi.extendedDescription = EpicBanItem 的命令
+epicbanitem.command.ebi.version = EpicBanItem 版本：{version}
+epicbanitem.command.ebi.useHelp = 请使用 {help_command} 获取更多信息
+epicbanitem.command.ebi.suggestCommand = 你可能是指 {suggest}？
 
-epicbanitem.command.check.description=检查手中的物品
-epicbanitem.command.check.extendedDescription=检查手中的物品
-epicbanitem.command.check.noItem=找不到物品。可能因为你不是玩家，或者手上没拿东西？
-epicbanitem.command.check.noFitWorld=这个规则没有适用的世界
-epicbanitem.command.check.noTrigger=这个规则的触发行为和默认值相同
-epicbanitem.command.check.flags.l=目前尚未实现
+epicbanitem.command.check.description = 检查手中的物品
+epicbanitem.command.check.extendedDescription = 检查手中的物品
+epicbanitem.command.check.noItem = 找不到物品。可能因为你不是玩家，或者手上没拿东西？
+epicbanitem.command.check.noFitWorld = 这个规则没有适用的世界
+epicbanitem.command.check.noTrigger = 这个规则的触发行为和默认值相同
+epicbanitem.command.check.flags.l = 目前尚未实现
 
-epicbanitem.command.list.description=列出被封禁的物品
-epicbanitem.command.list.extendedDescription=列出被封禁的物品
-epicbanitem.command.list.noRule=无规则
-epicbanitem.command.list.firstHalfLine={check_rule}
-epicbanitem.command.list.secondHalfLine=&7{item_type}
-epicbanitem.command.list.title=规则列表
-epicbanitem.command.list.padding=&7-
-epicbanitem.command.list.args.itemType=要查询的物品。输入 hand 则查询主手中的物品，留空则列出所有物品
+epicbanitem.command.list.description = 列出被封禁的物品
+epicbanitem.command.list.extendedDescription = 列出被封禁的物品
+epicbanitem.command.list.noRule = 无规则
+epicbanitem.command.list.firstHalfLine = {check_rule}
+epicbanitem.command.list.secondHalfLine = &7{item_type}
+epicbanitem.command.list.title = 规则列表
+epicbanitem.command.list.padding = &7-
+epicbanitem.command.list.args.itemType = 要查询的物品。输入 hand 则查询主手中的物品，留空则列出所有物品
 
-epicbanitem.command.show.description=展示物品的特定的规则
-epicbanitem.command.show.extendedDescription=展示物品的特定的规则
-epicbanitem.command.show.args.checkRule=要查看的规则名
+epicbanitem.command.show.description = 展示物品的特定的规则
+epicbanitem.command.show.extendedDescription = 展示物品的特定的规则
+epicbanitem.command.show.args.checkRule = 要查看的规则名
 
-epicbanitem.command.query.description=使用特定规则检查手中物品或目视方块，并列出 NBT 等信息
-epicbanitem.command.query.extendedDescription=使用特定规则检查手中物品或目视方块，并列出 NBT 等信息
-epicbanitem.command.query.noItem=找不到物品。可能因为你不是玩家，或者手上没拿东西？
-epicbanitem.command.query.noBlock=找不到方块。请保证目视目标方块，并拉近与它的距离。
-epicbanitem.command.query.succeed=成功匹配：
-epicbanitem.command.query.failed=未成功匹配。
-epicbanitem.command.query.error=解析匹配时出错：
-epicbanitem.command.query.flags.l=对目视方块而非手中物品应用规则
-epicbanitem.command.query.args.queryRule=用来匹配的规则,阅读 wiki 获取更多信息
+epicbanitem.command.query.description = 使用特定规则检查手中物品或目视方块，并列出 NBT 等信息
+epicbanitem.command.query.extendedDescription = 使用特定规则检查手中物品或目视方块，并列出 NBT 等信息
+epicbanitem.command.query.noItem = 找不到物品。可能因为你不是玩家，或者手上没拿东西？
+epicbanitem.command.query.noBlock = 找不到方块。请保证目视目标方块，并拉近与它的距离。
+epicbanitem.command.query.succeed = 成功匹配：
+epicbanitem.command.query.failed = 未成功匹配。
+epicbanitem.command.query.error = 解析匹配时出错：
+epicbanitem.command.query.flags.l = 对目视方块而非手中物品应用规则
+epicbanitem.command.query.args.queryRule = 用来匹配的规则,阅读 wiki 获取更多信息
 
-epicbanitem.command.update.description=使用特定规则应用手中物品或目视方块
-epicbanitem.command.update.extendedDescription=使用特定规则应用手中物品或目视方块
-epicbanitem.command.update.noItem=找不到物品。可能因为你不是玩家，或者手上没拿东西？
-epicbanitem.command.update.noBlock=找不到方块。请保证目视目标方块，并拉近与它的距离。
-epicbanitem.command.update.succeed=成功应用规则:
-epicbanitem.command.update.error=应用规则时出错：
-epicbanitem.command.update.flags.l=对目视方块而非手中物品应用规则
-epicbanitem.command.update.args.updateRule=用来应用的规则,阅读 wiki 获取更多信息
+epicbanitem.command.update.description = 使用特定规则应用手中物品或目视方块
+epicbanitem.command.update.extendedDescription = 使用特定规则应用手中物品或目视方块
+epicbanitem.command.update.noItem = 找不到物品。可能因为你不是玩家，或者手上没拿东西？
+epicbanitem.command.update.noBlock = 找不到方块。请保证目视目标方块，并拉近与它的距离。
+epicbanitem.command.update.succeed = 成功应用规则:
+epicbanitem.command.update.error = 应用规则时出错：
+epicbanitem.command.update.flags.l = 对目视方块而非手中物品应用规则
+epicbanitem.command.update.args.updateRule = 用来应用的规则,阅读 wiki 获取更多信息
 
-epicbanitem.command.create.description=创建一个新的规则
-epicbanitem.command.create.extendedDescription=创建一个新的规则
-epicbanitem.command.create.succeed=成功添加规则：&a{rule_name}
-epicbanitem.command.create.failed=创建规则失败
-epicbanitem.command.create.override=id 将会被手中物品覆盖。如欲不覆盖，请加“--no-capture”参数重试
-epicbanitem.command.create.empty=id 不存在，同时手中物品为空，这会导致匹配物品时性能下降。如欲不指定 id，请加“--no-capture”参数重试
-epicbanitem.command.create.flags.noCapture=如果你不希望依赖手中物品的 id，请使用这个参数
-epicbanitem.command.create.args.ruleName=新创建的规则名
-epicbanitem.command.create.args.queryRule=要匹配的规则,默认为空（{}）
+epicbanitem.command.create.description = 创建一个新的规则
+epicbanitem.command.create.extendedDescription = 创建一个新的规则
+epicbanitem.command.create.succeed = 成功添加规则：&a{rule_name}
+epicbanitem.command.create.failed = 创建规则失败
+epicbanitem.command.create.override = id 将会被手中物品覆盖。如欲不覆盖，请加“--no-capture”参数重试
+epicbanitem.command.create.empty = id 不存在，同时手中物品为空，这会导致匹配物品时性能下降。如欲不指定 id，请加“--no-capture”参数重试
+epicbanitem.command.create.flags.noCapture = 如果你不希望依赖手中物品的 id，请使用这个参数
+epicbanitem.command.create.args.ruleName = 新创建的规则名
+epicbanitem.command.create.args.queryRule = 要匹配的规则,默认为空（{}）
 
-epicbanitem.command.remove.description=删除一个规则
-epicbanitem.command.remove.extendedDescription=删除一个规则
-epicbanitem.command.remove.succeed=成功删除规则：{rule}
-epicbanitem.command.remove.args.rule=要删除的规则名
+epicbanitem.command.remove.description = 删除一个规则
+epicbanitem.command.remove.extendedDescription = 删除一个规则
+epicbanitem.command.remove.succeed = 成功删除规则：{rule}
+epicbanitem.command.remove.args.rule = 要删除的规则名
 
-epicbanitem.command.edit.description=编辑一个规则
-epicbanitem.command.edit.extendedDescription=编辑一个规则
+epicbanitem.command.edit.description = 编辑一个规则
+epicbanitem.command.edit.extendedDescription = 编辑一个规则
 
-epicbanitem.command.help.description=显示帮助信息
-epicbanitem.command.help.extendedDescription=显示帮助信息
-epicbanitem.command.help.noHelp=无帮助信息
-epicbanitem.command.help.args.subCommand=帮助信息目标
+epicbanitem.command.help.description = 显示帮助信息
+epicbanitem.command.help.extendedDescription = 显示帮助信息
+epicbanitem.command.help.noHelp = 无帮助信息
+epicbanitem.command.help.args.subCommand = 帮助信息目标
 
 #checkrule
-epicbanitem.checkrule.worlds=世界
-epicbanitem.checkrule.triggers=监听
-epicbanitem.checkrule.remove=移除
-epicbanitem.checkrule.query=查询
-epicbanitem.checkrule.update=更新
+epicbanitem.checkrule.worlds = 世界
+epicbanitem.checkrule.triggers = 监听
+epicbanitem.checkrule.remove = 移除
+epicbanitem.checkrule.query = 查询
+epicbanitem.checkrule.update = 更新
 
 #error
-epicbanitem.error.failDeserialize=无法将该节点解析为字符串
-epicbanitem.error.missingMessage=【缺失文本：{message_key}】
+epicbanitem.error.failDeserialize = 无法将该节点解析为字符串
+epicbanitem.error.missingMessage = 【缺失文本：{message_key}】
