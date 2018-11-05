@@ -14,12 +14,14 @@ public class Triggers {
     public static final String CLICK = "click";
     public static final String THROW = "throw";
     public static final String DROP = "drop";
+    public static final String PLACE = "place";
+    public static final String BREAK = "break";
 
     private Triggers() {
         throw new UnsupportedOperationException();
     }
 
     public static Set<String> getDefaultTriggers() {
-        return ImmutableSet.of(USE, PICKUP, CLICK, THROW, DROP);
+        return ImmutableSet.of(USE, PICKUP, CLICK, THROW, DROP, PLACE, BREAK);
     }
 }
