@@ -1,5 +1,8 @@
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id "com.github.johnrengelman.shadow" version "2.0.4"
+    id "java"
+    id "idea"
+}
 
 def buildNumber = {
     def command = "git rev-list --count --first-parent HEAD"
@@ -7,6 +10,8 @@ def buildNumber = {
 }
 
 version = "$version-b${buildNumber()}"
+
+group = "com.github.euonmyoji"
 
 defaultTasks "clean", "build"
 
@@ -18,10 +23,31 @@ repositories {
         name = "sponge"
         url = "https://repo.spongepowered.org/maven"
     }
+    maven {
+        name = "bstats"
+        url = 'http://repo.bstats.org/content/repositories/releases'
+    }
 }
 
 dependencies {
+    compile "org.bstats:bstats-sponge:1.2"
     compile "org.spongepowered:spongeapi:7.1.0-SNAPSHOT"
+}
+
+jar {
+    classifier = "pure"
+}
+
+shadowJar {
+    classifier = null
+
+    build.dependsOn += it
+
+    dependencies {
+        it.include it.dependency("org.bstats:.*")
+    }
+
+    relocate "org.bstats", "${project.group}.epicbanitem.util.repackage.org.bstats"
 }
 
 tasks.withType(JavaCompile) {

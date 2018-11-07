@@ -11,6 +11,7 @@ import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.google.inject.Inject;
+import org.bstats.sponge.Metrics;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandMapping;
@@ -39,6 +40,8 @@ public class EpicBanItem {
     private final Path cfgDir;
 
     private final Logger logger;
+
+    private final Metrics metrics;
 
     public static Logger getLogger() {
         return instance.logger;
@@ -71,10 +74,11 @@ public class EpicBanItem {
     private AutoFileLoader autoFileLoader;
 
     @Inject
-    public EpicBanItem(@ConfigDir(sharedRoot = false) Path theCfgDir, Logger theLogger) {
+    public EpicBanItem(@ConfigDir(sharedRoot = false) Path theCfgDir, Logger theLogger, Metrics theMetrics) {
         instance = this;
         cfgDir = theCfgDir;
         logger = theLogger;
+        metrics = theMetrics;
         messages = new Messages(this, theCfgDir);
     }
 
@@ -87,11 +91,16 @@ public class EpicBanItem {
     public void onStarting(GameStartingServerEvent event) {
         try {
             messages.load();
+
             autoFileLoader = new AutoFileLoader(this, cfgDir);
+
             settings = new Settings(autoFileLoader, cfgDir.resolve("settings.conf"));
             banConfig = new BanConfig(autoFileLoader, cfgDir.resolve("banitem.conf"));
+
             Optional<CommandMapping> mappingOptional = new CommandEbi().registerFor(this);
             mappingOptional.ifPresent(mapping -> mainCommandAlias = mapping.getPrimaryAlias());
+
+            metrics.addCustomChart(new Metrics.SingleLineChart("enabledCheckRules", () -> banConfig.getRules().size()));
         } catch (Exception e) {
             logger.error("Failed to load EpicBanItem", e);
         }
