@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -88,6 +89,17 @@ public interface CheckRuleService {
      * @return 检查结果
      */
     CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject);
+
+    /**
+     * 检查一个物品并返回一个result
+     *
+     * @param blockSnapshot 被检查的Block
+     * @param world     检查发生世界
+     * @param trigger   触发器
+     * @param subject   subject
+     * @return 检查结果
+     */
+    CheckResult check(BlockSnapshot blockSnapshot, World world, String trigger, @Nullable Subject subject);
 
     /**
      * Add a rule to the service and save it in the default config.

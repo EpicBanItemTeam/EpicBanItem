@@ -2,8 +2,12 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.permission.Subject;
@@ -87,6 +91,15 @@ public class CheckRuleServiceImpl implements CheckRuleService {
         if (!item.isEmpty()) {
             check(result, item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
         }
+        return result;
+    }
+
+    @Override
+    public CheckResult check(BlockSnapshot snapshot, World world, String trigger, @Nullable Subject subject) {
+        ItemType itemType = snapshot.getState().getType().getItem().orElse(ItemTypes.AIR);
+        CheckResult result = CheckResult.empty();
+        Stream<CheckRule> rules = Stream.concat(getCheckRules(null).stream(), getCheckRules(itemType).stream());
+        rules.forEach(rule -> rule.check(NbtTagDataUtil.toNbt(snapshot), result, world, trigger, subject));
         return result;
     }
 

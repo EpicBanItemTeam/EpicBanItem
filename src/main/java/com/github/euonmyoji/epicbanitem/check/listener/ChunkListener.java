@@ -12,6 +12,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
@@ -34,9 +35,8 @@ public class ChunkListener {
         List<BlockSnapshot> scheduledChanges = new ArrayList<>(locations.size());
         for (Location<World> location : locations) {
             BlockSnapshot snapshot = location.createSnapshot();
-            // noinspection unused
             String trigger = Triggers.BREAK;
-            CheckResult result = CheckResult.empty(); // TODO: add methods for checking blocks in CheckRuleService
+            CheckResult result = service.check(snapshot,location.getExtent(),trigger,player);
             if (result.isBanned()) {
                 event.setCancelled(true);
                 result.getFinalView().ifPresent(view -> {
@@ -56,9 +56,9 @@ public class ChunkListener {
         List<Transaction<BlockSnapshot>> transactions = event.getTransactions();
         for (Transaction<BlockSnapshot> transaction : transactions) {
             BlockSnapshot snapshot = transaction.getFinal();
-            // noinspection unused
             String trigger = Triggers.PLACE;
-            CheckResult result = CheckResult.empty(); // TODO: add methods for checking blocks in CheckRuleService
+            //noinspection ConstantConditions
+            CheckResult result = service.check(snapshot,snapshot.getLocation().get().getExtent(),trigger,player);
             if (result.isBanned()) {
                 result.getFinalView().ifPresent(view -> {
                     BlockState oldState = snapshot.getState();
@@ -66,6 +66,21 @@ public class ChunkListener {
                     transaction.setCustom(NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId));
                 });
             }
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onChangeBlockPost(InteractBlockEvent event, @First Player player) {
+        BlockSnapshot snapshot = event.getTargetBlock();
+        String trigger = Triggers.INTERACT;
+        //noinspection ConstantConditions
+        CheckResult result = service.check(snapshot,snapshot.getLocation().get().getExtent(),trigger,player);
+        if (result.isBanned()) {
+            result.getFinalView().ifPresent(view -> {
+                BlockState oldState = snapshot.getState();
+                UUID worldUniqueId = snapshot.getWorldUniqueId();
+                NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId).restore(true, BlockChangeFlags.NONE);
+            });
         }
     }
 }
