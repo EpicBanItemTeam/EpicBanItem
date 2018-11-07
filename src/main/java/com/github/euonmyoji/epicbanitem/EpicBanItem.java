@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
@@ -31,50 +32,54 @@ import java.util.Optional;
 @Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION, authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"},
         description = "a banitem plugin with nbt")
 public class EpicBanItem {
-    public static EpicBanItem plugin;
     public static final String VERSION = "0.1.0";
 
-    @Inject
-    @ConfigDir(sharedRoot = false)
-    public Path cfgDir;
+    private static EpicBanItem instance;
 
-    public static Logger logger;
+    private final Path cfgDir;
 
-    private Messages messages;
+    private final Logger logger;
 
-    public Messages getMessages() {
-        return messages;
+    public static Logger getLogger() {
+        return instance.logger;
+    }
+
+    private final Messages messages;
+
+    public static Messages getMessages() {
+        return instance.messages;
     }
 
     private Settings settings;
 
-    public Settings getSettings() {
-        return settings;
+    public static Settings getSettings() {
+        return instance.settings;
     }
 
     private BanConfig banConfig;
 
-    public BanConfig getBanConfig() {
-        return banConfig;
+    public static BanConfig getBanConfig() {
+        return instance.banConfig;
     }
 
     private String mainCommandAlias;
 
-    public String getMainCommandAlias() {
-        return mainCommandAlias;
+    public static String getMainCommandAlias() {
+        return instance.mainCommandAlias;
     }
 
     private AutoFileLoader autoFileLoader;
 
     @Inject
-    public void setLogger(Logger logger) {
-        EpicBanItem.logger = logger;
+    public EpicBanItem(@ConfigDir(sharedRoot = false) Path theCfgDir, Logger theLogger) {
+        instance = this;
+        cfgDir = theCfgDir;
+        logger = theLogger;
+        messages = new Messages(this, theCfgDir);
     }
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
-        plugin = this;
-        messages = new Messages(this, cfgDir);
         Sponge.getServiceManager().setProvider(this, CheckRuleService.class, new CheckRuleServiceImpl());
     }
 
@@ -85,6 +90,8 @@ public class EpicBanItem {
             autoFileLoader = new AutoFileLoader(this, cfgDir);
             settings = new Settings(autoFileLoader, cfgDir.resolve("settings.conf"));
             banConfig = new BanConfig(autoFileLoader, cfgDir.resolve("banitem.conf"));
+            Optional<CommandMapping> mappingOptional = new CommandEbi().registerFor(this);
+            mappingOptional.ifPresent(mapping -> mainCommandAlias = mapping.getPrimaryAlias());
         } catch (Exception e) {
             logger.error("Failed to load EpicBanItem", e);
         }
@@ -92,13 +99,10 @@ public class EpicBanItem {
 
     @Listener
     public void onStarted(GameStartedServerEvent event) {
-        CommandEbi commandEbi = new CommandEbi();
-        Optional<CommandMapping> commandMapping = Sponge.getCommandManager()
-                .register(this, commandEbi.getCallable(), commandEbi.getNameList());
-        commandMapping.ifPresent(mapping -> mainCommandAlias = mapping.getPrimaryAlias());
-        Sponge.getEventManager().registerListeners(this, new InventoryListener());
-        Sponge.getEventManager().registerListeners(this, new WorldItemMoveListener());
-        Sponge.getEventManager().registerListeners(this, new ChunkListener());
+        EventManager eventManager = Sponge.getEventManager();
+        eventManager.registerListeners(this, new ChunkListener());
+        eventManager.registerListeners(this, new InventoryListener());
+        eventManager.registerListeners(this, new WorldItemMoveListener());
     }
 
     @Listener

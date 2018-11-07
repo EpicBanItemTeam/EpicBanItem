@@ -121,10 +121,10 @@ public class CommandEdit extends AbstractCommand {
                 }
                 rule.setUpdateNode(updateNode);
             } catch (IOException e) {
-                EpicBanItem.logger.error("Error", e);
+                EpicBanItem.getLogger().error("Error", e);
                 throw new CommandException(getMessage("error"), e);
             }
-            EpicBanItem.plugin.getBanConfig().forceSave();
+            EpicBanItem.getBanConfig().forceSave();
             src.sendMessage(getMessage("succeed"));
             return CommandResult.success();
         }
@@ -157,7 +157,7 @@ public class CommandEdit extends AbstractCommand {
             } else {
                 rule.getEnableWorlds().put(world.getWorldName(), tristate.asBoolean());
             }
-            EpicBanItem.plugin.getBanConfig().forceSave();
+            EpicBanItem.getBanConfig().forceSave();
             src.sendMessage(getMessage("succeed"));
             return CommandResult.success();
         }
@@ -190,7 +190,7 @@ public class CommandEdit extends AbstractCommand {
             } else {
                 rule.getEnableTrigger().put(trigger, tristate.asBoolean());
             }
-            EpicBanItem.plugin.getBanConfig().forceSave();
+            EpicBanItem.getBanConfig().forceSave();
             src.sendMessage(getMessage("succeed"));
             return CommandResult.success();
         }

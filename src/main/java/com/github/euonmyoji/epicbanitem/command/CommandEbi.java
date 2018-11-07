@@ -1,9 +1,8 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import org.spongepowered.api.command.CommandCallable;
-import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.*;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
@@ -14,6 +13,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author EBI
@@ -22,6 +22,8 @@ import java.util.Map;
 public class CommandEbi extends AbstractCommand {
 
     private Map<List<String>, CommandCallable> childrenMap = new HashMap<>();
+
+    private static final String ARGUMENT_KEY = "string";
 
     public CommandEbi() {
         super("ebi", "epicbanitem", "banitem", "bi");
@@ -45,7 +47,9 @@ public class CommandEbi extends AbstractCommand {
                 .build();
     }
 
-    private static final String ARGUMENT_KEY = "string";
+    public Optional<CommandMapping> registerFor(EpicBanItem instance) {
+        return Sponge.getCommandManager().register(instance, this.getCallable(), this.getNameList());
+    }
 
     @Override
     public CommandElement getArgument() {
@@ -55,7 +59,7 @@ public class CommandEbi extends AbstractCommand {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
         src.sendMessage(getMessage("version", "version", EpicBanItem.VERSION));
-        src.sendMessage(getMessage("useHelp", "help_command", "/" + EpicBanItem.plugin.getMainCommandAlias() + " help"));
+        src.sendMessage(getMessage("useHelp", "help_command", "/" + EpicBanItem.getMainCommandAlias() + " help"));
         args.<String>getOne(ARGUMENT_KEY).ifPresent(s -> {
             String lastMatchCommand = null;
             int lastM = -1;
@@ -69,13 +73,13 @@ public class CommandEbi extends AbstractCommand {
                             lastM = d;
                         }
                     } catch (IndexOutOfBoundsException e) {
-                        EpicBanItem.logger.debug("Unexpected IndexOutOfBoundsException", e);
+                        EpicBanItem.getLogger().debug("Unexpected IndexOutOfBoundsException", e);
                     }
                 }
             }
             if (lastMatchCommand != null) {
                 src.sendMessage(getMessage("suggestCommand", "suggest",
-                        "/" + EpicBanItem.plugin.getMainCommandAlias() + " " + lastMatchCommand));
+                        "/" + EpicBanItem.getMainCommandAlias() + " " + lastMatchCommand));
             }
         });
         return CommandResult.success();
@@ -84,7 +88,6 @@ public class CommandEbi extends AbstractCommand {
     private void addChildCommand(ICommand command) {
         childrenMap.put(command.getNameList(), command.getCallable());
     }
-
 
     private static int getHowClose(String raw, String s) {
         // s长度不大于raw的1.5倍并且不匹配的字符不超过raw字符数 并且至少有一半字符匹配raw 才算接近

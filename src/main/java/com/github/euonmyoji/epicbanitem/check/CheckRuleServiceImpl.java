@@ -3,8 +3,6 @@ package com.github.euonmyoji.epicbanitem.check;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
@@ -30,45 +28,45 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
     public void addRule(@Nullable ItemType type, CheckRule rule) {
         try {
-            EpicBanItem.plugin.getBanConfig().addRule(type, rule);
+            EpicBanItem.getBanConfig().addRule(type, rule);
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to save ban config.", e);
+            EpicBanItem.getLogger().error("Failed to save ban config.", e);
         }
     }
 
     @Override
     public boolean removeRule(String name) {
         try {
-            return EpicBanItem.plugin.getBanConfig().removeRule(name);
+            return EpicBanItem.getBanConfig().removeRule(name);
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to save ban config.", e);
+            EpicBanItem.getLogger().error("Failed to save ban config.", e);
         }
         return false;
     }
 
     @Override
     public Set<ItemType> getCheckItemTypes() {
-        return EpicBanItem.plugin.getBanConfig().getItems();
+        return EpicBanItem.getBanConfig().getItems();
     }
 
     @Override
     public List<CheckRule> getCheckRules(@Nullable ItemType itemType) {
-        return EpicBanItem.plugin.getBanConfig().getRules(itemType);
+        return EpicBanItem.getBanConfig().getRules(itemType);
     }
 
     @Override
     public Collection<CheckRule> getCheckRules() {
-        return EpicBanItem.plugin.getBanConfig().getRules();
+        return EpicBanItem.getBanConfig().getRules();
     }
 
     @Override
     public Set<String> getRuleNames() {
-        return EpicBanItem.plugin.getBanConfig().getRuleNames();
+        return EpicBanItem.getBanConfig().getRuleNames();
     }
 
     @Override
     public Optional<CheckRule> getCheckRule(String name) {
-        return EpicBanItem.plugin.getBanConfig().getRule(name);
+        return EpicBanItem.getBanConfig().getRule(name);
     }
 
     @Override

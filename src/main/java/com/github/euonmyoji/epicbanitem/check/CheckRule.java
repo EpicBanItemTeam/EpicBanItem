@@ -121,11 +121,11 @@ public class CheckRule {
 
     public boolean isEnabledWorld(World world) {
         String worldName = world.getName();
-        return enableWorlds.getOrDefault(worldName, EpicBanItem.plugin.getSettings().isWorldDefaultEnabled(worldName));
+        return enableWorlds.getOrDefault(worldName, EpicBanItem.getSettings().isWorldDefaultEnabled(worldName));
     }
 
     public boolean isEnabledTrigger(String trigger) {
-        return enableTrigger.getOrDefault(trigger, EpicBanItem.plugin.getSettings().isTriggerDefaultEnabled(trigger));
+        return enableTrigger.getOrDefault(trigger, EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger));
     }
 
     public ConfigurationNode getQueryNode() {
@@ -151,8 +151,8 @@ public class CheckRule {
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to deserialize ConfigNode to String", e);
-            return EpicBanItem.plugin.getMessages().getMessage("epicbanitem.error.failDeserialize");
+            EpicBanItem.getLogger().error("Failed to deserialize ConfigNode to String", e);
+            return EpicBanItem.getMessages().getMessage("epicbanitem.error.failDeserialize");
         }
     }
 
@@ -163,8 +163,8 @@ public class CheckRule {
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
         } catch (IOException e) {
-            EpicBanItem.logger.error("Failed to deserialize ConfigNode to String", e);
-            return EpicBanItem.plugin.getMessages().getMessage("epicbanitem.error.failDeserialize");
+            EpicBanItem.getLogger().error("Failed to deserialize ConfigNode to String", e);
+            return EpicBanItem.getMessages().getMessage("epicbanitem.error.failDeserialize");
         }
     }
 
@@ -209,7 +209,7 @@ public class CheckRule {
     }
 
     public Text toText() {
-        Messages messages = EpicBanItem.plugin.getMessages();
+        Messages messages = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
@@ -221,7 +221,7 @@ public class CheckRule {
 
     public Text info() {
         // TODO: 点击补全指令?
-        Messages messages = EpicBanItem.plugin.getMessages();
+        Messages messages = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
         builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);

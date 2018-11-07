@@ -118,10 +118,10 @@ public class TextUtil {
                 }
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            EpicBanItem.logger.error("Error", e);
+            EpicBanItem.getLogger().error("Error", e);
             return builder.build();
         }
-        EpicBanItem.logger.error("Failed to find method 'setParseOptions'", new Exception());
+        EpicBanItem.getLogger().error("Failed to find method 'setParseOptions'", new Exception());
         return builder.build();
     }
 

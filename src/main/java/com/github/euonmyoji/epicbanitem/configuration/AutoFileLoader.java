@@ -64,7 +64,7 @@ public class AutoFileLoader implements Closeable {
             for (String pathString : pathStrings) {
                 this.pendingLoadTasks.remove(pathString);
                 if (this.configurationLoaders.containsKey(pathString)) {
-                    EpicBanItem.logger.info(pathString + " has been changed. Try reloading now.");
+                    EpicBanItem.getLogger().info(pathString + " has been changed. Try reloading now.");
                     this.loadFile(pathString, pathString + " reloaded successfully.");
                 }
             }
@@ -97,9 +97,9 @@ public class AutoFileLoader implements Closeable {
         try {
             ConfigurationLoader<? extends ConfigurationNode> loader = this.configurationLoaders.get(pathString);
             this.readListeners.get(pathString).accept(loader.load());
-            EpicBanItem.logger.info(msg);
+            EpicBanItem.getLogger().info(msg);
         } catch (IOException e) {
-            EpicBanItem.logger.error("Find error while reading from " + pathString + ".", e);
+            EpicBanItem.getLogger().error("Find error while reading from " + pathString + ".", e);
         }
     }
 
@@ -109,9 +109,9 @@ public class AutoFileLoader implements Closeable {
             ConfigurationNode configurationNode = transformer.apply(loader.createEmptyNode());
             this.writeListeners.get(pathString).accept(configurationNode);
             loader.save(configurationNode);
-            EpicBanItem.logger.info(msg);
+            EpicBanItem.getLogger().info(msg);
         } catch (IOException e) {
-            EpicBanItem.logger.error("Find error while writing to " + pathString + ".", e);
+            EpicBanItem.getLogger().error("Find error while writing to " + pathString + ".", e);
         }
     }
 

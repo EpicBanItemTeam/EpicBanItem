@@ -55,9 +55,9 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     public String getCommandString() {
         if (parent.isEmpty()) {
-            return "/" + EpicBanItem.plugin.getMainCommandAlias() + " " + name + " ";
+            return "/" + EpicBanItem.getMainCommandAlias() + " " + name + " ";
         } else {
-            return "/" + EpicBanItem.plugin.getMainCommandAlias() +
+            return "/" + EpicBanItem.getMainCommandAlias() +
                     String.join(" ", parent.split("\\.")) + " " + name + " ";
         }
     }
@@ -75,15 +75,15 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     protected Text getMessage(String s) {
-        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s));
+        return EpicBanItem.getMessages().getMessage(getMessageKey(s));
     }
 
     protected Text getMessage(String s, String k1, Object v1) {
-        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s), k1, v1);
+        return EpicBanItem.getMessages().getMessage(getMessageKey(s), k1, v1);
     }
 
     protected Text getMessage(String s, String k1, Object v1, String k2, Object v2) {
-        return EpicBanItem.plugin.getMessages().getMessage(getMessageKey(s), k1, v1, k2, v2);
+        return EpicBanItem.getMessages().getMessage(getMessageKey(s), k1, v1, k2, v2);
     }
 
     public Text getDescription() {
@@ -101,7 +101,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             return Text.EMPTY;
         }
         Text.Builder builder = Text.builder();
-        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.args"));
+        builder.append(EpicBanItem.getMessages().getMessage("epicbanitem.commands.args"));
         scanArg(element, source, builder);
         return builder.toText();
     }
@@ -146,7 +146,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 field1.setAccessible(true);
                 scanArg((CommandElement) field1.get(commandElement), source, builder);
             } catch (NoSuchFieldException | IllegalAccessException e) {
-                EpicBanItem.logger.error("Failed to parse help for CommandFlags");
+                EpicBanItem.getLogger().error("Failed to parse help for CommandFlags");
             }
         }
         String id = commandElement.getUntranslatedKey();
@@ -188,11 +188,11 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public Text getHelpMessage(CommandSource src, CommandContext args) {
         init();
         Text.Builder builder = Text.builder();
-        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.name",
+        builder.append(EpicBanItem.getMessages().getMessage("epicbanitem.commands.name",
                 "name", getName(),
                 "alias", String.join(" ", getAlias())), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
-        builder.append(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))), Text.NEW_LINE);
+        builder.append(EpicBanItem.getMessages().getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))), Text.NEW_LINE);
         builder.append(getArgHelp(src), Text.NEW_LINE);
 //                builder.append(getExtendedDescription(),Text.NEW_LINE);
         return builder.build();
@@ -229,7 +229,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             try {
                 element.parse(source, args, context);
                 if (args.hasNext()) {
-                    throw args.createError(EpicBanItem.plugin.getMessages().getMessage("epicbanitem.commands.tooManyArgs"));
+                    throw args.createError(EpicBanItem.getMessages().getMessage("epicbanitem.commands.tooManyArgs"));
                 }
             } catch (ArgumentParseException e) {
                 context.putArg("help", e);

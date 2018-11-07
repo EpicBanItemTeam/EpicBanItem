@@ -87,7 +87,7 @@ public class CommandQuery extends AbstractCommand {
             }
             return CommandResult.success();
         } catch (Exception e) {
-            EpicBanItem.logger.error(getMessage("error").toPlain(), e);
+            EpicBanItem.getLogger().error(getMessage("error").toPlain(), e);
             throw new CommandException(Text.of(getMessage("error"), e.getMessage()));
         }
     }

@@ -28,7 +28,7 @@ public class ArgTrigger extends CommandElement {
         if (Triggers.getDefaultTriggers().contains(arg)) {
             return arg;
         }
-        throw args.createError(EpicBanItem.plugin.getMessages()
+        throw args.createError(EpicBanItem.getMessages()
                 .getMessage("epicbanitem.args.trigger.notFound", "name", arg));
     }
 

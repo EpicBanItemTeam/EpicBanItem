@@ -49,7 +49,7 @@ class ArgItemOrHand extends CommandElement {
             return getItemTypeFormHand((Player) source, args);
         } else {
             args.next();
-            throw args.createError(EpicBanItem.plugin.getMessages()
+            throw args.createError(EpicBanItem.getMessages()
                     .getMessage("epicbanitem.args.item.notFound", "name", argString));
         }
     }

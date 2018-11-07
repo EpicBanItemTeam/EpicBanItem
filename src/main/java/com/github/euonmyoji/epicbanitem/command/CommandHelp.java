@@ -22,7 +22,6 @@ import java.util.Map;
  */
 @NonnullByDefault
 public class CommandHelp extends AbstractCommand {
-    private static final EpicBanItem plugin = EpicBanItem.plugin;
     private Map<List<String>, CommandCallable> childrenMap;
     private Map<String, CommandCallable> flatMap;
 
@@ -63,7 +62,7 @@ public class CommandHelp extends AbstractCommand {
                         first = false;
                     }
                     builder.append(
-                            Text.of(TextColors.GRAY, "/" + plugin.getMainCommandAlias() + " " + entry.getKey().get(0) + " "),
+                            Text.of(TextColors.GRAY, "/" + EpicBanItem.getMainCommandAlias() + " " + entry.getKey().get(0) + " "),
                             entry.getValue().getUsage(src), Text.NEW_LINE,
                             entry.getValue().getShortDescription(src).orElse(Text.of("no description"))
                     );

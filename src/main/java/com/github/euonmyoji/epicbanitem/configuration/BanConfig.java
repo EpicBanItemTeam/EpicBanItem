@@ -42,7 +42,7 @@ public class BanConfig {
             fileLoader.forceSaving(path, n -> n.getNode("epicbanitem-version").setValue(CURRENT_VERSION).getParent());
         }
 
-        NbtTagDataUtil.printToLogger(EpicBanItem.logger::debug);
+        NbtTagDataUtil.printToLogger(EpicBanItem.getLogger()::debug);
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
@@ -119,8 +119,8 @@ public class BanConfig {
     private void load(ConfigurationNode node) throws IOException {
         // noinspection unused
         int version = node.getNode("epicbanitem-version").<Integer>getValue(Types::asInt, () -> {
-            EpicBanItem.logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
-            EpicBanItem.logger.warn("Try loading using current version {}.", CURRENT_VERSION);
+            EpicBanItem.getLogger().warn("Ban Config at {} is missing epicbanitem-version option.", path);
+            EpicBanItem.getLogger().warn("Try loading using current version {}.", CURRENT_VERSION);
             return CURRENT_VERSION;
         });
         try {
@@ -138,7 +138,7 @@ public class BanConfig {
                     if (rulesByName.containsKey(rule.getName())) {
                         String newName = findNewName(rule.getName(), rulesByName::containsKey);
                         rule = new CheckRule(newName, rule);
-                        EpicBanItem.logger.warn("Find duplicate names {}, renamed one to {}", rule.getName(), newName);
+                        EpicBanItem.getLogger().warn("Find duplicate names {}, renamed one to {}", rule.getName(), newName);
                         needSave = true;
                     }
                     // fix id

@@ -65,7 +65,7 @@ public class Messages {
         if (fallbackRes.containsKey(key)) {
             return fallbackRes.getString(key);
         }
-        EpicBanItem.logger.warn("Missing message for key:" + key);
+        EpicBanItem.getLogger().warn("Missing message for key:" + key);
         return null;
     }
 

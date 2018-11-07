@@ -38,7 +38,7 @@ class ArgItemCheckRule extends CommandElement {
         if (optionalCheckRule.isPresent()) {
             context.putArg(getKey(), optionalCheckRule.get());
         } else {
-            throw args.createError(EpicBanItem.plugin.getMessages()
+            throw args.createError(EpicBanItem.getMessages()
                     .getMessage("epicbanitem.args.itemCheckRule.notFound", "name", argString, "item", itemType.getId()));
         }
     }
