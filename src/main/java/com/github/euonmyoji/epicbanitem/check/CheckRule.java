@@ -259,7 +259,7 @@ public class CheckRule {
 
     private static ConfigurationNode getDefaultUpdateNode() {
         try {
-            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\"}}");
+            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\", Damage: 0}}");
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
