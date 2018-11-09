@@ -5,6 +5,7 @@ import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -12,16 +13,16 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.data.type.HandType;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
+import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 /**
  * @author EBI
@@ -48,45 +49,35 @@ public class CommandCheck extends AbstractCommand {
     @Override
     @Nonnull
     public CommandResult execute(@Nonnull CommandSource src, @Nonnull CommandContext args) throws CommandException {
-        if (!(src instanceof Player)) {
-            throw new CommandException(Text.of("Player only."));
-        }
-        CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        // TODO: looking at
-        // noinspection unused
         boolean lookAt = args.hasAny("l");
-        List<CheckRule> breakRules = new ArrayList<>();
-        Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
-        ItemStack itemStack = optional.orElseThrow(() -> new CommandException(getMessage("noItem"))).getSecond();
-        for (CheckRule rule : service.getCheckRules(itemStack.getType())) {
-            CheckResult result = CheckResult.empty();
-            rule.check(itemStack, result, getEnabledWorld(rule), getEnabledTrigger(rule), null);
-            breakRules.addAll(result.getBreakRules());
+        Map<String, CheckRule> checkRules = new TreeMap<>();
+        CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+        if (lookAt) {
+            Optional<BlockSnapshot> optional = CommandCreate.getBlockLookAt(src);
+            BlockSnapshot blockSnapshot = optional.orElseThrow(() -> new CommandException(getMessage("noBlock")));
+            World world = ((Locatable) src).getWorld();
+            for (String trigger : Triggers.getDefaultTriggers()) {
+                CheckResult checkResult = service.check(blockSnapshot, world, trigger, null);
+                for (CheckRule checkRule : checkResult.getBreakRules()) {
+                    checkRules.put(checkRule.getName(), checkRule);
+                }
+            }
+        } else {
+            Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
+            ItemStack itemStack = optional.orElseThrow(() -> new CommandException(getMessage("noItem"))).getSecond();
+            World world = ((Locatable) src).getWorld();
+            for (String trigger : Triggers.getDefaultTriggers()) {
+                CheckResult checkResult = service.check(itemStack, world, trigger, null);
+                for (CheckRule checkRule : checkResult.getBreakRules()) {
+                    checkRules.put(checkRule.getName(), checkRule);
+                }
+            }
         }
         Text.Builder info = Text.builder();
-        for (CheckRule rule : breakRules) {
+        for (CheckRule rule : checkRules.values()) {
             info.append(rule.toText(), Text.NEW_LINE);
         }
         src.sendMessage(info.toText());
         return CommandResult.success();
     }
-
-    private World getEnabledWorld(CheckRule rule) throws CommandException {
-        for (World world : Sponge.getServer().getWorlds()) {
-            if (rule.isEnabledWorld(world)) {
-                return world;
-            }
-        }
-        throw new CommandException(getMessage("noFitWorld"));
-    }
-
-    private String getEnabledTrigger(CheckRule rule) throws CommandException {
-        for (String trigger : Triggers.getDefaultTriggers()) {
-            if (rule.isEnabledTrigger(trigger)) {
-                return trigger;
-            }
-        }
-        throw new CommandException(getMessage("noTrigger"));
-    }
-
 }

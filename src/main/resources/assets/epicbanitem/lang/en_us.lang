@@ -16,12 +16,11 @@ epicbanitem.command.ebi.version = EpicBanItem version: {version}
 epicbanitem.command.ebi.useHelp = Please use {help_command} for more information
 epicbanitem.command.ebi.suggestCommand = Is {suggest} what you want?
 
-epicbanitem.command.check.description = Check the item in hand
-epicbanitem.command.check.extendedDescription = Check the item in hand
+epicbanitem.command.check.description = Check the item in hand or the block you are faced with and list the compatible rules
+epicbanitem.command.check.extendedDescription = Check the item in hand or the block you are faced with and list the compatible rules
 epicbanitem.command.check.noItem = The item is not available. Maybe you are not a player or there is nothing in your hand?
-epicbanitem.command.check.noFitWorld = This check rule is not fitted to any world
-epicbanitem.command.check.noTrigger = The triggers for this check rule is the same as default option
-epicbanitem.command.check.flags.l = To be implemented
+epicbanitem.command.check.noBlock = The block is not available. Please make sure that you are faced with the block and close enough.
+epicbanitem.command.check.flags.l = Check the block you are faced with instead of the item in hand.
 
 epicbanitem.command.list.description = List all the items to be banned
 epicbanitem.command.list.extendedDescription = List all the items to be banned
@@ -79,11 +78,10 @@ epicbanitem.command.help.noHelp = No help information
 epicbanitem.command.help.args.subCommand = Help information target
 
 #checkrule
-epicbanitem.checkrule.worlds = Worlds
-epicbanitem.checkrule.triggers = Triggers
-epicbanitem.checkrule.remove = Remove
-epicbanitem.checkrule.query = Query
-epicbanitem.checkrule.update = Update
+epicbanitem.checkrule.query = Query rule: {query}
+epicbanitem.checkrule.update = Update rule: {update}
+epicbanitem.checkrule.worlds = Special rules for worlds: {worlds}
+epicbanitem.checkrule.triggers = Special rules for triggers: {triggers}
 
 #error
 epicbanitem.error.failDeserialize = Failed to parse and deserialize as string

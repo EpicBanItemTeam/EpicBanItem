@@ -36,7 +36,7 @@ public class ChunkListener {
         for (Location<World> location : locations) {
             BlockSnapshot snapshot = location.createSnapshot();
             String trigger = Triggers.BREAK;
-            CheckResult result = service.check(snapshot,location.getExtent(),trigger,player);
+            CheckResult result = service.check(snapshot, location.getExtent(), trigger, player);
             if (result.isBanned()) {
                 event.setCancelled(true);
                 result.getFinalView().ifPresent(view -> {
@@ -58,7 +58,7 @@ public class ChunkListener {
             BlockSnapshot snapshot = transaction.getFinal();
             String trigger = Triggers.PLACE;
             //noinspection ConstantConditions
-            CheckResult result = service.check(snapshot,snapshot.getLocation().get().getExtent(),trigger,player);
+            CheckResult result = service.check(snapshot, snapshot.getLocation().get().getExtent(), trigger, player);
             if (result.isBanned()) {
                 result.getFinalView().ifPresent(view -> {
                     BlockState oldState = snapshot.getState();
@@ -74,7 +74,7 @@ public class ChunkListener {
         BlockSnapshot snapshot = event.getTargetBlock();
         String trigger = Triggers.INTERACT;
         //noinspection ConstantConditions
-        CheckResult result = service.check(snapshot,snapshot.getLocation().get().getExtent(),trigger,player);
+        CheckResult result = service.check(snapshot, snapshot.getLocation().get().getExtent(), trigger, player);
         if (result.isBanned()) {
             result.getFinalView().ifPresent(view -> {
                 BlockState oldState = snapshot.getState();

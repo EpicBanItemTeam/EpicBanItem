@@ -45,7 +45,7 @@ public class CheckRule {
 //        private int priority;
 //        private Set<String> enableWorlds = new HashSet<>();
 //        private String ignorePermission;
-//        private Set<String> enableTrigger = new HashSet<>();
+//        private Set<String> enableTriggers = new HashSet<>();
 //        private boolean remove;
 //        private QueryExpression query;
 //        private UpdateExpression update;
@@ -67,7 +67,7 @@ public class CheckRule {
 
     private int priority = 5;
     private Map<String, Boolean> enableWorlds = new HashMap<>();
-    private Map<String, Boolean> enableTrigger = new HashMap<>();
+    private Map<String, Boolean> enableTriggers = new HashMap<>();
 
     private QueryExpression query;
     private ConfigurationNode queryNode;
@@ -81,7 +81,7 @@ public class CheckRule {
     }
 
     public CheckRule(String ruleName, CheckRule rule) {
-        this(ruleName, rule.queryNode, rule.updateNode, rule.priority, rule.enableWorlds, rule.enableTrigger);
+        this(ruleName, rule.queryNode, rule.updateNode, rule.priority, rule.enableWorlds, rule.enableTriggers);
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode) {
@@ -92,7 +92,7 @@ public class CheckRule {
         this(ruleName, queryNode, updateNode, 5, new HashMap<>(), new HashMap<>());
     }
 
-    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, int priority, Map<String, Boolean> enableWorlds, Map<String, Boolean> enableTrigger) {
+    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, int priority, Map<String, Boolean> enableWorlds, Map<String, Boolean> enableTriggers) {
         this.name = Objects.requireNonNull(ruleName);
         this.queryNode = queryNode.copy();
         this.query = new QueryExpression(queryNode);
@@ -100,7 +100,7 @@ public class CheckRule {
         this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
         this.priority = priority;
         this.enableWorlds = Objects.requireNonNull(enableWorlds);
-        this.enableTrigger = Objects.requireNonNull(enableTrigger);
+        this.enableTriggers = Objects.requireNonNull(enableTriggers);
     }
 
     public String getName() {
@@ -111,8 +111,8 @@ public class CheckRule {
         return priority;
     }
 
-    public Map<String, Boolean> getEnableTrigger() {
-        return enableTrigger;
+    public Map<String, Boolean> getEnableTriggers() {
+        return enableTriggers;
     }
 
     public Map<String, Boolean> getEnableWorlds() {
@@ -125,7 +125,7 @@ public class CheckRule {
     }
 
     public boolean isEnabledTrigger(String trigger) {
-        return enableTrigger.getOrDefault(trigger, EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger));
+        return enableTriggers.getOrDefault(trigger, EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger));
     }
 
     public ConfigurationNode getQueryNode() {
@@ -147,7 +147,31 @@ public class CheckRule {
         this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
     }
 
-    public Text getQueryInfo() {
+    private Text getWorldInfo() {
+        Text.Builder builder = Text.builder("[");
+        if (!enableWorlds.isEmpty()) {
+            Text separator = Text.of();
+            for (Map.Entry<String, Boolean> entry : enableWorlds.entrySet()) {
+                builder.append(separator).append(Text.of(entry.getValue() ? "+" : "-")).append(Text.of(entry.getKey()));
+                separator = Text.of(", ");
+            }
+        }
+        return builder.append(Text.of("]")).build();
+    }
+
+    private Text getTriggerInfo() {
+        Text.Builder builder = Text.builder("[");
+        if (!enableTriggers.isEmpty()) {
+            Text separator = Text.of();
+            for (Map.Entry<String, Boolean> entry : enableTriggers.entrySet()) {
+                builder.append(separator).append(Text.of(entry.getValue() ? "+" : "-")).append(Text.of(entry.getKey()));
+                separator = Text.of(", ");
+            }
+        }
+        return builder.append(Text.of("]")).build();
+    }
+
+    private Text getQueryInfo() {
         try {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
@@ -156,7 +180,7 @@ public class CheckRule {
         }
     }
 
-    public Text getUpdateInfo() {
+    private Text getUpdateInfo() {
         if (updateNode == null) {
             return Text.of("No Update");
         }
@@ -212,10 +236,8 @@ public class CheckRule {
         Messages messages = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
-//        builder.append(messages.getMessage("epicbanitem.checkrule.query"),this.getQueryInfo(),Text.NEW_LINE);
-//        builder.append(messages.getMessage("epicbanitem.checkrule.update"),this.getUpdateInfo(),Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
         return Text.builder(getName()).onHover(TextActions.showText(builder.build())).build();
     }
 
@@ -224,10 +246,10 @@ public class CheckRule {
         Messages messages = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.worlds"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.triggers"), Text.of(this.getEnableWorlds().toString()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.query"), this.getQueryInfo(), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.update"), this.getUpdateInfo(), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.query", "query", this.getQueryInfo()), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.checkrule.update", "update", this.getUpdateInfo()), Text.NEW_LINE);
         return builder.build();
     }
 
@@ -277,7 +299,7 @@ public class CheckRule {
                 node.getNode("enabled-worlds").getChildrenMap().forEach((k, v) -> rule.enableWorlds.put(k.toString(), v.getBoolean()));
             }
             ConfigurationNode triggerNode = node.getNode("use-trigger");
-            triggerNode.getChildrenMap().forEach((k, v) -> rule.enableTrigger.put(k.toString(), v.getBoolean()));
+            triggerNode.getChildrenMap().forEach((k, v) -> rule.enableTriggers.put(k.toString(), v.getBoolean()));
             ConfigurationNode queryNode = node.getNode("query");
             ConfigurationNode updateNode = node.getNode("update");
             if (Objects.nonNull(queryNode.getValue())) {
@@ -299,7 +321,7 @@ public class CheckRule {
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
             rule.enableWorlds.forEach((k, v) -> node.getNode("enabled-worlds", k).setValue(v));
-            rule.enableTrigger.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
+            rule.enableTriggers.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
             node.getNode("query").setValue(rule.queryNode);
             node.getNode("update").setValue(rule.updateNode);
         }

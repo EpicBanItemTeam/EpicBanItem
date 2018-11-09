@@ -94,9 +94,9 @@ public interface CheckRuleService {
      * 检查一个物品并返回一个result
      *
      * @param blockSnapshot 被检查的Block
-     * @param world     检查发生世界
-     * @param trigger   触发器
-     * @param subject   subject
+     * @param world         检查发生世界
+     * @param trigger       触发器
+     * @param subject       subject
      * @return 检查结果
      */
     CheckResult check(BlockSnapshot blockSnapshot, World world, String trigger, @Nullable Subject subject);

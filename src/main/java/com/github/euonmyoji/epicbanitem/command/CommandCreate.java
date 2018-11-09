@@ -21,6 +21,7 @@ import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
+import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 
 import java.util.Optional;
@@ -94,7 +95,7 @@ class CommandCreate extends AbstractCommand {
     }
 
     static Optional<Tuple<HandType, ItemStack>> getItemInHand(CommandSource src) {
-        if (src instanceof ArmorEquipable) {
+        if (src instanceof ArmorEquipable && src instanceof Locatable) {
             for (HandType handType : Sponge.getRegistry().getAllOf(HandType.class)) {
                 Optional<ItemStack> handItem = ((ArmorEquipable) src).getItemInHand(handType);
                 if (handItem.isPresent() && !handItem.get().isEmpty()) {
@@ -106,7 +107,7 @@ class CommandCreate extends AbstractCommand {
     }
 
     static void setItemInHand(CommandSource src, Tuple<HandType, ItemStack> item) {
-        if (src instanceof ArmorEquipable) {
+        if (src instanceof ArmorEquipable && src instanceof Locatable) {
             ((ArmorEquipable) src).setItemInHand(item.getFirst(), item.getSecond());
         }
     }

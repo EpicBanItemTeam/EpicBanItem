@@ -186,9 +186,9 @@ public class CommandEdit extends AbstractCommand {
             String trigger = args.<String>getOne("trigger").get();
             Tristate tristate = args.<Tristate>getOne("value").get();
             if (tristate == Tristate.UNDEFINED) {
-                rule.getEnableTrigger().remove(trigger);
+                rule.getEnableTriggers().remove(trigger);
             } else {
-                rule.getEnableTrigger().put(trigger, tristate.asBoolean());
+                rule.getEnableTriggers().put(trigger, tristate.asBoolean());
             }
             EpicBanItem.getBanConfig().forceSave();
             src.sendMessage(getMessage("succeed"));
