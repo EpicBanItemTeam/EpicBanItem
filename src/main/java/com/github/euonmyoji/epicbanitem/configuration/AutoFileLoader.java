@@ -15,7 +15,7 @@ import java.util.function.Function;
 import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
- * @author ustc_zzzz
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class AutoFileLoader implements Closeable {
     private final Path cfgDir;

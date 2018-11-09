@@ -29,7 +29,7 @@ import org.spongepowered.api.world.BlockChangeFlags;
 import java.util.Optional;
 
 /**
- * @author ustc_zzzz
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class CommandUpdate extends AbstractCommand {

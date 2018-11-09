@@ -28,6 +28,9 @@ import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @author yinyangshi GiNYAi ustc_zzzz
+ */
 public class InventoryListener {
 
     private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);

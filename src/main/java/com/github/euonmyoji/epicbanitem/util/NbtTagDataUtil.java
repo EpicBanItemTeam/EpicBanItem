@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * @author ustc_zzzz
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class NbtTagDataUtil {
     private static final DataQuery ID = DataQuery.of("id");

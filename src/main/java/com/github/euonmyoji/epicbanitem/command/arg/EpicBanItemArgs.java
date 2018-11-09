@@ -9,6 +9,9 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Map;
 
+/**
+ * @author yinyangshi GiNYAi ustc_zzzz
+ */
 @NonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public class EpicBanItemArgs {

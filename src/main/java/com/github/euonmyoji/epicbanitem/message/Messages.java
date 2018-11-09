@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author EpicBanItem Team
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @SuppressWarnings("WeakerAccess")
 public class Messages {

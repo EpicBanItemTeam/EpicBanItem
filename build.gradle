@@ -11,8 +11,6 @@ def buildNumber = {
 
 version = "$version-b${buildNumber()}"
 
-group = "com.github.euonmyoji"
-
 defaultTasks "clean", "build"
 
 sourceCompatibility = 1.8
@@ -31,7 +29,7 @@ repositories {
 
 dependencies {
     compile "org.bstats:bstats-sponge:1.2"
-    compile "org.spongepowered:spongeapi:7.1.0-SNAPSHOT"
+    compile "org.spongepowered:spongeapi:$spongeVersion"
 }
 
 jar {

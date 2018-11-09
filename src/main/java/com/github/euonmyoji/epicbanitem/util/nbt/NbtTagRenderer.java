@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author ustc_zzzz
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class NbtTagRenderer {
     private static final int INDENT = 2;

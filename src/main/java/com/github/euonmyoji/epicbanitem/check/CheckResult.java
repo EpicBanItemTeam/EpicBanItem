@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @author GINYAI yinyangshi
- * 检查物品的结果
- * the result of checkItemStack
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class CheckResult {
     List<CheckRule> breakRules;

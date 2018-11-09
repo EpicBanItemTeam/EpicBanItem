@@ -14,6 +14,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author yinyangshi GiNYAi ustc_zzzz
+ */
 @NonnullByDefault
 public class ArgTrigger extends CommandElement {
 

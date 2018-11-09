@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * @author EpicBanItem Team
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class CheckRuleServiceImpl implements CheckRuleService {

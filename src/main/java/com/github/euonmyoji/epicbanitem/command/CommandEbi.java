@@ -37,7 +37,7 @@ public class CommandEbi extends AbstractCommand {
         addChildCommand(new CommandCreate());
         addChildCommand(new CommandUpdate());
         addChildCommand(new CommandRemove());
-        addChildCommand(new CommandEdit());
+        // addChildCommand(new CommandEdit());
         addChildCommand(new CommandHelp(childrenMap));
         commandSpec = CommandSpec.builder()
                 .permission(getPermission("base"))

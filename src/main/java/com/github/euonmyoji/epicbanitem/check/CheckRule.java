@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * @author GiNYAi yinyangshi
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 @SuppressWarnings("WeakerAccess")

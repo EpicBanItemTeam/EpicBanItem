@@ -28,12 +28,12 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * @author EpicBanItem Team
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
-@Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION, authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"},
-        description = "a banitem plugin with nbt")
+@Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION,
+        authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"}, description = "A banitem with nbt plugin in sponge")
 public class EpicBanItem {
-    public static final String VERSION = "0.1.0";
+    public static final String VERSION = "0.1.1";
 
     private static EpicBanItem instance;
 

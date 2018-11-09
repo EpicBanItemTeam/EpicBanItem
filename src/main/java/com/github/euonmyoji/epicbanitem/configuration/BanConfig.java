@@ -20,6 +20,9 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Predicate;
 
+/**
+ * @author yinyangshi GiNYAi ustc_zzzz
+ */
 @NonnullByDefault
 public class BanConfig {
     public static final int CURRENT_VERSION = 1;

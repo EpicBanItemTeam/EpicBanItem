@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author EBI
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 class CommandList extends AbstractCommand {

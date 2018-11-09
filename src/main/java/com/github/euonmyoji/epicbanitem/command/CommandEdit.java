@@ -26,6 +26,9 @@ import java.util.Optional;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
+/**
+ * @author yinyangshi GiNYAi ustc_zzzz
+ */
 @NonnullByDefault
 public class CommandEdit extends AbstractCommand {
     private Map<List<String>, CommandCallable> childrenMap = new HashMap<>();

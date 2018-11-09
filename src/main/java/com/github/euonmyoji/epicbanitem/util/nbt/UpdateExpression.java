@@ -14,7 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * @author ustc_zzzz
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class UpdateExpression implements DataTransformer {
     private static final Map<String, BiFunction<String, ConfigurationNode, DataTransformer>> operators;

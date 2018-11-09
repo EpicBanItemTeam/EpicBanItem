@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author EBI TEAM
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public interface CheckRuleService {

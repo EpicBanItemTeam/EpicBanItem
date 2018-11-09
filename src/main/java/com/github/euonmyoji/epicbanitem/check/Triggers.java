@@ -5,8 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 
 /**
- * @author yinyangshi
- * 都有什么触发的类
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class Triggers {
     public static final String USE = "use";

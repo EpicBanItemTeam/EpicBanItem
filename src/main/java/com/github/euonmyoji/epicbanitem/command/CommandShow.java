@@ -9,6 +9,9 @@ import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
+/**
+ * @author yinyangshi GiNYAi ustc_zzzz
+ */
 @NonnullByDefault
 class CommandShow extends AbstractCommand {
     public CommandShow() {

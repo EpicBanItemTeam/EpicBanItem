@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * @author epicbanitem authors
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class Settings {

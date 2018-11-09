@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 /**
- * @author EBI
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class CommandCheck extends AbstractCommand {
 

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author yinyangshi
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class TextUtil {
 

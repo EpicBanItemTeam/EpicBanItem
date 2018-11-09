@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * @author ustc_zzzz
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class QueryExpression implements DataPredicate {
     private static final Map<String, Function<ConfigurationNode, DataPredicate>> operators;

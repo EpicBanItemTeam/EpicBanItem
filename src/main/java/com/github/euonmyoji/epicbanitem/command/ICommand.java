@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author yinyangshi GiNYAi ustc_zzzz
+ */
 public interface ICommand {
     CommandCallable getCallable();
 

@@ -30,7 +30,7 @@ import java.util.function.Predicate;
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
 /**
- * @author EBI
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 class CommandCreate extends AbstractCommand {

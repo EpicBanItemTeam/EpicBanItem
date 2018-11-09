@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
- * @author ustc_zzzz
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 final class NbtTypeHelper {

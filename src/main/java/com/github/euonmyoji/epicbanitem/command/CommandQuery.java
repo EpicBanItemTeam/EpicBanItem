@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * @author EBI
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class CommandQuery extends AbstractCommand {

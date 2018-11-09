@@ -1,4 +1,9 @@
-a banitem with nbt plugin in sponge
+A banitem with nbt plugin in sponge.
 
-authors:yinyangshi GINYAI ustc_zzzz
+Main developer:
+* yinyangshi (@euOnmyoji)
+
+Assist developers:
+* GiNYAi (@ginyai)
+* ustc_zzzz (@ustc-zzzz)
 

@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * @author EBI
+ * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 class ArgItemOrHand extends CommandElement {
