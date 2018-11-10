@@ -3,6 +3,8 @@
 A banitem with nbt plugin in sponge.  
 一个基于 NBT 的物品禁用插件。  
 
+![EpicBanItem.png](https://forums-cdn.spongepowered.org/uploads/default/original/3X/d/f/df777d2f56331853a78fafc6876c59a412a2353d.png)
+
 ## English
 
 Main developer:
