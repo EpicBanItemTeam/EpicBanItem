@@ -4,6 +4,7 @@ import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
@@ -27,7 +28,8 @@ import java.util.UUID;
  */
 public class ChunkListener {
 
-    private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+    private final Server server = Sponge.getServer();
+    private final CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
 
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onChangeBlockPre(ChangeBlockEvent.Pre event, @First Player player) {
@@ -35,8 +37,7 @@ public class ChunkListener {
         List<BlockSnapshot> scheduledChanges = new ArrayList<>(locations.size());
         for (Location<World> location : locations) {
             BlockSnapshot snapshot = location.createSnapshot();
-            String trigger = Triggers.BREAK;
-            CheckResult result = service.check(snapshot, location.getExtent(), trigger, player);
+            CheckResult result = service.check(snapshot, location.getExtent(), Triggers.BREAK, player);
             if (result.isBanned()) {
                 event.setCancelled(true);
                 result.getFinalView().ifPresent(view -> {
@@ -52,17 +53,15 @@ public class ChunkListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onChangeBlockPost(ChangeBlockEvent.Post event, @First Player player) {
-        List<Transaction<BlockSnapshot>> transactions = event.getTransactions();
-        for (Transaction<BlockSnapshot> transaction : transactions) {
+    public void onInteractBlock(ChangeBlockEvent.Post event, @First Player player) {
+        for (Transaction<BlockSnapshot> transaction : event.getTransactions()) {
             BlockSnapshot snapshot = transaction.getFinal();
-            String trigger = Triggers.PLACE;
-            //noinspection ConstantConditions
-            CheckResult result = service.check(snapshot, snapshot.getLocation().get().getExtent(), trigger, player);
+            UUID worldUniqueId = snapshot.getWorldUniqueId();
+            World world = server.getWorld(worldUniqueId).orElse(player.getWorld());
+            CheckResult result = service.check(snapshot, world, Triggers.PLACE, player);
             if (result.isBanned()) {
                 result.getFinalView().ifPresent(view -> {
                     BlockState oldState = snapshot.getState();
-                    UUID worldUniqueId = snapshot.getWorldUniqueId();
                     transaction.setCustom(NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId));
                 });
             }
@@ -70,15 +69,14 @@ public class ChunkListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onChangeBlockPost(InteractBlockEvent event, @First Player player) {
+    public void onInteractBlock(InteractBlockEvent event, @First Player player) {
         BlockSnapshot snapshot = event.getTargetBlock();
-        String trigger = Triggers.INTERACT;
-        //noinspection ConstantConditions
-        CheckResult result = service.check(snapshot, snapshot.getLocation().get().getExtent(), trigger, player);
+        UUID worldUniqueId = snapshot.getWorldUniqueId();
+        World world = server.getWorld(worldUniqueId).orElse(player.getWorld());
+        CheckResult result = service.check(snapshot, world, Triggers.INTERACT, player);
         if (result.isBanned()) {
             result.getFinalView().ifPresent(view -> {
                 BlockState oldState = snapshot.getState();
-                UUID worldUniqueId = snapshot.getWorldUniqueId();
                 NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId).restore(true, BlockChangeFlags.NONE);
             });
         }
