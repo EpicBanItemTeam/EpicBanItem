@@ -33,7 +33,7 @@ import java.util.Optional;
 @Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION,
         authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"}, description = "A banitem with nbt plugin in sponge")
 public class EpicBanItem {
-    public static final String VERSION = "0.1.1";
+    public static final String VERSION = "0.1.2";
 
     private static EpicBanItem instance;
 
