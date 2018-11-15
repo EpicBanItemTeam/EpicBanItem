@@ -19,4 +19,5 @@
 !settings.gradle
 
 # Circle CI
-!.circleci/config.yml
+!.circleci/
+
