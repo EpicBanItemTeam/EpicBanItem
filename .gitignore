@@ -1,0 +1,13 @@
+# Whitelist Mode
+/*
+
+# Git Files
+!.gitignore
+
+# Document Index
+!index.html
+
+# Document Files
+!en/
+!zh/
+
