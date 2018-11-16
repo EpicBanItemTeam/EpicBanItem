@@ -1,7 +1,16 @@
 # EpicBanItem
 
-A banitem with nbt plugin in sponge.  
-一个基于 NBT 的物品禁用插件。  
+A banitem with nbt plugin in sponge.
+
+* Ore distribution platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
+* Plugin documentation: <https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/>
+* bStats: <https://bstats.org/plugin/sponge/EpicBanItem>
+
+一个基于 NBT 的物品禁用插件。
+
+* Ore 发布平台：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
+* 插件文档：<https://euonmyoji.github.io/EpicBanItem---Sponge/#/zh/>
+* bStats：<https://bstats.org/plugin/sponge/EpicBanItem>
 
 ![EpicBanItem.png](https://forums-cdn.spongepowered.org/uploads/default/original/3X/d/f/df777d2f56331853a78fafc6876c59a412a2353d.png)
 
