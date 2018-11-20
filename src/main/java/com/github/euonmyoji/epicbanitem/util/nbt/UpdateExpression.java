@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -12,6 +13,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -75,55 +77,48 @@ public class UpdateExpression implements DataTransformer {
 
     private static List<DataQuery> transformQuery(DataQuery previous, QueryResult result) {
         List<String> previousParts = previous.getParts();
-        List<Tuple<ArrayList<String>, QueryResult>> parts;
-        parts = Collections.singletonList(new Tuple<>(new ArrayList<>(previousParts.size()), result));
+        List<Tuple<ImmutableList<String>, Optional<QueryResult>>> parts;
+        parts = Collections.singletonList(new Tuple<>(ImmutableList.of(), Optional.of(result)));
         for (String previousPart : previousParts) {
             switch (previousPart) {
                 case "$":
-                    parts = parts.stream().map(tuple -> {
-                        QueryResult partResult = tuple.getSecond();
-                        if (!partResult.isArrayChildren()) {
-                            String prefix = String.join(".", tuple.getFirst().get(0));
-                            String s = "Cannot match \"$\" in \"" + prefix + ".$\" because its parent is not an array";
-                            throw new IllegalArgumentException(s);
+                    parts = parts.stream().flatMap(tuple -> {
+                        ImmutableList<String> part = tuple.getFirst();
+                        Optional<QueryResult> partResult = tuple.getSecond();
+                        if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
+                            String message = "Cannot match \"$\" in \"" + String.join(".", part) + ".$\" because its parent is not an array";
+                            throw new IllegalArgumentException(message);
                         }
-                        Map<String, QueryResult> queryMap = partResult.getChildren();
-                        if (queryMap.isEmpty()) {
-                            String prefix = String.join(".", tuple.getFirst().get(0));
-                            String s = "Cannot match \"$\" in \"" + prefix + ".$\" because no element matches";
-                            throw new IllegalArgumentException(s);
+                        Map<String, QueryResult> queryMap = partResult.get().getChildren();
+                        if (!queryMap.isEmpty()) {
+                            ImmutableList.Builder<String> b = ImmutableList.builder();
+                            Map.Entry<String, QueryResult> e = queryMap.entrySet().iterator().next();
+                            return Stream.of(Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue())));
                         }
-                        ArrayList<String> partKey = tuple.getFirst();
-                        partKey.add(queryMap.keySet().iterator().next());
-                        return Tuple.of(partKey, queryMap.values().iterator().next());
+                        return Stream.empty();
                     }).collect(Collectors.toList());
                     break;
                 case "$[]":
                     parts = parts.stream().flatMap(tuple -> {
-                        QueryResult partResult = tuple.getSecond();
-                        if (!partResult.isArrayChildren()) {
-                            String prefix = String.join(".", tuple.getFirst().get(0));
-                            String s = "Cannot match \"$\" in \"" + prefix + ".$\" because its parent is not an array";
-                            throw new IllegalArgumentException(s);
+                        ImmutableList<String> part = tuple.getFirst();
+                        Optional<QueryResult> partResult = tuple.getSecond();
+                        if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
+                            String message = "Cannot match \"$\" in \"" + String.join(".", part) + ".$\" because its parent is not an array";
+                            throw new IllegalArgumentException(message);
                         }
-                        Map<String, QueryResult> queryMap = partResult.getChildren();
-                        if (queryMap.isEmpty()) {
-                            String prefix = String.join(".", tuple.getFirst().get(0));
-                            String s = "Cannot match \"$\" in \"" + prefix + ".$\" because no element matches";
-                            throw new IllegalArgumentException(s);
-                        }
+                        Map<String, QueryResult> queryMap = partResult.get().getChildren();
                         return queryMap.entrySet().stream().map(e -> {
-                            ArrayList<String> partKey = tuple.getFirst();
-                            partKey.add(e.getKey());
-                            return Tuple.of(partKey, e.getValue());
+                            ImmutableList.Builder<String> b = ImmutableList.builder();
+                            return Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue()));
                         });
                     }).collect(Collectors.toList());
                     break;
                 default:
                     parts = parts.stream().map(tuple -> {
-                        ArrayList<String> partKey = tuple.getFirst();
-                        partKey.add(previousPart);
-                        return Tuple.of(partKey, tuple.getSecond());
+                        ImmutableList<String> part = tuple.getFirst();
+                        Optional<QueryResult> partResult = tuple.getSecond();
+                        partResult = partResult.flatMap(v -> Optional.ofNullable(v.getChildren().get(previousPart)));
+                        return Tuple.of(ImmutableList.<String>builder().addAll(part).add(previousPart).build(), partResult);
                     }).collect(Collectors.toList());
             }
         }
