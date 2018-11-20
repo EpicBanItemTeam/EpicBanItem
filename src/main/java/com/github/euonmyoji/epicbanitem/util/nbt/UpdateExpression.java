@@ -32,6 +32,8 @@ public class UpdateExpression implements DataTransformer {
         builder.put("$inc", (k, n) -> new Transform(o -> increaseValue(o, NbtTypeHelper.convert(o, n)), k));
         builder.put("$mul", (k, n) -> new Transform(o -> multiplyValue(o, NbtTypeHelper.convert(o, n)), k));
 
+        builder.put("$pop", (k, n) -> new Transform(o -> popValue(o, n.getInt()), k));
+
         operators = builder.build();
     }
 
@@ -191,6 +193,50 @@ public class UpdateExpression implements DataTransformer {
             return (Double) previousValue + ((Number) increment).doubleValue();
         }
         throw new IllegalArgumentException("Cannot apply $inc to a value of non-numeric type");
+    }
+
+    private static Object popValue(Object previousValue, int index) {
+        List<Object> list = NbtTypeHelper.getAsList(previousValue);
+        if (Objects.nonNull(list)) {
+            if (index == 1) {
+                return list.subList(1, list.size());
+            }
+            if (index == -1) {
+                return list.subList(0, list.size() - 1);
+            }
+            throw new IllegalArgumentException("$pop expects 1 or -1, found: " + index);
+        }
+        long[] longArray = NbtTypeHelper.getAsLongArray(previousValue);
+        if (Objects.nonNull(longArray)) {
+            if (index == 1) {
+                return Arrays.copyOfRange(longArray, 1, longArray.length);
+            }
+            if (index == -1) {
+                return Arrays.copyOfRange(longArray, 0, longArray.length - 1);
+            }
+            throw new IllegalArgumentException("$pop expects 1 or -1, found: " + index);
+        }
+        int[] intArray = NbtTypeHelper.getAsIntegerArray(previousValue);
+        if (Objects.nonNull(intArray)) {
+            if (index == 1) {
+                return Arrays.copyOfRange(intArray, 1, intArray.length);
+            }
+            if (index == -1) {
+                return Arrays.copyOfRange(intArray, 0, intArray.length - 1);
+            }
+            throw new IllegalArgumentException("$pop expects 1 or -1, found: " + index);
+        }
+        byte[] byteArray = NbtTypeHelper.getAsByteArray(previousValue);
+        if (Objects.nonNull(byteArray)) {
+            if (index == 1) {
+                return Arrays.copyOfRange(byteArray, 1, byteArray.length);
+            }
+            if (index == -1) {
+                return Arrays.copyOfRange(byteArray, 0, byteArray.length - 1);
+            }
+            throw new IllegalArgumentException("$pop expects 1 or -1, found: " + index);
+        }
+        return previousValue;
     }
 
     private static class Transform implements DataTransformer {
