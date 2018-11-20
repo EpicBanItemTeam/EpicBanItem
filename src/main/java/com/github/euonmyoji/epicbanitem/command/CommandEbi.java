@@ -61,8 +61,8 @@ public class CommandEbi extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        src.sendMessage(getMessage("version", "version", EpicBanItem.VERSION));
-        src.sendMessage(getMessage("useHelp", "help_command", "/" + EpicBanItem.getMainCommandAlias() + " help"));
+        src.sendMessage(getMessage("version", "version", "@version@"));
+        src.sendMessage(getMessage("useHelp", "help_command", suggestCommand("help")));
         args.<String>getOne(ARGUMENT_KEY).ifPresent(s -> {
             String lastMatchCommand = null;
             int lastM = -1;
@@ -81,11 +81,14 @@ public class CommandEbi extends AbstractCommand {
                 }
             }
             if (lastMatchCommand != null) {
-                src.sendMessage(getMessage("suggestCommand", "suggest",
-                        "/" + EpicBanItem.getMainCommandAlias() + " " + lastMatchCommand));
+                src.sendMessage(getMessage("suggestCommand", "suggest", suggestCommand(lastMatchCommand)));
             }
         });
         return CommandResult.success();
+    }
+
+    private String suggestCommand(String childCommand) {
+        return "/" + EpicBanItem.getMainCommandAlias() + " " + childCommand;
     }
 
     private void addChildCommand(ICommand command) {
