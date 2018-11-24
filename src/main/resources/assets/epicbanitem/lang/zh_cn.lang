@@ -9,6 +9,7 @@ epicbanitem.args.checkRule.notFound = 未能找到规则“{name}”
 epicbanitem.args.itemCheckRule.notFound = 未能找到适用于“{item}”的规则“{name}”
 epicbanitem.args.item.notFound = 未能找到物品“{name}”
 epicbanitem.args.trigger.notFound = 未能找到监听条件“{name}”
+epicbanitem.args.pattern.notMatch = 输入的字符串不匹配 {pattern}
 
 epicbanitem.command.ebi.description = EpicBanItem 的命令
 epicbanitem.command.ebi.extendedDescription = EpicBanItem 的命令
@@ -71,6 +72,28 @@ epicbanitem.command.remove.args.rule = 要删除的规则名
 
 epicbanitem.command.edit.description = 编辑一个规则
 epicbanitem.command.edit.extendedDescription = 编辑一个规则
+epicbanitem.command.edit.args.rule = 要编辑的规则
+
+epicbanitem.command.editor.description = 规则编辑器
+epicbanitem.command.editor.extendedDescription =  规则编辑器
+epicbanitem.command.editor.useOtherFirst = 使用 /ebi edit <rule> 来开始编辑.
+epicbanitem.command.editor.name = 规则:   {name}
+epicbanitem.command.editor.priority = 优先度: {priority}
+epicbanitem.command.editor.triggers = 监听器: {triggers}
+epicbanitem.command.editor.worlds = 世界:   {worlds}
+epicbanitem.command.editor.query = 查询规则: {options}
+epicbanitem.command.editor.update = 更新规则: {options}
+epicbanitem.command.editor.save = 保存
+epicbanitem.command.editor.custom = 当前设定
+epicbanitem.command.editor.default = 默认值
+epicbanitem.command.editor.origin = 原设定值
+
+epicbanitem.command.callback.description = 你不应该主动使用这个命令
+epicbanitem.command.callback.extendedDescription = 我不知道要如何解释
+epicbanitem.command.callback.unsupportedSource = 只有玩家可以使用这个命令
+epicbanitem.command.callback.illegalKey = 不合法的key
+epicbanitem.command.callback.neededArgs = 需要附加的参数: {help}
+epicbanitem.command.callback.args.args = 命令的参数 <key> [<args..>]
 
 epicbanitem.command.help.description = 显示帮助信息
 epicbanitem.command.help.extendedDescription = 显示帮助信息

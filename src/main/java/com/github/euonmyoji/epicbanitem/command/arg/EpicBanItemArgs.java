@@ -8,11 +8,13 @@ import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
+@SuppressWarnings({"unused"})
 public class EpicBanItemArgs {
 
     private static final Map<String, Tristate> TRISTATE_MAP = ImmutableMap.<String, Tristate>builder()
@@ -43,5 +45,13 @@ public class EpicBanItemArgs {
 
     public static CommandElement trigger(Text key) {
         return new ArgTrigger(key);
+    }
+
+    public static CommandElement patternString(Text key, Pattern pattern) {
+        return new ArgPatternString(key, pattern);
+    }
+
+    public static CommandElement patternString(Text key, Pattern pattern, String errorMessage) {
+        return new ArgPatternString(key, pattern, errorMessage);
     }
 }

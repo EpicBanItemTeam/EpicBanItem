@@ -9,6 +9,7 @@ epicbanitem.args.checkRule.notFound = The check rule "{name}" is not found
 epicbanitem.args.itemCheckRule.notFound = The check rule "{name}" for "{item}" is not found
 epicbanitem.args.item.notFound = The item "{name}" is not found
 epicbanitem.args.trigger.notFound = The trigger "{name}" is not found
+epicbanitem.args.pattern.notMatch = Input string do not match "{pattern}"
 
 epicbanitem.command.ebi.description = The command for EpicBanItem
 epicbanitem.command.ebi.extendedDescription = The command for EpicBanItem
@@ -71,6 +72,28 @@ epicbanitem.command.remove.args.rule = The name of the rule to be removed
 
 epicbanitem.command.edit.description = Edit a rule
 epicbanitem.command.edit.extendedDescription = Edit a rule
+epicbanitem.command.edit.args.rule = The rule to edit
+
+epicbanitem.command.editor.description = Chat Gui Rule Editor
+epicbanitem.command.editor.extendedDescription =  Chat Gui Rule Editor
+epicbanitem.command.editor.useOtherFirst = Use /ebi edit <rule> to begin.
+epicbanitem.command.editor.name = CheckRule:{name}
+epicbanitem.command.editor.priority = Priority :{priority}
+epicbanitem.command.editor.triggers = Triggers :{triggers}
+epicbanitem.command.editor.worlds = Worlds   :{worlds}
+epicbanitem.command.editor.query = QueryExpression : {options}
+epicbanitem.command.editor.update = UpdateExpression: {options}
+epicbanitem.command.editor.save = Save
+epicbanitem.command.editor.custom = Currently
+epicbanitem.command.editor.default = Default
+epicbanitem.command.editor.origin = Origin
+
+epicbanitem.command.callback.description = Command for clicking.
+epicbanitem.command.callback.extendedDescription = You shouldn't use this command on your own initiative
+epicbanitem.command.callback.unsupportedSource = Only players can use this command
+epicbanitem.command.callback.illegalKey = Illegal Key
+epicbanitem.command.callback.neededArgs = You should use : {help}
+epicbanitem.command.callback.args.args = Args of this command like : <key> [<args..>]
 
 epicbanitem.command.help.description = Display help information
 epicbanitem.command.help.extendedDescription = Display help information

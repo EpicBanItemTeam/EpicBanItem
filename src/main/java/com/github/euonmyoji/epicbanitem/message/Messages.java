@@ -84,7 +84,6 @@ public class Messages {
     }
 
     public Text getMessage(String key) {
-        // TODO: Should we also cache TextTemplate?
         return getMessage(key, Collections.emptyMap());
     }
 

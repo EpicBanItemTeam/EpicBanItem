@@ -17,6 +17,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -82,6 +83,18 @@ public class TextUtil {
         } else {
             return Text.of(text, String.format("%" + spaces + "s", ""));
         }
+    }
+
+    public static Text join(Text delimiter ,Iterable<Text> elements){
+        Iterator<Text> iterator = elements.iterator();
+        if(!iterator.hasNext()){
+            return Text.EMPTY;
+        }
+        Text.Builder builder = iterator.next().toBuilder();
+        while (iterator.hasNext()){
+            builder.append(delimiter).append(iterator.next());
+        }
+        return builder.toText();
     }
 
     public static Text serializeNbtToString(DataView nbt, QueryResult result) {

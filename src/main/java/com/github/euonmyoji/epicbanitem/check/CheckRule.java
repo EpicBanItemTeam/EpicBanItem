@@ -37,16 +37,35 @@ import java.util.regex.Pattern;
 public class CheckRule {
 
     public static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
+
+    public static boolean checkName(@Nullable String s) {
+        return s != null && NAME_PATTERN.matcher(s).matches();
+    }
+
+    public static Builder builder(String name) {
+        return new Builder(name);
+    }
+
+    public static Builder builder(CheckRule checkRule) {
+        return new Builder(checkRule);
+    }
+
     private final String name;
-    private int priority = 5;
+
+    /**
+     * 0-9 higher first
+     */
+    private int priority;
     private Map<String, Boolean> enableWorlds;
     private Map<String, Boolean> enableTriggers;
+
     private QueryExpression query;
     private ConfigurationNode queryNode;
     private @Nullable
     UpdateExpression update;
     private @Nullable
     ConfigurationNode updateNode;
+
     private @Nullable
     ConfigurationNode configurationNode;
 
@@ -73,37 +92,10 @@ public class CheckRule {
         this.query = new QueryExpression(queryNode);
         this.updateNode = Objects.isNull(updateNode) ? null : updateNode.copy();
         this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
+        Preconditions.checkArgument(priority >= 0 && priority <= 9, "Priority should between 0 and 9");
         this.priority = priority;
         this.enableWorlds = ImmutableMap.copyOf(Objects.requireNonNull(enableWorlds));
         this.enableTriggers = ImmutableMap.copyOf(Objects.requireNonNull(enableTriggers));
-    }
-
-    public static boolean checkName(@Nullable String s) {
-        return s != null && NAME_PATTERN.matcher(s).matches();
-    }
-
-    public static Builder builder(String name) {
-        return new Builder(name);
-    }
-
-    public static Builder builder(CheckRule checkRule) {
-        return new Builder(checkRule);
-    }
-
-    private static ConfigurationNode getDefaultQueryNode() {
-        try {
-            return TextUtil.serializeStringToConfigNode("{}");
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static ConfigurationNode getDefaultUpdateNode() {
-        try {
-            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\", Damage: 0}}");
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     public String getName() {
@@ -269,6 +261,22 @@ public class CheckRule {
         return Sets.union(subject.getActiveContexts(), Collections.singleton(newContext));
     }
 
+    public static ConfigurationNode getDefaultQueryNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static ConfigurationNode getDefaultUpdateNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\", Damage: 0}}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public static class Serializer implements TypeSerializer<CheckRule> {
 
         @Override
@@ -366,12 +374,29 @@ public class CheckRule {
             return this;
         }
 
+        public String getName() {
+            return name;
+        }
+
+        public int getPriority() {
+            return priority;
+        }
+
         public Map<String, Boolean> getEnableWorlds() {
             return enableWorlds;
         }
 
         public Map<String, Boolean> getEnableTriggers() {
             return enableTriggers;
+        }
+
+        public ConfigurationNode getQueryNode() {
+            return queryNode;
+        }
+
+        @Nullable
+        public ConfigurationNode getUpdateNode() {
+            return updateNode;
         }
 
         public CheckRule build() {
