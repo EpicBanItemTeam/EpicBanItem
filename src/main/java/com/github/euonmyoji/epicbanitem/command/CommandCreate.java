@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -49,7 +50,7 @@ class CommandCreate extends AbstractCommand {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         boolean noCapture = args.hasAny("no-capture");
-        // noinspection ConstantConditions
+        //noinspection OptionalGetWithoutIsPresent
         String name = args.<String>getOne("rule-name").get();
         // TODO: use histories in Query?
         String query = args.<String>getOne("query-rule").orElse("{}");
@@ -78,7 +79,7 @@ class CommandCreate extends AbstractCommand {
         } catch (CommandException e) {
             throw e;
         } catch (Exception e) {
-            e.printStackTrace();
+            EpicBanItem.getLogger().error("Failed to create.",e);
             throw new CommandException(getMessage("failed"), e);
         }
         src.sendMessage(getMessage("succeed", "rule_name", name));

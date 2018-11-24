@@ -7,6 +7,8 @@ import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -25,6 +27,7 @@ import org.spongepowered.api.world.World;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -32,49 +35,36 @@ import java.util.*;
 @NonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public class CheckRule {
-    // TODO: editable
-//    public static Builder builder(){
-//        return new Builder();
-//    }
-//
-//    public static class Builder {
-//
-//        private String name;
-//        private ItemType itemType;
-//        private BanConfig source;
-//        private int priority;
-//        private Set<String> enableWorlds = new HashSet<>();
-//        private String ignorePermission;
-//        private Set<String> enableTriggers = new HashSet<>();
-//        private boolean remove;
-//        private QueryExpression query;
-//        private UpdateExpression update;
-//        private ConfigurationNode queryNode;
-//        private ConfigurationNode updateNode;
-//
-//        private Builder(){
-//
-//        }
-//
-//        public CheckRule build(){
-//
-//        }
-//
-//
-//    }
+
+    public static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
+
+    public static boolean checkName(@Nullable String s) {
+        return s != null && NAME_PATTERN.matcher(s).matches();
+    }
+
+    public static Builder builder(String name) {
+        return new Builder(name);
+    }
+
+    public static Builder builder(CheckRule checkRule) {
+        return new Builder(checkRule);
+    }
 
     private final String name;
 
     private int priority = 5;
-    private Map<String, Boolean> enableWorlds = new HashMap<>();
-    private Map<String, Boolean> enableTriggers = new HashMap<>();
+    private Map<String, Boolean> enableWorlds;
+    private Map<String, Boolean> enableTriggers;
 
     private QueryExpression query;
     private ConfigurationNode queryNode;
     private @Nullable
-    UpdateExpression update = null;
+    UpdateExpression update;
     private @Nullable
-    ConfigurationNode updateNode = null;
+    ConfigurationNode updateNode;
+
+    private @Nullable
+    ConfigurationNode configurationNode;
 
     public CheckRule(String ruleName) {
         this(ruleName, getDefaultQueryNode());
@@ -93,14 +83,15 @@ public class CheckRule {
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, int priority, Map<String, Boolean> enableWorlds, Map<String, Boolean> enableTriggers) {
+        Preconditions.checkArgument(checkName(ruleName), "Rule name should match \"[a-z0-9-_]+\"");
         this.name = Objects.requireNonNull(ruleName);
         this.queryNode = queryNode.copy();
         this.query = new QueryExpression(queryNode);
         this.updateNode = Objects.isNull(updateNode) ? null : updateNode.copy();
         this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
         this.priority = priority;
-        this.enableWorlds = Objects.requireNonNull(enableWorlds);
-        this.enableTriggers = Objects.requireNonNull(enableTriggers);
+        this.enableWorlds = ImmutableMap.copyOf(Objects.requireNonNull(enableWorlds));
+        this.enableTriggers = ImmutableMap.copyOf(Objects.requireNonNull(enableTriggers));
     }
 
     public String getName() {
@@ -132,19 +123,13 @@ public class CheckRule {
         return queryNode;
     }
 
-    public void setQueryNode(ConfigurationNode queryNode) {
-        this.queryNode = queryNode;
-        this.query = new QueryExpression(queryNode);
-    }
-
     @Nullable
     public ConfigurationNode getUpdateNode() {
         return updateNode;
     }
 
-    public void setUpdateNode(@Nullable ConfigurationNode updateNode) {
-        this.updateNode = updateNode;
-        this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
+    public void setConfigurationNode(@Nullable ConfigurationNode configurationNode) {
+        this.configurationNode = configurationNode;
     }
 
     private Text getWorldInfo() {
@@ -257,6 +242,7 @@ public class CheckRule {
         if (queryNode.getNode("id").isVirtual()) {
             queryNode.getNode("id").setValue(itemId);
             query = new QueryExpression(queryNode);
+            configurationNode = null;
             return true;
         }
         return false;
@@ -291,39 +277,109 @@ public class CheckRule {
 
         @Override
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
-            CheckRule rule = new CheckRule(node.getNode("name").getString());
-            rule.priority = node.getNode("priority").getInt(5);
+            String name = Objects.requireNonNull(node.getNode("name").getString());
+            int priority =  node.getNode("priority").getInt(5);
+            Map<String,Boolean> enableWorld = new HashMap<>();
             if (node.getNode("enabled-worlds").hasListChildren()) {
-                node.getNode("enabled-worlds").getList(TypeToken.of(String.class)).forEach(s -> rule.enableWorlds.put(s, true));
+                node.getNode("enabled-worlds").getList(TypeToken.of(String.class)).forEach(s -> enableWorld.put(s, true));
             } else {
-                node.getNode("enabled-worlds").getChildrenMap().forEach((k, v) -> rule.enableWorlds.put(k.toString(), v.getBoolean()));
+                node.getNode("enabled-worlds").getChildrenMap().forEach((k, v) -> enableWorld.put(k.toString(), v.getBoolean()));
             }
+            Map<String,Boolean> enableTriggers = new HashMap<>();
             ConfigurationNode triggerNode = node.getNode("use-trigger");
-            triggerNode.getChildrenMap().forEach((k, v) -> rule.enableTriggers.put(k.toString(), v.getBoolean()));
+            triggerNode.getChildrenMap().forEach((k, v) -> enableTriggers.put(k.toString(), v.getBoolean()));
             ConfigurationNode queryNode = node.getNode("query");
             ConfigurationNode updateNode = node.getNode("update");
-            if (Objects.nonNull(queryNode.getValue())) {
-                rule.queryNode = queryNode.copy();
-                rule.query = new QueryExpression(rule.queryNode);
+            if (Objects.isNull(updateNode.getValue()) && node.getNode("remove").getBoolean(false)) {
+                updateNode = getDefaultUpdateNode();
             }
-            if (Objects.nonNull(updateNode.getValue())) {
-                rule.updateNode = updateNode.copy();
-                rule.update = new UpdateExpression(rule.updateNode);
-            } else if (!node.getNode("remove").getBoolean(false)) {
-                rule.updateNode = null;
-                rule.update = null;
-            }
-            return rule;
+            return new CheckRule(name,queryNode,updateNode,priority,enableWorld,enableTriggers);
         }
 
         @Override
         public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) {
+            if (rule == null) {
+                return;
+            }
+            if (rule.configurationNode != null) {
+                node.setValue(rule.configurationNode);
+                return;
+            }
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
             rule.enableWorlds.forEach((k, v) -> node.getNode("enabled-worlds", k).setValue(v));
             rule.enableTriggers.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
             node.getNode("query").setValue(rule.queryNode);
             node.getNode("update").setValue(rule.updateNode);
+        }
+    }
+
+    public static final class Builder {
+        private String name;
+        private int priority = 5;
+        private Map<String, Boolean> enableWorlds = new TreeMap<>();
+        private Map<String, Boolean> enableTriggers = new TreeMap<>();
+        private ConfigurationNode queryNode;
+        private @Nullable
+        ConfigurationNode updateNode;
+
+        private Builder(String name) {
+            Preconditions.checkArgument(checkName(name), "Rule name should match \"[a-z0-9-_]+\"");
+            this.name = name;
+            queryNode = getDefaultQueryNode();
+        }
+
+        private Builder(CheckRule checkRule) {
+            this.name = checkRule.name;
+            this.priority = checkRule.priority;
+            this.enableWorlds = new TreeMap<>(checkRule.enableWorlds);
+            this.enableTriggers = new TreeMap<>(checkRule.enableTriggers);
+            this.queryNode = checkRule.queryNode;
+            this.updateNode = checkRule.updateNode;
+        }
+
+        public Builder name(String name) {
+            Preconditions.checkArgument(checkName(name), "Rule name should match \"[a-z0-9-_]+\"");
+            this.name = name;
+            return this;
+        }
+
+        public Builder priority(int priority) {
+            Preconditions.checkArgument(priority >= 0 && priority <= 9, "Priority should between 0 and 9.");
+            this.priority = priority;
+            return this;
+        }
+
+        public Builder enableWorlds(Map<String, Boolean> enableWorlds) {
+            this.enableWorlds = new TreeMap<>(enableWorlds);
+            return this;
+        }
+
+        public Builder enableTriggers(Map<String, Boolean> enableTriggers) {
+            this.enableTriggers = new TreeMap<>(enableWorlds);
+            return this;
+        }
+
+        public Builder queryNode(ConfigurationNode queryNode) {
+            this.queryNode = queryNode;
+            return this;
+        }
+
+        public Builder updateNode(ConfigurationNode updateNode) {
+            this.updateNode = updateNode;
+            return this;
+        }
+
+        public Map<String, Boolean> getEnableWorlds() {
+            return enableWorlds;
+        }
+
+        public Map<String, Boolean> getEnableTriggers() {
+            return enableTriggers;
+        }
+
+        public CheckRule build() {
+            return new CheckRule(name, queryNode, updateNode, priority, enableWorlds, enableTriggers);
         }
     }
 }

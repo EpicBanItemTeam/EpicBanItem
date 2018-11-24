@@ -56,12 +56,12 @@ epicbanitem.command.update.args.updateRule = The rule to be applied (please refe
 
 epicbanitem.command.create.description = Create a new rule
 epicbanitem.command.create.extendedDescription = Create a new rule
-epicbanitem.command.create.succeed = Successfully added the rule: &a{rule_name}
+epicbanitem.command.create.succeed = Successfully added the rule: &a {rule_name}
 epicbanitem.command.create.failed = An error was thrown when trying to add a rule: 
 epicbanitem.command.create.override = The id will be overridden by the item in hand. Please add "--no-capture" flag if you want to specify an id which will not be overridden
 epicbanitem.command.create.empty = The id is not available while there is nothing in hand, which will bring performance issue when used. Please add "--no-capture" flag if it is intended
 epicbanitem.command.create.flags.noCapture = Use this parameter if you do not want to rely on the id of the item in hand
-epicbanitem.command.create.args.ruleName = The name of the rule to be created
+epicbanitem.command.create.args.ruleName = The name of the rule to be created, you can use a-z ,0-9 ,'-' & '_'
 epicbanitem.command.create.args.queryRule = The rule for querying, and the default value is empty ({})
 
 epicbanitem.command.remove.description = Remove a rule

@@ -117,8 +117,6 @@ public class BanConfig {
         }
     }
 
-    // TODO: 出现错误暂时捕获 加载完全部之后再抛出? 或者返回一个布尔值表示十分出错?
-
     private void load(ConfigurationNode node) throws IOException {
         // noinspection unused
         int version = node.getNode("epicbanitem-version").<Integer>getValue(Types::asInt, () -> {
@@ -137,13 +135,16 @@ public class BanConfig {
                 Sponge.getRegistry().getType(ItemType.class, item).ifPresent(newItems::add);
                 List<CheckRule> ruleList = new ArrayList<>();
                 for (ConfigurationNode node1 : entry.getValue().getChildrenList()) {
-                    CheckRule rule = node1.getValue(RULE_TOKEN);
-                    if (rulesByName.containsKey(rule.getName())) {
-                        String newName = findNewName(rule.getName(), rulesByName::containsKey);
-                        rule = new CheckRule(newName, rule);
-                        EpicBanItem.getLogger().warn("Find duplicate names {}, renamed one to {}", rule.getName(), newName);
-                        needSave = true;
+                    ConfigurationNode originNode = node1.copy();
+                    //check name before TypeSerializer of CheckRule
+                    String name = node1.getNode("name").getString();
+                    if (name == null || !CheckRule.NAME_PATTERN.matcher(name).matches() || rulesByName.containsKey(name)) {
+                        String newName = findNewName(name, rulesByName::containsKey);
+                        node1.getNode("name").setValue(newName);
+                        EpicBanItem.getLogger().warn("Find duplicate or illegal name,temporarily renamed \"{}\" in {} to \"{}\"", name, item, newName);
                     }
+                    CheckRule rule = Objects.requireNonNull(node1.getValue(RULE_TOKEN));
+                    rule.setConfigurationNode(originNode);
                     // fix id
                     if (!item.equals("*")) {
                         needSave = rule.tryFixId(item) || needSave;
@@ -192,7 +193,14 @@ public class BanConfig {
         }
     }
 
-    private static String findNewName(String name, Predicate<String> alreadyExists) {
+    private static String findNewName(@Nullable String name, Predicate<String> alreadyExists) {
+        if (name == null) {
+            name = "undefined-1";
+        }
+        name = name.toLowerCase();
+        if (!CheckRule.NAME_PATTERN.matcher(name).matches()) {
+            name = "unrecognized-1";
+        }
         if (alreadyExists.test(name)) {
             int dashIndex = name.lastIndexOf('-');
             int number = parseOrElse(name.substring(dashIndex + 1), 2);

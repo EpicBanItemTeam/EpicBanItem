@@ -56,12 +56,12 @@ epicbanitem.command.update.args.updateRule = 用来应用的规则,阅读 wiki �
 
 epicbanitem.command.create.description = 创建一个新的规则
 epicbanitem.command.create.extendedDescription = 创建一个新的规则
-epicbanitem.command.create.succeed = 成功添加规则：&a{rule_name}
+epicbanitem.command.create.succeed = 成功添加规则：&a {rule_name}
 epicbanitem.command.create.failed = 创建规则失败
 epicbanitem.command.create.override = id 将会被手中物品覆盖。如欲不覆盖，请加“--no-capture”参数重试
 epicbanitem.command.create.empty = id 不存在，同时手中物品为空，这会导致匹配物品时性能下降。如欲不指定 id，请加“--no-capture”参数重试
 epicbanitem.command.create.flags.noCapture = 如果你不希望依赖手中物品的 id，请使用这个参数
-epicbanitem.command.create.args.ruleName = 新创建的规则名
+epicbanitem.command.create.args.ruleName = 新创建的规则名,规则名由小写英文字母,阿拉伯数字,以及"-"和"_"组成
 epicbanitem.command.create.args.queryRule = 要匹配的规则,默认为空（{}）
 
 epicbanitem.command.remove.description = 删除一个规则

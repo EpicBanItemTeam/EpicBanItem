@@ -122,7 +122,7 @@ public class CommandEdit extends AbstractCommand {
                 if (update != null) {
                     updateNode = TextUtil.serializeStringToConfigNode(update);
                 }
-                rule.setUpdateNode(updateNode);
+//                rule.setUpdateNode(updateNode);
             } catch (IOException e) {
                 EpicBanItem.getLogger().error("Error", e);
                 throw new CommandException(getMessage("error"), e);
