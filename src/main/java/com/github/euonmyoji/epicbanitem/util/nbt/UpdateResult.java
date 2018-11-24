@@ -16,18 +16,18 @@ import java.util.Optional;
 @NonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public final class UpdateResult {
+    private final Map<String, Operation> children;
+
+    private UpdateResult(Map<String, Operation> children) {
+        this.children = ImmutableMap.copyOf(children);
+    }
+
     public static UpdateResult nothing() {
         return new UpdateResult(ImmutableMap.of());
     }
 
     public static UpdateResult update(Map<String, Operation> fields) {
         return new UpdateResult(fields);
-    }
-
-    private final Map<String, Operation> children;
-
-    private UpdateResult(Map<String, Operation> children) {
-        this.children = ImmutableMap.copyOf(children);
     }
 
     private void apply(DataQuery query, DataView view) {
@@ -67,7 +67,27 @@ public final class UpdateResult {
         return new UpdateResult(children);
     }
 
+    @Override
+    public String toString() {
+        String nextSeparator = "";
+        StringBuilder sb = new StringBuilder("UpdateResult{");
+        for (Map.Entry<String, Operation> entry : this.children.entrySet()) {
+            sb.append(nextSeparator).append(entry.getKey());
+            sb.append('=').append(entry.getValue());
+            nextSeparator = ", ";
+        }
+        return sb.append('}').toString();
+    }
+
     public static class Operation {
+        private final boolean replace;
+        private final Object value; // could be either UpdateResult or Optional<?>
+
+        private Operation(boolean replace, Object value) {
+            this.replace = replace;
+            this.value = value;
+        }
+
         public static Operation remove() {
             return new Operation(true, Optional.empty());
         }
@@ -78,14 +98,6 @@ public final class UpdateResult {
 
         public static Operation replace(Object newValue) {
             return new Operation(true, Optional.of(newValue));
-        }
-
-        private final boolean replace;
-        private final Object value; // could be either UpdateResult or Optional<?>
-
-        private Operation(boolean replace, Object value) {
-            this.replace = replace;
-            this.value = value;
         }
 
         public Optional<UpdateResult> getUpdateResult() {
@@ -100,17 +112,5 @@ public final class UpdateResult {
                 return ((UpdateResult) this.value).toString();
             }
         }
-    }
-
-    @Override
-    public String toString() {
-        String nextSeparator = "";
-        StringBuilder sb = new StringBuilder("UpdateResult{");
-        for (Map.Entry<String, Operation> entry : this.children.entrySet()) {
-            sb.append(nextSeparator).append(entry.getKey());
-            sb.append('=').append(entry.getValue());
-            nextSeparator = ", ";
-        }
-        return sb.append('}').toString();
     }
 }

@@ -40,35 +40,10 @@ public class EpicBanItem {
     private final Logger logger;
 
     private final Metrics metrics;
-
-    public static Logger getLogger() {
-        return instance.logger;
-    }
-
     private final Messages messages;
-
-    public static Messages getMessages() {
-        return instance.messages;
-    }
-
     private Settings settings;
-
-    public static Settings getSettings() {
-        return instance.settings;
-    }
-
     private BanConfig banConfig;
-
-    public static BanConfig getBanConfig() {
-        return instance.banConfig;
-    }
-
     private String mainCommandAlias;
-
-    public static String getMainCommandAlias() {
-        return instance.mainCommandAlias;
-    }
-
     private AutoFileLoader autoFileLoader;
 
     @Inject
@@ -78,6 +53,26 @@ public class EpicBanItem {
         logger = theLogger;
         metrics = theMetrics;
         messages = new Messages(this, theCfgDir);
+    }
+
+    public static Logger getLogger() {
+        return instance.logger;
+    }
+
+    public static Messages getMessages() {
+        return instance.messages;
+    }
+
+    public static Settings getSettings() {
+        return instance.settings;
+    }
+
+    public static BanConfig getBanConfig() {
+        return instance.banConfig;
+    }
+
+    public static String getMainCommandAlias() {
+        return instance.mainCommandAlias;
     }
 
     @Listener

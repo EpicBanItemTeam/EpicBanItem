@@ -60,15 +60,6 @@ public class UpdateExpression implements DataTransformer {
         }
     }
 
-    @Override
-    public UpdateResult update(QueryResult result, DataView view) {
-        UpdateResult updateResult = UpdateResult.nothing();
-        for (DataTransformer transformer : this.transformers) {
-            updateResult = transformer.update(result, view).merge(updateResult.getChildren());
-        }
-        return updateResult;
-    }
-
     private static UpdateResult getUpdateResult(DataQuery query, UpdateResult.Operation operation) {
         for (String part : Lists.reverse(query.getParts())) {
             operation = UpdateResult.Operation.update(UpdateResult.update(ImmutableMap.of(part, operation)));
@@ -237,6 +228,15 @@ public class UpdateExpression implements DataTransformer {
             throw new IllegalArgumentException("$pop expects 1 or -1, found: " + index);
         }
         return previousValue;
+    }
+
+    @Override
+    public UpdateResult update(QueryResult result, DataView view) {
+        UpdateResult updateResult = UpdateResult.nothing();
+        for (DataTransformer transformer : this.transformers) {
+            updateResult = transformer.update(result, view).merge(updateResult.getChildren());
+        }
+        return updateResult;
     }
 
     private static class Transform implements DataTransformer {

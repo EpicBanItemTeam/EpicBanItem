@@ -49,6 +49,53 @@ public class BanConfig {
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
+    private static String getTypeId(@Nullable ItemType itemType) {
+        return Objects.isNull(itemType) ? "*" : itemType.getId();
+    }
+
+    private static int parseOrElse(String string, int orElse) {
+        try {
+            return Integer.parseUnsignedInt(string);
+        } catch (NumberFormatException e) {
+            return orElse;
+        }
+    }
+
+    private static String findNewName(@Nullable String name, Predicate<String> alreadyExists) {
+        if (name == null) {
+            name = "undefined-1";
+        }
+        name = name.toLowerCase();
+        if (!CheckRule.NAME_PATTERN.matcher(name).matches()) {
+            name = "unrecognized-1";
+        }
+        if (alreadyExists.test(name)) {
+            int dashIndex = name.lastIndexOf('-');
+            int number = parseOrElse(name.substring(dashIndex + 1), 2);
+            String prefix = dashIndex >= 0 ? name.substring(0, dashIndex) : name;
+            for (name = prefix + '-' + number; alreadyExists.test(name); name = prefix + '-' + number) {
+                ++number;
+            }
+        }
+        return name;
+    }
+
+    private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) {
+        CheckRule[] newCheckRules;
+        int ruleSize = original.size();
+        newCheckRules = new CheckRule[ruleSize + 1];
+        newCheckRules[ruleSize] = newCheckRule;
+        for (int i = 0; i < ruleSize; ++i) {
+            CheckRule checkRule = original.get(i);
+            if (checkRule.getName().equals(newCheckRule.getName())) {
+                throw new IllegalArgumentException("Rule with the same name already exits");
+            }
+            newCheckRules[i] = checkRule;
+        }
+        Arrays.sort(newCheckRules, COMPARATOR);
+        return Arrays.asList(newCheckRules);
+    }
+
     public Set<ItemType> getItems() {
         return Objects.requireNonNull(itemTypes);
     }
@@ -179,52 +226,5 @@ public class BanConfig {
         } catch (ObjectMappingException e) {
             throw new IOException(e);
         }
-    }
-
-    private static String getTypeId(@Nullable ItemType itemType) {
-        return Objects.isNull(itemType) ? "*" : itemType.getId();
-    }
-
-    private static int parseOrElse(String string, int orElse) {
-        try {
-            return Integer.parseUnsignedInt(string);
-        } catch (NumberFormatException e) {
-            return orElse;
-        }
-    }
-
-    private static String findNewName(@Nullable String name, Predicate<String> alreadyExists) {
-        if (name == null) {
-            name = "undefined-1";
-        }
-        name = name.toLowerCase();
-        if (!CheckRule.NAME_PATTERN.matcher(name).matches()) {
-            name = "unrecognized-1";
-        }
-        if (alreadyExists.test(name)) {
-            int dashIndex = name.lastIndexOf('-');
-            int number = parseOrElse(name.substring(dashIndex + 1), 2);
-            String prefix = dashIndex >= 0 ? name.substring(0, dashIndex) : name;
-            for (name = prefix + '-' + number; alreadyExists.test(name); name = prefix + '-' + number) {
-                ++number;
-            }
-        }
-        return name;
-    }
-
-    private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) {
-        CheckRule[] newCheckRules;
-        int ruleSize = original.size();
-        newCheckRules = new CheckRule[ruleSize + 1];
-        newCheckRules[ruleSize] = newCheckRule;
-        for (int i = 0; i < ruleSize; ++i) {
-            CheckRule checkRule = original.get(i);
-            if (checkRule.getName().equals(newCheckRule.getName())) {
-                throw new IllegalArgumentException("Rule with the same name already exits");
-            }
-            newCheckRules[i] = checkRule;
-        }
-        Arrays.sort(newCheckRules, COMPARATOR);
-        return Arrays.asList(newCheckRules);
     }
 }

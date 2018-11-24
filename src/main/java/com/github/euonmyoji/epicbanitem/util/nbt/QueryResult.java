@@ -14,6 +14,16 @@ import java.util.Optional;
 @NonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public final class QueryResult {
+    private final boolean isArray;
+    private final boolean isObject;
+    private final Map<String, QueryResult> children;
+
+    private QueryResult(boolean isArray, boolean isObject, Map<String, QueryResult> children) {
+        this.children = ImmutableMap.copyOf(children);
+        this.isObject = isObject;
+        this.isArray = isArray;
+    }
+
     public static Optional<QueryResult> check(boolean condition) {
         return condition ? success() : failure();
     }
@@ -32,16 +42,6 @@ public final class QueryResult {
 
     public static Optional<QueryResult> successObject(Map<String, QueryResult> children) {
         return Optional.of(new QueryResult(false, true, children));
-    }
-
-    private final boolean isArray;
-    private final boolean isObject;
-    private final Map<String, QueryResult> children;
-
-    private QueryResult(boolean isArray, boolean isObject, Map<String, QueryResult> children) {
-        this.children = ImmutableMap.copyOf(children);
-        this.isObject = isObject;
-        this.isArray = isArray;
     }
 
     public boolean isArrayChildren() {

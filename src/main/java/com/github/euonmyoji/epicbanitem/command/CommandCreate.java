@@ -40,6 +40,33 @@ class CommandCreate extends AbstractCommand {
         super("create", "c");
     }
 
+    static Optional<BlockSnapshot> getBlockLookAt(CommandSource src) {
+        if (src instanceof Entity) {
+            Predicate<BlockRayHit<World>> filter = BlockRay.continueAfterFilter(BlockRay.onlyAirFilter(), 1);
+            BlockRay.BlockRayBuilder<World> blockRayBuilder = BlockRay.from((Entity) src).stopFilter(filter);
+            return blockRayBuilder.distanceLimit(5).build().end().map(h -> h.getLocation().createSnapshot());
+        }
+        return Optional.empty();
+    }
+
+    static Optional<Tuple<HandType, ItemStack>> getItemInHand(CommandSource src) {
+        if (src instanceof ArmorEquipable && src instanceof Locatable) {
+            for (HandType handType : Sponge.getRegistry().getAllOf(HandType.class)) {
+                Optional<ItemStack> handItem = ((ArmorEquipable) src).getItemInHand(handType);
+                if (handItem.isPresent() && !handItem.get().isEmpty()) {
+                    return Optional.of(Tuple.of(handType, handItem.get()));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    static void setItemInHand(CommandSource src, Tuple<HandType, ItemStack> item) {
+        if (src instanceof ArmorEquipable && src instanceof Locatable) {
+            ((ArmorEquipable) src).setItemInHand(item.getFirst(), item.getSecond());
+        }
+    }
+
     @Override
     public CommandElement getArgument() {
         return seq(string(Text.of("rule-name")),
@@ -79,37 +106,10 @@ class CommandCreate extends AbstractCommand {
         } catch (CommandException e) {
             throw e;
         } catch (Exception e) {
-            EpicBanItem.getLogger().error("Failed to create.",e);
+            EpicBanItem.getLogger().error("Failed to create.", e);
             throw new CommandException(getMessage("failed"), e);
         }
         src.sendMessage(getMessage("succeed", "rule_name", name));
         return CommandResult.success();
-    }
-
-    static Optional<BlockSnapshot> getBlockLookAt(CommandSource src) {
-        if (src instanceof Entity) {
-            Predicate<BlockRayHit<World>> filter = BlockRay.continueAfterFilter(BlockRay.onlyAirFilter(), 1);
-            BlockRay.BlockRayBuilder<World> blockRayBuilder = BlockRay.from((Entity) src).stopFilter(filter);
-            return blockRayBuilder.distanceLimit(5).build().end().map(h -> h.getLocation().createSnapshot());
-        }
-        return Optional.empty();
-    }
-
-    static Optional<Tuple<HandType, ItemStack>> getItemInHand(CommandSource src) {
-        if (src instanceof ArmorEquipable && src instanceof Locatable) {
-            for (HandType handType : Sponge.getRegistry().getAllOf(HandType.class)) {
-                Optional<ItemStack> handItem = ((ArmorEquipable) src).getItemInHand(handType);
-                if (handItem.isPresent() && !handItem.get().isEmpty()) {
-                    return Optional.of(Tuple.of(handType, handItem.get()));
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    static void setItemInHand(CommandSource src, Tuple<HandType, ItemStack> item) {
-        if (src instanceof ArmorEquipable && src instanceof Locatable) {
-            ((ArmorEquipable) src).setItemInHand(item.getFirst(), item.getSecond());
-        }
     }
 }

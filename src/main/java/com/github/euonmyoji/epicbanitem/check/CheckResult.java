@@ -18,6 +18,10 @@ public class CheckResult {
         view = null;
     }
 
+    public static CheckResult empty() {
+        return new CheckResult();
+    }
+
     public List<CheckRule> getBreakRules() {
         return this.breakRules;
     }
@@ -28,9 +32,5 @@ public class CheckResult {
 
     public boolean isBanned() {
         return this.breakRules.size() > 0;
-    }
-
-    public static CheckResult empty() {
-        return new CheckResult();
     }
 }

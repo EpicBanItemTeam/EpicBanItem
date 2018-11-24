@@ -24,9 +24,8 @@ import java.util.Optional;
 @NonnullByDefault
 public class CommandEbi extends AbstractCommand {
 
-    private Map<List<String>, CommandCallable> childrenMap = new HashMap<>();
-
     private static final String ARGUMENT_KEY = "string";
+    private Map<List<String>, CommandCallable> childrenMap = new HashMap<>();
 
     public CommandEbi() {
         super("ebi", "epicbanitem", "banitem", "bi");
@@ -48,6 +47,32 @@ public class CommandEbi extends AbstractCommand {
                 .childArgumentParseExceptionFallback(true)
                 .executor(this)
                 .build();
+    }
+
+    private static int getHowClose(String raw, String s) {
+        // s长度不大于raw的1.5倍并且不匹配的字符不超过raw字符数 并且至少有一半字符匹配raw 才算接近
+        final float offset = 1.5f;
+        final int rawLen = raw.length();
+        int d = 0;
+        if (rawLen * offset >= s.length()) {
+            for (int i = 0; i < s.length(); i++) {
+
+                if (s.contains(raw)) {
+                    return rawLen + d;
+                }
+
+                String c = s.substring(i, i + 1);
+                if (raw.contains(c)) {
+                    d++;
+                    raw = raw.replaceFirst(c, "");
+                } else {
+                    d--;
+                }
+            }
+        } else {
+            return Integer.MIN_VALUE;
+        }
+        return d;
     }
 
     public Optional<CommandMapping> registerFor(EpicBanItem instance) {
@@ -93,31 +118,5 @@ public class CommandEbi extends AbstractCommand {
 
     private void addChildCommand(ICommand command) {
         childrenMap.put(command.getNameList(), command.getCallable());
-    }
-
-    private static int getHowClose(String raw, String s) {
-        // s长度不大于raw的1.5倍并且不匹配的字符不超过raw字符数 并且至少有一半字符匹配raw 才算接近
-        final float offset = 1.5f;
-        final int rawLen = raw.length();
-        int d = 0;
-        if (rawLen * offset >= s.length()) {
-            for (int i = 0; i < s.length(); i++) {
-
-                if (s.contains(raw)) {
-                    return rawLen + d;
-                }
-
-                String c = s.substring(i, i + 1);
-                if (raw.contains(c)) {
-                    d++;
-                    raw = raw.replaceFirst(c, "");
-                } else {
-                    d--;
-                }
-            }
-        } else {
-            return Integer.MIN_VALUE;
-        }
-        return d;
     }
 }

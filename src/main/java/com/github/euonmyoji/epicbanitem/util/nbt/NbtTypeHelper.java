@@ -20,6 +20,31 @@ import java.util.stream.IntStream;
  */
 @NonnullByDefault
 final class NbtTypeHelper {
+    private static final Pattern BOOLEAN;
+    private static final Pattern DOUBLE;
+    private static final Pattern FLOAT;
+    private static final Pattern BYTE;
+    private static final Pattern LONG;
+    private static final Pattern SHORT;
+    private static final Pattern INTEGER;
+    private static final Pattern NUMBER;
+
+    // from vanilla
+    static {
+        BOOLEAN = Pattern.compile("(true|false)", Pattern.CASE_INSENSITIVE);
+        BYTE = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))b", Pattern.CASE_INSENSITIVE);
+        LONG = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))l", Pattern.CASE_INSENSITIVE);
+        SHORT = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))s", Pattern.CASE_INSENSITIVE);
+        INTEGER = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))", Pattern.CASE_INSENSITIVE);
+        NUMBER = Pattern.compile("([-+]?(?:[0-9]+[.]|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)", Pattern.CASE_INSENSITIVE);
+        FLOAT = Pattern.compile("([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)f", Pattern.CASE_INSENSITIVE);
+        DOUBLE = Pattern.compile("([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)d", Pattern.CASE_INSENSITIVE);
+    }
+
+    private NbtTypeHelper() {
+        // nothing here
+    }
+
     static void setObject(DataQuery query, DataView view, Function<Object, Object> valueTransformer) {
         List<String> queryParts = query.getParts();
         int lastQueryPartIndex = queryParts.size() - 1;
@@ -272,27 +297,6 @@ final class NbtTypeHelper {
             }
         }
         return OptionalInt.empty();
-    }
-
-    private static final Pattern BOOLEAN;
-    private static final Pattern DOUBLE;
-    private static final Pattern FLOAT;
-    private static final Pattern BYTE;
-    private static final Pattern LONG;
-    private static final Pattern SHORT;
-    private static final Pattern INTEGER;
-    private static final Pattern NUMBER;
-
-    // from vanilla
-    static {
-        BOOLEAN = Pattern.compile("(true|false)", Pattern.CASE_INSENSITIVE);
-        BYTE = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))b", Pattern.CASE_INSENSITIVE);
-        LONG = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))l", Pattern.CASE_INSENSITIVE);
-        SHORT = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))s", Pattern.CASE_INSENSITIVE);
-        INTEGER = Pattern.compile("([-+]?(?:0|[1-9][0-9]*))", Pattern.CASE_INSENSITIVE);
-        NUMBER = Pattern.compile("([-+]?(?:[0-9]+[.]|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)", Pattern.CASE_INSENSITIVE);
-        FLOAT = Pattern.compile("([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)f", Pattern.CASE_INSENSITIVE);
-        DOUBLE = Pattern.compile("([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)d", Pattern.CASE_INSENSITIVE);
     }
 
     static Object convert(@Nullable Object previous, ConfigurationNode node) {
@@ -616,9 +620,5 @@ final class NbtTypeHelper {
             builder.put(entry.getKey().toString(), entry.getValue());
         }
         return builder.build();
-    }
-
-    private NbtTypeHelper() {
-        // nothing here
     }
 }

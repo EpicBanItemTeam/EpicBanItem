@@ -26,6 +26,10 @@ import java.util.Set;
 public class TextUtil {
 
 
+    private static BufferedReader delegationReader;
+    private static BufferedWriter delegationWriter;
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
+
     /**
      * @param origin origin string support FormatText
      * @param keySet placeholders in the string
@@ -67,7 +71,6 @@ public class TextUtil {
         return TextTemplate.of(objects.toArray());
     }
 
-
     public static Text parseFormatText(String in) {
         return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
     }
@@ -94,11 +97,6 @@ public class TextUtil {
             throw new RuntimeException(e);
         }
     }
-
-    private static BufferedReader delegationReader;
-    private static BufferedWriter delegationWriter;
-
-    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
 //    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
 //            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
 //            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))

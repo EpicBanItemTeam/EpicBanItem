@@ -119,6 +119,17 @@ public class NbtTagDataUtil {
     private static final class Map {
         private static final SetMultimap<Tuple<Optional<?>, Optional<?>>, BlockState> ITEM_TO_BLOCK;
 
+        static {
+            SetMultimap<Tuple<Optional<?>, Optional<?>>, BlockState> map;
+            map = MultimapBuilder.linkedHashKeys().linkedHashSetValues().build();
+            Stream.concat(BlockTypes.AIR.getAllBlockStates().stream(), Sponge.getRegistry().getAllOf(BlockType.class).stream()
+                    .flatMap(type -> Stream.concat(Stream.of(type.getDefaultState()), type.getAllBlockStates().stream()))).forEach(state -> {
+                DataContainer nbt = getItemByBlock(state).orElseGet(() -> ItemStack.empty().toContainer());
+                map.put(Tuple.of(nbt.get(ITEM_TYPE), nbt.get(UNSAFE_DAMAGE)), state);
+            });
+            ITEM_TO_BLOCK = Multimaps.unmodifiableSetMultimap(map);
+        }
+
         private static Optional<BlockState> getBlockByItem(DataView view, BlockState oldState) {
             Set<BlockState> blockStates = ITEM_TO_BLOCK.get(Tuple.of(view.get(ID), view.get(DAMAGE)));
             if (blockStates.isEmpty()) {
@@ -135,17 +146,6 @@ public class NbtTagDataUtil {
             } catch (Exception e) {
                 return Optional.empty();
             }
-        }
-
-        static {
-            SetMultimap<Tuple<Optional<?>, Optional<?>>, BlockState> map;
-            map = MultimapBuilder.linkedHashKeys().linkedHashSetValues().build();
-            Stream.concat(BlockTypes.AIR.getAllBlockStates().stream(), Sponge.getRegistry().getAllOf(BlockType.class).stream()
-                    .flatMap(type -> Stream.concat(Stream.of(type.getDefaultState()), type.getAllBlockStates().stream()))).forEach(state -> {
-                DataContainer nbt = getItemByBlock(state).orElseGet(() -> ItemStack.empty().toContainer());
-                map.put(Tuple.of(nbt.get(ITEM_TYPE), nbt.get(UNSAFE_DAMAGE)), state);
-            });
-            ITEM_TO_BLOCK = Multimaps.unmodifiableSetMultimap(map);
         }
     }
 }

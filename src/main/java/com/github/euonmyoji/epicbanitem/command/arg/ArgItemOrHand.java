@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
  */
 @NonnullByDefault
 class ArgItemOrHand extends CommandElement {
+    private final String HAND = "hand";
     private boolean explicitHand;
 
     ArgItemOrHand(@Nullable Text key, boolean explicitHand) {
@@ -37,7 +38,7 @@ class ArgItemOrHand extends CommandElement {
             return getItemTypeFormHand((Player) source, args);
         }
         String argString = args.peek();
-        if (isPlayer && explicitHand && argString.equalsIgnoreCase("hand")) {
+        if (isPlayer && explicitHand && HAND.equalsIgnoreCase(argString)) {
             args.next();
             return getItemTypeFormHand((Player) source, args);
         }
@@ -62,8 +63,8 @@ class ArgItemOrHand extends CommandElement {
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
         List<String> list = Sponge.getRegistry().getAllOf(ItemType.class).stream().map(ItemType::getId).filter(s -> s.toLowerCase().startsWith(prefix)).collect(Collectors.toList());
-        if (explicitHand && "hand".startsWith(prefix)) {
-            list.add("hand");
+        if (explicitHand && HAND.startsWith(prefix)) {
+            list.add(HAND);
         }
         return list;
     }

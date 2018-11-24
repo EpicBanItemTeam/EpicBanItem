@@ -13,7 +13,6 @@ import java.util.Map;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
-@SuppressWarnings("WeakerAccess")
 public class EpicBanItemArgs {
 
     private static final Map<String, Tristate> TRISTATE_MAP = ImmutableMap.<String, Tristate>builder()

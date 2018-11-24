@@ -45,6 +45,14 @@ public class AutoFileLoader implements Closeable {
         Task.builder().execute(this::tick).name("EpicBanItemAutoFileLoader").intervalTicks(1).submit(plugin);
     }
 
+    private static ConfigurationLoader<? extends ConfigurationNode> toLoader(Path path) {
+        return HoconConfigurationLoader.builder().setPath(path).build();
+    }
+
+    private static String toString(Path path, Path cfgDir) {
+        return cfgDir.relativize(path).toString();
+    }
+
     private void tick(Task task) {
         this.tickPendingSaveTask();
         this.tickWatchEvents(task);
@@ -113,14 +121,6 @@ public class AutoFileLoader implements Closeable {
         } catch (IOException e) {
             EpicBanItem.getLogger().error("Find error while writing to " + pathString + ".", e);
         }
-    }
-
-    private static ConfigurationLoader<? extends ConfigurationNode> toLoader(Path path) {
-        return HoconConfigurationLoader.builder().setPath(path).build();
-    }
-
-    private static String toString(Path path, Path cfgDir) {
-        return cfgDir.relativize(path).toString();
     }
 
     public void forceSaving(Path path) {

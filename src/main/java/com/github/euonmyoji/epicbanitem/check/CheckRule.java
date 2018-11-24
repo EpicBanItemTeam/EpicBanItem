@@ -37,32 +37,16 @@ import java.util.regex.Pattern;
 public class CheckRule {
 
     public static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
-
-    public static boolean checkName(@Nullable String s) {
-        return s != null && NAME_PATTERN.matcher(s).matches();
-    }
-
-    public static Builder builder(String name) {
-        return new Builder(name);
-    }
-
-    public static Builder builder(CheckRule checkRule) {
-        return new Builder(checkRule);
-    }
-
     private final String name;
-
     private int priority = 5;
     private Map<String, Boolean> enableWorlds;
     private Map<String, Boolean> enableTriggers;
-
     private QueryExpression query;
     private ConfigurationNode queryNode;
     private @Nullable
     UpdateExpression update;
     private @Nullable
     ConfigurationNode updateNode;
-
     private @Nullable
     ConfigurationNode configurationNode;
 
@@ -92,6 +76,34 @@ public class CheckRule {
         this.priority = priority;
         this.enableWorlds = ImmutableMap.copyOf(Objects.requireNonNull(enableWorlds));
         this.enableTriggers = ImmutableMap.copyOf(Objects.requireNonNull(enableTriggers));
+    }
+
+    public static boolean checkName(@Nullable String s) {
+        return s != null && NAME_PATTERN.matcher(s).matches();
+    }
+
+    public static Builder builder(String name) {
+        return new Builder(name);
+    }
+
+    public static Builder builder(CheckRule checkRule) {
+        return new Builder(checkRule);
+    }
+
+    private static ConfigurationNode getDefaultQueryNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static ConfigurationNode getDefaultUpdateNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\", Damage: 0}}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public String getName() {
@@ -257,35 +269,19 @@ public class CheckRule {
         return Sets.union(subject.getActiveContexts(), Collections.singleton(newContext));
     }
 
-    private static ConfigurationNode getDefaultQueryNode() {
-        try {
-            return TextUtil.serializeStringToConfigNode("{}");
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static ConfigurationNode getDefaultUpdateNode() {
-        try {
-            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\", Damage: 0}}");
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     public static class Serializer implements TypeSerializer<CheckRule> {
 
         @Override
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
             String name = Objects.requireNonNull(node.getNode("name").getString());
-            int priority =  node.getNode("priority").getInt(5);
-            Map<String,Boolean> enableWorld = new HashMap<>();
+            int priority = node.getNode("priority").getInt(5);
+            Map<String, Boolean> enableWorld = new HashMap<>();
             if (node.getNode("enabled-worlds").hasListChildren()) {
                 node.getNode("enabled-worlds").getList(TypeToken.of(String.class)).forEach(s -> enableWorld.put(s, true));
             } else {
                 node.getNode("enabled-worlds").getChildrenMap().forEach((k, v) -> enableWorld.put(k.toString(), v.getBoolean()));
             }
-            Map<String,Boolean> enableTriggers = new HashMap<>();
+            Map<String, Boolean> enableTriggers = new HashMap<>();
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             triggerNode.getChildrenMap().forEach((k, v) -> enableTriggers.put(k.toString(), v.getBoolean()));
             ConfigurationNode queryNode = node.getNode("query");
@@ -293,7 +289,7 @@ public class CheckRule {
             if (Objects.isNull(updateNode.getValue()) && node.getNode("remove").getBoolean(false)) {
                 updateNode = getDefaultUpdateNode();
             }
-            return new CheckRule(name,queryNode,updateNode,priority,enableWorld,enableTriggers);
+            return new CheckRule(name, queryNode, updateNode, priority, enableWorld, enableTriggers);
         }
 
         @Override
