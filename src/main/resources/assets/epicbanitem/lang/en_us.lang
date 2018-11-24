@@ -1,74 +1,88 @@
+
 #command
-epicbanitem.commands.name=Command: {name} {alias}
-epicbanitem.commands.usage=Usage: {usage}
-epicbanitem.commands.args=Arguments:
-epicbanitem.commands.tooManyArgs=Too many arguments
-epicbanitem.args.checkRule.notFound=The check rule "{name}" is not found
-epicbanitem.args.itemCheckRule.notFound=The check rule "{name}" for "{item}" is not found
-epicbanitem.args.item.notFound=The item "{name}" is not found
-epicbanitem.args.trigger.notFound=The trigger "{name}" is not found
-epicbanitem.command.ebi.description=The command for EpicBanItem
-epicbanitem.command.ebi.extendedDescription=The command for EpicBanItem
-epicbanitem.command.ebi.version=EpicBanItem version: {version}
-epicbanitem.command.ebi.useHelp=Please use {help_command} for more information
-epicbanitem.command.ebi.suggestCommand=Is {suggest} what you want?
-epicbanitem.command.check.description=Check the item in hand or the block you are faced with and list the compatible rules
-epicbanitem.command.check.extendedDescription=Check the item in hand or the block you are faced with and list the compatible rules
-epicbanitem.command.check.noItem=The item is not available. Maybe you are not a player or there is nothing in your hand?
-epicbanitem.command.check.noBlock=The block is not available. Please make sure that you are faced with the block and close enough.
-epicbanitem.command.check.flags.l=Check the block you are faced with instead of the item in hand.
-epicbanitem.command.list.description=List all the items to be banned
-epicbanitem.command.list.extendedDescription=List all the items to be banned
-epicbanitem.command.list.noRule=No rules
-epicbanitem.command.list.firstHalfLine={check_rule}
-epicbanitem.command.list.secondHalfLine=&7{item_type}
-epicbanitem.command.list.title=List of rules
-epicbanitem.command.list.padding=&7-
-epicbanitem.command.list.args.itemType=The item to be queried hand. Enter hand to query the items in hand, and leave blank to list all the items
-epicbanitem.command.show.description=Display information of a particular rule
-epicbanitem.command.show.extendedDescription=Display information of a particular rule
-epicbanitem.command.show.args.checkRule=The rule whose information will be displayed
-epicbanitem.command.query.description=Use a specific rule to check the item in hand or the block you are faced with, then display related information such as the NBT
-epicbanitem.command.query.extendedDescription=Use a specific rule to check the item in hand or the block you are faced with, then display related information such as the NBT
-epicbanitem.command.query.noItem=The item is not available. Maybe you are not a player or there is nothing in hand?
-epicbanitem.command.query.noBlock=The block is not available. Please make sure that you are faced with the block and close enough.
-epicbanitem.command.query.succeed=Successfully generated query result: 
-epicbanitem.command.query.failed=Failed to generate query result.
-epicbanitem.command.query.error=An error was thrown when generating query result: 
-epicbanitem.command.query.flags.l=Generate query result for the block you are faced with instead of the item in hand.
-epicbanitem.command.query.args.queryRule=The rule to be used for generating query result (please refer to the wiki)
-epicbanitem.command.update.description=Use a specific rule to be applied on the item in hand or the block you are faced with
-epicbanitem.command.update.extendedDescription=Use a specific rule to be applied on the item in hand or the block you are faced with
-epicbanitem.command.update.noItem=The item is not available. Maybe you are not a player or there is nothing in hand?
-epicbanitem.command.update.noBlock=The block is not available. Please make sure that you are faced with the block and close enough.
-epicbanitem.command.update.succeed=Successfully applied the rule: 
-epicbanitem.command.update.error=An error was thrown when applying the rule: 
-epicbanitem.command.update.flags.l=Apply the rule on the block you are faced with instead of the item in hand.
-epicbanitem.command.update.args.updateRule=The rule to be applied (please refer to the wiki)
-epicbanitem.command.create.description=Create a new rule
-epicbanitem.command.create.extendedDescription=Create a new rule
-epicbanitem.command.create.succeed=Successfully added the rule: &a {rule_name}
-epicbanitem.command.create.failed=An error was thrown when trying to add a rule: 
-epicbanitem.command.create.override=The id will be overridden by the item in hand. Please add "--no-capture" flag if you want to specify an id which will not be overridden
-epicbanitem.command.create.empty=The id is not available while there is nothing in hand, which will bring performance issue when used. Please add "--no-capture" flag if it is intended
-epicbanitem.command.create.flags.noCapture=Use this parameter if you do not want to rely on the id of the item in hand
-epicbanitem.command.create.args.ruleName=The name of the rule to be created, you can use a-z ,0-9 ,'-' & '_'
-epicbanitem.command.create.args.queryRule=The rule for querying, and the default value is empty ({})
-epicbanitem.command.remove.description=Remove a rule
-epicbanitem.command.remove.extendedDescription=Remove a rule
-epicbanitem.command.remove.succeed=Successfully removed: {rule}
-epicbanitem.command.remove.args.rule=The name of the rule to be removed
-epicbanitem.command.edit.description=Edit a rule
-epicbanitem.command.edit.extendedDescription=Edit a rule
-epicbanitem.command.help.description=Display help information
-epicbanitem.command.help.extendedDescription=Display help information
-epicbanitem.command.help.noHelp=No help information
-epicbanitem.command.help.args.subCommand=Help information target
+epicbanitem.commands.name = Command: {name} {alias}
+epicbanitem.commands.usage = Usage: {usage}
+epicbanitem.commands.args = Arguments:
+epicbanitem.commands.tooManyArgs = Too many arguments
+
+epicbanitem.args.checkRule.notFound = The check rule "{name}" is not found
+epicbanitem.args.itemCheckRule.notFound = The check rule "{name}" for "{item}" is not found
+epicbanitem.args.item.notFound = The item "{name}" is not found
+epicbanitem.args.trigger.notFound = The trigger "{name}" is not found
+
+epicbanitem.command.ebi.description = The command for EpicBanItem
+epicbanitem.command.ebi.extendedDescription = The command for EpicBanItem
+epicbanitem.command.ebi.version = EpicBanItem version: {version}
+epicbanitem.command.ebi.useHelp = Please use {help_command} for more information
+epicbanitem.command.ebi.suggestCommand = Is {suggest} what you want?
+
+epicbanitem.command.check.description = Check the item in hand or the block you are faced with and list the compatible rules
+epicbanitem.command.check.extendedDescription = Check the item in hand or the block you are faced with and list the compatible rules
+epicbanitem.command.check.noItem = The item is not available. Maybe you are not a player or there is nothing in your hand?
+epicbanitem.command.check.noBlock = The block is not available. Please make sure that you are faced with the block and close enough.
+epicbanitem.command.check.flags.l = Check the block you are faced with instead of the item in hand.
+
+epicbanitem.command.list.description = List all the items to be banned
+epicbanitem.command.list.extendedDescription = List all the items to be banned
+epicbanitem.command.list.noRule = No rules
+epicbanitem.command.list.firstHalfLine = {check_rule}
+epicbanitem.command.list.secondHalfLine = &7{item_type}
+epicbanitem.command.list.title = List of rules
+epicbanitem.command.list.padding = &7-
+epicbanitem.command.list.args.itemType = The item to be queried hand. Enter hand to query the items in hand, and leave blank to list all the items
+
+epicbanitem.command.show.description = Display information of a particular rule
+epicbanitem.command.show.extendedDescription = Display information of a particular rule
+epicbanitem.command.show.args.checkRule = The rule whose information will be displayed
+
+epicbanitem.command.query.description = Use a specific rule to check the item in hand or the block you are faced with, then display related information such as the NBT
+epicbanitem.command.query.extendedDescription = Use a specific rule to check the item in hand or the block you are faced with, then display related information such as the NBT
+epicbanitem.command.query.noItem = The item is not available. Maybe you are not a player or there is nothing in hand?
+epicbanitem.command.query.noBlock = The block is not available. Please make sure that you are faced with the block and close enough.
+epicbanitem.command.query.succeed = Successfully generated query result: 
+epicbanitem.command.query.failed = Failed to generate query result.
+epicbanitem.command.query.error = An error was thrown when generating query result: 
+epicbanitem.command.query.flags.l = Generate query result for the block you are faced with instead of the item in hand.
+epicbanitem.command.query.args.queryRule = The rule to be used for generating query result (please refer to the wiki)
+
+epicbanitem.command.update.description = Use a specific rule to be applied on the item in hand or the block you are faced with
+epicbanitem.command.update.extendedDescription = Use a specific rule to be applied on the item in hand or the block you are faced with
+epicbanitem.command.update.noItem = The item is not available. Maybe you are not a player or there is nothing in hand?
+epicbanitem.command.update.noBlock = The block is not available. Please make sure that you are faced with the block and close enough.
+epicbanitem.command.update.succeed = Successfully applied the rule: 
+epicbanitem.command.update.error = An error was thrown when applying the rule: 
+epicbanitem.command.update.flags.l = Apply the rule on the block you are faced with instead of the item in hand.
+epicbanitem.command.update.args.updateRule = The rule to be applied (please refer to the wiki)
+
+epicbanitem.command.create.description = Create a new rule
+epicbanitem.command.create.extendedDescription = Create a new rule
+epicbanitem.command.create.succeed = Successfully added the rule: &a {rule_name}
+epicbanitem.command.create.failed = An error was thrown when trying to add a rule: 
+epicbanitem.command.create.override = The id will be overridden by the item in hand. Please add "--no-capture" flag if you want to specify an id which will not be overridden
+epicbanitem.command.create.empty = The id is not available while there is nothing in hand, which will bring performance issue when used. Please add "--no-capture" flag if it is intended
+epicbanitem.command.create.flags.noCapture = Use this parameter if you do not want to rely on the id of the item in hand
+epicbanitem.command.create.args.ruleName = The name of the rule to be created, you can use a-z ,0-9 ,'-' & '_'
+epicbanitem.command.create.args.queryRule = The rule for querying, and the default value is empty ({})
+
+epicbanitem.command.remove.description = Remove a rule
+epicbanitem.command.remove.extendedDescription = Remove a rule
+epicbanitem.command.remove.succeed = Successfully removed: {rule}
+epicbanitem.command.remove.args.rule = The name of the rule to be removed
+
+epicbanitem.command.edit.description = Edit a rule
+epicbanitem.command.edit.extendedDescription = Edit a rule
+
+epicbanitem.command.help.description = Display help information
+epicbanitem.command.help.extendedDescription = Display help information
+epicbanitem.command.help.noHelp = No help information
+epicbanitem.command.help.args.subCommand = Help information target
+
 #checkrule
-epicbanitem.checkrule.query=Query rule: {query}
-epicbanitem.checkrule.update=Update rule: {update}
-epicbanitem.checkrule.worlds=Special rules for worlds: {worlds}
-epicbanitem.checkrule.triggers=Special rules for triggers: {triggers}
+epicbanitem.checkrule.query = Query rule: {query}
+epicbanitem.checkrule.update = Update rule: {update}
+epicbanitem.checkrule.worlds = Special rules for worlds: {worlds}
+epicbanitem.checkrule.triggers = Special rules for triggers: {triggers}
+
 #error
-epicbanitem.error.failDeserialize=Failed to parse and deserialize as string
-epicbanitem.error.missingMessage=[Missing message: {message_key}]
+epicbanitem.error.failDeserialize = Failed to parse and deserialize as string
+epicbanitem.error.missingMessage = [Missing message: {message_key}]
