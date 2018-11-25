@@ -12,7 +12,6 @@ import org.spongepowered.api.util.Tuple;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -68,14 +67,14 @@ public class UpdateExpression implements DataTransformer {
         return operation.getUpdateResult().get();
     }
 
-    private static List<DataQuery> transformQuery(DataQuery previous, QueryResult result) {
+    private static List<DataQuery> expandQuery(DataQuery previous, QueryResult result) {
         List<String> previousParts = previous.getParts();
-        List<Tuple<ImmutableList<String>, Optional<QueryResult>>> parts;
-        parts = Collections.singletonList(new Tuple<>(ImmutableList.of(), Optional.of(result)));
+        Stream<Tuple<ImmutableList<String>, Optional<QueryResult>>> parts;
+        parts = Stream.of(new Tuple<>(ImmutableList.of(), Optional.of(result)));
         for (String previousPart : previousParts) {
             switch (previousPart) {
                 case "$":
-                    parts = parts.stream().flatMap(tuple -> {
+                    parts = parts.flatMap(tuple -> {
                         ImmutableList<String> part = tuple.getFirst();
                         Optional<QueryResult> partResult = tuple.getSecond();
                         if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
@@ -89,14 +88,14 @@ public class UpdateExpression implements DataTransformer {
                             return Stream.of(Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue())));
                         }
                         return Stream.empty();
-                    }).collect(Collectors.toList());
+                    });
                     break;
                 case "$[]":
-                    parts = parts.stream().flatMap(tuple -> {
+                    parts = parts.flatMap(tuple -> {
                         ImmutableList<String> part = tuple.getFirst();
                         Optional<QueryResult> partResult = tuple.getSecond();
                         if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
-                            String message = "Cannot match \"$\" in \"" + String.join(".", part) + ".$\" because its parent is not an array";
+                            String message = "Cannot match \"$[]\" in \"" + String.join(".", part) + ".$[]\" because its parent is not an array";
                             throw new IllegalArgumentException(message);
                         }
                         Map<String, QueryResult> queryMap = partResult.get().getChildren();
@@ -104,18 +103,18 @@ public class UpdateExpression implements DataTransformer {
                             ImmutableList.Builder<String> b = ImmutableList.builder();
                             return Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue()));
                         });
-                    }).collect(Collectors.toList());
+                    });
                     break;
                 default:
-                    parts = parts.stream().map(tuple -> {
+                    parts = parts.map(tuple -> {
                         ImmutableList<String> part = tuple.getFirst();
                         Optional<QueryResult> partResult = tuple.getSecond();
                         partResult = partResult.flatMap(v -> Optional.ofNullable(v.getChildren().get(previousPart)));
                         return Tuple.of(ImmutableList.<String>builder().addAll(part).add(previousPart).build(), partResult);
-                    }).collect(Collectors.toList());
+                    });
             }
         }
-        return parts.stream().map(tuple -> DataQuery.of(tuple.getFirst())).collect(Collectors.toList());
+        return parts.map(tuple -> DataQuery.of(tuple.getFirst())).collect(ImmutableList.toImmutableList());
     }
 
     private static Object multiplyValue(Object previousValue, Object multiplier) {
@@ -253,7 +252,7 @@ public class UpdateExpression implements DataTransformer {
         @Override
         public UpdateResult update(QueryResult result, DataView view) {
             DataContainer copy = DataContainer.createNew(DataView.SafetyMode.ALL_DATA_CLONED);
-            List<DataQuery> transformedQueries = transformQuery(this.query, result);
+            List<DataQuery> transformedQueries = expandQuery(this.query, result);
             view.get(this.queryFirst).ifPresent(v -> copy.set(this.queryFirst, v));
             for (DataQuery query : transformedQueries) {
                 NbtTypeHelper.setObject(query, copy, this.valueTransformer);
@@ -277,7 +276,7 @@ public class UpdateExpression implements DataTransformer {
 
         @Override
         public UpdateResult update(QueryResult result, DataView view) {
-            List<DataQuery> transformedQueries = transformQuery(this.query, result);
+            List<DataQuery> transformedQueries = expandQuery(this.query, result);
             UpdateResult updateResult = UpdateResult.nothing();
             for (DataQuery query : transformedQueries) {
                 UpdateResult.Operation operation = UpdateResult.Operation.remove();
@@ -303,13 +302,13 @@ public class UpdateExpression implements DataTransformer {
                 String s = "The query source \"" + source + "\" and target \"" + target + "\" should differ";
                 throw new IllegalArgumentException(s);
             }
-            List<DataQuery> transformedTarget = transformQuery(this.targetQuery, result);
+            List<DataQuery> transformedTarget = expandQuery(this.targetQuery, result);
             if (transformedTarget.size() != 1 || !transformedTarget.get(0).equals(this.targetQuery)) {
                 String target = this.targetQuery.toString();
                 String s = "The query destination \"" + target + "\" should not be dynamic";
                 throw new IllegalArgumentException(s);
             }
-            List<DataQuery> transformedSource = transformQuery(this.sourceQuery, result);
+            List<DataQuery> transformedSource = expandQuery(this.sourceQuery, result);
             if (transformedSource.size() != 1 || !transformedSource.get(0).equals(this.sourceQuery)) {
                 String source = this.sourceQuery.toString();
                 String s = "The query source \"" + source + "\" should not be dynamic";
