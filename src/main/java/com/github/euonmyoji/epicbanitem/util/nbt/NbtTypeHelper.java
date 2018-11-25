@@ -78,103 +78,87 @@ final class NbtTypeHelper {
         return subView;
     }
 
+    /**
+     * @param key               key
+     * @param view              view
+     * @param transformFunction transformFunction
+     * @return Object
+     * @throws IllegalArgumentException view无法转换成Map且key对应错误的index或无法完成任何解析
+     */
     static Object setObject(String key, Object view, Function<Object, ?> transformFunction) {
         Map<String, Object> map = getAsMap(view);
         if (Objects.nonNull(map)) {
             Object newValue = transformFunction.apply(map.get(key));
+            // make it mutable
+            map = new LinkedHashMap<>(map);
             if (Objects.nonNull(newValue)) {
-                map = new LinkedHashMap<>(map); // make it mutable
                 map.put(key, newValue);
-                return map;
             } else {
-                map = new LinkedHashMap<>(map); // make it mutable
                 map.remove(key);
-                return map;
             }
+            return map;
         }
         Integer index = Types.asInt(key);
-        if (Objects.nonNull(index)) {
+        if (Objects.nonNull(index) && index >= 0) {
             List<Object> list = getAsList(view);
             if (Objects.nonNull(list)) {
-                if (index >= 0) {
-                    int size = list.size();
-                    if (index == size) {
-                        list = new ArrayList<>(list); // make it mutable
-                        list.add(transformFunction.apply(size > 0 ? list.get(size - 1) : null));
+                int size = list.size();
+                if (index > size) {
+                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+                }
+                // make list mutable
+                if (index == size) {
+                    list = new ArrayList<>(list);
+                    list.add(transformFunction.apply(size > 0 ? list.get(size - 1) : null));
+                    return list;
+                } else {
+                    Object newValue = transformFunction.apply(list.get(index));
+                    if (Objects.nonNull(newValue)) {
+                        list = new ArrayList<>(list);
+                        list.set(index, newValue);
                         return list;
-                    } else if (index < size) {
-                        Object newValue = transformFunction.apply(list.get(index));
-                        if (Objects.nonNull(newValue)) {
-                            list = new ArrayList<>(list); // make it mutable
-                            list.set(index, newValue);
-                            return list;
-                        }
                     }
                 }
                 throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
             }
+            //基本类型
             long[] longArray = getAsLongArray(view);
             if (Objects.nonNull(longArray)) {
-                if (index >= 0) {
-                    int size = longArray.length;
-                    if (index == size) {
-                        Object newValue = transformFunction.apply((long) 0);
-                        if (newValue instanceof Long) {
-                            longArray = Arrays.copyOf(longArray, size + 1);
-                            longArray[size] = (Long) newValue;
-                            return longArray;
-                        }
-                    } else if (index < size) {
-                        Object newValue = transformFunction.apply(longArray[index]);
-                        if (newValue instanceof Long) {
-                            longArray[index] = (Long) newValue;
-                            return longArray;
-                        }
-                    }
+                int size = longArray.length;
+                if (index > size) {
+                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+                }
+                Object newValue = transformFunction.apply(index == size ? 0 : longArray[index]);
+                if (newValue instanceof Long) {
+                    longArray[index] = (Long) newValue;
+                    return longArray;
                 }
                 throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
             }
             int[] intArray = getAsIntegerArray(view);
             if (Objects.nonNull(intArray)) {
-                if (index >= 0) {
-                    int size = intArray.length;
-                    if (index == size) {
-                        Object newValue = transformFunction.apply(0);
-                        if (newValue instanceof Integer) {
-                            intArray = Arrays.copyOf(intArray, size + 1);
-                            intArray[size] = (Integer) newValue;
-                            return intArray;
-                        }
-                    } else if (index < size) {
-                        Object newValue = transformFunction.apply(intArray[index]);
-                        if (newValue instanceof Integer) {
-                            intArray[index] = (Integer) newValue;
-                            return intArray;
-                        }
-                    }
+                int size = intArray.length;
+                if (index > size) {
+                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+                }
+                Object newValue = transformFunction.apply(index == size ? 0 : intArray[index]);
+                if (newValue instanceof Integer) {
+                    intArray[index] = (Integer) newValue;
+                    return intArray;
                 }
                 throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
             }
             byte[] byteArray = getAsByteArray(view);
             if (Objects.nonNull(byteArray)) {
-                if (index >= 0) {
-                    int size = byteArray.length;
-                    if (index == size) {
-                        Object newValue = transformFunction.apply((byte) 0);
-                        if (newValue instanceof Byte) {
-                            byteArray = Arrays.copyOf(byteArray, size + 1);
-                            byteArray[size] = (Byte) newValue;
-                            return byteArray;
-                        }
-                    } else if (index < size) {
-                        Object newValue = transformFunction.apply(byteArray[index]);
-                        if (newValue instanceof Byte) {
-                            byteArray[index] = (Byte) newValue;
-                            return byteArray;
-                        }
-                    }
+                int size = byteArray.length;
+                if (index > size) {
+                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
                 }
-                throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+                Object newValue = transformFunction.apply(index == size ? (byte) 0 : byteArray[index]);
+                if (newValue instanceof Byte) {
+                    byteArray[index] = (Byte) newValue;
+                    return byteArray;
+                }
             }
         }
         throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
@@ -393,34 +377,14 @@ final class NbtTypeHelper {
                 if (isFirst) {
                     isFirst = false;
                     if (value.startsWith("B;")) {
-                        int j = 1;
                         isByteArray = true;
-                        while (++j < value.length()) {
-                            if (!Character.isWhitespace(value.charAt(i))) {
-                                break;
-                            }
-                        }
-                        value = value.substring(j);
-                        if (value.isEmpty()) {
-                            continue;
-                        }
-                    }
-                    if (value.startsWith("I;")) {
-                        int j = 1;
+                    } else if (value.startsWith("I;")) {
                         isIntArray = true;
-                        while (++j < value.length()) {
-                            if (!Character.isWhitespace(value.charAt(i))) {
-                                break;
-                            }
-                        }
-                        value = value.substring(j);
-                        if (value.isEmpty()) {
-                            continue;
-                        }
-                    }
-                    if (value.startsWith("L;")) {
-                        int j = 1;
+                    } else if (value.startsWith("L;")) {
                         isLongArray = true;
+                    }
+                    if (isIntArray || isLongArray || isByteArray) {
+                        int j = 1;
                         while (++j < value.length()) {
                             if (!Character.isWhitespace(value.charAt(i))) {
                                 break;
@@ -436,12 +400,10 @@ final class NbtTypeHelper {
                     if (isByteArray) {
                         result.add(Byte.parseByte(value));
                         continue;
-                    }
-                    if (isIntArray) {
+                    } else if (isIntArray) {
                         result.add(Integer.parseInt(value));
                         continue;
-                    }
-                    if (isLongArray) {
+                    } else if (isLongArray) {
                         result.add(Long.parseLong(value));
                         continue;
                     }
@@ -460,16 +422,14 @@ final class NbtTypeHelper {
                 bytes[i] = element;
             }
             return bytes;
-        }
-        if (isIntArray) {
+        } else if (isIntArray) {
             int[] ints = new int[result.size()];
             for (int i = 0; i < ints.length; i++) {
                 Integer element = (Integer) result.get(i);
                 ints[i] = element;
             }
             return ints;
-        }
-        if (isLongArray) {
+        } else if (isLongArray) {
             long[] longs = new long[result.size()];
             for (int i = 0; i < longs.length; i++) {
                 Long element = (Long) result.get(i);
