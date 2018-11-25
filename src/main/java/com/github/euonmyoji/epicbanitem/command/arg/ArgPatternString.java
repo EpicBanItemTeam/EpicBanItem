@@ -37,7 +37,7 @@ public class ArgPatternString extends CommandElement {
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String string = args.next();
         if (pattern.matcher(string).matches()) {
-            return null;
+            return string;
         } else {
             throw args.createError(EpicBanItem.getMessages().getMessage(errorMessageKey, "pattern", pattern));
         }

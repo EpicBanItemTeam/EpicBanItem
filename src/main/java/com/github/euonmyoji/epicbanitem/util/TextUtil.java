@@ -27,10 +27,6 @@ import java.util.Set;
 public class TextUtil {
 
 
-    private static BufferedReader delegationReader;
-    private static BufferedWriter delegationWriter;
-    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
-
     /**
      * @param origin origin string support FormatText
      * @param keySet placeholders in the string
@@ -110,9 +106,39 @@ public class TextUtil {
             throw new RuntimeException(e);
         }
     }
+
+    private static BufferedReader delegationReader;
+    private static BufferedWriter delegationWriter;
+
+    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
+//            HoconConfigurationLoader.builder()
+//            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+//            .setRenderOptions(ConfigRenderOptions.concise())
+//            .build();
+
+    private static ConfigurationLoader<CommentedConfigurationNode> getConciseLoader() {
+        HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
+                .setSource(() -> delegationReader).setSink(() -> delegationWriter);
+        try {
+            for (Method method : HoconConfigurationLoader.Builder.class.getMethods()) {
+                if ("setRenderOptions".equals(method.getName())) {
+                    Class<?> configRenderOptionsClass = method.getParameterTypes()[0];
+                    Object conciseRenderOptions = configRenderOptionsClass.getMethod("concise").invoke(null);
+                    builder = (HoconConfigurationLoader.Builder) method.invoke(builder, conciseRenderOptions);
+                }
+            }
+        } catch (IndexOutOfBoundsException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            EpicBanItem.getLogger().error("Error", e);
+            return builder.build();
+        }
+        return builder.build();
+    }
+
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
 //    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
 //            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
 //            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))
+//            .setRenderOptions(ConfigRenderOptions.defaults().setOriginComments(false))
 //            .build();
 
     private static ConfigurationLoader<CommentedConfigurationNode> getLoader() {
@@ -125,14 +151,17 @@ public class TextUtil {
                     Method setAllowMissingMethod = parseOptionsClass.getMethod("setAllowMissing", boolean.class);
                     Object defaultParseOptions = parseOptionsClass.getMethod("defaults").invoke(null);
                     builder = (HoconConfigurationLoader.Builder) method.invoke(builder, setAllowMissingMethod.invoke(defaultParseOptions, true));
-                    return builder.build();
+                } else if ("setRenderOptions".equals(method.getName())) {
+                    Class<?> configRenderOptionsClass = method.getParameterTypes()[0];
+                    Method setOriginCommentsMethod = configRenderOptionsClass.getMethod("setOriginComments", boolean.class);
+                    Object defaultRenderOptions = configRenderOptionsClass.getMethod("defaults").invoke(null);
+                    builder = (HoconConfigurationLoader.Builder) method.invoke(builder, setOriginCommentsMethod.invoke(defaultRenderOptions, false));
                 }
             }
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        } catch (IndexOutOfBoundsException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             EpicBanItem.getLogger().error("Error", e);
             return builder.build();
         }
-        EpicBanItem.getLogger().error("Failed to find method 'setParseOptions'", new Exception());
         return builder.build();
     }
 
@@ -147,6 +176,14 @@ public class TextUtil {
         try (StringWriter out = new StringWriter(); BufferedWriter bufferedWriter = new BufferedWriter(out)) {
             delegationWriter = bufferedWriter;
             LOADER.save(configNode);
+            return out.toString();
+        }
+    }
+
+    public static String deserializeConfigNodeToPlanString(ConfigurationNode configNode) throws IOException {
+        try (StringWriter out = new StringWriter(); BufferedWriter bufferedWriter = new BufferedWriter(out)) {
+            delegationWriter = bufferedWriter;
+            CONCISE_LOADER.save(configNode);
             return out.toString();
         }
     }

@@ -10,14 +10,12 @@ import org.spongepowered.api.command.args.*;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -248,17 +246,22 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
         @Override
         public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-            return element.complete(src, args, context);
+            List<String> complete = element.complete(src, args, context);
+            if (args.hasNext()) {
+                return Collections.emptyList();
+            } else {
+                return complete;
+            }
         }
 
         @Override
         public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-            if (args.hasAny("help")) {
-                // noinspection ConstantConditions
-                ArgumentParseException exception = args.<ArgumentParseException>getOne("help").get();
+            Optional<ArgumentParseException> optionalException = args.getOne("help");
+            if (optionalException.isPresent()) {
+                ArgumentParseException exception = optionalException.get();
                 Text exceptionText = exception.getText();
                 if (exceptionText != null) {
-                    src.sendMessage(exceptionText);
+                    src.sendMessage(Text.builder().color(TextColors.RED).append(exceptionText).toText());
                 }
                 src.sendMessage(getHelpMessage(src, args));
                 return CommandResult.success();

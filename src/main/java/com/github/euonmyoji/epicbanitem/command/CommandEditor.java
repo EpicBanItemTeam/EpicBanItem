@@ -128,6 +128,10 @@ public class CommandEditor extends AbstractCommand {
             return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key, k1, v1);
         }
 
+        private static Text getMessage(String key, String k1, Object v1, String k2, Object v2) {
+            return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key, k1, v1, k2, v2);
+        }
+
         private void resend() {
             Optional<Player> optionalPlayer = Sponge.getServer().getPlayer(owner);
             if (!optionalPlayer.isPresent()) {
@@ -155,11 +159,12 @@ public class CommandEditor extends AbstractCommand {
          */
         private Text genText() {
             Text.Builder builder = Text.builder();
+            //Header
+            builder.append(getMessage("header"), Text.NEW_LINE);
             //Name
             builder.append(getMessage("name", "name",
                     format(
                             ruleBuilder.getName(),
-                            null,
                             origin != null && !origin.getName().equals(ruleBuilder.getName()),
                             new Tuple<>(
                                     EpicBanItemArgs.patternString(Text.of("name"), CheckRule.NAME_PATTERN),
@@ -174,7 +179,6 @@ public class CommandEditor extends AbstractCommand {
             builder.append(getMessage("priority", "priority",
                     format(
                             ruleBuilder.getPriority(),
-                            null,
                             origin != null && origin.getPriority()!=ruleBuilder.getPriority(),
                             new Tuple<>(
                                     GenericArguments.integer(Text.of("priority")),
@@ -197,7 +201,7 @@ public class CommandEditor extends AbstractCommand {
                 final Boolean value = ruleBuilder.getEnableTriggers().get(trigger);
                 triggers.add(format(
                         trigger,
-                        null,
+                        EpicBanItem.getMessages().getMessage("epicbanitem.triggers." + trigger),
                         value,
                         EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger),
                         origin != null && !Objects.equals(origin.getEnableTriggers().get(trigger), ruleBuilder.getEnableTriggers().get(trigger)),
@@ -222,7 +226,7 @@ public class CommandEditor extends AbstractCommand {
                 final Boolean value = ruleBuilder.getEnableTriggers().get(trigger);
                 triggers.add(format(
                         trigger,
-                        null,
+                        EpicBanItem.getMessages().getMessage("epicbanitem.triggers." + trigger),
                         value,
                         EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger),
                         origin != null && !Objects.equals(origin.getEnableTriggers().get(trigger), ruleBuilder.getEnableTriggers().get(trigger)),
@@ -242,7 +246,7 @@ public class CommandEditor extends AbstractCommand {
                 ));
             }
             builder.append(getMessage("triggers", "triggers",
-                    TextUtil.join(Text.builder(",").style(TextStyles.RESET).color(TextColors.GRAY).build(), triggers)))
+                    TextUtil.join(Text.builder("  ").style(TextStyles.RESET).build(), triggers)))
                     .append(Text.NEW_LINE);
             //Worlds
             Set<String> setWorlds = new HashSet<>(ruleBuilder.getEnableWorlds().keySet());
@@ -252,7 +256,7 @@ public class CommandEditor extends AbstractCommand {
                 final Boolean value = ruleBuilder.getEnableWorlds().get(worldName);
                 worlds.add(format(
                         worldName,
-                        null,
+                        Text.of(worldName),
                         value,
                         EpicBanItem.getSettings().isWorldDefaultEnabled(worldName),
                         origin != null && !Objects.equals(origin.getEnableWorlds().get(worldName), ruleBuilder.getEnableWorlds().get(worldName)),
@@ -277,7 +281,7 @@ public class CommandEditor extends AbstractCommand {
                 final Boolean value = ruleBuilder.getEnableWorlds().get(worldName);
                 worlds.add(format(
                         worldName,
-                        null,
+                        Text.of(worldName),
                         value,
                         EpicBanItem.getSettings().isWorldDefaultEnabled(worldName),
                         origin != null && !Objects.equals(origin.getEnableWorlds().get(worldName), ruleBuilder.getEnableWorlds().get(worldName)),
@@ -297,83 +301,79 @@ public class CommandEditor extends AbstractCommand {
                 ));
             }
             builder.append(getMessage("worlds", "worlds",
-                    TextUtil.join(Text.builder(",").style(TextStyles.RESET).color(TextColors.GRAY).build(), worlds))).append(Text.NEW_LINE);
-            Tuple<CommandElement, CommandExecutor> setQuery =
-                    new Tuple<>(
-                            GenericArguments.remainingRawJoinedStrings(Text.of("query-rule")),
-                            (src, args) -> {
-                                String rule = args.<String>getOne("query-rule").get();
-                                try {
-                                    ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule);
-                                    ruleBuilder.queryNode(node);
-                                } catch (IOException e) {
-                                    throw new CommandException(Text.of("Error"), e);
-                                }
-                                resend();
-                                return CommandResult.success();
-                            }
-                    );
+                    TextUtil.join(Text.builder("  ").style(TextStyles.RESET).build(), worlds))).append(Text.NEW_LINE);
             //Query
+            String queryKey = CommandCallback.add(owner,
+                    GenericArguments.remainingRawJoinedStrings(Text.of("query-rule")),
+                    (src, args) -> {
+                        String rule = args.<String>getOne("query-rule").get();
+                        try {
+                            ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule);
+                            ruleBuilder.queryNode(node);
+                        } catch (IOException e) {
+                            throw new CommandException(Text.of("Error"), e);
+                        }
+                        resend();
+                        return CommandResult.success();
+                    });
             List<Text> queries = new ArrayList<>();
             queries.add(formatNode(
                     getMessage("custom").toPlain(),
                     ruleBuilder.getQueryNode(),
-                    setQuery
+                    queryKey
             ));
             queries.add(formatNode(
                     getMessage("default").toPlain(),
                     CheckRule.getDefaultQueryNode(),
-                    setQuery
+                    queryKey
             ));
             // TODO: 2018/11/24 History of query command
             if (origin != null) {
                 queries.add(formatNode(
                         getMessage("origin").toPlain(),
                         origin.getQueryNode(),
-                        setQuery
+                        queryKey
                 ));
             }
-            builder.append(getMessage("query", "options", TextUtil.join(Text.builder(" ").style(TextStyles.RESET).build(), queries))).append(Text.NEW_LINE);
+            builder.append(getMessage("query", "options", TextUtil.join(Text.builder("  ").style(TextStyles.RESET).build(), queries))).append(Text.NEW_LINE);
             //updates
-            Tuple<CommandElement, CommandExecutor> setUpdate =
-                    new Tuple<>(
-                            GenericArguments.optional(GenericArguments.remainingRawJoinedStrings(Text.of("query-rule"))),
-                            (src, args) -> {
-                                Optional<String> rule = args.getOne("query-rule");
-                                if (rule.isPresent()) {
-                                    try {
-                                        ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule.get());
-                                        ruleBuilder.queryNode(node);
-                                    } catch (IOException e) {
-                                        throw new CommandException(Text.of("Error"), e);
-                                    }
-                                } else {
-                                    ruleBuilder.queryNode(null);
-                                }
-                                resend();
-                                return CommandResult.success();
+            String updateKey = CommandCallback.add(owner,
+                    GenericArguments.optional(GenericArguments.remainingRawJoinedStrings(Text.of("update-rule"))),
+                    (src, args) -> {
+                        Optional<String> rule = args.getOne("update-rule");
+                        if (rule.isPresent()) {
+                            try {
+                                ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule.get());
+                                ruleBuilder.updateNode(node);
+                            } catch (IOException e) {
+                                throw new CommandException(Text.of("Error"), e);
                             }
-                    );
+                        } else {
+                            ruleBuilder.updateNode(null);
+                        }
+                        resend();
+                        return CommandResult.success();
+                    });
             List<Text> updates = new ArrayList<>();
             updates.add(formatNode(
                     getMessage("custom").toPlain(),
                     ruleBuilder.getUpdateNode(),
-                    setUpdate
+                    updateKey
             ));
             updates.add(formatNode(
                     getMessage("default").toPlain(),
                     CheckRule.getDefaultUpdateNode(),
-                    setUpdate
+                    updateKey
             ));
             // TODO: 2018/11/24 History of update command
             if (origin != null) {
                 updates.add(formatNode(
                         getMessage("origin").toPlain(),
                         origin.getUpdateNode(),
-                        setUpdate
+                        updateKey
                 ));
             }
-            builder.append(getMessage("update", "options", TextUtil.join(Text.builder(" ").style(TextStyles.RESET).build(), updates))).append(Text.NEW_LINE);
+            builder.append(getMessage("update", "options", TextUtil.join(Text.builder("  ").style(TextStyles.RESET).build(), updates))).append(Text.NEW_LINE);
             //Save
             builder.append(
                     getMessage("save").toBuilder().style(TextStyles.UNDERLINE, TextStyles.BOLD).color(TextColors.GOLD)
@@ -389,7 +389,7 @@ public class CommandEditor extends AbstractCommand {
                                         // TODO: 2018/11/25 Warn on no id matches ?
                                         Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString());
                                         service.addRule(id.flatMap(s -> Sponge.getRegistry().getType(ItemType.class, s)).orElse(null), rule);
-                                        src.sendMessage(Text.of("saved"));
+                                        src.sendMessage(getMessage("saved"));
                                         editorMap.remove(owner);
                                         return CommandResult.success();
                                     })
@@ -398,79 +398,71 @@ public class CommandEditor extends AbstractCommand {
             return builder.toText();
         }
 
-        private Text format(Object value, @Nullable Text hover, boolean edited, @Nullable Tuple<CommandElement, CommandExecutor> action) {
+        private Text format(Object value, boolean edited, Tuple<CommandElement, CommandExecutor> action) {
             String ebi = EpicBanItem.getMainCommandAlias();
             Text.Builder builder = Text.builder(value.toString());
             //Mark edited parts bold.
-            if (edited) {
-                builder.style(TextStyles.BOLD);
-            }
+            builder.style(builder.getStyle().bold(edited));
             builder.color(TextColors.BLUE);
-            if (action != null) {
-                builder.style(TextStyles.UNDERLINE);
-                if (action.getFirst().equals(GenericArguments.none())) {
-                    builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
-                } else {
-                    builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s %s", ebi, CommandCallback.add(owner, action), value)));
-                }
+            if (action.getFirst().equals(GenericArguments.none())) {
+                builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
+            } else {
+                builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s %s", ebi, CommandCallback.add(owner, action), value)));
             }
-            if (hover != null && !hover.isEmpty()) {
-                builder.onHover(TextActions.showText(hover));
-            }
+            builder.onHover(TextActions.showText(getMessage("click")));
             return builder.build();
         }
 
-        private Text format(String text, @Nullable Text hover, @Nullable Boolean vale, boolean defaultVale, boolean edited, @Nullable Tuple<CommandElement, CommandExecutor> action) {
+        //
+        private Text format(String text, Text hover, @Nullable Boolean vale, boolean defaultVale, boolean edited, Tuple<CommandElement, CommandExecutor> action) {
             String ebi = EpicBanItem.getMainCommandAlias();
             Text.Builder builder = Text.builder(text);
             //Mark edited parts bold.
-            if (edited) {
-                builder.style(TextStyles.BOLD);
-            }
-            if (vale == null) {
-                builder.style(TextStyles.ITALIC);
-            }
+            builder.style(builder.getStyle().bold(edited).italic(Objects.isNull(vale)));
             builder.color((Objects.isNull(vale) ? defaultVale : vale) ? TextColors.GREEN : TextColors.GOLD);
-            if (action != null) {
-                builder.style(TextStyles.UNDERLINE);
-                if (action.getFirst().equals(GenericArguments.none())) {
-                    builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
-                } else {
-                    builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
-                }
+            if (action.getFirst().equals(GenericArguments.none())) {
+                builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
+            } else {
+                builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
             }
-            if (hover != null && !hover.isEmpty()) {
-                builder.onHover(TextActions.showText(hover));
+            Text.Builder tri = Text.builder();
+            Text display = getMessage("tristate.display",
+                    "value", getMessage("tristate." + CommandEditor.toString(vale).toLowerCase()),
+                    "default", getMessage("tristate." + CommandEditor.toString(defaultVale).toLowerCase())
+            );
+            Text click = getMessage("tristate.click",
+                    "to", getMessage("tristate." + CommandEditor.toString(next(vale)).toLowerCase())
+            );
+            if (!hover.isEmpty()) {
+                tri.append(hover, Text.NEW_LINE, Text.NEW_LINE);
             }
+            tri.append(display, Text.NEW_LINE).append(click);
+            builder.onHover(TextActions.showText(tri.build()));
             return builder.build();
         }
 
-        private Text formatNode(String display, @Nullable ConfigurationNode node, @Nullable Tuple<CommandElement, CommandExecutor> action) {
+        private Text formatNode(String display, @Nullable ConfigurationNode node, String key) {
             String ebi = EpicBanItem.getMainCommandAlias();
             Text.Builder builder = Text.builder(display);
             String nodeString;
+            String suggestString;
             if (node == null) {
                 nodeString = "<null>";
-            } else if (node.isVirtual()) {
-                nodeString = "{}";
+                suggestString = "";
+            } else if (node.getValue() == null) {
+                nodeString = suggestString = "{}";
             } else {
                 try {
                     nodeString = TextUtil.deserializeConfigNodeToString(node);
-                    Text hover = Text.of(nodeString);
-                    builder.onHover(TextActions.showText(hover));
+                    suggestString = TextUtil.deserializeConfigNodeToPlanString(node);
                 } catch (IOException e) {
                     EpicBanItem.getLogger().error("Error on deserialize ConfigNode to String", e);
-                    nodeString = "error";
+                    nodeString = suggestString = "error";
                 }
             }
-            if (action != null) {
-                builder.style(TextStyles.UNDERLINE);
-                if (action.getFirst().equals(GenericArguments.none())) {
-                    builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
-                } else {
-                    builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s %s", ebi, CommandCallback.add(owner, action), nodeString)));
-                }
-            }
+            Text hover = Text.of(nodeString, Text.NEW_LINE, getMessage("click"));
+            builder.onHover(TextActions.showText(hover));
+            builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s %s", ebi, key, suggestString)));
             return builder.toText();
         }
     }

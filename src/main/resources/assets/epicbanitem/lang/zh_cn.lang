@@ -77,6 +77,7 @@ epicbanitem.command.edit.args.rule = 要编辑的规则
 epicbanitem.command.editor.description = 规则编辑器
 epicbanitem.command.editor.extendedDescription =  规则编辑器
 epicbanitem.command.editor.useOtherFirst = 使用 /ebi edit <rule> 来开始编辑.
+epicbanitem.command.editor.header = &7=============================================
 epicbanitem.command.editor.name = 规则:   {name}
 epicbanitem.command.editor.priority = 优先度: {priority}
 epicbanitem.command.editor.triggers = 监听器: {triggers}
@@ -84,9 +85,16 @@ epicbanitem.command.editor.worlds = 世界:   {worlds}
 epicbanitem.command.editor.query = 查询规则: {options}
 epicbanitem.command.editor.update = 更新规则: {options}
 epicbanitem.command.editor.save = 保存
+epicbanitem.command.editor.saved = &a已保存
 epicbanitem.command.editor.custom = 当前设定
 epicbanitem.command.editor.default = 默认值
 epicbanitem.command.editor.origin = 原设定值
+epicbanitem.command.editor.click = 点击编辑
+epicbanitem.command.editor.tristate.display = 当前: {value}    默认: {default}
+epicbanitem.command.editor.tristate.click = 点击切换为 {to}
+epicbanitem.command.editor.tristate.true = &a开启
+epicbanitem.command.editor.tristate.false = &c关闭
+epicbanitem.command.editor.tristate.undefined = &7未设定
 
 epicbanitem.command.callback.description = 你不应该主动使用这个命令
 epicbanitem.command.callback.extendedDescription = 我不知道要如何解释
@@ -109,3 +117,13 @@ epicbanitem.checkrule.triggers = 针对监听器的特殊规则：{triggers}
 #error
 epicbanitem.error.failDeserialize = 无法将该节点解析为字符串
 epicbanitem.error.missingMessage = 【缺失文本：{message_key}】
+
+#triggers
+epicbanitem.triggers.use = 使用
+epicbanitem.triggers.pickup = 拾取
+epicbanitem.triggers.click = 点击
+epicbanitem.triggers.throw = 丢弃
+epicbanitem.triggers.drop = 掉落
+epicbanitem.triggers.place = 放置
+epicbanitem.triggers.break = 破坏
+epicbanitem.triggers.interact = 交互

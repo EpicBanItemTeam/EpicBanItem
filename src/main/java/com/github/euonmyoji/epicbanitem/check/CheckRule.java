@@ -369,7 +369,7 @@ public class CheckRule {
             return this;
         }
 
-        public Builder updateNode(ConfigurationNode updateNode) {
+        public Builder updateNode(@Nullable ConfigurationNode updateNode) {
             this.updateNode = updateNode;
             return this;
         }

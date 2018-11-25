@@ -77,6 +77,7 @@ epicbanitem.command.edit.args.rule = The rule to edit
 epicbanitem.command.editor.description = Chat Gui Rule Editor
 epicbanitem.command.editor.extendedDescription =  Chat Gui Rule Editor
 epicbanitem.command.editor.useOtherFirst = Use /ebi edit <rule> to begin.
+epicbanitem.command.editor.header = &7=============================================
 epicbanitem.command.editor.name = CheckRule:{name}
 epicbanitem.command.editor.priority = Priority :{priority}
 epicbanitem.command.editor.triggers = Triggers :{triggers}
@@ -84,9 +85,16 @@ epicbanitem.command.editor.worlds = Worlds   :{worlds}
 epicbanitem.command.editor.query = QueryExpression : {options}
 epicbanitem.command.editor.update = UpdateExpression: {options}
 epicbanitem.command.editor.save = Save
+epicbanitem.command.editor.saved = &aSaved
 epicbanitem.command.editor.custom = Currently
 epicbanitem.command.editor.default = Default
 epicbanitem.command.editor.origin = Origin
+epicbanitem.command.editor.click = Click to edit
+epicbanitem.command.editor.tristate.display = Currently: {value}    DefaultValue: {default}
+epicbanitem.command.editor.tristate.click = Click swith to : {to}
+epicbanitem.command.editor.tristate.true = &aEnabled
+epicbanitem.command.editor.tristate.false = &cDisabled
+epicbanitem.command.editor.tristate.undefined = &7Undefined
 
 epicbanitem.command.callback.description = Command for clicking.
 epicbanitem.command.callback.extendedDescription = You shouldn't use this command on your own initiative
@@ -109,3 +117,13 @@ epicbanitem.checkrule.triggers = Special rules for triggers: {triggers}
 #error
 epicbanitem.error.failDeserialize = Failed to parse and deserialize as string
 epicbanitem.error.missingMessage = [Missing message: {message_key}]
+
+#triggers
+epicbanitem.triggers.use = Use
+epicbanitem.triggers.pickup = PickUp
+epicbanitem.triggers.click = Click
+epicbanitem.triggers.throw = Throw
+epicbanitem.triggers.drop = Drop
+epicbanitem.triggers.place = Place
+epicbanitem.triggers.break = Break
+epicbanitem.triggers.interact = Interact
