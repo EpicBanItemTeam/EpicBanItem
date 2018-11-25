@@ -12,6 +12,9 @@ import org.spongepowered.api.util.Tuple;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
+import java.util.stream.Collector;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -27,11 +30,13 @@ public class UpdateExpression implements DataTransformer {
         builder.put("$unset", (k, n) -> new Unset(k));
         builder.put("$rename", (k, n) -> new Rename(k, n.getString(k)));
 
-        builder.put("$set", (k, n) -> new Transform(o -> NbtTypeHelper.convert(o, n), k));
-        builder.put("$inc", (k, n) -> new Transform(o -> increaseValue(o, NbtTypeHelper.convert(o, n)), k));
-        builder.put("$mul", (k, n) -> new Transform(o -> multiplyValue(o, NbtTypeHelper.convert(o, n)), k));
+        builder.put("$set", (k, n) -> new Transform((q, v) -> o -> NbtTypeHelper.convert(o, n), k));
+        builder.put("$inc", (k, n) -> new Transform((q, v) -> o -> increaseValue(o, NbtTypeHelper.convert(o, n)), k));
+        builder.put("$mul", (k, n) -> new Transform((q, v) -> o -> multiplyValue(o, NbtTypeHelper.convert(o, n)), k));
 
-        builder.put("$pop", (k, n) -> new Transform(o -> popValue(o, n.getInt()), k));
+        builder.put("$pop", (k, n) -> new Transform((q, v) -> o -> popValue(o, n.getInt()), k));
+        builder.put("$pull", (k, n) -> new Transform((q, v) -> arrayFilterTransformer(pullFilter(q, v, n)), k));
+        builder.put("$pullAll", (k, n) -> new Transform((q, v) -> arrayFilterTransformer(pullAllFilter(q, v, n)), k));
 
         operators = builder.build();
     }
@@ -115,6 +120,46 @@ public class UpdateExpression implements DataTransformer {
             }
         }
         return parts.map(tuple -> DataQuery.of(tuple.getFirst())).collect(ImmutableList.toImmutableList());
+    }
+
+    private static Function<Object, ?> arrayFilterTransformer(IntPredicate predicate) {
+        return o -> {
+            List<Object> list = NbtTypeHelper.getAsList(o);
+            if (Objects.nonNull(list)) {
+                Collector<Object, ?, ImmutableList<Object>> collector = ImmutableList.toImmutableList();
+                return IntStream.range(0, list.size()).filter(predicate).mapToObj(list::get).collect(collector);
+            }
+            long[] longArray = NbtTypeHelper.getAsLongArray(o);
+            if (Objects.nonNull(longArray)) {
+                return IntStream.range(0, longArray.length).filter(predicate).mapToObj(i -> longArray[i]).toArray(Long[]::new);
+            }
+            int[] intArray = NbtTypeHelper.getAsIntegerArray(o);
+            if (Objects.nonNull(intArray)) {
+                return IntStream.range(0, intArray.length).filter(predicate).mapToObj(i -> intArray[i]).toArray(Integer[]::new);
+            }
+            byte[] byteArray = NbtTypeHelper.getAsByteArray(o);
+            if (Objects.nonNull(byteArray)) {
+                return IntStream.range(0, byteArray.length).filter(predicate).mapToObj(i -> byteArray[i]).toArray(Byte[]::new);
+            }
+            throw new IllegalArgumentException("Cannot apply filters to a non-array value");
+        };
+    }
+
+    private static IntPredicate pullFilter(DataQuery query, DataView view, ConfigurationNode node) {
+        return node.hasMapChildren() ? i -> {
+            QueryExpression queryExpression = new QueryExpression(node);
+            return !queryExpression.query(query.then(Integer.toString(i)), view).isPresent();
+        } : i -> {
+            Object value = NbtTypeHelper.getObject(query.then(Integer.toString(i)), view);
+            return !NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, node));
+        };
+    }
+
+    private static IntPredicate pullAllFilter(DataQuery query, DataView view, ConfigurationNode node) {
+        return i -> node.getChildrenList().stream().noneMatch(n -> {
+            Object value = NbtTypeHelper.getObject(query.then(Integer.toString(i)), view);
+            return NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, n));
+        });
     }
 
     private static Object multiplyValue(Object previousValue, Object multiplier) {
@@ -239,12 +284,12 @@ public class UpdateExpression implements DataTransformer {
     }
 
     private static class Transform implements DataTransformer {
-        private final Function<Object, Object> valueTransformer;
+        private final BiFunction<DataQuery, DataView, Function<Object, ?>> valueTransformer;
         private final DataQuery queryFirst;
         private final DataQuery query;
 
-        private Transform(Function<Object, ?> valueTransformer, String key) {
-            this.valueTransformer = valueTransformer::apply;
+        private Transform(BiFunction<DataQuery, DataView, Function<Object, ?>> valueTransformer, String key) {
+            this.valueTransformer = valueTransformer;
             this.query = DataQuery.of('.', key);
             this.queryFirst = DataQuery.of(this.query.getParts().get(0));
         }
@@ -255,7 +300,7 @@ public class UpdateExpression implements DataTransformer {
             List<DataQuery> transformedQueries = expandQuery(this.query, result);
             view.get(this.queryFirst).ifPresent(v -> copy.set(this.queryFirst, v));
             for (DataQuery query : transformedQueries) {
-                NbtTypeHelper.setObject(query, copy, this.valueTransformer);
+                NbtTypeHelper.setObject(query, copy, this.valueTransformer.apply(query, copy));
             }
             UpdateResult updateResult = UpdateResult.nothing();
             for (DataQuery query : transformedQueries) {

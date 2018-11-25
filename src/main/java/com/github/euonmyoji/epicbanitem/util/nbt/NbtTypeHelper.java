@@ -45,7 +45,7 @@ final class NbtTypeHelper {
         // nothing here
     }
 
-    static void setObject(DataQuery query, DataView view, Function<Object, Object> valueTransformer) {
+    static void setObject(DataQuery query, DataView view, Function<Object, ?> valueTransformer) {
         List<String> queryParts = query.getParts();
         int lastQueryPartIndex = queryParts.size() - 1;
         Object[] subViews = new Object[lastQueryPartIndex];
@@ -78,7 +78,7 @@ final class NbtTypeHelper {
         return subView;
     }
 
-    static Object setObject(String key, Object view, Function<Object, Object> transformFunction) {
+    static Object setObject(String key, Object view, Function<Object, ?> transformFunction) {
         Map<String, Object> map = getAsMap(view);
         if (Objects.nonNull(map)) {
             Object newValue = transformFunction.apply(map.get(key));
