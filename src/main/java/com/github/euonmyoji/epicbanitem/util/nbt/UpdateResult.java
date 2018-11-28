@@ -5,10 +5,7 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -107,9 +104,23 @@ public final class UpdateResult {
         @Override
         public String toString() {
             if (this.replace) {
-                return ((Optional<?>) this.value).map(o -> "ReplaceResult{value=" + o + "}").orElse("RemoveResult{}");
+                return ((Optional<?>) this.value).map(this::toReplaceResultString).orElse("RemoveResult{}");
             } else {
                 return ((UpdateResult) this.value).toString();
+            }
+        }
+
+        private String toReplaceResultString(Object value) {
+            if (value instanceof Object[]) {
+                return "ReplaceResult{value=" + Arrays.deepToString((Object[]) value) + "}";
+            } else if (value instanceof byte[]) {
+                return "ReplaceResult{value=" + Arrays.toString((byte[]) value) + "}";
+            } else if (value instanceof long[]) {
+                return "ReplaceResult{value=" + Arrays.toString((long[]) value) + "}";
+            } else if (value instanceof int[]) {
+                return "ReplaceResult{value=" + Arrays.toString((int[]) value) + "}";
+            } else {
+                return "ReplaceResult{value=" + value + "}";
             }
         }
     }
