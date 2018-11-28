@@ -29,6 +29,10 @@ final class NbtTypeHelper {
     private static final Pattern INTEGER;
     private static final Pattern NUMBER;
 
+    private static final Pattern BYTE_ARRAY_HEAD = Pattern.compile("B;\\s*(\\w+)");
+    private static final Pattern LONG_ARRAY_HEAD = Pattern.compile("L;\\s*(\\w+)");
+    private static final Pattern INTEGER_ARRAY_HEAD = Pattern.compile("I;\\s*(\\w+)");
+
     // from vanilla
     static {
         BOOLEAN = Pattern.compile("(true|false)", Pattern.CASE_INSENSITIVE);
@@ -85,17 +89,12 @@ final class NbtTypeHelper {
      * @return Object
      * @throws IllegalArgumentException view无法转换成Map且key对应错误的index或无法完成任何解析
      */
+    @SuppressWarnings("WeakerAccess")
     static Object setObject(String key, Object view, Function<Object, ?> transformFunction) {
         Map<String, Object> map = getAsMap(view);
         if (Objects.nonNull(map)) {
-            Object newValue = transformFunction.apply(map.get(key));
-            // make it mutable
-            map = new LinkedHashMap<>(map);
-            if (Objects.nonNull(newValue)) {
-                map.put(key, newValue);
-            } else {
-                map.remove(key);
-            }
+            map = new LinkedHashMap<>(map); // make it mutable
+            map.compute(key, (k, v) -> transformFunction.apply(v));
             return map;
         }
         Integer index = Types.asInt(key);
@@ -103,62 +102,57 @@ final class NbtTypeHelper {
             List<Object> list = getAsList(view);
             if (Objects.nonNull(list)) {
                 int size = list.size();
-                if (index > size) {
-                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
-                }
-                // make list mutable
-                if (index == size) {
-                    list = new ArrayList<>(list);
-                    list.add(transformFunction.apply(size > 0 ? list.get(size - 1) : null));
-                    return list;
-                } else {
-                    Object newValue = transformFunction.apply(list.get(index));
-                    if (Objects.nonNull(newValue)) {
-                        list = new ArrayList<>(list);
-                        list.set(index, newValue);
+                if (index <= size) {
+                    if (index == size) {
+                        list = new ArrayList<>(list); // make list mutable
+                        list.add(transformFunction.apply(size > 0 ? list.get(size - 1) : null));
                         return list;
+                    } else {
+                        Object newValue = transformFunction.apply(list.get(index));
+                        if (Objects.nonNull(newValue)) {
+                            list = new ArrayList<>(list); // make list mutable
+                            list.set(index, newValue);
+                            return list;
+                        }
                     }
                 }
                 throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
             }
-            //基本类型
             long[] longArray = getAsLongArray(view);
             if (Objects.nonNull(longArray)) {
                 int size = longArray.length;
-                if (index > size) {
-                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
-                }
-                Object newValue = transformFunction.apply(index == size ? 0 : longArray[index]);
-                if (newValue instanceof Long) {
-                    longArray[index] = (Long) newValue;
-                    return longArray;
+                if (index <= size) {
+                    Object newValue = transformFunction.apply(index == size ? Long.valueOf("0") : longArray[index]);
+                    if (newValue instanceof Long) {
+                        longArray[index] = (Long) newValue;
+                        return longArray;
+                    }
                 }
                 throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
             }
             int[] intArray = getAsIntegerArray(view);
             if (Objects.nonNull(intArray)) {
                 int size = intArray.length;
-                if (index > size) {
-                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
-                }
-                Object newValue = transformFunction.apply(index == size ? 0 : intArray[index]);
-                if (newValue instanceof Integer) {
-                    intArray[index] = (Integer) newValue;
-                    return intArray;
+                if (index <= size) {
+                    Object newValue = transformFunction.apply(index == size ? Integer.valueOf("0") : intArray[index]);
+                    if (newValue instanceof Integer) {
+                        intArray[index] = (Integer) newValue;
+                        return intArray;
+                    }
                 }
                 throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
             }
             byte[] byteArray = getAsByteArray(view);
             if (Objects.nonNull(byteArray)) {
                 int size = byteArray.length;
-                if (index > size) {
-                    throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
+                if (index <= size) {
+                    Object newValue = transformFunction.apply(index == size ? Byte.valueOf("0") : byteArray[index]);
+                    if (newValue instanceof Byte) {
+                        byteArray[index] = (Byte) newValue;
+                        return byteArray;
+                    }
                 }
-                Object newValue = transformFunction.apply(index == size ? (byte) 0 : byteArray[index]);
-                if (newValue instanceof Byte) {
-                    byteArray[index] = (Byte) newValue;
-                    return byteArray;
-                }
+                throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
             }
         }
         throw new IllegalArgumentException("Cannot set value for \"" + key + "\"");
@@ -240,7 +234,6 @@ final class NbtTypeHelper {
         throw new IllegalArgumentException("The value is a list or a compound");
     }
 
-    @SuppressWarnings("unchecked")
     static OptionalInt compare(@Nullable Object value, ConfigurationNode node) {
         if (Objects.nonNull(value)) {
             Object another = convert(value, node);
@@ -285,10 +278,10 @@ final class NbtTypeHelper {
 
     static Object convert(@Nullable Object previous, ConfigurationNode node) {
         if (node.hasListChildren()) {
-            return convert(previous, node.getChildrenList());
+            return convertAsList(previous, node.getChildrenList());
         }
         if (node.hasMapChildren()) {
-            return convert(previous, node.getChildrenMap());
+            return convertAsObject(previous, node.getChildrenMap());
         }
         Matcher matcher;
         String valueString = node.getString("");
@@ -350,7 +343,7 @@ final class NbtTypeHelper {
         }
     }
 
-    private static Map<String, Object> convert(@Nullable Object previous, Map<Object, ? extends ConfigurationNode> map) {
+    private static Map<String, Object> convertAsObject(@Nullable Object previous, Map<Object, ? extends ConfigurationNode> map) {
         Map<String, Object> previousMap = getAsMap(previous);
         if (Objects.isNull(previousMap)) {
             previousMap = Collections.emptyMap();
@@ -363,81 +356,70 @@ final class NbtTypeHelper {
         return builder.build();
     }
 
-    private static Object convert(@Nullable Object previous, List<? extends ConfigurationNode> list) {
-        int size = list.size();
-        List<Object> result = new ArrayList<>(size);
-        List<Object> previousList = getAsList(previous);
-        boolean isByteArray = false, isIntArray = false, isLongArray = false;
-        int previousSize = Objects.isNull(previousList) ? 0 : previousList.size();
-        if (!list.isEmpty()) {
-            boolean isFirst = true;
+    private static Object convertAsList(@Nullable Object previous, List<? extends ConfigurationNode> list) {
+        Object array = convertAsArray(previous, list);
+        if (Objects.isNull(array)) {
+            int size = list.size();
+            List<Object> previousList = getAsList(previous);
+            ImmutableList.Builder<Object> builder = ImmutableList.builder();
+            int previousSize = Objects.isNull(previousList) ? 0 : previousList.size();
             for (int i = 0; i < size; ++i) {
                 ConfigurationNode node = list.get(i);
-                String value = node.getString("");
-                if (isFirst) {
-                    isFirst = false;
-                    if (value.startsWith("B;")) {
-                        isByteArray = true;
-                    } else if (value.startsWith("I;")) {
-                        isIntArray = true;
-                    } else if (value.startsWith("L;")) {
-                        isLongArray = true;
+                builder.add(convert(i >= previousSize ? null : previousList.get(i), node));
+            }
+            return builder.build();
+        }
+        return array;
+    }
+
+    @Nullable
+    private static Object convertAsArray(@Nullable Object previous, List<? extends ConfigurationNode> list) {
+        if (Objects.isNull(getAsList(previous)) && !list.isEmpty()) {
+            Matcher matcher;
+            ConfigurationNode node = list.get(0);
+            String headString = node.getString("");
+            try {
+                matcher = BYTE_ARRAY_HEAD.matcher(headString);
+                if (matcher.matches()) {
+                    int size = list.size();
+                    byte[] bytes = new byte[size];
+                    Byte previousElement = Byte.valueOf("0");
+                    for (int i = 0; i < size; ++i) {
+                        node = i > 0 ? list.get(i) : node.copy().setValue(matcher.group(1));
+                        Byte element = getAsByte(convert(previousElement, node));
+                        bytes[i] = Objects.requireNonNull(element);
                     }
-                    if (isIntArray || isLongArray || isByteArray) {
-                        int j = 1;
-                        while (++j < value.length()) {
-                            if (!Character.isWhitespace(value.charAt(i))) {
-                                break;
-                            }
-                        }
-                        value = value.substring(j);
-                        if (value.isEmpty()) {
-                            continue;
-                        }
-                    }
+                    return bytes;
                 }
-                try {
-                    if (isByteArray) {
-                        result.add(Byte.parseByte(value));
-                        continue;
-                    } else if (isIntArray) {
-                        result.add(Integer.parseInt(value));
-                        continue;
-                    } else if (isLongArray) {
-                        result.add(Long.parseLong(value));
-                        continue;
+                matcher = INTEGER_ARRAY_HEAD.matcher(headString);
+                if (matcher.matches()) {
+                    int size = list.size();
+                    int[] ints = new int[size];
+                    Integer previousElement = Integer.valueOf("0");
+                    for (int i = 0; i < size; ++i) {
+                        node = i > 0 ? list.get(i) : node.copy().setValue(matcher.group(1));
+                        Integer element = getAsInteger(convert(previousElement, node));
+                        ints[i] = Objects.requireNonNull(element);
                     }
-                } catch (NumberFormatException e) {
-                    isByteArray = false;
-                    isIntArray = false;
-                    isLongArray = false;
+                    return ints;
                 }
-                result.add(convert(i >= previousSize ? null : previousList.get(i), node));
+                matcher = LONG_ARRAY_HEAD.matcher(headString);
+                if (matcher.matches()) {
+                    int size = list.size();
+                    long[] longs = new long[size];
+                    Long previousElement = Long.valueOf("0");
+                    for (int i = 0; i < size; ++i) {
+                        node = i > 0 ? list.get(i) : node.copy().setValue(matcher.group(1));
+                        Long element = getAsLong(convert(previousElement, node));
+                        longs[i] = Objects.requireNonNull(element);
+                    }
+                    return longs;
+                }
+            } catch (NullPointerException ignored) {
+                // fall through
             }
         }
-        if (isByteArray) {
-            byte[] bytes = new byte[result.size()];
-            for (int i = 0; i < bytes.length; i++) {
-                Byte element = (Byte) result.get(i);
-                bytes[i] = element;
-            }
-            return bytes;
-        } else if (isIntArray) {
-            int[] ints = new int[result.size()];
-            for (int i = 0; i < ints.length; i++) {
-                Integer element = (Integer) result.get(i);
-                ints[i] = element;
-            }
-            return ints;
-        } else if (isLongArray) {
-            long[] longs = new long[result.size()];
-            for (int i = 0; i < longs.length; i++) {
-                Long element = (Long) result.get(i);
-                longs[i] = element;
-            }
-            return longs;
-        }
-        return result;
+        return null;
     }
 
     static boolean isEqual(@Nullable Object value, Object another) {
