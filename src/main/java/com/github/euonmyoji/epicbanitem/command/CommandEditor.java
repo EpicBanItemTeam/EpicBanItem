@@ -144,7 +144,7 @@ public class CommandEditor extends AbstractCommand {
 
         /**
          * enable   - Green
-         * disable  - Gold
+         * disable  - Red
          * undefine - Italic
          * clickable- Underline
          * <p>
@@ -376,7 +376,7 @@ public class CommandEditor extends AbstractCommand {
             builder.append(getMessage("update", "options", TextUtil.join(Text.builder("  ").style(TextStyles.RESET).build(), updates))).append(Text.NEW_LINE);
             //Save
             builder.append(
-                    getMessage("save").toBuilder().style(TextStyles.UNDERLINE, TextStyles.BOLD).color(TextColors.GOLD)
+                    getMessage("save").toBuilder().style(TextStyles.UNDERLINE, TextStyles.BOLD).color(TextColors.RED)
                             .onClick(TextActions.runCommand(String.format("/%s cb %s", EpicBanItem.getMainCommandAlias(),
                                     CommandCallback.add(owner, GenericArguments.none(), (src, args) -> {
                                         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
@@ -419,7 +419,7 @@ public class CommandEditor extends AbstractCommand {
             Text.Builder builder = Text.builder(text);
             //Mark edited parts bold.
             builder.style(builder.getStyle().bold(edited).italic(Objects.isNull(vale)));
-            builder.color((Objects.isNull(vale) ? defaultVale : vale) ? TextColors.GREEN : TextColors.GOLD);
+            builder.color((Objects.isNull(vale) ? defaultVale : vale) ? TextColors.GREEN : TextColors.RED);
             if (action.getFirst().equals(GenericArguments.none())) {
                 builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
             } else {
