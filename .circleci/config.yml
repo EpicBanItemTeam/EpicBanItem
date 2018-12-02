@@ -1,26 +1,20 @@
-# Java Gradle CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-java/ for more details
-#
 version: 2
 jobs:
   build:
     branches:
-      ignore:
-        - gh-pages
+      only:
+        - master
     docker:
       - image: circleci/openjdk:8-jdk
     working_directory: ~/EpicBanItem
     environment:
       JVM_OPTS: -Xmx3200m
     steps:
-      - checkout
+      - checkout:
+          path: ~/EpicBanItem
       - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}
-      - run:
-          working_directory: ~/EpicBanItem
-          command: ./gradlew dependencies
+          key: v1-dependencies-{{ checksum "build.gradle" }}
+      - run: ./gradlew dependencies
       - save_cache:
           paths:
             - ~/.gradle
