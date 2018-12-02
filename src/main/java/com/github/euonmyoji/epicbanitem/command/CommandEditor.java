@@ -179,7 +179,7 @@ public class CommandEditor extends AbstractCommand {
             builder.append(getMessage("priority", "priority",
                     format(
                             ruleBuilder.getPriority(),
-                            origin != null && origin.getPriority()!=ruleBuilder.getPriority(),
+                            origin != null && origin.getPriority() != ruleBuilder.getPriority(),
                             new Tuple<>(
                                     GenericArguments.integer(Text.of("priority")),
                                     (src, args) -> {

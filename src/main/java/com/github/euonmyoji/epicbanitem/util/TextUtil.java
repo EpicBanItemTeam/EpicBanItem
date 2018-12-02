@@ -81,13 +81,13 @@ public class TextUtil {
         }
     }
 
-    public static Text join(Text delimiter ,Iterable<Text> elements){
+    public static Text join(Text delimiter, Iterable<Text> elements) {
         Iterator<Text> iterator = elements.iterator();
-        if(!iterator.hasNext()){
+        if (!iterator.hasNext()) {
             return Text.EMPTY;
         }
         Text.Builder builder = iterator.next().toBuilder();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             builder.append(delimiter).append(iterator.next());
         }
         return builder.toText();
