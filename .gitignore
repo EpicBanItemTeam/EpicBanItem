@@ -14,9 +14,12 @@
 !api/
 
 # Gradle Files
+!gradle/
+!gradlew
+!gradlew.bat
 !build.gradle
-!gradle.properties
 !settings.gradle
+!gradle.properties
 
 # Circle CI
 !.circleci/
