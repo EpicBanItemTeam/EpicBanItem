@@ -2,6 +2,8 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
@@ -13,12 +15,8 @@ import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -93,7 +91,8 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     private CheckResult check(CheckResult origin, ItemType itemType, World world, String trigger, @Nullable Subject subject) {
-        return Stream.concat(getCheckRules(null).stream(), getCheckRules(itemType).stream())
+        List<List<CheckRule>> ruleLists = Arrays.asList(getCheckRules(null), getCheckRules(itemType));
+        return Streams.stream(Iterables.mergeSorted(ruleLists, EpicBanItem.getBanConfig().getComparator()))
                 .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
                 .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result))).apply(origin);
     }

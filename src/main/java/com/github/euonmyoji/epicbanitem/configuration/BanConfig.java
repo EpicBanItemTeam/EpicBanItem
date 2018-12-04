@@ -27,18 +27,22 @@ import java.util.function.Predicate;
 public class BanConfig {
     public static final int CURRENT_VERSION = 1;
     public static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
-    public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority);
+    public static final Comparator<String> RULE_NAME_COMPARATOR = Comparator.naturalOrder();
     public static final Comparator<ItemType> ITEM_TYPE_COMPARATOR = Comparator.comparing(ItemType::getId);
+    public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority).thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
 
     private final Path path;
     private final AutoFileLoader fileLoader;
-    private ImmutableMap<String, CheckRule> checkRulesByName = ImmutableMap.of();
-    private ImmutableListMultimap<String, CheckRule> checkRulesByItem = ImmutableListMultimap.of();
+    private ImmutableSortedMap<String, CheckRule> checkRulesByName;
+    private ImmutableListMultimap<String, CheckRule> checkRulesByItem;
     private ImmutableSortedSet<ItemType> itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).build();
 
     public BanConfig(AutoFileLoader fileLoader, Path path) {
         this.path = path;
         this.fileLoader = fileLoader;
+
+        this.checkRulesByItem = ImmutableListMultimap.of();
+        this.checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
 
         fileLoader.addListener(path, this::load, this::save);
         if (Files.notExists(path)) {
@@ -96,6 +100,10 @@ public class BanConfig {
         return Arrays.asList(newCheckRules);
     }
 
+    public Comparator<CheckRule> getComparator() {
+        return COMPARATOR;
+    }
+
     public Set<ItemType> getItems() {
         return Objects.requireNonNull(itemTypes);
     }
@@ -129,9 +137,9 @@ public class BanConfig {
             this.checkRulesByItem = ImmutableListMultimap.copyOf(newRules);
             this.itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).addAll(this.itemTypes).build();
 
-            Map<String, CheckRule> rulesByName = new LinkedHashMap<>(checkRulesByName);
+            SortedMap<String, CheckRule> rulesByName = new TreeMap<>(checkRulesByName);
             rulesByName.put(newRule.getName(), newRule);
-            this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
+            this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
 
             forceSave();
         } catch (Exception e) {
@@ -143,7 +151,7 @@ public class BanConfig {
         try {
             CheckRule rule = checkRulesByName.get(name);
             if (rule != null) {
-                Map<String, CheckRule> rulesByName = new LinkedHashMap<>(checkRulesByName);
+                SortedMap<String, CheckRule> rulesByName = new TreeMap<>(checkRulesByName);
                 rulesByName.remove(name);
                 ImmutableListMultimap.Builder<String, CheckRule> builder = ImmutableListMultimap.builder();
                 checkRulesByItem.forEach((s, rule1) -> {
@@ -152,7 +160,7 @@ public class BanConfig {
                     }
                 });
                 this.checkRulesByItem = builder.build();
-                this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
+                this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
 
                 forceSave();
                 return true;
@@ -172,8 +180,8 @@ public class BanConfig {
             return CURRENT_VERSION;
         });
         try {
-            Map<String, CheckRule> rulesByName = new LinkedHashMap<>();
-            Set<ItemType> newItems = new TreeSet<>(Comparator.comparing(ItemType::getId));
+            SortedSet<ItemType> newItems = new TreeSet<>(ITEM_TYPE_COMPARATOR);
+            SortedMap<String, CheckRule> rulesByName = new TreeMap<>(RULE_NAME_COMPARATOR);
             Multimap<String, CheckRule> rulesByItem = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
             Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
             boolean needSave = false;
@@ -202,9 +210,9 @@ public class BanConfig {
                 ruleList.sort(COMPARATOR);
                 rulesByItem.putAll(item, ruleList);
             }
-            this.itemTypes = ImmutableSortedSet.copyOf(ITEM_TYPE_COMPARATOR, newItems);
+            this.itemTypes = ImmutableSortedSet.copyOfSorted(newItems);
             this.checkRulesByItem = ImmutableListMultimap.copyOf(rulesByItem);
-            this.checkRulesByName = ImmutableMap.copyOf(rulesByName);
+            this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
             if (needSave) {
                 forceSave();
             }
