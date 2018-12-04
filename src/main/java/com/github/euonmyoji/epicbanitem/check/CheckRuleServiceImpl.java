@@ -3,7 +3,6 @@ package com.github.euonmyoji.epicbanitem.check;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -18,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
@@ -76,33 +76,25 @@ public class CheckRuleServiceImpl implements CheckRuleService {
 
     @Override
     public CheckResult check(ItemStack item, World world, String trigger, @Nullable Subject subject) {
-        CheckResult result = CheckResult.empty();
-        if (!item.isEmpty()) {
-            check(result, item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
-        }
-        return result;
+        CheckResult result = CheckResult.empty(NbtTagDataUtil.toNbt(item));
+        return item.isEmpty() ? result : check(result, item.getType(), world, trigger, subject);
     }
 
     @Override
     public CheckResult check(ItemStackSnapshot item, World world, String trigger, @Nullable Subject subject) {
-        CheckResult result = CheckResult.empty();
-        if (!item.isEmpty()) {
-            check(result, item.getType(), NbtTagDataUtil.toNbt(item), world, trigger, subject);
-        }
-        return result;
+        CheckResult result = CheckResult.empty(NbtTagDataUtil.toNbt(item));
+        return item.isEmpty() ? result : check(result, item.getType(), world, trigger, subject);
     }
 
     @Override
     public CheckResult check(BlockSnapshot snapshot, World world, String trigger, @Nullable Subject subject) {
-        ItemType itemType = snapshot.getState().getType().getItem().orElse(ItemTypes.AIR);
-        CheckResult result = CheckResult.empty();
-        Stream<CheckRule> rules = Stream.concat(getCheckRules(null).stream(), getCheckRules(itemType).stream());
-        rules.forEach(rule -> rule.check(NbtTagDataUtil.toNbt(snapshot), result, world, trigger, subject));
-        return result;
+        CheckResult result = CheckResult.empty(NbtTagDataUtil.toNbt(snapshot));
+        return check(result, snapshot.getState().getType().getItem().orElse(ItemTypes.AIR), world, trigger, subject);
     }
 
-    private void check(CheckResult result, ItemType type, DataView view, World world, String trigger, @Nullable Subject subject) {
-        Stream<CheckRule> rules = Stream.concat(getCheckRules(null).stream(), getCheckRules(type).stream());
-        rules.forEach(rule -> rule.check(view, result, world, trigger, subject));
+    private CheckResult check(CheckResult origin, ItemType itemType, World world, String trigger, @Nullable Subject subject) {
+        return Stream.concat(getCheckRules(null).stream(), getCheckRules(itemType).stream())
+                .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
+                .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result))).apply(origin);
     }
 }

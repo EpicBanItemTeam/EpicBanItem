@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.message.Messages;
-import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
@@ -14,9 +13,8 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
-import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
@@ -182,40 +180,25 @@ public class CheckRule {
     }
 
     /**
-     * @param item    被检查的物品
-     * @param world   检查发生世界名
-     * @param trigger 检查发生trigger
-     * @param subject 被检查的权限主体
-     * @return 检查结果
-     */
-    public CheckResult check(ItemStack item, CheckResult origin, World world, String trigger, @Nullable Subject subject) {
-        return check(NbtTagDataUtil.toNbt(item), origin, world, trigger, subject);
-    }
-
-    /**
      * @param view    被检查的物品
      * @param world   检查发生世界名
      * @param trigger 检查发生trigger
      * @param subject 被检查的权限主体
      * @return 检查结果
      */
-    public CheckResult check(DataView view, CheckResult origin, World world, String trigger, @Nullable Subject subject) {
-        if (!isEnabledTrigger(trigger)) {
-            return origin;
-        }
-        if (!isEnabledWorld(world)) {
-            return origin;
-        }
-        if (subject != null && hasBypassPermission(subject, trigger)) {
-            return origin;
-        }
-
-        Optional<QueryResult> optionalQueryResult = query.query(DataQuery.of(), view);
-        if (optionalQueryResult.isPresent()) {
-            origin.breakRules.add(this);
-            if (update != null) {
-                update.update(optionalQueryResult.get(), view).apply(view);
-                origin.view = view;
+    public CheckResult check(CheckResult origin, World world, String trigger, @Nullable Subject subject) {
+        if (isEnabledTrigger(trigger) && isEnabledWorld(world)) {
+            if (subject == null || !hasBypassPermission(subject, trigger)) {
+                DataContainer view = origin.getFinalViewUnchecked();
+                Optional<QueryResult> optionalQueryResult = query.query(DataQuery.of(), view);
+                if (optionalQueryResult.isPresent()) {
+                    if (update != null) {
+                        update.update(optionalQueryResult.get(), view).apply(view);
+                        return CheckResult.concat(origin, this, view);
+                    } else {
+                        return CheckResult.concat(origin, this);
+                    }
+                }
             }
         }
         return origin;

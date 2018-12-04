@@ -58,9 +58,7 @@ public class CommandCheck extends AbstractCommand {
             World world = ((Locatable) src).getWorld();
             for (String trigger : Triggers.getDefaultTriggers()) {
                 CheckResult checkResult = service.check(blockSnapshot, world, trigger, null);
-                for (CheckRule checkRule : checkResult.getBreakRules()) {
-                    checkRules.put(checkRule.getName(), checkRule);
-                }
+                checkResult.getBreakRules().forEach(checkRule -> checkRules.put(checkRule.getName(), checkRule));
             }
         } else {
             Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
@@ -68,9 +66,7 @@ public class CommandCheck extends AbstractCommand {
             World world = ((Locatable) src).getWorld();
             for (String trigger : Triggers.getDefaultTriggers()) {
                 CheckResult checkResult = service.check(itemStack, world, trigger, null);
-                for (CheckRule checkRule : checkResult.getBreakRules()) {
-                    checkRules.put(checkRule.getName(), checkRule);
-                }
+                checkResult.getBreakRules().forEach(checkRule -> checkRules.put(checkRule.getName(), checkRule));
             }
         }
         Text.Builder info = Text.builder();
