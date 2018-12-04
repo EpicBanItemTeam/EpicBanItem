@@ -3,27 +3,24 @@ package com.github.euonmyoji.epicbanitem;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-public class Main {
-
+public class Main extends JFrame {
     public static void main(String[] args) {
-        new InfoFrame();
+        new Main();
     }
-}
 
-/**
- * 糟糕的窗口类
- */
-class InfoFrame extends JFrame {
+    private static final long serialVersionUID = 1L;
+
     private final JButton openWiki = new JButton();
     private final JButton openOre = new JButton();
 
-    InfoFrame() {
+    private Main() {
         this.setTitle("EpicBanItem v" + EpicBanItem.VERSION);
         this.setSize(400, 300);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
