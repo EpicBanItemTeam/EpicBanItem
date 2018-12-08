@@ -19,6 +19,7 @@ import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
@@ -180,7 +181,6 @@ public class CheckRule {
     }
 
     /**
-     * @param view    被检查的物品
      * @param world   检查发生世界名
      * @param trigger 检查发生trigger
      * @param subject 被检查的权限主体
@@ -236,7 +236,10 @@ public class CheckRule {
     }
 
     private boolean hasBypassPermission(Subject subject, String trigger) {
-        return subject.hasPermission(getContext(subject, trigger), "epicbanitem.bypass." + name);
+        final String checkPrefix = "epicbanitem.bypass.";
+        return subject.hasPermission(getContext(subject, trigger), checkPrefix + name)
+                && subject.getPermissionValue(getContext(subject, trigger), checkPrefix + name).and(Tristate.TRUE)
+                .asBoolean();
     }
 
     private Set<Context> getContext(Subject subject, String trigger) {
