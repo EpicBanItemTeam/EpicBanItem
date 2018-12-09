@@ -81,3 +81,9 @@ EpicBanItem不存在`reload`的相关命令。这是因为插件会自动监听�
 | `epicbanitem.command.remove`     | 使用`/ebi remove`命令的权限       |
 | `epicbanitem.bypass`             | 无视所有针对玩家规则的权限  |
 | `epicbanitem.bypass.<rule-name>` | 无视`<rule-name>`这一规则的权限 |
+
+在检查无视规则的权限时，插件会在默认权限上下文后追加一条形如`epicbanitem-trigger=<trigger>`的新的上下文。比如说如果服务器希望所有属于`default`组的玩家都无视名为`example`的规则，但仅限于`pickup`触发器，那么安装有 [LuckPerms](https://ore.spongepowered.org/Luck/LuckPerms) 的服务器可以试试下面的命令：
+
+```mcfunction
+lp group default permission set epicbanitem.bypass.example epicbanitem-trigger=pickup
+```

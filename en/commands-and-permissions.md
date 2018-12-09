@@ -55,3 +55,9 @@ All the permission strings start with `epicbanitem`.
 | `epicbanitem.command.remove`     | Permission for using `/ebi remove` command                        |
 | `epicbanitem.bypass`             | Permission that bypass all the rules which players participate in |
 | `epicbanitem.bypass.<rule-name>` | Permission that bypass the rule named `<rule-name>`               |
+
+A new permission context in the form of `epicbanitem-trigger=<trigger>` will be appended behind default context when checking bypass permissions. For example, if it is considered that a rule named `example` should be bypassed for players belonging to a group named `default` but only for the `pickup` trigger, servers with [LuckPerms](https://ore.spongepowered.org/Luck/LuckPerms) installed may wish to try the following command:
+
+```mcfunction
+lp group default permission set epicbanitem.bypass.example epicbanitem-trigger=pickup
+```
