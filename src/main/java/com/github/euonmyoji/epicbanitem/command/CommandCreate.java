@@ -101,15 +101,16 @@ class CommandCreate extends AbstractCommand {
                     }
                 }
             }
-            CheckRule checkRule = new CheckRule(name, queryNode);
-            service.addRule(id.flatMap(s -> Sponge.getRegistry().getType(ItemType.class, s)).orElse(null), checkRule);
+            service.appendRule(new CheckRule(name, queryNode)).thenRun(() -> {
+                Text succeedMessage = getMessage("succeed", "rule_name", name);
+                src.sendMessage(succeedMessage);
+            });
+            return CommandResult.success();
         } catch (CommandException e) {
             throw e;
         } catch (Exception e) {
             EpicBanItem.getLogger().error("Failed to create.", e);
             throw new CommandException(getMessage("failed"), e);
         }
-        src.sendMessage(getMessage("succeed", "rule_name", name));
-        return CommandResult.success();
     }
 }

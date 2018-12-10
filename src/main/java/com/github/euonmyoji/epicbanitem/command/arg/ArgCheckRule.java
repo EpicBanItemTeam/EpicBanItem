@@ -31,7 +31,7 @@ class ArgCheckRule extends CommandElement {
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        Optional<CheckRule> optionalCheckRule = service.getCheckRule(argString);
+        Optional<CheckRule> optionalCheckRule = service.getCheckRuleByName(argString);
         if (optionalCheckRule.isPresent()) {
             return optionalCheckRule.get();
         } else {
@@ -44,6 +44,6 @@ class ArgCheckRule extends CommandElement {
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        return service.getRuleNames().stream().filter(s -> s.toLowerCase().startsWith(prefix)).collect(Collectors.toList());
+        return service.getNames().stream().filter(s -> s.toLowerCase().startsWith(prefix)).collect(Collectors.toList());
     }
 }

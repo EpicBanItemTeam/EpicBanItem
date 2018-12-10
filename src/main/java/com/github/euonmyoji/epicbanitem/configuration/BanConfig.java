@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 /**
@@ -28,20 +30,18 @@ public class BanConfig {
     public static final int CURRENT_VERSION = 1;
     public static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
     public static final Comparator<String> RULE_NAME_COMPARATOR = Comparator.naturalOrder();
-    public static final Comparator<ItemType> ITEM_TYPE_COMPARATOR = Comparator.comparing(ItemType::getId);
     public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority).thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
 
     private final Path path;
     private final AutoFileLoader fileLoader;
     private ImmutableSortedMap<String, CheckRule> checkRulesByName;
-    private ImmutableListMultimap<String, CheckRule> checkRulesByItem;
-    private ImmutableSortedSet<ItemType> itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).build();
+    private ImmutableListMultimap<CheckRuleIndex, CheckRule> checkRulesByIndex;
 
     public BanConfig(AutoFileLoader fileLoader, Path path) {
         this.path = path;
         this.fileLoader = fileLoader;
 
-        this.checkRulesByItem = ImmutableListMultimap.of();
+        this.checkRulesByIndex = ImmutableListMultimap.of();
         this.checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
 
         fileLoader.addListener(path, this::load, this::save);
@@ -104,12 +104,12 @@ public class BanConfig {
         return COMPARATOR;
     }
 
-    public Set<ItemType> getItems() {
-        return Objects.requireNonNull(itemTypes);
+    public Set<CheckRuleIndex> getItems() {
+        return Objects.requireNonNull(checkRulesByIndex).keySet();
     }
 
-    public List<CheckRule> getRules(@Nullable ItemType itemType) {
-        return Objects.requireNonNull(checkRulesByItem).get(getTypeId(itemType));
+    public List<CheckRule> getRules(CheckRuleIndex index) {
+        return Objects.requireNonNull(checkRulesByIndex).get(index);
     }
 
     public Collection<CheckRule> getRules() {
@@ -124,48 +124,49 @@ public class BanConfig {
         return Optional.ofNullable(checkRulesByName.get(name));
     }
 
-    public void addRule(@Nullable ItemType itemType, CheckRule newRule) throws IOException {
+    public CompletableFuture<Boolean> addRule(CheckRuleIndex index, CheckRule newRule) throws IOException {
         try {
-            ListMultimap<String, CheckRule> newRules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
-            SortedSet<ItemType> newItems = new TreeSet<>(this.itemTypes);
-            newRules.putAll(this.checkRulesByItem);
-
-            String typeId = getTypeId(itemType);
-            Optional.ofNullable(itemType).ifPresent(newItems::add);
-            newRules.putAll(typeId, addAndSort(newRules.removeAll(typeId), newRule));
-
-            this.checkRulesByItem = ImmutableListMultimap.copyOf(newRules);
-            this.itemTypes = ImmutableSortedSet.orderedBy(ITEM_TYPE_COMPARATOR).addAll(this.itemTypes).build();
-
             SortedMap<String, CheckRule> rulesByName = new TreeMap<>(checkRulesByName);
-            rulesByName.put(newRule.getName(), newRule);
+
+            if (rulesByName.put(newRule.getName(), newRule) != null) {
+                return CompletableFuture.completedFuture(Boolean.FALSE);
+            }
+
+            ListMultimap<CheckRuleIndex, CheckRule> rules;
+            rules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
+
+            rules.putAll(this.checkRulesByIndex);
+            rules.putAll(index, addAndSort(rules.removeAll(index), newRule));
+
+            this.checkRulesByIndex = ImmutableListMultimap.copyOf(rules);
             this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
 
             forceSave();
+            return CompletableFuture.completedFuture(Boolean.TRUE); // TODO: return CompletableFuture from forceSave
         } catch (Exception e) {
             throw new IOException(e);
         }
     }
 
-    public boolean removeRule(String name) throws IOException {
+    public CompletableFuture<Boolean> removeRule(CheckRuleIndex index, String name) throws IOException {
         try {
             CheckRule rule = checkRulesByName.get(name);
             if (rule != null) {
                 SortedMap<String, CheckRule> rulesByName = new TreeMap<>(checkRulesByName);
                 rulesByName.remove(name);
-                ImmutableListMultimap.Builder<String, CheckRule> builder = ImmutableListMultimap.builder();
-                checkRulesByItem.forEach((s, rule1) -> {
+                ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> builder = ImmutableListMultimap.builder();
+                checkRulesByIndex.forEach((s, rule1) -> {
                     if (!rule1.getName().equals(name)) {
                         builder.put(s, rule1);
                     }
                 });
-                this.checkRulesByItem = builder.build();
+                this.checkRulesByIndex = builder.build();
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
 
                 forceSave();
-                return true;
+                return CompletableFuture.completedFuture(Boolean.TRUE); // TODO: return CompletableFuture from forceSave
             } else {
-                return false;
+                return CompletableFuture.completedFuture(Boolean.FALSE);
             }
         } catch (Exception e) {
             throw new IOException(e);
@@ -180,14 +181,12 @@ public class BanConfig {
             return CURRENT_VERSION;
         });
         try {
-            SortedSet<ItemType> newItems = new TreeSet<>(ITEM_TYPE_COMPARATOR);
             SortedMap<String, CheckRule> rulesByName = new TreeMap<>(RULE_NAME_COMPARATOR);
-            Multimap<String, CheckRule> rulesByItem = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
+            Multimap<CheckRuleIndex, CheckRule> rulesByItem = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
             Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
             boolean needSave = false;
             for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
                 String item = entry.getKey().toString();
-                Sponge.getRegistry().getType(ItemType.class, item).ifPresent(newItems::add);
                 List<CheckRule> ruleList = new ArrayList<>();
                 for (ConfigurationNode node1 : entry.getValue().getChildrenList()) {
                     ConfigurationNode originNode = node1.copy();
@@ -208,10 +207,9 @@ public class BanConfig {
                     ruleList.add(rule);
                 }
                 ruleList.sort(COMPARATOR);
-                rulesByItem.putAll(item, ruleList);
+                rulesByItem.putAll(CheckRuleIndex.of(item), ruleList);
             }
-            this.itemTypes = ImmutableSortedSet.copyOfSorted(newItems);
-            this.checkRulesByItem = ImmutableListMultimap.copyOf(rulesByItem);
+            this.checkRulesByIndex = ImmutableListMultimap.copyOf(rulesByItem);
             this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
             if (needSave) {
                 forceSave();
@@ -228,8 +226,8 @@ public class BanConfig {
     private void save(ConfigurationNode node) throws IOException {
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
         try {
-            for (Map.Entry<String, CheckRule> entry : checkRulesByItem.entries()) {
-                node.getNode("epicbanitem", entry.getKey()).getAppendedNode().setValue(RULE_TOKEN, entry.getValue());
+            for (Map.Entry<CheckRuleIndex, CheckRule> entry : checkRulesByIndex.entries()) {
+                node.getNode("epicbanitem", entry.getKey().toString()).getAppendedNode().setValue(RULE_TOKEN, entry.getValue());
             }
         } catch (ObjectMappingException e) {
             throw new IOException(e);

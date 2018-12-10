@@ -9,33 +9,27 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public interface CheckRuleService {
-    // Map<ItemType,Map<String,CheckRule>>?
-    // Map<ItemType,Collection<CheckRule>>?
+    /**
+     * return name set of all active rules
+     *
+     * @return 适用的规则
+     */
+    Set<String> getNames();
 
     /**
      * 返回会被检查的物品类型
      *
      * @return ItemTypes
      */
-    Set<ItemType> getCheckItemTypes();
-
-    /**
-     * 返回一个物品适用的规则 or empty
-     *
-     * @param itemType 物品类型
-     * @return 适用的规则
-     */
-    List<CheckRule> getCheckRules(@Nullable ItemType itemType);
+    Set<CheckRuleIndex> getIndexes();
 
     /**
      * return all active rules
@@ -45,19 +39,20 @@ public interface CheckRuleService {
     Collection<CheckRule> getCheckRules();
 
     /**
-     * return name set of all active rules
-     *
-     * @return 适用的规则
-     */
-    Set<String> getRuleNames();
-
-    /**
      * get check rule for the name or empty
      *
      * @param name 规则名
      * @return 检查规则
      */
-    Optional<CheckRule> getCheckRule(String name);
+    Optional<CheckRule> getCheckRuleByName(String name);
+
+    /**
+     * 返回一个物品适用的规则 or empty
+     *
+     * @param itemType 物品类型
+     * @return 适用的规则
+     */
+    List<CheckRule> getCheckRulesByIndex(CheckRuleIndex index);
 
     /**
      * 返回一个物品对应的规则名的规则 or empty
@@ -66,7 +61,7 @@ public interface CheckRuleService {
      * @param name     规则名
      * @return 检查规则
      */
-    Optional<CheckRule> getCheckRule(@Nullable ItemType itemType, String name);
+    Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name);
 
     /**
      * 检查一个物品并返回一个result
@@ -105,9 +100,11 @@ public interface CheckRuleService {
      * Add a rule to the service and save it in the default config.
      *
      * @param type item type of the rule
-     * @param rule the rule to add
+     * @param rule the rule to
+     *
+     * @return <tt>true</tt> if a rule was added as a result of this call
      */
-    void addRule(@Nullable ItemType type, CheckRule rule);
+    CompletableFuture<Boolean> appendRule(CheckRule rule);
 
     /**
      * Remove the rule with the given name. if present .
@@ -115,5 +112,5 @@ public interface CheckRuleService {
      * @param name the name of the rule to remove , if present.
      * @return <tt>true</tt> if a rule was removed as a result of this call
      */
-    boolean removeRule(String name);
+    CompletableFuture<Boolean> removeRule(CheckRule rule);
 }

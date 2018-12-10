@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -16,10 +17,8 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -40,19 +39,16 @@ class CommandList extends AbstractCommand {
     public CommandResult execute(CommandSource src, CommandContext args) {
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         LinkedHashMap<String, List<CheckRule>> toShow = new LinkedHashMap<>();
+        Stream<CheckRuleIndex> indexStream;
         if (args.hasAny("item-type")) {
             // noinspection ConstantConditions
             ItemType itemType = args.<ItemType>getOne("item-type").get();
-            toShow.put("*", service.getCheckRules(null));
-            toShow.put(itemType.getId(), service.getCheckRules(itemType));
+            indexStream = Stream.of(CheckRuleIndex.of(), CheckRuleIndex.of(itemType));
         } else {
-            // all
-            toShow.put("*", service.getCheckRules(null));
-            for (ItemType itemType : service.getCheckItemTypes()) {
-                toShow.put(itemType.getId(), service.getCheckRules(itemType));
-            }
+            indexStream = Stream.concat(Stream.of(CheckRuleIndex.of()), service.getIndexes().stream());
         }
         List<Text> lines = new ArrayList<>();
+        indexStream.forEach(i -> toShow.put(i.toString(), service.getCheckRulesByIndex(i)));
         for (Map.Entry<String, List<CheckRule>> entry : toShow.entrySet()) {
             for (CheckRule checkRule : entry.getValue()) {
                 lines.add(Text.of(

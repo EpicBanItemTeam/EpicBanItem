@@ -31,8 +31,11 @@ public class CommandRemove extends AbstractCommand {
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         // noinspection ConstantConditions
         CheckRule checkRule = args.<CheckRule>getOne("rule").get();
-        service.removeRule(checkRule.getName());
-        src.sendMessage(getMessage("succeed", "rule", checkRule.getName()));
+        service.removeRule(checkRule).thenAccept(succeed -> {
+            if (succeed) {
+                src.sendMessage(getMessage("succeed", "rule", checkRule.getName()));
+            }
+        });
         return CommandResult.success();
     }
 }

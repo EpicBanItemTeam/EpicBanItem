@@ -16,6 +16,7 @@ import org.spongepowered.api.world.World;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
 
 /**
@@ -24,32 +25,37 @@ import java.util.function.UnaryOperator;
 @NonnullByDefault
 public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
-    public void addRule(@Nullable ItemType type, CheckRule rule) {
+    public CompletableFuture<Boolean> appendRule(CheckRule rule) {
         try {
-            EpicBanItem.getBanConfig().addRule(type, rule);
+            return EpicBanItem.getBanConfig().addRule(CheckRuleIndex.of(rule.getQueryNode()), rule);
         } catch (IOException e) {
             EpicBanItem.getLogger().error("Failed to save ban config.", e);
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
         }
     }
 
     @Override
-    public boolean removeRule(String name) {
+    public CompletableFuture<Boolean> removeRule(CheckRule rule) {
         try {
-            return EpicBanItem.getBanConfig().removeRule(name);
+            return EpicBanItem.getBanConfig().removeRule(CheckRuleIndex.of(rule.getQueryNode()), rule.getName());
         } catch (IOException e) {
             EpicBanItem.getLogger().error("Failed to save ban config.", e);
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
         }
-        return false;
     }
 
     @Override
-    public Set<ItemType> getCheckItemTypes() {
+    public Set<CheckRuleIndex> getIndexes() {
         return EpicBanItem.getBanConfig().getItems();
     }
 
     @Override
-    public List<CheckRule> getCheckRules(@Nullable ItemType itemType) {
-        return EpicBanItem.getBanConfig().getRules(itemType);
+    public List<CheckRule> getCheckRulesByIndex(CheckRuleIndex index) {
+        return EpicBanItem.getBanConfig().getRules(index);
     }
 
     @Override
@@ -58,18 +64,18 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     @Override
-    public Set<String> getRuleNames() {
+    public Set<String> getNames() {
         return EpicBanItem.getBanConfig().getRuleNames();
     }
 
     @Override
-    public Optional<CheckRule> getCheckRule(String name) {
+    public Optional<CheckRule> getCheckRuleByName(String name) {
         return EpicBanItem.getBanConfig().getRule(name);
     }
 
     @Override
-    public Optional<CheckRule> getCheckRule(@Nullable ItemType itemType, String name) {
-        return getCheckRules(itemType).stream().filter(c -> c.getName().equals(name)).findFirst();
+    public Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name) {
+        return EpicBanItem.getBanConfig().getRules(index).stream().filter(c -> c.getName().equals(name)).findFirst();
     }
 
     @Override
@@ -91,7 +97,8 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     private CheckResult check(CheckResult origin, ItemType itemType, World world, String trigger, @Nullable Subject subject) {
-        List<List<CheckRule>> ruleLists = Arrays.asList(getCheckRules(null), getCheckRules(itemType));
+        CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(itemType);
+        List<List<CheckRule>> ruleLists = Arrays.asList(getCheckRulesByIndex(i), getCheckRulesByIndex(j));
         return Streams.stream(Iterables.mergeSorted(ruleLists, EpicBanItem.getBanConfig().getComparator()))
                 .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
                 .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result))).apply(origin);

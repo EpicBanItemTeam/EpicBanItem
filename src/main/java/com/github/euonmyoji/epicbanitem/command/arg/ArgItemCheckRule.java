@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.command.arg;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
@@ -11,6 +12,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.StartsWithPredicate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
@@ -32,9 +34,10 @@ class ArgItemCheckRule extends CommandElement {
     public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
         // noinspection ConstantConditions
         ItemType itemType = context.<ItemType>getOne("item-type").get();
+        CheckRuleIndex index = CheckRuleIndex.of(itemType);
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        Optional<CheckRule> optionalCheckRule = service.getCheckRule(itemType, argString);
+        Optional<CheckRule> optionalCheckRule = service.getCheckRuleByNameAndIndex(index, argString);
         if (optionalCheckRule.isPresent()) {
             context.putArg(getKey(), optionalCheckRule.get());
         } else {
@@ -52,8 +55,9 @@ class ArgItemCheckRule extends CommandElement {
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
         // noinspection ConstantConditions
         ItemType itemType = context.<ItemType>getOne("item-type").get();
+        CheckRuleIndex index = CheckRuleIndex.of(itemType);
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        return service.getCheckRules(itemType).stream().map(CheckRule::getName).filter(s -> s.toLowerCase().startsWith(prefix)).collect(Collectors.toList());
+        return service.getCheckRulesByIndex(index).stream().map(CheckRule::getName).filter(new StartsWithPredicate(prefix)).collect(Collectors.toList());
     }
 }

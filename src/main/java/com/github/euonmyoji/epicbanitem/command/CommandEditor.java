@@ -384,12 +384,12 @@ public class CommandEditor extends AbstractCommand {
                                         // remove th origin one.
                                         if (origin != null) {
                                             // TODO: 2018/11/24 Is the rule with that name the rule we get on created the editor.
-                                            service.removeRule(origin.getName());
+                                            // TODO: 2018/12/10 Should we consider completable future?
+                                            service.removeRule(origin);
                                         }
                                         // TODO: 2018/11/25 Warn on no id matches ?
                                         Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString());
-                                        service.addRule(id.flatMap(s -> Sponge.getRegistry().getType(ItemType.class, s)).orElse(null), rule);
-                                        src.sendMessage(getMessage("saved"));
+                                        service.appendRule(rule).thenRun(() -> src.sendMessage(getMessage("saved")));
                                         editorMap.remove(owner);
                                         return CommandResult.success();
                                     })
