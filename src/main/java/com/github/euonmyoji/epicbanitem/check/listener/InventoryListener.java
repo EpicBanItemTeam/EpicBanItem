@@ -116,10 +116,6 @@ public class InventoryListener {
         }
     }
 
-    public void onCreate() {
-
-    }
-
     private void onInventoryChanged(ChangeInventoryEvent event, Player player, String trigger) {
         for (SlotTransaction slotTransaction : event.getTransactions()) {
             ItemStackSnapshot item = slotTransaction.getFinal();
