@@ -5,6 +5,8 @@ import org.spongepowered.api.command.CommandCallable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -17,9 +19,6 @@ public interface ICommand {
     String[] getAlias();
 
     default List<String> getNameList() {
-        List<String> list = new ArrayList<>();
-        list.add(getName());
-        list.addAll(Arrays.asList(getAlias()));
-        return list;
+        return Stream.concat(Stream.of(getName()), Arrays.stream(getAlias())).collect(Collectors.toList());
     }
 }
