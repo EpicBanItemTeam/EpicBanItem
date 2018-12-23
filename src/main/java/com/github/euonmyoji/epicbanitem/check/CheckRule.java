@@ -18,6 +18,7 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.TextRepresentable;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
@@ -32,7 +33,7 @@ import java.util.regex.Pattern;
  */
 @NonnullByDefault
 @SuppressWarnings("WeakerAccess")
-public class CheckRule {
+public class CheckRule implements TextRepresentable {
 
     public static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
 
@@ -204,6 +205,7 @@ public class CheckRule {
         return origin;
     }
 
+    @Override
     public Text toText() {
         Messages messages = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
