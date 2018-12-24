@@ -16,8 +16,8 @@ import java.util.function.Consumer;
  */
 @NonnullByDefault
 public class SpongeDataContainerWriter implements DataCompoundVisitor {
-    private Consumer<? super DataContainer> setter;
-    private DataContainer container;
+    private final Consumer<? super DataContainer> setter;
+    private final DataContainer container;
 
     private SpongeDataContainerWriter(Consumer<? super DataContainer> setter) {
         this.container = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
