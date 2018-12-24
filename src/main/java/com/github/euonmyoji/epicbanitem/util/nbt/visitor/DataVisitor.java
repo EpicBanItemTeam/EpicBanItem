@@ -34,7 +34,7 @@ public interface DataVisitor {
     public abstract class Impl implements DataVisitor {
         private final DataVisitor parent;
 
-        protected Impl(DataVisitor parent) {
+        public Impl(DataVisitor parent) {
             this.parent = parent;
         }
 
@@ -96,6 +96,68 @@ public interface DataVisitor {
         @Override
         public DataCompoundVisitor visitCompound() {
             return this.parent.visitCompound();
+        }
+    }
+
+    public class Empty implements DataVisitor {
+        @Override
+        public void visitByte(byte b) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitShort(short s) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitInt(int i) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitLong(long l) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitFloat(float f) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitDouble(double d) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitString(String s) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitByteArray(byte... bytes) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitIntArray(int... ints) {
+            // do nothing here
+        }
+
+        @Override
+        public void visitLongArray(long... longs) {
+            // do nothing here
+        }
+
+        @Override
+        public DataListVisitor visitList() {
+            return new DataListVisitor.Empty();
+        }
+
+        @Override
+        public DataCompoundVisitor visitCompound() {
+            return new DataCompoundVisitor.Empty();
         }
     }
 }

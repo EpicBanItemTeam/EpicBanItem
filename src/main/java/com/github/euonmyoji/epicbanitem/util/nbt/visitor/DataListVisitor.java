@@ -28,4 +28,16 @@ public interface DataListVisitor {
             this.parent.visitListEnd();
         }
     }
+
+    public class Empty implements DataListVisitor {
+        @Override
+        public DataVisitor visitListValue() {
+            return new DataVisitor.Empty();
+        }
+
+        @Override
+        public void visitListEnd() {
+            // do nothing here
+        }
+    }
 }

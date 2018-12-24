@@ -28,4 +28,16 @@ public interface DataCompoundVisitor {
             this.parent.visitCompoundEnd();
         }
     }
+
+    public class Empty implements DataCompoundVisitor {
+        @Override
+        public DataVisitor visitCompoundValue(String key) {
+            return new DataVisitor.Empty();
+        }
+
+        @Override
+        public void visitCompoundEnd() {
+            // do nothing here
+        }
+    }
 }
