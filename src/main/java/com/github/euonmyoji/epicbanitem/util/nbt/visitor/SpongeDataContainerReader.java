@@ -1,11 +1,9 @@
 package com.github.euonmyoji.epicbanitem.util.nbt.visitor;
 
-import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 

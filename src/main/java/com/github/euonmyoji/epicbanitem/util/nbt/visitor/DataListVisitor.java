@@ -11,7 +11,7 @@ public interface DataListVisitor {
 
     void visitListEnd();
 
-    public abstract class Impl implements DataListVisitor {
+    abstract class Impl implements DataListVisitor {
         private final DataListVisitor parent;
 
         public Impl(DataListVisitor parent) {
@@ -29,7 +29,7 @@ public interface DataListVisitor {
         }
     }
 
-    public class Empty implements DataListVisitor {
+    class Empty implements DataListVisitor {
         @Override
         public DataVisitor visitListValue() {
             return new DataVisitor.Empty();

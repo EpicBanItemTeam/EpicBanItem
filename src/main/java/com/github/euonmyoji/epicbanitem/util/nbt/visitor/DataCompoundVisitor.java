@@ -11,7 +11,7 @@ public interface DataCompoundVisitor {
 
     void visitCompoundEnd();
 
-    public abstract class Impl implements DataCompoundVisitor {
+    abstract class Impl implements DataCompoundVisitor {
         private final DataCompoundVisitor parent;
 
         public Impl(DataCompoundVisitor parent) {
@@ -29,7 +29,7 @@ public interface DataCompoundVisitor {
         }
     }
 
-    public class Empty implements DataCompoundVisitor {
+    class Empty implements DataCompoundVisitor {
         @Override
         public DataVisitor visitCompoundValue(String key) {
             return new DataVisitor.Empty();

@@ -46,7 +46,7 @@ public class SpongeDataContainerWriter implements DataCompoundVisitor {
         private final Consumer<? super List<Object>> setter;
         private final ImmutableList.Builder<Object> builder;
 
-        public SpongeDataListWriter(Consumer<? super List<Object>> setter) {
+        private SpongeDataListWriter(Consumer<? super List<Object>> setter) {
             this.builder = ImmutableList.builder();
             this.setter = setter;
         }

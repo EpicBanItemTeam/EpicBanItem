@@ -31,7 +31,7 @@ public interface DataVisitor {
 
     DataCompoundVisitor visitCompound();
 
-    public abstract class Impl implements DataVisitor {
+    abstract class Impl implements DataVisitor {
         private final DataVisitor parent;
 
         public Impl(DataVisitor parent) {
@@ -99,7 +99,7 @@ public interface DataVisitor {
         }
     }
 
-    public class Empty implements DataVisitor {
+    class Empty implements DataVisitor {
         @Override
         public void visitByte(byte b) {
             // do nothing here
