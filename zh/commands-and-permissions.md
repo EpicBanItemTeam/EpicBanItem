@@ -64,6 +64,10 @@ EpicBanItem不存在`reload`的相关命令。这是因为插件会自动监听�
 
 `remove`可以`delete`和`del`作为别名。
 
+### `/ebi edit <rule-name>`
+
+为`rule-name`这一规则打开一个编辑器。
+
 ## 权限
 
 所有权限均以 `epicbanitem` 开头。
@@ -79,6 +83,7 @@ EpicBanItem不存在`reload`的相关命令。这是因为插件会自动监听�
 | `epicbanitem.command.show`       | 使用`/ebi show`命令的权限         |
 | `epicbanitem.command.create`     | 使用`/ebi create`命令的权限       |
 | `epicbanitem.command.remove`     | 使用`/ebi remove`命令的权限       |
+| `epicbanitem.command.edit`       | 使用`/ebi edit`命令的权限         |
 | `epicbanitem.bypass`             | 无视所有针对玩家规则的权限  |
 | `epicbanitem.bypass.<rule-name>` | 无视`<rule-name>`这一规则的权限 |
 

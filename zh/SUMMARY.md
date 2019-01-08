@@ -6,3 +6,8 @@
   * [用于查找的规则](zh/rules-for-querying-and-updating?id=用于查找的规则)
   * [用于更新的规则](zh/rules-for-querying-and-updating?id=用于更新的规则)
   * [自定义运算符](zh/rules-for-querying-and-updating?id=自定义运算符)
+* [入门教程](zh/tutorial)
+  * [安装插件](zh/tutorial?id=安装插件)
+  * [禁用物品](zh/tutorial?id=禁用物品)
+  * [定制规则](zh/tutorial?id=定制规则)
+  * [小结](zh/tutorial?id=小结)

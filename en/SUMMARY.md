@@ -6,3 +6,8 @@
   * [Rules for Querying](en/rules-for-querying-and-updating?id=rules-for-querying)
   * [Rules for Updating](en/rules-for-querying-and-updating?id=rules-for-updating)
   * [Custom Operators](en/rules-for-querying-and-updating?id=custom-operators)
+* [Tutorial](en/tutorial)
+  * [Plugin Installation](en/tutorial?id=plugin-installation)
+  * [Making the Items Banned](en/tutorial?id=making-the-items-banned)
+  * [Editing the Rules](en/tutorial?id=editing-the-rules)
+  * [Summary](en/tutorial?id=summary)

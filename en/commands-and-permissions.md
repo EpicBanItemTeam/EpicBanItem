@@ -38,6 +38,10 @@ Display brief introduction of all the subcommands if the `subcommand` is not spe
 
 > TBD
 
+### `/ebi edit <rule-name>`
+
+> TBD
+
 ## Permissions
 
 All the permission strings start with `epicbanitem`.
@@ -53,6 +57,7 @@ All the permission strings start with `epicbanitem`.
 | `epicbanitem.command.show`       | Permission for using `/ebi show` command                          |
 | `epicbanitem.command.create`     | Permission for using `/ebi create` command                        |
 | `epicbanitem.command.remove`     | Permission for using `/ebi remove` command                        |
+| `epicbanitem.command.edit`       | Permission for using `/ebi edit` command                          |
 | `epicbanitem.bypass`             | Permission that bypass all the rules which players participate in |
 | `epicbanitem.bypass.<rule-name>` | Permission that bypass the rule named `<rule-name>`               |
 
