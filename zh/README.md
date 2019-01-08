@@ -2,6 +2,7 @@
 
 一个基于 NBT 的物品禁用插件。
 
+* 入门教程：<https://euonmyoji.github.io/EpicBanItem---Sponge/#/zh/tutorial>
 * Ore 发布平台：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
 * 插件文档：<https://euonmyoji.github.io/EpicBanItem---Sponge/#/zh/>
 * bStats：<https://bstats.org/plugin/sponge/EpicBanItem>
@@ -23,6 +24,6 @@ EpicBanItem 通过将物品（有时还包括方块）映射到 NBT，并对其�
 
 EpicBanItem 使用类似于 [MongoDB](https://docs.mongodb.com/manual/) 的方式[检索](https://docs.mongodb.com/manual/tutorial/query-documents/)和[更新](https://docs.mongodb.com/manual/tutorial/update-documents/) NBT。EpicBanItem 目前已经支持了 MongoDB 中大多数用于检索和更新的[运算符](https://docs.mongodb.com/manual/reference/operator/)。
 
-和 EpicBanItem 有关的配置文件位于 `config/epicbanitem/` 目录下，其中包含 `banitem.conf`（用于存储规则及相关选项）和 `settings.conf`（用于存储全局配置）两个文件。所有和 EpicBanItem 的命令均以 `/ebi` 开头。所有和 EpicBanItem 有关的权限均以 `epicbanitem`。
+和 EpicBanItem 有关的配置文件位于 `config/epicbanitem/` 目录下，其中包含 `banitem.conf`（用于存储规则及相关选项）和 `settings.conf`（用于存储全局配置）两个文件。所有和 EpicBanItem 的命令均以 `/ebi` 开头。所有和 EpicBanItem 有关的权限均以 `epicbanitem` 开头。
 
 EpicBanItem 整体[使用 GPL-3.0 协议授权](LICENSE)，其中包含了[使用 LGPL-3.0 协议授权](https://github.com/Bastian/bStats-Metrics/blob/master/LICENSE)的 `bstats-metrics`，用于数据收集和统计。使用者可自行编辑名为 `config/bStats/config.conf` 的文件选择是否开启数据收集和统计。
