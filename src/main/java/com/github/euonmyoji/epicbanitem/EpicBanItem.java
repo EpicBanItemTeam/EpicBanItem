@@ -30,10 +30,9 @@ import java.util.Optional;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-@Plugin(id = "epicbanitem", name = "EpicBanItem", version = EpicBanItem.VERSION,
+@Plugin(id = "epicbanitem", name = "EpicBanItem", version = "@version@",
         authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"}, description = "A banitem with nbt plugin in sponge")
 public class EpicBanItem {
-    static final String VERSION = "@version@";
     private static EpicBanItem instance;
 
     private final Path cfgDir;
