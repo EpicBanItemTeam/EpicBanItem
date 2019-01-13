@@ -18,12 +18,10 @@ import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStartedServerEvent;
-import org.spongepowered.api.event.game.state.GameStartingServerEvent;
-import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
+import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.plugin.Plugin;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -36,11 +34,10 @@ public class EpicBanItem {
     private static EpicBanItem instance;
 
     private final Path cfgDir;
-
     private final Logger logger;
-
     private final Metrics metrics;
     private final Messages messages;
+
     private Settings settings;
     private BanConfig banConfig;
     private String mainCommandAlias;
@@ -81,22 +78,22 @@ public class EpicBanItem {
     }
 
     @Listener
-    public void onStarting(GameStartingServerEvent event) {
+    public void onPostInit(GamePostInitializationEvent event) {
         try {
             messages.load();
-
             autoFileLoader = new AutoFileLoader(this, cfgDir);
-
             settings = new Settings(autoFileLoader, cfgDir.resolve("settings.conf"));
             banConfig = new BanConfig(autoFileLoader, cfgDir.resolve("banitem.conf"));
-
-            Optional<CommandMapping> mappingOptional = new CommandEbi().registerFor(this);
-            mappingOptional.ifPresent(mapping -> mainCommandAlias = mapping.getPrimaryAlias());
-
-            metrics.addCustomChart(new Metrics.SingleLineChart("enabledCheckRules", () -> banConfig.getRules().size()));
-        } catch (Exception e) {
-            logger.error("Failed to load EpicBanItem", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load EpicBanItem", e);
         }
+    }
+
+    @Listener
+    public void onStarting(GameStartingServerEvent event) {
+        Optional<CommandMapping> mappingOptional = new CommandEbi().registerFor(this);
+        mappingOptional.ifPresent(mapping -> mainCommandAlias = mapping.getPrimaryAlias());
+        metrics.addCustomChart(new Metrics.SingleLineChart("enabledCheckRules", () -> banConfig.getRules().size()));
     }
 
     @Listener
@@ -108,11 +105,11 @@ public class EpicBanItem {
     }
 
     @Listener
-    public void onStopping(GameStoppingServerEvent event) {
+    public void onStopping(GameStoppingEvent event) {
         try {
             autoFileLoader.close();
-        } catch (Exception e) {
-            logger.error("Failed to save EpicBanItem", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save EpicBanItem", e);
         }
     }
 }
