@@ -9,6 +9,7 @@ import java.util.Set;
  */
 public class Triggers {
     public static final String USE = "use";
+    public static final String CRAFT = "craft";
     public static final String PICKUP = "pickup";
     public static final String CLICK = "click";
     public static final String THROW = "throw";
@@ -22,6 +23,6 @@ public class Triggers {
     }
 
     public static Set<String> getDefaultTriggers() {
-        return ImmutableSet.of(USE, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT);
+        return ImmutableSet.of(USE, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT);
     }
 }

@@ -120,6 +120,7 @@ epicbanitem.error.missingMessage = 【缺失文本：{message_key}】
 
 #triggers
 epicbanitem.triggers.use = 使用
+epicbanitem.triggers.craft = 合成
 epicbanitem.triggers.pickup = 拾取
 epicbanitem.triggers.click = 点击
 epicbanitem.triggers.throw = 丢弃

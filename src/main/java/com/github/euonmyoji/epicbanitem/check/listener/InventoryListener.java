@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check.listener;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
@@ -13,17 +14,18 @@ import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.filter.type.Include;
-import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
-import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
-import org.spongepowered.api.event.item.inventory.DropItemEvent;
-import org.spongepowered.api.event.item.inventory.InteractItemEvent;
+import org.spongepowered.api.event.item.inventory.*;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
+import org.spongepowered.api.world.Locatable;
+import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.storage.WorldProperties;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +69,31 @@ public class InventoryListener {
         }
     }
 
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onCrafting(AffectItemStackEvent event) {
+        if (EpicBanItem.getSettings().isCraftingEventClass(event)) {
+            Cause cause = event.getCause();
+            Optional<Player> playerOptional = cause.first(Player.class);
+            World world = cause.first(Locatable.class).map(Locatable::getWorld).orElseGet(() -> {
+                RuntimeException e = new RuntimeException();
+                WorldProperties defProps = Sponge.getServer().getDefaultWorld().orElseThrow(RuntimeException::new);
+                World def = Sponge.getServer().getWorld(defProps.getUniqueId()).orElseThrow(RuntimeException::new);
+                EpicBanItem.getLogger().error("EpicBanItem cannot even find a world! What is the server doing?", e);
+                return def;
+            });
+            for (Transaction<ItemStackSnapshot> transaction : event.getTransactions()) {
+                ItemStackSnapshot item = transaction.getFinal();
+                CheckResult result = service.check(item, world, Triggers.CRAFT, playerOptional.orElse(null));
+                if (result.isBanned()) {
+                    result.getFinalView().ifPresent(view -> {
+                        ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
+                        transaction.setCustom(stack.createSnapshot());
+                    });
+                }
+            }
+        }
+    }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
     @Exclude({ClickInventoryEvent.Drop.class})

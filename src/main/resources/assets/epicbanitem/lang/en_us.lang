@@ -120,6 +120,7 @@ epicbanitem.error.missingMessage = [Missing message: {message_key}]
 
 #triggers
 epicbanitem.triggers.use = Use
+epicbanitem.triggers.craft = Craft
 epicbanitem.triggers.pickup = PickUp
 epicbanitem.triggers.click = Click
 epicbanitem.triggers.throw = Throw

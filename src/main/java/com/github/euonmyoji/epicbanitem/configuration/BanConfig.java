@@ -10,7 +10,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
