@@ -13,6 +13,16 @@
 
 不过，即使 EpicBanItem 本身理应能在不低于这两个版本的任何版本上工作，我们也建议服务器安装 SpongeVanilla 或 SpongeForge 的最新版本。这是因为其他插件或 Sponge 本身的 BUG 也可能干扰 EpicBanItem 的正常工作。
 
+## 考虑合成表
+
+禁用某个物品的合成表往往是常见的需求，但众所周知，Forge 服务端在 Minecraft 1.12 版本不支持合成表热重载，因此插件和 Mod 本身是无法使用正常的方式热重载合成表的。但考虑到 EpicBanItem 本身是支持热重载的插件，为修改合成表，我们建议三种做法，这三种做法按建议程度降序排列：
+
+1. 使用其他的插件和 Mod 修改合成表，最好的选择是 [CraftTweaker](https://minecraft.curseforge.com/projects/crafttweaker)。虽然 CraftTweaker 本身根本不支持热重载，但是使用 CraftTweaker 对 Mod 的兼容性是最好的。
+
+2. 向服务器添加名为 [CraftingRecipeRedirector](https://github.com/ustc-zzzz/CraftingRecipeRedirector/releases) 的 Mod 并使用 EpicBanItem。因为 EpicBanItem 的开发团队收到了大量希望 EpicBanItem 支持修改合成表的请求，因此 EpicBanItem 的开发团队通过编写并依赖一个额外的底层 Mod 的方式实现热重载。这种方式毕竟不被 Forge 官方支持，因此稳定性无法保证，但这是不得已的妥协方案。
+
+3. 直接使用 EpicBanItem 并只依赖这一插件。这种做法只应用于基于 SpongeVanilla 服务器的场合，因为 Sponge 只支持原版工作台，而并未考虑其他 Mod 的支持。
+
 ## 禁用物品
 
 我们从禁用一个木斧开始。作为示例，我们假设玩家 `zzzz_ustc` 是服务器管理员。

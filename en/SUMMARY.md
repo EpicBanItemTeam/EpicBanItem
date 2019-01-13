@@ -8,6 +8,7 @@
   * [Custom Operators](en/rules-for-querying-and-updating?id=custom-operators)
 * [Tutorial](en/tutorial)
   * [Plugin Installation](en/tutorial?id=plugin-installation)
+  * [Considering Crafting Recipes](en/tutorial?id=considering-crafting-recipes)
   * [Making the Items Banned](en/tutorial?id=making-the-items-banned)
   * [Editing the Rules](en/tutorial?id=editing-the-rules)
   * [Summary](en/tutorial?id=summary)
