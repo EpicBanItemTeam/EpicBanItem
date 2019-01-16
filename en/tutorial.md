@@ -25,7 +25,45 @@ Disabling the crafting recipes leading to an item is usually a common need, whil
 
 ## Making the Items Banned
 
-> TBD
+Now we get started by restricted use of a wooden axe. As an example, let's assume that the player `zzzz_ustc` is the server admin.
+
+Just enter the game and execute the command at the chat window (please ensure that `zzzz_ustc` has the `minecraft.command.give` permission):
+
+```mcfunction
+give zzzz_ustc minecraft:wooden_axe
+```
+
+Now there should be a wooden axe in your hand (if not, just switch to the state in which you are holding a wooden axe in your hand). Then we execute the following command at the chat window (please ensure that `zzzz_ustc` has the `epicbanitem.command.create` permission):
+
+```mcfunction
+ebi create ban-wooden-axe
+```
+
+It infers that a rule named `ban-wooden-axe` will be added, which restricts the use of all the items with the same item type of the one in your hand (in this example it is wooden axes, which type is `minecraft:wooden_axe`).
+
+The server admin can specify the name of a rule as they want, but the name can only be constructed by these characters shown below (non-ascii characters are not allowed):
+
+* Lower case latin letters (`abcdefghijklmnopqrstuvwxyz`)
+* Digits (`0123456789`)
+* Underlines (`_`)
+* Dashes (`-`)
+
+If everything works well, an message will be poped out:
+
+> Successfully added the rule: ban-wooden-axe
+
+Now you are able to use the following commands for listing all the rules avaliable or all the rules for the items which type is `minecraft:wooden_axe` (please ensure that `zzzz_ustc` has the `epicbanitem.command.list` permission):
+
+```mcfunction
+ebi list
+ebi list minecraft:wooden_axe
+```
+
+Here is a possible output:
+
+> --------------------- List of rules ----------------------  
+> ban-wooden-axe  minecraft:wooden_axe  
+> --------------------------- « » ----------------------------  
 
 ## Editing the Rules
 
