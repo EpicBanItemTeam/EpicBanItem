@@ -3,7 +3,6 @@ package com.github.euonmyoji.epicbanitem.configuration;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
-import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -48,7 +47,6 @@ public class BanConfig {
             fileLoader.forceSaving(path, n -> n.getNode("epicbanitem-version").setValue(CURRENT_VERSION).getParent());
         }
 
-        NbtTagDataUtil.printToLogger(EpicBanItem.getLogger()::debug);
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 

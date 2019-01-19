@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -29,6 +30,7 @@ public class Settings {
     private static final String DEFAULT_WORLD = "default-world";
     private static final String DEFAULT_TRIGGER = "default-trigger";
     private static final String LISTEN_CHUNK_LOAD = "listen-chunk-load";
+    private static final String PRINT_ITEM_TO_BLOCK_MAPPING = "print-item-to-block-mapping";
 
     private final Server server = Sponge.getServer();
 
@@ -36,6 +38,10 @@ public class Settings {
     private final Class<? extends AffectItemStackEvent> eventClass;
 
     private boolean listenLoadingChunk = false;
+    private boolean printItemToBlockMapping = true;
+
+    private boolean isMappingNotPrintedBefore = true;
+
     private Map<String, Boolean> enabledWorlds = Maps.newLinkedHashMap();
     private Map<String, Boolean> enabledTriggers = Maps.newLinkedHashMap();
 
@@ -69,6 +75,7 @@ public class Settings {
 
     private void resetToDefault() {
         this.listenLoadingChunk = false;
+        this.printItemToBlockMapping = true;
         Collection<WorldProperties> worlds = this.server.getAllWorldProperties();
         this.enabledTriggers = Maps.newLinkedHashMap(Maps.toMap(Triggers.getDefaultTriggers(), k -> true));
         this.enabledWorlds = Maps.newLinkedHashMap(Maps.toMap(Iterables.transform(worlds, WorldProperties::getWorldName), k -> true));
@@ -76,17 +83,32 @@ public class Settings {
 
     private void load(ConfigurationNode cfg) {
         this.resetToDefault();
-        ConfigurationNode defaultWorlds = cfg.getNode("epicbanitem", DEFAULT_WORLD);
-        ConfigurationNode defaultTriggers = cfg.getNode("epicbanitem", DEFAULT_TRIGGER);
+
         this.listenLoadingChunk = cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).getBoolean(false);
+        this.printItemToBlockMapping = cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).getBoolean(true);
+
+        ConfigurationNode defaultWorlds = cfg.getNode("epicbanitem", DEFAULT_WORLD);
         defaultWorlds.getChildrenMap().forEach((k, v) -> this.enabledWorlds.put(k.toString(), v.getBoolean()));
+
+        ConfigurationNode defaultTriggers = cfg.getNode("epicbanitem", DEFAULT_TRIGGER);
         defaultTriggers.getChildrenMap().forEach((k, v) -> this.enabledTriggers.put(k.toString(), v.getBoolean()));
+
+        if (this.isMappingNotPrintedBefore) {
+            this.isMappingNotPrintedBefore = false;
+            Logger logger = EpicBanItem.getLogger();
+            NbtTagDataUtil.printToLogger(logger::debug, this.printItemToBlockMapping);
+            logger.debug("Change the value of 'print-item-to-block-mapping' to enable of disable detailed output.");
+        }
     }
 
     private void save(ConfigurationNode cfg) {
         cfg.getNode("epicbanitem-version").setValue(BanConfig.CURRENT_VERSION);
+
         cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).setValue(this.listenLoadingChunk);
+        cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).setValue(this.printItemToBlockMapping);
+
         this.enabledWorlds.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
+
         this.enabledTriggers.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_TRIGGER, k).setValue(v));
     }
 

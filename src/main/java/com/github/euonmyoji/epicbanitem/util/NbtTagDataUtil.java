@@ -43,13 +43,15 @@ public class NbtTagDataUtil {
     private static final DataQuery BLOCK_STATE = DataQuery.of("BlockState");
     private static final DataQuery UNSAFE_DAMAGE = DataQuery.of("UnsafeDamage");
 
-    public static void printToLogger(Consumer<String> logger) {
-        logger.accept("Generating Item to Block mapping: ");
-        Map.ITEM_TO_BLOCK.forEach((k, v) -> {
-            Object id = k.getFirst().orElse(null);
-            Object damage = k.getSecond().orElse(null);
-            logger.accept(String.format("(%s, %s) -> %s", id, damage, v));
-        });
+    public static void printToLogger(Consumer<String> logger, boolean verbose) {
+        logger.accept("Successfully generated item to block mapping (" + Map.ITEM_TO_BLOCK.size() + " entries).");
+        if (verbose) {
+            Map.ITEM_TO_BLOCK.forEach((k, v) -> {
+                Object id = k.getFirst().orElse(null);
+                Object damage = k.getSecond().orElse(null);
+                logger.accept(String.format("(%s, %s) -> %s", id, damage, v));
+            });
+        }
     }
 
     public static DataContainer toNbt(BlockSnapshot snapshot) {
