@@ -29,8 +29,8 @@ public class Settings {
 
     private static final String DEFAULT_WORLD = "default-world";
     private static final String DEFAULT_TRIGGER = "default-trigger";
-//    private static final String LISTEN_CHUNK_LOAD = "listen-chunk-load";
     private static final String PRINT_ITEM_TO_BLOCK_MAPPING = "print-item-to-block-mapping";
+    //    private static final String LISTEN_CHUNK_LOAD = "listen-chunk-load";  not impl yet
 
     private final Server server = Sponge.getServer();
 
@@ -84,7 +84,7 @@ public class Settings {
     private void load(ConfigurationNode cfg) {
         this.resetToDefault();
 
-//        this.listenLoadingChunk = cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).getBoolean(false);
+//        this.listenLoadingChunk = cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).getBoolean(false); not impl yet
         this.printItemToBlockMapping = cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).getBoolean(true);
 
         ConfigurationNode defaultWorlds = cfg.getNode("epicbanitem", DEFAULT_WORLD);
@@ -104,7 +104,7 @@ public class Settings {
     private void save(ConfigurationNode cfg) {
         cfg.getNode("epicbanitem-version").setValue(BanConfig.CURRENT_VERSION);
 
-//        cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).setValue(this.listenLoadingChunk);
+//        cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).setValue(this.listenLoadingChunk); not impl yet
         cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).setValue(this.printItemToBlockMapping);
 
         this.enabledWorlds.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
@@ -112,6 +112,7 @@ public class Settings {
         this.enabledTriggers.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_TRIGGER, k).setValue(v));
     }
 
+    @SuppressWarnings("unused because the code is not done")
     public boolean isListeningLoadingChunk() {
         return this.listenLoadingChunk;
     }

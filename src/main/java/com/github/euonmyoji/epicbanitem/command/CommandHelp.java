@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import org.spongepowered.api.command.CommandCallable;
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -25,7 +24,7 @@ public class CommandHelp extends AbstractCommand {
     private Map<List<String>, CommandCallable> childrenMap;
     private Map<String, CommandCallable> flatMap;
 
-    public CommandHelp(Map<List<String>, CommandCallable> childrenMap) {
+    CommandHelp(Map<List<String>, CommandCallable> childrenMap) {
         super("help");
         this.childrenMap = childrenMap;
         this.flatMap = new LinkedHashMap<>();
@@ -42,10 +41,9 @@ public class CommandHelp extends AbstractCommand {
     }
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
         if (args.hasAny("sub-command")) {
-            // noinspection ConstantConditions
-            CommandCallable subCommand = args.<CommandCallable>getOne("sub-command").get();
+            CommandCallable subCommand = args.<CommandCallable>getOne("sub-command").orElseThrow(NoSuchFieldError::new);
             if (subCommand instanceof CommandSpec && ((CommandSpec) subCommand).getExecutor() instanceof AbstractCommand.Help) {
                 src.sendMessage(((AbstractCommand.Help) ((CommandSpec) subCommand).getExecutor()).getHelpMessage(src, args));
             } else {
@@ -56,10 +54,10 @@ public class CommandHelp extends AbstractCommand {
             boolean first = true;
             for (Map.Entry<List<String>, CommandCallable> entry : childrenMap.entrySet()) {
                 if (entry.getValue().testPermission(src)) {
-                    if (!first) {
-                        builder.append(Text.NEW_LINE);
-                    } else {
+                    if (first) {
                         first = false;
+                    } else {
+                        builder.append(Text.NEW_LINE);
                     }
                     builder.append(
                             Text.of(TextColors.GRAY, "/" + EpicBanItem.getMainCommandAlias() + " " + entry.getKey().get(0) + " "),
@@ -70,7 +68,7 @@ public class CommandHelp extends AbstractCommand {
             }
             Text text = builder.build();
             if (text.isEmpty()) {
-                // TODO: 没有权限执行任何命令
+                src.sendMessage(EpicBanItem.getMessages().getMessage("epicbanitem.command.help.empty"));
             } else {
                 src.sendMessage(text);
             }

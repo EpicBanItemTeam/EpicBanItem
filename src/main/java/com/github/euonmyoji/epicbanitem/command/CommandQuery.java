@@ -34,7 +34,7 @@ import java.util.Optional;
 public class CommandQuery extends AbstractCommand {
     static Map<String, String> histories = new HashMap<>();
 
-    public CommandQuery() {
+    CommandQuery() {
         super("query", "q");
     }
 
@@ -67,7 +67,6 @@ public class CommandQuery extends AbstractCommand {
                 } else {
                     src.sendMessage(getMessage("failed"));
                 }
-                histories.put(id, rule);
             } else {
                 Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
                 Tuple<HandType, ItemStack> i = optional.orElseThrow(() -> new CommandException(getMessage("noItem")));
@@ -83,8 +82,8 @@ public class CommandQuery extends AbstractCommand {
                 } else {
                     src.sendMessage(getMessage("failed"));
                 }
-                histories.put(id, rule);
             }
+            histories.put(id, rule);
             return CommandResult.success();
         } catch (Exception e) {
             EpicBanItem.getLogger().error(getMessage("error").toPlain(), e);

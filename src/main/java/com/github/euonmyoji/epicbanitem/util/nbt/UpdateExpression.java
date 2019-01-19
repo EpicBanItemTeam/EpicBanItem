@@ -21,7 +21,7 @@ import java.util.stream.Stream;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class UpdateExpression implements DataTransformer {
-    private static final Map<String, BiFunction<String, ConfigurationNode, DataTransformer>> operators;
+    private static final Map<String, BiFunction<String, ConfigurationNode, DataTransformer>> OPERATORS;
 
     static {
         ImmutableMap.Builder<String, BiFunction<String, ConfigurationNode, DataTransformer>> builder;
@@ -38,7 +38,7 @@ public class UpdateExpression implements DataTransformer {
         builder.put("$pull", (k, n) -> new Transform((q, v) -> arrayFilterTransformer(pullFilter(q, v, n)), k));
         builder.put("$pullAll", (k, n) -> new Transform((q, v) -> arrayFilterTransformer(pullAllFilter(q, v, n)), k));
 
-        operators = builder.build();
+        OPERATORS = builder.build();
     }
 
     private final List<DataTransformer> transformers;
@@ -48,7 +48,7 @@ public class UpdateExpression implements DataTransformer {
         this.transformers = new ArrayList<>(map.size());
         for (Map.Entry<Object, ? extends ConfigurationNode> entry : map.entrySet()) {
             String key = entry.getKey().toString();
-            BiFunction<String, ConfigurationNode, DataTransformer> operator = operators.get(key);
+            BiFunction<String, ConfigurationNode, DataTransformer> operator = OPERATORS.get(key);
             if (Objects.nonNull(operator)) {
                 entry.getValue().getChildrenMap().forEach((k, v) -> {
                     DataTransformer transformer = operator.apply(k.toString(), v);

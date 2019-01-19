@@ -26,6 +26,10 @@ import java.util.Set;
  */
 public class TextUtil {
 
+    private static BufferedReader delegationReader;
+    private static BufferedWriter delegationWriter;
+    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
 
     /**
      * @param origin origin string support FormatText
@@ -68,7 +72,7 @@ public class TextUtil {
         return TextTemplate.of(objects.toArray());
     }
 
-    public static Text parseFormatText(String in) {
+    private static Text parseFormatText(String in) {
         return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
     }
 
@@ -96,6 +100,10 @@ public class TextUtil {
     public static Text serializeNbtToString(DataView nbt, QueryResult result) {
         return new NbtTagRenderer(result).render(nbt);
     }
+//            HoconConfigurationLoader.builder()
+//            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+//            .setRenderOptions(ConfigRenderOptions.concise())
+//            .build();
 
     public static String escape(String unescapedString) {
         try (StringWriter out = new StringWriter()) {
@@ -106,15 +114,6 @@ public class TextUtil {
             throw new RuntimeException(e);
         }
     }
-
-    private static BufferedReader delegationReader;
-    private static BufferedWriter delegationWriter;
-
-    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
-//            HoconConfigurationLoader.builder()
-//            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
-//            .setRenderOptions(ConfigRenderOptions.concise())
-//            .build();
 
     private static ConfigurationLoader<CommentedConfigurationNode> getConciseLoader() {
         HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
@@ -133,8 +132,6 @@ public class TextUtil {
         }
         return builder.build();
     }
-
-    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
 //    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
 //            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
 //            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))

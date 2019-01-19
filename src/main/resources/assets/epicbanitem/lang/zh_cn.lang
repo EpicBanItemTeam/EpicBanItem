@@ -107,6 +107,7 @@ epicbanitem.command.help.description = 显示帮助信息
 epicbanitem.command.help.extendedDescription = 显示帮助信息
 epicbanitem.command.help.noHelp = 无帮助信息
 epicbanitem.command.help.args.subCommand = 帮助信息目标
+epicbanitem.command.help.empty = 你没有权限执行任何epicbanitem的其他命令
 
 #checkrule
 epicbanitem.checkrule.query = 查询用规则：{query}

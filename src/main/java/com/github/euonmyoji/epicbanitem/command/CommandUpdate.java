@@ -65,7 +65,8 @@ public class CommandUpdate extends AbstractCommand {
                 updateResult.apply(nbt);
 
                 b = NbtTagDataUtil.toBlockSnapshot(nbt, b.getState(), b.getWorldUniqueId());
-                b.restore(true, BlockChangeFlags.NONE); // TODO: should it really be none?
+                b.restore(true, BlockChangeFlags.NONE);
+                // TODO: should it really be none?
 
                 LiteralText text = Text.of(updateResult.toString());
                 Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));

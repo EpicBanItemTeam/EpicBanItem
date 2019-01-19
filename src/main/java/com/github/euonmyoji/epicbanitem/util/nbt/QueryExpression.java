@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class QueryExpression implements DataPredicate {
-    private static final Map<String, Function<ConfigurationNode, DataPredicate>> operators;
+    private static final Map<String, Function<ConfigurationNode, DataPredicate>> OPERATORS;
 
     static {
         ImmutableMap.Builder<String, Function<ConfigurationNode, DataPredicate>> builder = ImmutableMap.builder();
@@ -53,7 +53,7 @@ public class QueryExpression implements DataPredicate {
         builder.put("$exists", n -> new Exists(n));
         builder.put("$tagType", n -> new OneOrMore(new TagType(n)));
 
-        operators = builder.build();
+        OPERATORS = builder.build();
     }
 
     private final List<DataPredicate> criteria;
@@ -65,7 +65,7 @@ public class QueryExpression implements DataPredicate {
         for (Map.Entry<Object, ? extends ConfigurationNode> entry : map.entrySet()) {
             String key = entry.getKey().toString();
             if ("$and".equals(key) || "$nor".equals(key) || "$or".equals(key)) {
-                this.criteria.add(operators.get(key).apply(entry.getValue()));
+                this.criteria.add(OPERATORS.get(key).apply(entry.getValue()));
                 continue;
             }
             if ("$where".equals(key)) {
@@ -108,8 +108,8 @@ public class QueryExpression implements DataPredicate {
                     options = entry.getValue().getString("");
                     continue;
                 }
-                if (operators.containsKey(key)) {
-                    builder.add(operators.get(key).apply(entry.getValue()));
+                if (OPERATORS.containsKey(key)) {
+                    builder.add(OPERATORS.get(key).apply(entry.getValue()));
                     continue;
                 }
                 return ImmutableList.of();
@@ -492,8 +492,8 @@ public class QueryExpression implements DataPredicate {
     }
 
     private static class TagType implements DataPredicate {
-        private static final List<Predicate<Object>> matchers = getMatchers();
-        private static final List<Tuple<String, Integer>> matcherAliases = getMatcherAliases();
+        private static final List<Predicate<Object>> MATCHERS = getMatchers();
+        private static final List<Tuple<String, Integer>> MATCHER_ALIASES = getMatcherAliases();
 
         private final int[] types;
 
@@ -506,7 +506,7 @@ public class QueryExpression implements DataPredicate {
             Integer integer = Types.asInt(value);
             if (Objects.isNull(integer)) {
                 String string = String.valueOf(value);
-                for (Tuple<String, Integer> matcherAlias : matcherAliases) {
+                for (Tuple<String, Integer> matcherAlias : MATCHER_ALIASES) {
                     if (string.equalsIgnoreCase(matcherAlias.getFirst())) {
                         integer = matcherAlias.getSecond();
                         break;
@@ -523,7 +523,8 @@ public class QueryExpression implements DataPredicate {
         private static ImmutableList<Predicate<Object>> getMatchers() {
             ImmutableList.Builder<Predicate<Object>> builder = ImmutableList.builder();
 
-            builder.add(value -> false); // 0
+            //0
+            builder.add(value -> false);
             builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsByte(value)));
             builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsShort(value)));
             builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsInteger(value)));
@@ -536,7 +537,8 @@ public class QueryExpression implements DataPredicate {
             builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsMap(value)));
             builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsIntegerArray(value)));
             builder.add(value -> Objects.nonNull(NbtTypeHelper.getAsLongArray(value)));
-            builder.add(value -> false); // 13
+            builder.add(value -> false);
+            //13
 
             return builder.build();
         }
@@ -567,7 +569,7 @@ public class QueryExpression implements DataPredicate {
         @Override
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             for (int type : this.types) {
-                if (matchers.get(type).test(NbtTypeHelper.getObject(query, view))) {
+                if (MATCHERS.get(type).test(NbtTypeHelper.getObject(query, view))) {
                     return QueryResult.success();
                 }
             }
@@ -600,7 +602,6 @@ public class QueryExpression implements DataPredicate {
         }
 
         private static ScriptEngine getJavaScriptEngine() {
-            // noinspection SpellCheckingInspection
             return new ScriptEngineManager(null).getEngineByName("nashorn");
         }
 

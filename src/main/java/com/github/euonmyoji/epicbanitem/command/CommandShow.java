@@ -14,7 +14,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
  */
 @NonnullByDefault
 class CommandShow extends AbstractCommand {
-    public CommandShow() {
+    CommandShow() {
         super("show", "s");
     }
 
@@ -25,8 +25,7 @@ class CommandShow extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        // noinspection ConstantConditions
-        src.sendMessage(args.<CheckRule>getOne("check-rule").get().info());
+        src.sendMessage(args.<CheckRule>getOne("check-rule").orElseThrow(NoSuchFieldError::new).info());
         return CommandResult.success();
     }
 }

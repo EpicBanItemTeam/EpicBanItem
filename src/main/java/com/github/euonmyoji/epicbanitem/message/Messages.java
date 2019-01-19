@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-@SuppressWarnings("WeakerAccess")
 public class Messages {
     private static final String MISSING_MESSAGE_KEY = "epicbanitem.error.missingMessage";
 
@@ -44,7 +43,7 @@ public class Messages {
         Files.createDirectories(messagePath.getParent());
         Asset fallback = assetManager.getAsset(plugin, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang").orElse(
                 assetManager.getAsset(plugin, "lang/en_us.lang").orElseThrow(NoSuchFieldError::new));
-//        fallback.copyToFile(messagePath, false);
+//        fallback.copyToFile(messagePath, false); ??? What's this
         if (Files.exists(messagePath)) {
             res = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(messagePath), Charsets.UTF_8));
         }

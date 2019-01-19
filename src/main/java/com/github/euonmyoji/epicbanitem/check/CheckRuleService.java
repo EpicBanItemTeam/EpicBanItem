@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.permission.Subject;
@@ -9,12 +8,16 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@SuppressWarnings("unused because of api")
 @NonnullByDefault
 public interface CheckRuleService {
     /**
@@ -49,7 +52,7 @@ public interface CheckRuleService {
     /**
      * 返回一个物品适用的规则 or empty
      *
-     * @param itemType 物品类型
+     * @param index 检查规则索引值
      * @return 适用的规则
      */
     List<CheckRule> getCheckRulesByIndex(CheckRuleIndex index);
@@ -57,8 +60,8 @@ public interface CheckRuleService {
     /**
      * 返回一个物品对应的规则名的规则 or empty
      *
-     * @param itemType 物品类型
-     * @param name     规则名
+     * @param index 检查规则索引值
+     * @param name  规则名
      * @return 检查规则
      */
     Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name);
@@ -99,9 +102,7 @@ public interface CheckRuleService {
     /**
      * Add a rule to the service and save it in the default config.
      *
-     * @param type item type of the rule
      * @param rule the rule to
-     *
      * @return <tt>true</tt> if a rule was added as a result of this call
      */
     CompletableFuture<Boolean> appendRule(CheckRule rule);
@@ -109,7 +110,7 @@ public interface CheckRuleService {
     /**
      * Remove the rule with the given name. if present .
      *
-     * @param name the name of the rule to remove , if present.
+     * @param rule the rule to remove , if present.
      * @return <tt>true</tt> if a rule was removed as a result of this call
      */
     CompletableFuture<Boolean> removeRule(CheckRule rule);

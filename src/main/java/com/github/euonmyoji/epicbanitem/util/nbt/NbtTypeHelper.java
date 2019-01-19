@@ -92,8 +92,9 @@ final class NbtTypeHelper {
     @SuppressWarnings("WeakerAccess")
     static Object setObject(String key, Object view, Function<Object, ?> transformFunction) {
         Map<String, Object> map = getAsMap(view);
+        /* make all container mutable */
         if (Objects.nonNull(map)) {
-            map = new LinkedHashMap<>(map); // make it mutable
+            map = new LinkedHashMap<>(map);
             map.compute(key, (k, v) -> transformFunction.apply(v));
             return map;
         }
@@ -104,13 +105,13 @@ final class NbtTypeHelper {
                 int size = list.size();
                 if (index <= size) {
                     if (index == size) {
-                        list = new ArrayList<>(list); // make list mutable
+                        list = new ArrayList<>(list);
                         list.add(transformFunction.apply(size > 0 ? list.get(size - 1) : null));
                         return list;
                     } else {
                         Object newValue = transformFunction.apply(list.get(index));
                         if (Objects.nonNull(newValue)) {
-                            list = new ArrayList<>(list); // make list mutable
+                            list = new ArrayList<>(list);
                             list.set(index, newValue);
                             return list;
                         }

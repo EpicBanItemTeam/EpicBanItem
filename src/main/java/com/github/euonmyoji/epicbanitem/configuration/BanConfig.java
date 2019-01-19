@@ -25,10 +25,10 @@ import java.util.function.Predicate;
  */
 @NonnullByDefault
 public class BanConfig {
-    public static final int CURRENT_VERSION = 1;
-    public static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
-    public static final Comparator<String> RULE_NAME_COMPARATOR = Comparator.naturalOrder();
-    public static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority).thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
+    static final int CURRENT_VERSION = 1;
+    private static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
+    private static final Comparator<String> RULE_NAME_COMPARATOR = Comparator.naturalOrder();
+    private static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority).thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
 
     private final Path path;
     private final AutoFileLoader fileLoader;
@@ -50,11 +50,7 @@ public class BanConfig {
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
-    private static String getTypeId(@Nullable ItemType itemType) {
-        return Objects.isNull(itemType) ? "*" : itemType.getId();
-    }
-
-    private static int parseOrElse(String string, int orElse) {
+    private static int parseOrElse(String string, @SuppressWarnings("SameParameterValue #no idea") int orElse) {
         try {
             return Integer.parseUnsignedInt(string);
         } catch (NumberFormatException e) {
@@ -139,13 +135,14 @@ public class BanConfig {
             this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
 
             forceSave();
-            return CompletableFuture.completedFuture(Boolean.TRUE); // TODO: return CompletableFuture from forceSave
+            return CompletableFuture.completedFuture(Boolean.TRUE);
+            // TODO: return CompletableFuture from forceSave
         } catch (Exception e) {
             throw new IOException(e);
         }
     }
 
-    public CompletableFuture<Boolean> removeRule(CheckRuleIndex index, String name) throws IOException {
+    public CompletableFuture<Boolean> removeRule(@SuppressWarnings("unused todo: why") CheckRuleIndex index, String name) throws IOException {
         try {
             CheckRule rule = checkRulesByName.get(name);
             if (rule != null) {
@@ -161,7 +158,8 @@ public class BanConfig {
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
 
                 forceSave();
-                return CompletableFuture.completedFuture(Boolean.TRUE); // TODO: return CompletableFuture from forceSave
+                return CompletableFuture.completedFuture(Boolean.TRUE);
+                // TODO: return CompletableFuture from forceSave
             } else {
                 return CompletableFuture.completedFuture(Boolean.FALSE);
             }
@@ -197,7 +195,7 @@ public class BanConfig {
                     CheckRule rule = Objects.requireNonNull(node1.getValue(RULE_TOKEN));
                     rule.setConfigurationNode(originNode);
                     // fix id
-                    if (!item.equals("*")) {
+                    if (!"*".equals(item)) {
                         needSave = rule.tryFixId(item) || needSave;
                     }
                     rulesByName.put(rule.getName(), rule);
@@ -216,7 +214,7 @@ public class BanConfig {
         }
     }
 
-    public void forceSave() {
+    private void forceSave() {
         this.fileLoader.forceSaving(this.path);
     }
 

@@ -40,6 +40,16 @@ public class InventoryListener {
 
     private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
 
+    private static Optional<ItemStack> getItem(DataContainer view, int quantity) {
+        try {
+            return Optional.of(NbtTagDataUtil.toItemStack(view, quantity));
+        } catch (InvalidDataException e) {
+            EpicBanItem.getLogger().warn("Invalid data item:\n" + TextUtil
+                    .serializeNbtToString(view, QueryResult.success().orElseThrow(NoSuchFieldError::new)).toPlain());
+        }
+        return Optional.empty();
+    }
+
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onThrown(ClickInventoryEvent.Drop event, @First Player player) {
         for (SlotTransaction tran : event.getTransactions()) {
@@ -67,7 +77,6 @@ public class InventoryListener {
             }
         }
     }
-
 
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onCrafting(AffectItemStackEvent event) {
@@ -149,15 +158,5 @@ public class InventoryListener {
                 }
             }
         }
-    }
-
-    private static Optional<ItemStack> getItem(DataContainer view, int quantity) {
-        try {
-            return Optional.of(NbtTagDataUtil.toItemStack(view, quantity));
-        } catch (InvalidDataException e) {
-            EpicBanItem.getLogger().warn("Invalid data item:\n" + TextUtil
-                    .serializeNbtToString(view, QueryResult.success().orElseThrow(NoSuchFieldError::new)).toPlain());
-        }
-        return Optional.empty();
     }
 }

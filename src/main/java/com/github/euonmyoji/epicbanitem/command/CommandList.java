@@ -17,7 +17,10 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -26,7 +29,7 @@ import java.util.stream.Stream;
 @NonnullByDefault
 class CommandList extends AbstractCommand {
 
-    public CommandList() {
+    CommandList() {
         super("list", "l");
     }
 
@@ -41,8 +44,7 @@ class CommandList extends AbstractCommand {
         LinkedHashMap<String, List<CheckRule>> toShow = new LinkedHashMap<>();
         Stream<CheckRuleIndex> indexStream;
         if (args.hasAny("item-type")) {
-            // noinspection ConstantConditions
-            ItemType itemType = args.<ItemType>getOne("item-type").get();
+            ItemType itemType = args.<ItemType>getOne("item-type").orElseThrow(NoSuchFieldError::new);
             indexStream = Stream.of(CheckRuleIndex.of(), CheckRuleIndex.of(itemType));
         } else {
             indexStream = Stream.concat(Stream.of(CheckRuleIndex.of()), service.getIndexes().stream());

@@ -32,8 +32,7 @@ class ArgItemCheckRule extends CommandElement {
 
     @Override
     public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
-        // noinspection ConstantConditions
-        ItemType itemType = context.<ItemType>getOne("item-type").get();
+        ItemType itemType = context.<ItemType>getOne("item-type").orElseThrow(NoSuchFieldError::new);
         CheckRuleIndex index = CheckRuleIndex.of(itemType);
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
@@ -53,8 +52,7 @@ class ArgItemCheckRule extends CommandElement {
 
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-        // noinspection ConstantConditions
-        ItemType itemType = context.<ItemType>getOne("item-type").get();
+        ItemType itemType = context.<ItemType>getOne("item-type").orElseThrow(NoSuchFieldError::new);
         CheckRuleIndex index = CheckRuleIndex.of(itemType);
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);

@@ -36,35 +36,19 @@ import java.util.regex.Pattern;
 public class CheckRule implements TextRepresentable {
 
     public static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
-
-    public static boolean checkName(@Nullable String s) {
-        return s != null && NAME_PATTERN.matcher(s).matches();
-    }
-
-    public static Builder builder(String name) {
-        return new Builder(name);
-    }
-
-    public static Builder builder(CheckRule checkRule) {
-        return new Builder(checkRule);
-    }
-
     private final String name;
-
     /**
      * 0-9 higher first
      */
     private int priority;
     private Map<String, Boolean> enableWorlds;
     private Map<String, Boolean> enableTriggers;
-
     private QueryExpression query;
     private ConfigurationNode queryNode;
     private @Nullable
     UpdateExpression update;
     private @Nullable
     ConfigurationNode updateNode;
-
     private @Nullable
     ConfigurationNode configurationNode;
 
@@ -95,6 +79,34 @@ public class CheckRule implements TextRepresentable {
         this.priority = priority;
         this.enableWorlds = ImmutableMap.copyOf(Objects.requireNonNull(enableWorlds));
         this.enableTriggers = ImmutableMap.copyOf(Objects.requireNonNull(enableTriggers));
+    }
+
+    public static boolean checkName(@Nullable String s) {
+        return s != null && NAME_PATTERN.matcher(s).matches();
+    }
+
+    public static Builder builder(String name) {
+        return new Builder(name);
+    }
+
+    public static Builder builder(CheckRule checkRule) {
+        return new Builder(checkRule);
+    }
+
+    public static ConfigurationNode getDefaultQueryNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static ConfigurationNode getDefaultUpdateNode() {
+        try {
+            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\", Damage: 0}}");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public String getName() {
@@ -136,22 +148,18 @@ public class CheckRule implements TextRepresentable {
     }
 
     private Text getWorldInfo() {
-        Text.Builder builder = Text.builder("[");
-        if (!enableWorlds.isEmpty()) {
-            Text separator = Text.of();
-            for (Map.Entry<String, Boolean> entry : enableWorlds.entrySet()) {
-                builder.append(separator).append(Text.of(entry.getValue() ? "+" : "-")).append(Text.of(entry.getKey()));
-                separator = Text.of(", ");
-            }
-        }
-        return builder.append(Text.of("]")).build();
+        return getEnableInfo(enableWorlds);
     }
 
     private Text getTriggerInfo() {
+        return getEnableInfo(enableTriggers);
+    }
+
+    private Text getEnableInfo(Map<String, Boolean> enableMap) {
         Text.Builder builder = Text.builder("[");
-        if (!enableTriggers.isEmpty()) {
+        if (!enableMap.isEmpty()) {
             Text separator = Text.of();
-            for (Map.Entry<String, Boolean> entry : enableTriggers.entrySet()) {
+            for (Map.Entry<String, Boolean> entry : enableMap.entrySet()) {
                 builder.append(separator).append(Text.of(entry.getValue() ? "+" : "-")).append(Text.of(entry.getKey()));
                 separator = Text.of(", ");
             }
@@ -181,7 +189,7 @@ public class CheckRule implements TextRepresentable {
     }
 
     /**
-     * @param view    被检查的物品
+     * @param origin  原检查结果
      * @param world   检查发生世界名
      * @param trigger 检查发生trigger
      * @param subject 被检查的权限主体
@@ -246,22 +254,6 @@ public class CheckRule implements TextRepresentable {
         return Sets.union(subject.getActiveContexts(), Collections.singleton(newContext));
     }
 
-    public static ConfigurationNode getDefaultQueryNode() {
-        try {
-            return TextUtil.serializeStringToConfigNode("{}");
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public static ConfigurationNode getDefaultUpdateNode() {
-        try {
-            return TextUtil.serializeStringToConfigNode("{\"$set\": {id: \"minecraft:air\", Damage: 0}}");
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     public static class Serializer implements TypeSerializer<CheckRule> {
 
         @Override
@@ -303,6 +295,7 @@ public class CheckRule implements TextRepresentable {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue for builder")
     public static final class Builder {
         private String name;
         private int priority = 5;

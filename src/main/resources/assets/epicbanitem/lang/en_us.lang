@@ -107,6 +107,7 @@ epicbanitem.command.help.description = Display help information
 epicbanitem.command.help.extendedDescription = Display help information
 epicbanitem.command.help.noHelp = No help information
 epicbanitem.command.help.args.subCommand = Help information target
+epicbanitem.command.help.empty = You don't have any permission of epicbanitem command
 
 #checkrule
 epicbanitem.checkrule.query = Query rule: {query}

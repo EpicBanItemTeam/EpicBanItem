@@ -10,5 +10,12 @@ import java.util.Optional;
  */
 @FunctionalInterface
 public interface DataPredicate {
+    /**
+     * query
+     *
+     * @param query data query of something
+     * @param view  data view of something
+     * @return query result, if present
+     */
     Optional<QueryResult> query(DataQuery query, DataView view);
 }

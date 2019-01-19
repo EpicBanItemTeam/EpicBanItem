@@ -26,30 +26,6 @@ public final class CheckRuleIndex implements Comparable<CheckRuleIndex> {
         this.name = ItemTypes.AIR.equals(type) || ItemTypes.NONE.equals(type) ? "minecraft:air" : type.getId();
     }
 
-    public boolean isWildcard() {
-        return "*".equals(this.name);
-    }
-
-    @Override
-    public String toString() {
-        return this.name;
-    }
-
-    @Override
-    public int hashCode() {
-        return this.name.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-        return this == that || that instanceof CheckRuleIndex && this.name.equals(((CheckRuleIndex) that).name);
-    }
-
-    @Override
-    public int compareTo(CheckRuleIndex that) {
-        return this.name.compareTo(that.name);
-    }
-
     public static CheckRuleIndex of() {
         return new CheckRuleIndex("*");
     }
@@ -76,5 +52,29 @@ public final class CheckRuleIndex implements Comparable<CheckRuleIndex> {
 
     public static CheckRuleIndex of(DataView view) {
         return new CheckRuleIndex(view.getString(ID).orElse("*"));
+    }
+
+    public boolean isWildcard() {
+        return "*".equals(this.name);
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+        return this == that || that instanceof CheckRuleIndex && this.name.equals(((CheckRuleIndex) that).name);
+    }
+
+    @Override
+    public int compareTo(CheckRuleIndex that) {
+        return this.name.compareTo(that.name);
     }
 }

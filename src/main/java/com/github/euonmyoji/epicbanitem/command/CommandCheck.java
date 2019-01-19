@@ -31,7 +31,7 @@ public class CommandCheck extends AbstractCommand {
 
     private CheckRuleService service;
 
-    public CommandCheck() {
+    CommandCheck() {
         super("check", "k");
     }
 
