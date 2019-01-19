@@ -42,15 +42,15 @@ public class BanConfig {
         this.checkRulesByIndex = ImmutableListMultimap.of();
         this.checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
 
+        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
+
         fileLoader.addListener(path, this::load, this::save);
         if (Files.notExists(path)) {
             fileLoader.forceSaving(path, n -> n.getNode("epicbanitem-version").setValue(CURRENT_VERSION).getParent());
         }
-
-        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
     }
 
-    private static int parseOrElse(String string, @SuppressWarnings("SameParameterValue #no idea") int orElse) {
+    private static int parseOrElse(String string, int orElse) {
         try {
             return Integer.parseUnsignedInt(string);
         } catch (NumberFormatException e) {
@@ -67,8 +67,9 @@ public class BanConfig {
             name = "unrecognized-1";
         }
         if (alreadyExists.test(name)) {
+            int defNumber = 2;
             int dashIndex = name.lastIndexOf('-');
-            int number = parseOrElse(name.substring(dashIndex + 1), 2);
+            int number = parseOrElse(name.substring(dashIndex + 1), defNumber);
             String prefix = dashIndex >= 0 ? name.substring(0, dashIndex) : name;
             for (name = prefix + '-' + number; alreadyExists.test(name); name = prefix + '-' + number) {
                 ++number;

@@ -135,10 +135,13 @@ public class AutoFileLoader implements Closeable {
 
     public void addListener(Path path, FileConsumer readListener, FileConsumer writeListener) {
         String pathString = toString(path, this.cfgDir);
+
         this.pendingLoadTasks.add(pathString);
         this.readListeners.put(pathString, readListener);
         this.writeListeners.put(pathString, writeListener);
         this.configurationLoaders.put(pathString, toLoader(path));
+
+        this.tickPendingLoadTask();
     }
 
     @Override
