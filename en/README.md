@@ -3,7 +3,7 @@
 A banitem with nbt plugin in sponge.
 
 * Getting started guide: <https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/tutorial>
-* Ore distribution platform： <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
+* Ore distribution platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
 * Plugin documentation: <https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/>
 * bStats: <https://bstats.org/plugin/sponge/EpicBanItem>
 
