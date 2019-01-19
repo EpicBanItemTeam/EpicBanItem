@@ -5,10 +5,13 @@ import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
+import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
@@ -39,15 +42,13 @@ public class InventoryListener {
 
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onThrown(ClickInventoryEvent.Drop event, @First Player player) {
-        for (SlotTransaction transaction : event.getTransactions()) {
-            ItemStackSnapshot item = transaction.getOriginal();
+        for (SlotTransaction tran : event.getTransactions()) {
+            ItemStackSnapshot item = tran.getOriginal();
             CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
             if (result.isBanned()) {
                 event.setCancelled(true);
-                result.getFinalView().ifPresent(view -> {
-                    ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
-                    transaction.setCustom(stack.createSnapshot());
-                });
+                result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
+                        .ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot())));
             }
         }
     }
@@ -61,10 +62,8 @@ public class InventoryListener {
             CheckResult result = service.check(item, entity.getWorld(), Triggers.DROP, player);
             if (result.isBanned()) {
                 int immutableIndex = i;
-                result.getFinalView().ifPresent(view -> {
-                    ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
-                    droppedItems.set(immutableIndex, stack.createSnapshot());
-                });
+                result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity()).ifPresent(finalItem ->
+                        droppedItems.set(immutableIndex, finalItem.createSnapshot())));
             }
         }
     }
@@ -86,10 +85,8 @@ public class InventoryListener {
                 ItemStackSnapshot item = transaction.getFinal();
                 CheckResult result = service.check(item, world, Triggers.CRAFT, playerOptional.orElse(null));
                 if (result.isBanned()) {
-                    result.getFinalView().ifPresent(view -> {
-                        ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
-                        transaction.setCustom(stack.createSnapshot());
-                    });
+                    result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
+                            .ifPresent(finalItem -> transaction.setCustom(finalItem.createSnapshot())));
                 }
             }
         }
@@ -98,15 +95,15 @@ public class InventoryListener {
     @Listener(order = Order.FIRST, beforeModifications = true)
     @Exclude({ClickInventoryEvent.Drop.class})
     public void onClicked(ClickInventoryEvent event, @First Player player) {
-        Transaction<ItemStackSnapshot> transaction = event.getCursorTransaction();
-        ItemStackSnapshot item = transaction.getFinal();
+        Transaction<ItemStackSnapshot> tran = event.getCursorTransaction();
+        ItemStackSnapshot item = tran.getFinal();
         String trigger = Triggers.CLICK;
         CheckResult result = service.check(item, player.getWorld(), trigger, player);
         if (result.isBanned()) {
             Optional<DataContainer> viewOptional = result.getFinalView();
             if (viewOptional.isPresent()) {
-                ItemStack stack = NbtTagDataUtil.toItemStack(viewOptional.get(), item.getQuantity());
-                transaction.setCustom(stack.createSnapshot());
+                getItem(viewOptional.get(), item.getQuantity())
+                        .ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
             } else {
                 event.setCancelled(true);
                 return; // Event cancelled, so there is no need to check slots.
@@ -122,10 +119,8 @@ public class InventoryListener {
         CheckResult result = service.check(item, player.getWorld(), Triggers.PICKUP, player);
         if (result.isBanned()) {
             event.setCancelled(true);
-            result.getFinalView().ifPresent(view -> {
-                ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
-                itemEntity.offer(Keys.REPRESENTED_ITEM, stack.createSnapshot());
-            });
+            result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
+                    .ifPresent(finalItem -> itemEntity.offer(Keys.REPRESENTED_ITEM, finalItem.createSnapshot())));
         }
     }
 
@@ -136,26 +131,33 @@ public class InventoryListener {
         CheckResult result = service.check(item, player.getWorld(), Triggers.USE, player);
         if (result.isBanned()) {
             event.setCancelled(true);
-            result.getFinalView().ifPresent(view -> {
-                ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
-                player.setItemInHand(((HandInteractEvent) event).getHandType(), stack);
-            });
+            result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
+                    .ifPresent(finalItem -> player.setItemInHand(((HandInteractEvent) event).getHandType(), finalItem)));
         }
     }
 
     private void onInventoryChanged(ChangeInventoryEvent event, Player player, String trigger) {
-        for (SlotTransaction slotTransaction : event.getTransactions()) {
-            ItemStackSnapshot item = slotTransaction.getFinal();
+        for (SlotTransaction tran : event.getTransactions()) {
+            ItemStackSnapshot item = tran.getFinal();
             CheckResult result = service.check(item, player.getWorld(), trigger, player);
             if (result.isBanned()) {
                 Optional<DataContainer> viewOptional = result.getFinalView();
                 if (viewOptional.isPresent()) {
-                    ItemStack stack = NbtTagDataUtil.toItemStack(viewOptional.get(), item.getQuantity());
-                    slotTransaction.setCustom(stack);
+                    getItem(viewOptional.get(), item.getQuantity()).ifPresent(tran::setCustom);
                 } else {
                     event.setCancelled(true);
                 }
             }
         }
+    }
+
+    private static Optional<ItemStack> getItem(DataContainer view, int quantity) {
+        try {
+            return Optional.of(NbtTagDataUtil.toItemStack(view, quantity));
+        } catch (InvalidDataException e) {
+            EpicBanItem.getLogger().warn("Invalid data item:\n" + TextUtil
+                    .serializeNbtToString(view, QueryResult.success().orElseThrow(NoSuchFieldError::new)).toPlain());
+        }
+        return Optional.empty();
     }
 }

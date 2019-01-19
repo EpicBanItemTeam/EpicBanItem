@@ -49,8 +49,7 @@ public class CommandUpdate extends AbstractCommand {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         String id = src.getIdentifier();
         boolean lookAtBlock = args.hasAny("l");
-        // noinspection ConstantConditions
-        String updateRule = args.<String>getOne("update-rule").get();
+        String updateRule = args.<String>getOne("update-rule").orElseThrow(NoSuchFieldError::new);
         String queryRule = CommandQuery.histories.getOrDefault(id, "{}");
         try {
             if (lookAtBlock) {
@@ -61,8 +60,7 @@ public class CommandUpdate extends AbstractCommand {
                 QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
                 UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
 
-                // noinspection ConstantConditions
-                QueryResult queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().get());
+                QueryResult queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().orElseThrow(NoSuchFieldError::new));
                 UpdateResult updateResult = update.update(queryResult, nbt);
                 updateResult.apply(nbt);
 
@@ -80,8 +78,7 @@ public class CommandUpdate extends AbstractCommand {
                 QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
                 UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
 
-                // noinspection ConstantConditions
-                QueryResult queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().get());
+                QueryResult queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().orElseThrow(NoSuchFieldError::new));
                 UpdateResult updateResult = update.update(queryResult, nbt);
                 updateResult.apply(nbt);
 
