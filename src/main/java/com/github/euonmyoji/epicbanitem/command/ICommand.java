@@ -13,24 +13,28 @@ import java.util.stream.Stream;
 public interface ICommand {
     /**
      * get the callable command
+     *
      * @return callable command
      */
     CommandCallable getCallable();
 
     /**
      * get the name
+     *
      * @return name
      */
     String getName();
 
     /**
      * get alias
+     *
      * @return the alias
      */
     String[] getAlias();
 
     /**
      * get name list
+     *
      * @return the list of the name
      */
     default List<String> getNameList() {
