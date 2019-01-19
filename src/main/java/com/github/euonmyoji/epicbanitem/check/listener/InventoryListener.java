@@ -5,10 +5,13 @@ import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
+import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
@@ -137,8 +140,17 @@ public class InventoryListener {
         if (result.isBanned()) {
             event.setCancelled(true);
             result.getFinalView().ifPresent(view -> {
-                ItemStack stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
-                player.setItemInHand(((HandInteractEvent) event).getHandType(), stack);
+                ItemStack stack;
+                try {
+                    stack = NbtTagDataUtil.toItemStack(view, item.getQuantity());
+                    player.setItemInHand(((HandInteractEvent) event).getHandType(), stack);
+
+
+                } catch (InvalidDataException e) {
+                    EpicBanItem.getLogger().warn("Invalid data item:\n" + TextUtil
+                            .serializeNbtToString(view, QueryResult.success().orElseThrow(NoSuchFieldError::new)).toPlain());
+                    throw e;
+                }
             });
         }
     }
