@@ -26,6 +26,7 @@ import org.spongepowered.api.event.item.inventory.*;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.storage.WorldProperties;
@@ -44,8 +45,8 @@ public class InventoryListener {
         try {
             return Optional.of(NbtTagDataUtil.toItemStack(view, quantity));
         } catch (InvalidDataException e) {
-            EpicBanItem.getLogger().warn("Invalid data item:\n" + TextUtil
-                    .serializeNbtToString(view, QueryResult.success().orElseThrow(NoSuchFieldError::new)).toPlain());
+            Text t = TextUtil.serializeNbtToString(view, QueryResult.success().orElseThrow(NoSuchFieldError::new));
+            EpicBanItem.getLogger().warn("Invalid data format (cannot be deserialized to items): \n" + t.toPlain(), e);
         }
         return Optional.empty();
     }
