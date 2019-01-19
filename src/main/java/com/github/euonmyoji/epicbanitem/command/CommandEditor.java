@@ -6,7 +6,6 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
-import com.github.euonmyoji.epicbanitem.util.SupplierBoolean;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -30,6 +29,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -385,23 +385,23 @@ public class CommandEditor extends AbstractCommand {
             return updates;
         }
 
-        private void checkAdd(List<Text> listToAdd, SupplierBoolean defValue, @Nullable Map<String, Boolean> originEnableInfo, Map<String, Boolean> enableInfo, Iterable<String> names) {
+        private void checkAdd(List<Text> listToAdd, Function<String, Boolean> defValue, @Nullable Map<String, Boolean> originEnableInfo, Map<String, Boolean> enableInfo, Iterable<String> names) {
             for (String name : names) {
                 checkAdd(listToAdd, defValue, name, originEnableInfo, enableInfo);
             }
         }
 
-        private void checkAddRemove(List<Text> listToAdd, SupplierBoolean defValue, Collection<String> toRemove, @Nullable Map<String, Boolean> originEnableInfo, Map<String, Boolean> enableInfo, Iterable<String> names) {
+        private void checkAddRemove(List<Text> listToAdd, Function<String, Boolean> defValue, Collection<String> toRemove, @Nullable Map<String, Boolean> originEnableInfo, Map<String, Boolean> enableInfo, Iterable<String> names) {
             for (String name : names) {
                 checkAdd(listToAdd, defValue, name, originEnableInfo, enableInfo);
                 toRemove.remove(name);
             }
         }
 
-        private void checkAdd(List<Text> listToAdd, SupplierBoolean defValue, String name, @Nullable Map<String, Boolean> originEnableInfo, Map<String, Boolean> enableInfo) {
+        private void checkAdd(List<Text> listToAdd, Function<String, Boolean> defValue, String name, @Nullable Map<String, Boolean> originEnableInfo, Map<String, Boolean> enableInfo) {
             final Boolean value = enableInfo.get(name);
             listToAdd.add(format(name, Text.of(name), value,
-                    defValue.get(name),
+                    defValue.apply(name),
                     originEnableInfo != null && !Objects.equals(originEnableInfo.get(name), enableInfo.get(name)),
                     new Tuple<>(
                             GenericArguments.none(),
