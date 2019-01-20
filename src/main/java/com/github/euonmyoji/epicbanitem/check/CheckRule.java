@@ -271,14 +271,14 @@ public class CheckRule implements TextRepresentable {
             triggerNode.getChildrenMap().forEach((k, v) -> enableTriggers.put(k.toString(), v.getBoolean()));
             ConfigurationNode queryNode = node.getNode("query");
             ConfigurationNode updateNode = node.getNode("update");
-            if (Objects.isNull(updateNode.getValue()) && node.getNode("remove").getBoolean(false)) {
+            if (updateNode.isVirtual() && node.getNode("remove").getBoolean(false)) {
                 updateNode = getDefaultUpdateNode();
             }
-            return new CheckRule(name, queryNode, updateNode, priority, enableWorld, enableTriggers);
+            return new CheckRule(name, queryNode, updateNode.isVirtual() ? null : updateNode, priority, enableWorld, enableTriggers);
         }
 
         @Override
-        public void serialize(TypeToken<?> type, CheckRule rule, ConfigurationNode node) {
+        public void serialize(TypeToken<?> type,@Nullable CheckRule rule, ConfigurationNode node) {
             if (rule == null) {
                 return;
             }
