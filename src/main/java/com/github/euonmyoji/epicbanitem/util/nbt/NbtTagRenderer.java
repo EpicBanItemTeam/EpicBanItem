@@ -19,6 +19,8 @@ public class NbtTagRenderer {
 
     private final QueryResult queryResult;
 
+    public static final NbtTagRenderer EMPTY_RENDERER = new NbtTagRenderer(null);
+
     public NbtTagRenderer(QueryResult result) {
         this.queryResult = result;
     }

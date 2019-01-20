@@ -89,7 +89,7 @@ public class NbtTagDataUtil {
 
         result.set(WORLD_UUID, worldUniqueId.toString());
 
-        return BlockSnapshot.builder().build(result).orElseThrow(InvalidDataException::new);
+        return BlockSnapshot.builder().build(result).orElseThrow(()->invalidData(view));
     }
 
     public static ItemStack toItemStack(DataView view, int stackSize) throws InvalidDataException {
@@ -103,7 +103,11 @@ public class NbtTagDataUtil {
 
         result.set(COUNT, stackSize);
 
-        return ItemStack.builder().build(result).orElseThrow(InvalidDataException::new);
+        return ItemStack.builder().build(result).orElseThrow(()->invalidData(view));
+    }
+
+    private static InvalidDataException invalidData(DataView dataView) {
+        return new InvalidDataException("InvalidData: "+TextUtil.serializeNbtToString(dataView).toPlain());
     }
 
     private static DataContainer fromSpongeDataToNbt(DataContainer view) {

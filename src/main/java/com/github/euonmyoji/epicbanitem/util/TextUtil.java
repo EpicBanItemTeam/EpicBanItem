@@ -24,12 +24,8 @@ import java.util.Set;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@SuppressWarnings("WeakerAccess")
 public class TextUtil {
-
-    private static BufferedReader delegationReader;
-    private static BufferedWriter delegationWriter;
-    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
-    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
 
     /**
      * @param origin origin string support FormatText
@@ -72,7 +68,7 @@ public class TextUtil {
         return TextTemplate.of(objects.toArray());
     }
 
-    private static Text parseFormatText(String in) {
+    public static Text parseFormatText(String in) {
         return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
     }
 
@@ -100,10 +96,10 @@ public class TextUtil {
     public static Text serializeNbtToString(DataView nbt, QueryResult result) {
         return new NbtTagRenderer(result).render(nbt);
     }
-//            HoconConfigurationLoader.builder()
-//            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
-//            .setRenderOptions(ConfigRenderOptions.concise())
-//            .build();
+
+    public static Text serializeNbtToString(DataView nbt) {
+        return NbtTagRenderer.EMPTY_RENDERER.render(nbt);
+    }
 
     public static String escape(String unescapedString) {
         try (StringWriter out = new StringWriter()) {
@@ -114,6 +110,18 @@ public class TextUtil {
             throw new RuntimeException(e);
         }
     }
+
+    private static BufferedReader delegationReader;
+    private static BufferedWriter delegationWriter;
+
+    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
+/*
+  TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
+    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = HoconConfigurationLoader.builder()
+            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+            .setRenderOptions(ConfigRenderOptions.concise())
+            .build();
+*/
 
     private static ConfigurationLoader<CommentedConfigurationNode> getConciseLoader() {
         HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
@@ -132,11 +140,17 @@ public class TextUtil {
         }
         return builder.build();
     }
-//    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
-//            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
-//            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))
-//            .setRenderOptions(ConfigRenderOptions.defaults().setOriginComments(false))
-//            .build();
+
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
+
+/*
+  TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
+            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))
+            .setRenderOptions(ConfigRenderOptions.defaults().setOriginComments(false))
+            .build();
+*/
 
     private static ConfigurationLoader<CommentedConfigurationNode> getLoader() {
         HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()

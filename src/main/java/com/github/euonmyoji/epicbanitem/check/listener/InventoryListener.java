@@ -41,14 +41,8 @@ public class InventoryListener {
 
     private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
 
-    private static Optional<ItemStack> getItem(DataContainer view, int quantity) {
-        try {
-            return Optional.of(NbtTagDataUtil.toItemStack(view, quantity));
-        } catch (InvalidDataException e) {
-            Text t = TextUtil.serializeNbtToString(view, QueryResult.success().orElseThrow(NoSuchFieldError::new));
-            EpicBanItem.getLogger().warn("Invalid data format (cannot be deserialized to items): \n" + t.toPlain(), e);
-        }
-        return Optional.empty();
+    private static ItemStack getItem(DataContainer view, int quantity) {
+        return NbtTagDataUtil.toItemStack(view, quantity);
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
@@ -58,8 +52,9 @@ public class InventoryListener {
             CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
             if (result.isBanned()) {
                 event.setCancelled(true);
-                result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
-                        .ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot())));
+                result.getFinalView()
+                        .map(view -> getItem(view, item.getQuantity()))
+                        .ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
             }
         }
     }
@@ -73,8 +68,8 @@ public class InventoryListener {
             CheckResult result = service.check(item, entity.getWorld(), Triggers.DROP, player);
             if (result.isBanned()) {
                 int immutableIndex = i;
-                result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity()).ifPresent(finalItem ->
-                        droppedItems.set(immutableIndex, finalItem.createSnapshot())));
+                result.getFinalView().map(view -> getItem(view, item.getQuantity()))
+                        .ifPresent(finalItem -> droppedItems.set(immutableIndex, finalItem.createSnapshot()));
             }
         }
     }
@@ -95,8 +90,9 @@ public class InventoryListener {
                 ItemStackSnapshot item = transaction.getFinal();
                 CheckResult result = service.check(item, world, Triggers.CRAFT, playerOptional.orElse(null));
                 if (result.isBanned()) {
-                    result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
-                            .ifPresent(finalItem -> transaction.setCustom(finalItem.createSnapshot())));
+                    result.getFinalView()
+                            .map(view -> getItem(view, item.getQuantity()))
+                            .ifPresent(finalItem -> transaction.setCustom(finalItem.createSnapshot()));
                 }
             }
         }
@@ -112,8 +108,7 @@ public class InventoryListener {
         if (result.isBanned()) {
             Optional<DataContainer> viewOptional = result.getFinalView();
             if (viewOptional.isPresent()) {
-                getItem(viewOptional.get(), item.getQuantity())
-                        .ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
+                tran.setCustom(getItem(viewOptional.get(), item.getQuantity()).createSnapshot());
             } else {
                 event.setCancelled(true);
                 return; // Event cancelled, so there is no need to check slots.
@@ -129,8 +124,9 @@ public class InventoryListener {
         CheckResult result = service.check(item, player.getWorld(), Triggers.PICKUP, player);
         if (result.isBanned()) {
             event.setCancelled(true);
-            result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
-                    .ifPresent(finalItem -> itemEntity.offer(Keys.REPRESENTED_ITEM, finalItem.createSnapshot())));
+            result.getFinalView()
+                    .map(view -> getItem(view, item.getQuantity()))
+                    .ifPresent(finalItem -> itemEntity.offer(Keys.REPRESENTED_ITEM, finalItem.createSnapshot()));
         }
     }
 
@@ -141,8 +137,9 @@ public class InventoryListener {
         CheckResult result = service.check(item, player.getWorld(), Triggers.USE, player);
         if (result.isBanned()) {
             event.setCancelled(true);
-            result.getFinalView().ifPresent(view -> getItem(view, item.getQuantity())
-                    .ifPresent(finalItem -> player.setItemInHand(((HandInteractEvent) event).getHandType(), finalItem)));
+            result.getFinalView()
+                    .map(view -> getItem(view, item.getQuantity()))
+                    .ifPresent(finalItem -> player.setItemInHand(((HandInteractEvent) event).getHandType(), finalItem));
         }
     }
 
@@ -153,7 +150,7 @@ public class InventoryListener {
             if (result.isBanned()) {
                 Optional<DataContainer> viewOptional = result.getFinalView();
                 if (viewOptional.isPresent()) {
-                    getItem(viewOptional.get(), item.getQuantity()).ifPresent(tran::setCustom);
+                    tran.setCustom(getItem(viewOptional.get(), item.getQuantity()));
                 } else {
                     event.setCancelled(true);
                 }
