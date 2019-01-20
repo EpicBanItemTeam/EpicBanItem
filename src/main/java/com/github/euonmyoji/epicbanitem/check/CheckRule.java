@@ -278,7 +278,7 @@ public class CheckRule implements TextRepresentable {
         }
 
         @Override
-        public void serialize(TypeToken<?> type,@Nullable CheckRule rule, ConfigurationNode node) {
+        public void serialize(TypeToken<?> type, @Nullable CheckRule rule, ConfigurationNode node) {
             if (rule == null) {
                 return;
             }
