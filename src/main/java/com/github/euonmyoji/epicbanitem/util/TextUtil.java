@@ -11,6 +11,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
+import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.*;
@@ -86,7 +87,7 @@ public class TextUtil {
         if (!iterator.hasNext()) {
             return Text.EMPTY;
         }
-        Text.Builder builder = iterator.next().toBuilder();
+        Text.Builder builder = Text.builder().append(Text.EMPTY).style(TextStyles.RESET).append(iterator.next());
         while (iterator.hasNext()) {
             builder.append(delimiter).append(iterator.next());
         }
