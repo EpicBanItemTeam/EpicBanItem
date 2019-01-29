@@ -15,11 +15,9 @@ import java.util.Objects;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class NbtTagRenderer {
-    private static final int INDENT = 2;
-
-    private final QueryResult queryResult;
-
     public static final NbtTagRenderer EMPTY_RENDERER = new NbtTagRenderer(null);
+    private static final int INDENT = 2;
+    private final QueryResult queryResult;
 
     public NbtTagRenderer(QueryResult result) {
         this.queryResult = result;

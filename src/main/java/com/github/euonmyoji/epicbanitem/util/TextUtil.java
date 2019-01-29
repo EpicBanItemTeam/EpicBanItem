@@ -28,6 +28,11 @@ import java.util.Set;
 @SuppressWarnings("WeakerAccess")
 public class TextUtil {
 
+    private static BufferedReader delegationReader;
+    private static BufferedWriter delegationWriter;
+    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
+    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
+
     /**
      * @param origin origin string support FormatText
      * @param keySet placeholders in the string
@@ -101,6 +106,13 @@ public class TextUtil {
     public static Text serializeNbtToString(DataView nbt) {
         return NbtTagRenderer.EMPTY_RENDERER.render(nbt);
     }
+/*
+  TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
+    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = HoconConfigurationLoader.builder()
+            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+            .setRenderOptions(ConfigRenderOptions.concise())
+            .build();
+*/
 
     public static String escape(String unescapedString) {
         try (StringWriter out = new StringWriter()) {
@@ -111,18 +123,6 @@ public class TextUtil {
             throw new RuntimeException(e);
         }
     }
-
-    private static BufferedReader delegationReader;
-    private static BufferedWriter delegationWriter;
-
-    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
-/*
-  TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
-    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = HoconConfigurationLoader.builder()
-            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
-            .setRenderOptions(ConfigRenderOptions.concise())
-            .build();
-*/
 
     private static ConfigurationLoader<CommentedConfigurationNode> getConciseLoader() {
         HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
@@ -141,8 +141,6 @@ public class TextUtil {
         }
         return builder.build();
     }
-
-    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
 
 /*
   TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'

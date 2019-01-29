@@ -1,5 +1,7 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -23,16 +25,18 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class CommandQuery extends AbstractCommand {
-    static Map<String, String> histories = new HashMap<>();
+    static Cache<String, String> histories = Caffeine.newBuilder()
+            .softValues()
+            .expireAfterAccess(5, TimeUnit.MINUTES)
+            .build();
 
     CommandQuery() {
         super("query", "q");
@@ -50,40 +54,37 @@ public class CommandQuery extends AbstractCommand {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         String id = src.getIdentifier();
         boolean lookAtBlock = args.hasAny("l");
-        String rule = args.<String>getOne("query-rule").orElse(histories.getOrDefault(id, "{}"));
+        boolean[] unusedHistory = {true};
+        String rule = args.<String>getOne("query-rule")
+                .orElseGet(() -> {
+                    unusedHistory[0] = false;
+                    return histories.get(id, (key) -> "{}");
+                });
         try {
+            DataContainer nbt;
             if (lookAtBlock) {
                 Optional<BlockSnapshot> optional = CommandCreate.getBlockLookAt(src);
                 BlockSnapshot b = optional.orElseThrow(() -> new CommandException(getMessage("noBlock")));
-
-                DataContainer nbt = NbtTagDataUtil.toNbt(b);
-                QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(rule));
-
-                Optional<QueryResult> result = query.query(DataQuery.of(), nbt);
-                if (result.isPresent()) {
-                    LiteralText text = Text.of(result.get().toString());
-                    Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
-                    src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, result.get())));
-                } else {
-                    src.sendMessage(getMessage("failed"));
-                }
+                nbt = NbtTagDataUtil.toNbt(b);
             } else {
                 Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
                 Tuple<HandType, ItemStack> i = optional.orElseThrow(() -> new CommandException(getMessage("noItem")));
-
-                DataContainer nbt = NbtTagDataUtil.toNbt(i.getSecond());
-                QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(rule));
-
-                Optional<QueryResult> result = query.query(DataQuery.of(), nbt);
-                if (result.isPresent()) {
-                    LiteralText text = Text.of(result.get().toString());
-                    Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
-                    src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, result.get())));
-                } else {
-                    src.sendMessage(getMessage("failed"));
-                }
+                nbt = NbtTagDataUtil.toNbt(i.getSecond());
             }
-            histories.put(id, rule);
+            QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(rule));
+
+            Optional<QueryResult> result = query.query(DataQuery.of(), nbt);
+            if (result.isPresent()) {
+                LiteralText text = Text.of(result.get().toString());
+                Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
+                src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, result.get())));
+            } else {
+                src.sendMessage(getMessage("failed"));
+            }
+
+            if (unusedHistory[0]) {
+                histories.put(id, rule);
+            }
             return CommandResult.success();
         } catch (Exception e) {
             EpicBanItem.getLogger().error(getMessage("error").toPlain(), e);

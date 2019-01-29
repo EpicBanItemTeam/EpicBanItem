@@ -50,46 +50,38 @@ public class CommandUpdate extends AbstractCommand {
         String id = src.getIdentifier();
         boolean lookAtBlock = args.hasAny("l");
         String updateRule = args.<String>getOne("update-rule").orElseThrow(NoSuchFieldError::new);
-        String queryRule = CommandQuery.histories.getOrDefault(id, "{}");
+        String queryRule = CommandQuery.histories.get(id, (key) -> "{}");
         try {
+            DataContainer nbt;
             if (lookAtBlock) {
                 Optional<BlockSnapshot> optional = CommandCreate.getBlockLookAt(src);
                 BlockSnapshot b = optional.orElseThrow(() -> new CommandException(getMessage("noBlock")));
 
-                DataContainer nbt = NbtTagDataUtil.toNbt(b);
-                QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
-                UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
-
-                QueryResult queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().orElseThrow(NoSuchFieldError::new));
-                UpdateResult updateResult = update.update(queryResult, nbt);
-                updateResult.apply(nbt);
-
+                nbt = NbtTagDataUtil.toNbt(b);
                 b = NbtTagDataUtil.toBlockSnapshot(nbt, b.getState(), b.getWorldUniqueId());
                 b.restore(true, BlockChangeFlags.NONE);
                 // TODO: should it really be none?
 
-                LiteralText text = Text.of(updateResult.toString());
-                Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
-                src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, queryResult)));
             } else {
                 Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
                 Tuple<HandType, ItemStack> i = optional.orElseThrow(() -> new CommandException(getMessage("noItem")));
 
-                DataContainer nbt = NbtTagDataUtil.toNbt(i.getSecond());
-                QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
-                UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
-
-                QueryResult queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().orElseThrow(NoSuchFieldError::new));
-                UpdateResult updateResult = update.update(queryResult, nbt);
-                updateResult.apply(nbt);
+                nbt = NbtTagDataUtil.toNbt(i.getSecond());
 
                 i = Tuple.of(i.getFirst(), NbtTagDataUtil.toItemStack(nbt, i.getSecond().getQuantity()));
                 CommandCreate.setItemInHand(src, i);
-
-                LiteralText text = Text.of(updateResult.toString());
-                Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
-                src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, queryResult)));
             }
+
+            QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(queryRule));
+            UpdateExpression update = new UpdateExpression(TextUtil.serializeStringToConfigNode(updateRule));
+            QueryResult queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().orElseThrow(NoSuchFieldError::new));
+            UpdateResult updateResult = update.update(queryResult, nbt);
+            updateResult.apply(nbt);
+
+            LiteralText text = Text.of(updateResult.toString());
+            Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
+            src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, queryResult)));
+
             return CommandResult.success();
         } catch (Exception e) {
             EpicBanItem.getLogger().error(getMessage("error").toPlain(), e);
