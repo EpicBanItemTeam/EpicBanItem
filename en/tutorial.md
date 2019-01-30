@@ -52,7 +52,7 @@ If everything works well, an message will be poped out:
 
 > Successfully added the rule: ban-wooden-axe
 
-Now you are able to use the following commands for listing all the rules avaliable or all the rules for the items which type is `minecraft:wooden_axe` (please ensure that `zzzz_ustc` has the `epicbanitem.command.list` permission):
+Now you are able to use the following commands for listing all the rules available or all the rules for the items which type is `minecraft:wooden_axe` (please ensure that `zzzz_ustc` has the `epicbanitem.command.list` permission):
 
 ```mcfunction
 ebi list
@@ -67,8 +67,55 @@ Here is a possible output:
 
 ## Editing the Rules
 
-> TBD
+Now we get started at the point where the last part that added a new rule finished.
+
+The following command can be executed in order to edit the rule (please ensure that `zzzz_ustc` has the `epicbanitem.command.edit` permission):
+
+```mcfunction
+ebi edit ban-wooden-axe
+```
+
+Here is a possible output:
+> =============================================  
+> CheckRule:**ban-wooden-axe**  
+> Priority :5   
+> Triggers :**use  pickup  click  throw  drop  place  break  interact**    
+> Worlds&nbsp;&nbsp;&nbsp;:**DIM-1  DIM1  world**  
+> QueryExpression : **Currently Default Origin**  
+> UpdateExpression : **Currently Default Origin**  
+> **Save**
+
+All of bold texts have hover tooltip and can be clicked
+
+you may be suggested complete an command.
+For instance, We click `ban-wooden-axe` on the right of "CheckRule", editing its name. 
+After clicking, EpicBanItem should suggest you complete such an command:
+
+```mcfunction
+ebi cb xxxx ban-wooden-axe
+```
+
+Let's change the name, such as `ban-worldedit-tool`:
+
+```mcfunction
+ebi cb xxxx ban-worldedit-tool
+```
+
+Then press the enter (please ensure that `zzzz_ustc` has the `epicbanitem.command.callback` permission). 
+Here is a possible output:
+
+> =============================================  
+> CheckRule:**ban-worldedit-tool**  
+> Priority :5   
+> Triggers :**use  pickup  click  throw  drop  place  break  interact**    
+> Worlds&nbsp;&nbsp;&nbsp;:**DIM-1  DIM1  world**  
+> QueryExpression : **Currently Default Origin**  
+> UpdateExpression : **Currently Default Origin**  
+> **Save**
+
+Now **click "Save"**, waiting for message "Saved", which means succeed.
 
 ## Summary
 
-> TBD
+The goal of EpicBanItem is to reach the balance of easy and useful. 
+Above only introduced the basic usage of this plugin, for more detailed information of usage, please read the remain part of the docs.
