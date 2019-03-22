@@ -14,7 +14,9 @@ import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
@@ -130,6 +132,23 @@ public class InventoryListener {
     @Include(HandInteractEvent.class)
     public void onItemUsed(InteractItemEvent event, @First Player player) {
         ItemStack item = event.getItemStack().createStack();
+        CheckResult result = service.check(item, player.getWorld(), Triggers.USE, player);
+        if (result.isBanned()) {
+            event.setCancelled(true);
+            result.getFinalView()
+                    .map(view -> getItem(view, item.getQuantity()))
+                    .ifPresent(finalItem -> player.setItemInHand(((HandInteractEvent) event).getHandType(), finalItem));
+        }
+    }
+
+    //todo:remove this when https://github.com/SpongePowered/SpongeCommon/issues/2184 is fixed
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onInteractBlock(InteractBlockEvent event, @First Player player) {
+        Optional<ItemStackSnapshot> optionalItem = event.getContext().get(EventContextKeys.USED_ITEM);
+        if (!optionalItem.isPresent()) {
+            return;
+        }
+        ItemStackSnapshot item = optionalItem.get();
         CheckResult result = service.check(item, player.getWorld(), Triggers.USE, player);
         if (result.isBanned()) {
             event.setCancelled(true);
