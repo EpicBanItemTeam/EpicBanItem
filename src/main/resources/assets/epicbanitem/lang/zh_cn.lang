@@ -59,6 +59,7 @@ epicbanitem.command.create.description = 创建一个新的规则
 epicbanitem.command.create.extendedDescription = 创建一个新的规则
 epicbanitem.command.create.succeed = 成功添加规则：&a {rule_name}
 epicbanitem.command.create.failed = 创建规则失败
+epicbanitem.command.create.existed = 规则名{rule_name}已经被使用了.
 epicbanitem.command.create.conflict = "no-capture" 与 "all-match" 不能同时使用.
 epicbanitem.command.create.override = id 将会被手中物品覆盖。如欲不覆盖，请加“--no-capture”参数重试
 epicbanitem.command.create.noItem = 找不到物品。可能因为你不是玩家，或者手上没拿东西？

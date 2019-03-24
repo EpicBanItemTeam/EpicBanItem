@@ -89,6 +89,9 @@ class CommandCreate extends AbstractCommand {
         }
         try {
             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+            if (service.getCheckRuleByName(name).isPresent()) {
+                throw new CommandException(getMessage("existed", "rule_name", name));
+            }
             Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
             ConfigurationNode queryNode;
             if (allMatch) {
