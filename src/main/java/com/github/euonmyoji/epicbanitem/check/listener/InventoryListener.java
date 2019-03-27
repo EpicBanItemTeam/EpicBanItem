@@ -76,10 +76,11 @@ public class InventoryListener {
             Cause cause = event.getCause();
             Optional<Player> playerOptional = cause.first(Player.class);
             World world = cause.first(Locatable.class).map(Locatable::getWorld).orElseGet(() -> {
-                RuntimeException e = new RuntimeException();
+                RuntimeException e = new RuntimeException("EpicBanItem cannot even find a world when crafting");
                 WorldProperties defProps = Sponge.getServer().getDefaultWorld().orElseThrow(RuntimeException::new);
                 World def = Sponge.getServer().getWorld(defProps.getUniqueId()).orElseThrow(RuntimeException::new);
-                EpicBanItem.getLogger().error("EpicBanItem cannot even find a world! What is the server doing?", e);
+                EpicBanItem.getLogger().warn("EpicBanItem cannot even find a world! What is the server doing?");
+                EpicBanItem.getLogger().debug(e.getMessage(), e);
                 return def;
             });
             for (Transaction<ItemStackSnapshot> transaction : event.getTransactions()) {
