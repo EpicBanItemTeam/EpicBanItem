@@ -20,6 +20,7 @@ import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextRepresentable;
 import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
@@ -41,8 +42,10 @@ public class CheckRule implements TextRepresentable {
      * 0-9 higher first
      */
     private int priority;
-    private Map<String, Boolean> enableWorlds;
-    private Map<String, Boolean> enableTriggers;
+    private Tristate worldDefaultSetting;
+    private Map<String, Boolean> worldSettings;
+    private Tristate triggerDefaultSetting;
+    private Map<String, Boolean> triggerSettings;
     private QueryExpression query;
     private ConfigurationNode queryNode;
     private @Nullable
@@ -57,7 +60,7 @@ public class CheckRule implements TextRepresentable {
     }
 
     public CheckRule(String ruleName, CheckRule rule) {
-        this(ruleName, rule.queryNode, rule.updateNode, rule.priority, rule.enableWorlds, rule.enableTriggers);
+        this(ruleName, rule.queryNode, rule.updateNode, rule.priority, rule.worldDefaultSetting, rule.worldSettings, rule.triggerDefaultSetting, rule.triggerSettings);
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode) {
@@ -65,10 +68,12 @@ public class CheckRule implements TextRepresentable {
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode) {
-        this(ruleName, queryNode, updateNode, 5, new HashMap<>(), new HashMap<>());
+        this(ruleName, queryNode, updateNode, 5, Tristate.UNDEFINED, Collections.emptyMap(), Tristate.UNDEFINED, Collections.emptyMap());
     }
 
-    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, int priority, Map<String, Boolean> enableWorlds, Map<String, Boolean> enableTriggers) {
+    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, int priority, Tristate worldDefaultSetting, Map<String, Boolean> worldSettings, Tristate triggerDefaultSetting, Map<String, Boolean> triggerSettings) {
+        this.worldDefaultSetting = worldDefaultSetting;
+        this.triggerDefaultSetting = triggerDefaultSetting;
         Preconditions.checkArgument(checkName(ruleName), "Rule name should match \"[a-z0-9-_]+\"");
         this.name = Objects.requireNonNull(ruleName);
         this.queryNode = queryNode.copy();
@@ -77,8 +82,8 @@ public class CheckRule implements TextRepresentable {
         this.update = Objects.isNull(updateNode) ? null : new UpdateExpression(updateNode);
         Preconditions.checkArgument(priority >= 0 && priority <= 9, "Priority should between 0 and 9");
         this.priority = priority;
-        this.enableWorlds = ImmutableMap.copyOf(Objects.requireNonNull(enableWorlds));
-        this.enableTriggers = ImmutableMap.copyOf(Objects.requireNonNull(enableTriggers));
+        this.worldSettings = ImmutableMap.copyOf(Objects.requireNonNull(worldSettings));
+        this.triggerSettings = ImmutableMap.copyOf(Objects.requireNonNull(triggerSettings));
     }
 
     public static boolean checkName(@Nullable String s) {
@@ -117,21 +122,37 @@ public class CheckRule implements TextRepresentable {
         return priority;
     }
 
-    public Map<String, Boolean> getEnableTriggers() {
-        return enableTriggers;
+    public Tristate getWorldDefaultSetting() {
+        return worldDefaultSetting;
     }
 
-    public Map<String, Boolean> getEnableWorlds() {
-        return enableWorlds;
+    public Map<String, Boolean> getWorldSettings() {
+        return worldSettings;
+    }
+
+    public Tristate getTriggerDefaultSetting() {
+        return triggerDefaultSetting;
+    }
+
+    public Map<String, Boolean> getTriggerSettings() {
+        return triggerSettings;
     }
 
     public boolean isEnabledWorld(World world) {
         String worldName = world.getName();
-        return enableWorlds.getOrDefault(worldName, EpicBanItem.getSettings().isWorldDefaultEnabled(worldName));
+        if (worldDefaultSetting == Tristate.UNDEFINED) {
+            return worldSettings.getOrDefault(worldName, EpicBanItem.getSettings().isWorldDefaultEnabled(worldName));
+        } else {
+            return worldSettings.getOrDefault(worldName, worldDefaultSetting.asBoolean());
+        }
     }
 
     public boolean isEnabledTrigger(String trigger) {
-        return enableTriggers.getOrDefault(trigger, EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger));
+        if (triggerDefaultSetting == Tristate.UNDEFINED) {
+            return triggerSettings.getOrDefault(trigger, EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger));
+        } else {
+            return triggerSettings.getOrDefault(trigger, triggerDefaultSetting.asBoolean());
+        }
     }
 
     public ConfigurationNode getQueryNode() {
@@ -148,11 +169,11 @@ public class CheckRule implements TextRepresentable {
     }
 
     private Text getWorldInfo() {
-        return getEnableInfo(enableWorlds);
+        return Text.of(worldDefaultSetting.toString().toLowerCase(), getEnableInfo(worldSettings));
     }
 
     private Text getTriggerInfo() {
-        return getEnableInfo(enableTriggers);
+        return Text.of(worldDefaultSetting.toString().toLowerCase(), getEnableInfo(triggerSettings));
     }
 
     private Text getEnableInfo(Map<String, Boolean> enableMap) {
@@ -261,20 +282,31 @@ public class CheckRule implements TextRepresentable {
             String name = Objects.requireNonNull(node.getNode("name").getString());
             int priority = node.getNode("priority").getInt(5);
             Map<String, Boolean> enableWorld = new HashMap<>();
+            Tristate worldDefaultSetting = Tristate.UNDEFINED;
             if (node.getNode("enabled-worlds").hasListChildren()) {
                 node.getNode("enabled-worlds").getList(TypeToken.of(String.class)).forEach(s -> enableWorld.put(s, true));
+                worldDefaultSetting = Tristate.FALSE;
             } else {
                 node.getNode("enabled-worlds").getChildrenMap().forEach((k, v) -> enableWorld.put(k.toString(), v.getBoolean()));
+                if (!node.getNode("world-default-setting").isVirtual()) {
+                    worldDefaultSetting = Tristate.fromBoolean(node.getNode("world-default-setting").getBoolean());
+                }
             }
             Map<String, Boolean> enableTriggers = new HashMap<>();
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             triggerNode.getChildrenMap().forEach((k, v) -> enableTriggers.put(k.toString(), v.getBoolean()));
+            Tristate triggerDefaultSetting;
+            if (!node.getNode("trigger-default-setting").isVirtual()) {
+                triggerDefaultSetting = Tristate.fromBoolean(node.getNode("trigger-default-setting").getBoolean());
+            } else {
+                triggerDefaultSetting = Tristate.UNDEFINED;
+            }
             ConfigurationNode queryNode = node.getNode("query");
             ConfigurationNode updateNode = node.getNode("update");
             if (updateNode.isVirtual() && node.getNode("remove").getBoolean(false)) {
                 updateNode = getDefaultUpdateNode();
             }
-            return new CheckRule(name, queryNode, updateNode.isVirtual() ? null : updateNode, priority, enableWorld, enableTriggers);
+            return new CheckRule(name, queryNode, updateNode.isVirtual() ? null : updateNode, priority, worldDefaultSetting, enableWorld, triggerDefaultSetting, enableTriggers);
         }
 
         @Override
@@ -288,8 +320,8 @@ public class CheckRule implements TextRepresentable {
             }
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
-            rule.enableWorlds.forEach((k, v) -> node.getNode("enabled-worlds", k).setValue(v));
-            rule.enableTriggers.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
+            rule.worldSettings.forEach((k, v) -> node.getNode("enabled-worlds", k).setValue(v));
+            rule.triggerSettings.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
             node.getNode("query").setValue(rule.queryNode);
             node.getNode("update").setValue(rule.updateNode);
         }
@@ -299,8 +331,10 @@ public class CheckRule implements TextRepresentable {
     public static final class Builder {
         private String name;
         private int priority = 5;
-        private Map<String, Boolean> enableWorlds = new TreeMap<>();
-        private Map<String, Boolean> enableTriggers = new TreeMap<>();
+        private Tristate worldDefaultSetting = Tristate.UNDEFINED;
+        private Map<String, Boolean> worldSettings = new TreeMap<>();
+        private Tristate triggerDefaultSetting = Tristate.UNDEFINED;
+        private Map<String, Boolean> triggerSettings = new TreeMap<>();
         private ConfigurationNode queryNode;
         private @Nullable
         ConfigurationNode updateNode;
@@ -314,8 +348,8 @@ public class CheckRule implements TextRepresentable {
         private Builder(CheckRule checkRule) {
             this.name = checkRule.name;
             this.priority = checkRule.priority;
-            this.enableWorlds = new TreeMap<>(checkRule.enableWorlds);
-            this.enableTriggers = new TreeMap<>(checkRule.enableTriggers);
+            this.worldSettings = new TreeMap<>(checkRule.worldSettings);
+            this.triggerSettings = new TreeMap<>(checkRule.triggerSettings);
             this.queryNode = checkRule.queryNode;
             this.updateNode = checkRule.updateNode;
         }
@@ -332,13 +366,23 @@ public class CheckRule implements TextRepresentable {
             return this;
         }
 
+        public Builder worldDefaultSetting(Tristate tristate) {
+            worldDefaultSetting = tristate;
+            return this;
+        }
+
         public Builder enableWorlds(Map<String, Boolean> enableWorlds) {
-            this.enableWorlds = new TreeMap<>(enableWorlds);
+            this.worldSettings = new TreeMap<>(enableWorlds);
+            return this;
+        }
+
+        public Builder triggerDefaultSetting(Tristate tristate) {
+            triggerDefaultSetting = tristate;
             return this;
         }
 
         public Builder enableTriggers(Map<String, Boolean> enableTriggers) {
-            this.enableTriggers = new TreeMap<>(enableWorlds);
+            this.triggerSettings = new TreeMap<>(worldSettings);
             return this;
         }
 
@@ -360,12 +404,20 @@ public class CheckRule implements TextRepresentable {
             return priority;
         }
 
-        public Map<String, Boolean> getEnableWorlds() {
-            return enableWorlds;
+        public Tristate getWorldDefaultSetting() {
+            return worldDefaultSetting;
         }
 
-        public Map<String, Boolean> getEnableTriggers() {
-            return enableTriggers;
+        public Map<String, Boolean> getWorldSettings() {
+            return worldSettings;
+        }
+
+        public Tristate getTriggerDefaultSetting() {
+            return triggerDefaultSetting;
+        }
+
+        public Map<String, Boolean> getTriggerSettings() {
+            return triggerSettings;
         }
 
         public ConfigurationNode getQueryNode() {
@@ -378,7 +430,7 @@ public class CheckRule implements TextRepresentable {
         }
 
         public CheckRule build() {
-            return new CheckRule(name, queryNode, updateNode, priority, enableWorlds, enableTriggers);
+            return new CheckRule(name, queryNode, updateNode, priority, worldDefaultSetting, worldSettings, triggerDefaultSetting, triggerSettings);
         }
     }
 }

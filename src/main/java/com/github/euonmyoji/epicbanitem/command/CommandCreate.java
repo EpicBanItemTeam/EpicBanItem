@@ -13,10 +13,11 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
-import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.ArmorEquipable;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
@@ -71,51 +72,60 @@ class CommandCreate extends AbstractCommand {
     @Override
     public CommandElement getArgument() {
         return seq(string(Text.of("rule-name")),
-                flags().flag("-no-capture").buildWith(none()),
-                flags().flag("-all-nbt").buildWith(none()),
-                optional(remainingRawJoinedStrings(Text.of("query-rule"))));
+                flags().flag("-no-capture")
+                        .flag("-all-match")
+                        .buildWith(optional(remainingRawJoinedStrings(Text.of("query-rule")))));
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         boolean noCapture = args.hasAny("no-capture");
-        boolean allNbt = args.hasAny("-all-nbt");
+        boolean allMatch = args.hasAny("all-match");
         //noinspection OptionalGetWithoutIsPresent
         String name = args.<String>getOne("rule-name").get();
-        // TODO: use histories in Query?
         String query = args.<String>getOne("query-rule").orElse("{}");
+        if (noCapture && allMatch) {
+            throw new CommandException(getMessage("conflict"));
+        }
         try {
-            Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
-            ConfigurationNode queryNode = TextUtil.serializeStringToConfigNode(query);
-            Optional<String> id = Optional.ofNullable(queryNode.getNode("id").getString());
             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-            if (!noCapture) {
+            if (service.getCheckRuleByName(name).isPresent()) {
+                throw new CommandException(getMessage("existed", "rule_name", name));
+            }
+            Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
+            ConfigurationNode queryNode;
+            if (allMatch) {
                 if (handItem.isPresent()) {
-                    if (id.isPresent()) {
-                        throw new CommandException(getMessage("override"));
-                    } else {
-                        String s = handItem.get().getSecond().getType().getId();
-                        queryNode.getNode("id").setValue(s);
-//                        id = Optional.of(s); //This is not used
-                    }
+                    queryNode = DataTranslators.CONFIGURATION_NODE.translate(NbtTagDataUtil.toNbt(handItem.get().getSecond()));
                 } else {
-                    if (!id.isPresent()) {
-                        throw new CommandException(getMessage("empty"));
+                    throw new CommandException(getMessage("noItem"));
+                }
+            } else {
+                queryNode = TextUtil.serializeStringToConfigNode(query);
+                Optional<String> id = Optional.ofNullable(queryNode.getNode("id").getString());
+                if (!noCapture) {
+                    if (handItem.isPresent()) {
+                        if (id.isPresent()) {
+                            throw new CommandException(getMessage("override"));
+                        } else {
+                            String s = handItem.get().getSecond().getType().getId();
+                            queryNode.getNode("id").setValue(s);
+                        }
+                    } else {
+                        if (!id.isPresent()) {
+                            throw new CommandException(getMessage("empty"));
+                        }
                     }
                 }
             }
-            //noinspection PointlessBooleanExpression,ConstantConditions todo: 怎么copy 是这样么
-            if (false && allNbt && handItem.isPresent()) {
-                DataContainer nbt = NbtTagDataUtil.toNbt(handItem.get().getSecond());
-                String s = TextUtil.serializeNbtToString(nbt).toPlain();
-                ConfigurationNode node = TextUtil.serializeStringToConfigNode(s);
-                node.removeChild("id");
-                queryNode.setValue(node);
+            if (src instanceof Player) {
+                CommandEditor.add((Player) src, name, queryNode, true);
+            } else {
+                service.appendRule(new CheckRule(name, queryNode)).thenRun(() -> {
+                    Text succeedMessage = getMessage("succeed", "rule_name", name);
+                    src.sendMessage(succeedMessage);
+                });
             }
-            service.appendRule(new CheckRule(name, queryNode)).thenRun(() -> {
-                Text succeedMessage = getMessage("succeed", "rule_name", name);
-                src.sendMessage(succeedMessage);
-            });
             return CommandResult.success();
         } catch (CommandException e) {
             throw e;

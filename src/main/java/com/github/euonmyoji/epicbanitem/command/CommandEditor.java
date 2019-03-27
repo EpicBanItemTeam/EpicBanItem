@@ -29,6 +29,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,16 @@ public class CommandEditor extends AbstractCommand {
 
     public static void add(Player player, String name, boolean sendMessage) {
         Editor editor = new Editor(player.getUniqueId(), name);
+        editorMap.put(player.getUniqueId(), editor);
+        if (sendMessage) {
+            editor.resend();
+        }
+    }
+
+    public static void add(Player player, String name, ConfigurationNode queryNode, boolean sendMessage) {
+        Editor editor = new Editor(player.getUniqueId(), name);
+        editor.ruleBuilder.queryNode(queryNode);
+        editor.ruleBuilder.updateNode(CheckRule.getDefaultUpdateNode());
         editorMap.put(player.getUniqueId(), editor);
         if (sendMessage) {
             editor.resend();
@@ -71,7 +82,6 @@ public class CommandEditor extends AbstractCommand {
         }
         Player player = (Player) src;
         Editor editor = editorMap.get(player.getUniqueId());
-        // TODO: 2018/11/25 CommandCreate
         if (editor == null) {
             src.sendMessage(getMessage("useOtherFirst"));
         } else {
@@ -131,6 +141,16 @@ public class CommandEditor extends AbstractCommand {
             }
         }
 
+        private static Tristate next(Tristate tristate) {
+            if (tristate == Tristate.UNDEFINED) {
+                return Tristate.TRUE;
+            } else if (tristate.asBoolean()) {
+                return Tristate.FALSE;
+            } else {
+                return Tristate.UNDEFINED;
+            }
+        }
+
         private static Tristate toTristate(@Nullable Boolean b) {
             if (b == null) {
                 return Tristate.UNDEFINED;
@@ -157,8 +177,10 @@ public class CommandEditor extends AbstractCommand {
          * <p>
          * CheckRule:{name}
          * Priority :{priority}
-         * Triggers :{triggers}
-         * Worlds   :{worlds}
+         * Triggers : White/Black list
+         *   {triggers}
+         * Worlds   : White/Black list
+         *   {worlds}
          * QueryExpression : not editable
          * UpdateExpression: not editable
          * <p>
@@ -182,38 +204,42 @@ public class CommandEditor extends AbstractCommand {
                                     (src, args) -> {
                                         int priority = args.<Integer>getOne("priority").orElseThrow(NoSuchFieldError::new);
                                         if (priority < 0 || priority > 9) {
-                                            // TODO: 2018/11/24
-                                            throw new CommandException(Text.EMPTY);
+                                            throw new CommandException(getMessage("illegalPriority"));
                                         }
                                         ruleBuilder.priority(priority);
                                         resend();
                                         return CommandResult.success();
                                     })))).append(Text.NEW_LINE);
-            {
-                //Triggers
-                Settings settings = EpicBanItem.getSettings();
-                boolean isOriginNull = origin == null;
-                Set<String> setTriggers = new HashSet<>(ruleBuilder.getEnableTriggers().keySet());
-                List<Text> triggers = new ArrayList<>();
-                checkAddRemove(triggers, settings::isTriggerDefaultEnabled, setTriggers, isOriginNull ? null : origin.getEnableTriggers(), ruleBuilder.getEnableTriggers(), Triggers.getDefaultTriggers());
-                checkAdd(triggers, settings::isTriggerDefaultEnabled, isOriginNull ? null : origin.getEnableTriggers(), ruleBuilder.getEnableTriggers(), setTriggers);
-                builder.append(getMessage("triggers", "triggers",
-                        TextUtil.join(Text.builder("  ").style(TextStyles.RESET).build(), triggers)))
-                        .append(Text.NEW_LINE);
-                //Worlds
-                Set<String> setWorlds = new HashSet<>(ruleBuilder.getEnableWorlds().keySet());
-                List<Text> worlds = new ArrayList<>();
-                checkAddRemove(worlds, settings::isWorldDefaultEnabled, setWorlds, isOriginNull ? null : origin.getEnableWorlds(), ruleBuilder.getEnableWorlds(),
-                        Sponge.getServer().getAllWorldProperties().stream().map(WorldProperties::getWorldName).collect(Collectors.toSet()));
-                //worlds that not in the sponge data?
-                checkAdd(worlds, settings::isWorldDefaultEnabled, origin != null ? origin.getEnableWorlds() : null, ruleBuilder.getEnableWorlds(), setWorlds);
-                builder.append(getMessage("worlds", "worlds",
-                        TextUtil.join(Text.builder("  ").style(TextStyles.RESET).build(), worlds))).append(Text.NEW_LINE);
-            }
+            Settings settings = EpicBanItem.getSettings();
+            boolean isOriginNull = origin == null;
+            //Worlds
+            Set<String> setWorlds = new HashSet<>(ruleBuilder.getWorldSettings().keySet());
+            List<Text> worlds = new ArrayList<>();
+            Tristate worldDefaultSetting = ruleBuilder.getWorldDefaultSetting();
+            Function<String, Boolean> worldDefault = worldDefaultSetting == Tristate.UNDEFINED ?
+                    settings::isWorldDefaultEnabled : s -> worldDefaultSetting.asBoolean();
+            checkAddRemove(worlds, worldDefault, setWorlds, isOriginNull ? null : origin.getWorldSettings(), ruleBuilder.getWorldSettings(),
+                    Sponge.getServer().getAllWorldProperties().stream().map(WorldProperties::getWorldName).collect(Collectors.toSet()));
+            //worlds that not in the sponge data?
+            checkAdd(worlds, worldDefault, origin != null ? origin.getWorldSettings() : null, ruleBuilder.getWorldSettings(), setWorlds);
+            builder.append(getMessage("worlds",
+                    "mode", formatMode(worldDefaultSetting, CheckRule::getWorldDefaultSetting, ruleBuilder::worldDefaultSetting))).append(Text.NEW_LINE)
+                    .append(Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), worlds)).append(Text.NEW_LINE);
+            //Triggers
+            Set<String> setTriggers = new HashSet<>(ruleBuilder.getTriggerSettings().keySet());
+            List<Text> triggers = new ArrayList<>();
+            Tristate triggerDefaultSetting = ruleBuilder.getTriggerDefaultSetting();
+            Function<String, Boolean> triggerDefault = triggerDefaultSetting == Tristate.UNDEFINED ?
+                    settings::isTriggerDefaultEnabled : s -> triggerDefaultSetting.asBoolean();
+            checkAddRemove(triggers, triggerDefault, setTriggers, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings(), Triggers.getDefaultTriggers());
+            checkAdd(triggers, triggerDefault, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings(), setTriggers);
+            builder.append(getMessage("triggers", "mode",
+                    formatMode(triggerDefaultSetting, CheckRule::getTriggerDefaultSetting, ruleBuilder::triggerDefaultSetting))).append(Text.NEW_LINE)
+                    .append(Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), triggers)).append(Text.NEW_LINE);
             //Query Updates
-            builder.append(getMessage("query", "options", TextUtil.join(Text.builder("  ")
+            builder.append(getMessage("query", "options", Text.joinWith(Text.builder("  ")
                     .style(TextStyles.RESET).build(), genQueryTexts()))).append(Text.NEW_LINE)
-                    .append(getMessage("update", "options", TextUtil.join(Text.builder("  ")
+                    .append(getMessage("update", "options", Text.joinWith(Text.builder("  ")
                             .style(TextStyles.RESET).build(), genUpdateTexts()))).append(Text.NEW_LINE);
             //Save
             builder.append(getMessage("save").toBuilder().style(TextStyles.UNDERLINE, TextStyles.BOLD).color(TextColors.RED)
@@ -224,13 +250,13 @@ public class CommandEditor extends AbstractCommand {
                                         // remove th origin one.
                                         if (origin != null) {
                                             // TODO: 2018/11/24 Is the rule with that name the rule we get on created the editor.
-                                            // TODO: 2018/12/10 Should we consider completable future?
-                                            service.removeRule(origin);
+                                            service.removeRule(origin).join();
                                         }
                                         // TODO: 2018/11/25 Warn on no id matches ?
 //                                        Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString()); id is unused ??
                                         service.appendRule(rule).thenRun(() -> src.sendMessage(getMessage("saved")));
                                         editorMap.remove(owner);
+                                        CommandCallback.clear(owner);
                                         return CommandResult.success();
                                     })
                             ))).toText()
@@ -244,7 +270,7 @@ public class CommandEditor extends AbstractCommand {
 
         private Text format(Object value, boolean edited, Tuple<CommandElement, CommandExecutor> action) {
             String ebi = EpicBanItem.getMainCommandAlias();
-            Text.Builder builder = Text.builder(value.toString());
+            Text.Builder builder = Text.builder().append(Text.of(value.toString()));
             //Mark edited parts bold.
             builder.style(builder.getStyle().bold(edited));
             builder.color(TextColors.BLUE);
@@ -284,7 +310,34 @@ public class CommandEditor extends AbstractCommand {
             return builder.build();
         }
 
-        private Text formatNode(String display, @Nullable ConfigurationNode node, String key) {
+        private Text formatMode(Tristate tristate, Function<CheckRule, Tristate> getter, Consumer<Tristate> setter) {
+            Text.Builder builder = getMessage("mode." + tristate.toString().toLowerCase()).toBuilder();
+            Tristate to = next(tristate);
+            boolean edited;
+            if (origin == null) {
+                edited = false;
+            } else {
+                edited = getter.apply(origin) != tristate;
+            }
+            builder.style(builder.getStyle().bold(edited).italic(false));
+            builder.onClick(TextActions.runCommand(String.format("/%s cb %s", EpicBanItem.getMainCommandAlias(),
+                    CommandCallback.add(owner, new Tuple<>(GenericArguments.none(), (src, args) -> {
+                        setter.accept(to);
+                        resend();
+                        return CommandResult.success();
+                    })))));
+            Text tri = Text.builder()
+                    .append(getMessage("mode." + tristate.toString().toLowerCase() + ".description"))
+                    .append(Text.NEW_LINE)
+                    .append(Text.NEW_LINE)
+                    .append(getMessage("tristate.click",
+                            "to", getMessage("mode." + to.toString().toLowerCase())))
+                    .build();
+            builder.onHover(TextActions.showText(tri));
+            return builder.build();
+        }
+
+        private Text formatNode(String display, Text description, @Nullable ConfigurationNode node, String key) {
             String ebi = EpicBanItem.getMainCommandAlias();
             Text.Builder builder = Text.builder(display);
             String nodeString;
@@ -303,7 +356,7 @@ public class CommandEditor extends AbstractCommand {
                     nodeString = suggestString = "error";
                 }
             }
-            Text hover = Text.of(nodeString, Text.NEW_LINE, getMessage("click"));
+            Text hover = Text.of(description, Text.NEW_LINE, Text.NEW_LINE, nodeString, Text.NEW_LINE, getMessage("click"));
             builder.onHover(TextActions.showText(hover));
             builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s %s", ebi, key, suggestString)));
             return builder.toText();
@@ -326,18 +379,30 @@ public class CommandEditor extends AbstractCommand {
             List<Text> queries = new ArrayList<>();
             queries.add(formatNode(
                     getMessage("custom").toPlain(),
+                    getMessage("customQuery"),
                     ruleBuilder.getQueryNode(),
                     queryKey
             ));
-            queries.add(formatNode(
-                    getMessage("default").toPlain(),
-                    CheckRule.getDefaultQueryNode(),
-                    queryKey
-            ));
-            // TODO: 2018/11/24 History of query command
+            Sponge.getServer().getPlayer(owner).ifPresent(p -> {
+                String s = CommandQuery.histories.getIfPresent(p.getIdentifier());
+                if (s != null) {
+                    try {
+                        ConfigurationNode node = TextUtil.serializeStringToConfigNode(s);
+                        queries.add(formatNode(
+                                getMessage("history").toPlain(),
+                                getMessage("historyQuery"),
+                                node,
+                                queryKey
+                        ));
+                    } catch (IOException e) {
+                        //do nothing
+                    }
+                }
+            });
             if (origin != null) {
                 queries.add(formatNode(
                         getMessage("origin").toPlain(),
+                        getMessage("originQuery"),
                         origin.getQueryNode(),
                         queryKey
                 ));
@@ -366,18 +431,27 @@ public class CommandEditor extends AbstractCommand {
             List<Text> updates = new ArrayList<>();
             updates.add(formatNode(
                     getMessage("custom").toPlain(),
+                    getMessage("customUpdate"),
                     ruleBuilder.getUpdateNode(),
                     updateKey
             ));
             updates.add(formatNode(
                     getMessage("default").toPlain(),
+                    getMessage("defaultUpdate"),
                     CheckRule.getDefaultUpdateNode(),
+                    updateKey
+            ));
+            updates.add(formatNode(
+                    getMessage("empty").toPlain(),
+                    getMessage("emptyUpdate"),
+                    null,
                     updateKey
             ));
             // TODO: 2018/11/24 History of update command
             if (origin != null) {
                 updates.add(formatNode(
                         getMessage("origin").toPlain(),
+                        getMessage("customUpdate"),
                         origin.getUpdateNode(),
                         updateKey
                 ));
