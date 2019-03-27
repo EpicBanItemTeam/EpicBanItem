@@ -55,12 +55,15 @@ public class ChunkListener {
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onInteractBlock(ChangeBlockEvent.Post event, @First Player player) {
         for (Transaction<BlockSnapshot> transaction : event.getTransactions()) {
+            boolean isValidBefore = transaction.isValid();
             BlockSnapshot snapshot = transaction.getFinal();
             UUID worldUniqueId = snapshot.getWorldUniqueId();
             World world = server.getWorld(worldUniqueId).orElse(player.getWorld());
             CheckResult result = service.check(snapshot, world, Triggers.PLACE, player);
             if (result.isBanned()) {
+                transaction.setValid(false);
                 result.getFinalView().ifPresent(view -> {
+                    transaction.setValid(isValidBefore);
                     BlockState oldState = snapshot.getState();
                     transaction.setCustom(NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId));
                 });
