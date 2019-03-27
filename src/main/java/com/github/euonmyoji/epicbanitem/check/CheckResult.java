@@ -1,5 +1,8 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -15,9 +18,9 @@ public class CheckResult {
     private final DataView view;
     private final boolean banned;
     private final boolean updated;
-    private final Stream<CheckRule> breakRules;
+    private final Iterable<CheckRule> breakRules;
 
-    private CheckResult(Stream<CheckRule> breakRules, boolean updated, boolean banned, DataView view) {
+    private CheckResult(Iterable<CheckRule> breakRules, boolean updated, boolean banned, DataView view) {
         this.breakRules = breakRules;
         this.updated = updated;
         this.banned = banned;
@@ -25,15 +28,15 @@ public class CheckResult {
     }
 
     public static CheckResult empty(DataContainer view) {
-        return new CheckResult(Stream.empty(), false, false, view);
+        return new CheckResult(ImmutableList.of(), false, false, view);
     }
 
     public static CheckResult concat(CheckResult parent, CheckRule rule) {
-        return new CheckResult(Stream.concat(parent.breakRules, Stream.of(rule)), parent.updated, true, parent.view);
+        return new CheckResult(Iterables.concat(parent.breakRules, ImmutableList.of(rule)), parent.updated, true, parent.view);
     }
 
     public static CheckResult concat(CheckResult parent, CheckRule rule, DataView newView) {
-        return new CheckResult(Stream.concat(parent.breakRules, Stream.of(rule)), true, true, newView);
+        return new CheckResult(Iterables.concat(parent.breakRules, ImmutableList.of(rule)), true, true, newView);
     }
 
     public boolean isBanned() {
@@ -41,7 +44,7 @@ public class CheckResult {
     }
 
     public Stream<CheckRule> getBreakRules() {
-        return this.breakRules;
+        return Streams.stream(this.breakRules);
     }
 
     public Optional<DataContainer> getFinalView() {
