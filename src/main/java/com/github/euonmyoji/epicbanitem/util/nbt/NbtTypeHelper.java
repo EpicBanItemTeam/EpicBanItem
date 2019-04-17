@@ -213,9 +213,11 @@ final class NbtTypeHelper {
             return value.toString() + "d";
         }
         if (value instanceof String) {
-            return "\"" + ((String) value).replace("\"", "\\\"")
-                    .replace("\u00a7", "\\u00a7")
-                    .replace("\\", "\\\\") + "\"";
+            return "\"" + value.toString()
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\u00a7", "\\u00a7") + "\"";
+
         }
         byte[] bytes = getAsByteArray(value);
         if (Objects.nonNull(bytes)) {
