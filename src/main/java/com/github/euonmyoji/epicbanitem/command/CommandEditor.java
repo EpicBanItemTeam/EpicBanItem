@@ -178,9 +178,9 @@ public class CommandEditor extends AbstractCommand {
          * CheckRule:{name}
          * Priority :{priority}
          * Triggers : White/Black list
-         *   {triggers}
+         * {triggers}
          * Worlds   : White/Black list
-         *   {worlds}
+         * {worlds}
          * QueryExpression : not editable
          * UpdateExpression: not editable
          * <p>
