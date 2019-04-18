@@ -4,6 +4,9 @@
 # Git Files
 !.gitignore
 
+# Markdown Lint
+!.markdownlint.json
+
 # Document Index
 !index.html
 !404.html
