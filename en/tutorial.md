@@ -78,8 +78,8 @@ ebi edit ban-wooden-axe
 Here is a possible output:
 > =============================================  
 > CheckRule:**ban-wooden-axe**  
-> Priority :5   
-> Triggers :**use  pickup  click  throw  drop  place  break  interact**    
+> Priority :5  
+> Triggers :**use  pickup  click  throw  drop  place  break  interact**  
 > Worlds&nbsp;&nbsp;&nbsp;:**DIM-1  DIM1  world**  
 > QueryExpression : **Currently Default Origin**  
 > UpdateExpression : **Currently Default Origin**  
@@ -87,9 +87,7 @@ Here is a possible output:
 
 All of bold texts have hover tooltip and can be clicked
 
-you may be suggested complete an command.
-For instance, We click `ban-wooden-axe` on the right of "CheckRule", editing its name. 
-After clicking, EpicBanItem should suggest you complete such an command:
+you may be suggested complete an command. For instance, We click `ban-wooden-axe` on the right of "CheckRule", editing its name. After clicking, EpicBanItem should suggest you complete such an command:
 
 ```mcfunction
 ebi cb xxxx ban-wooden-axe
@@ -101,13 +99,13 @@ Let's change the name, such as `ban-worldedit-tool`:
 ebi cb xxxx ban-worldedit-tool
 ```
 
-Then press the enter (please ensure that `zzzz_ustc` has the `epicbanitem.command.callback` permission). 
+Then press the enter (please ensure that `zzzz_ustc` has the `epicbanitem.command.callback` permission).  
 Here is a possible output:
 
 > =============================================  
 > CheckRule:**ban-worldedit-tool**  
-> Priority :5   
-> Triggers :**use  pickup  click  throw  drop  place  break  interact**    
+> Priority :5  
+> Triggers :**use  pickup  click  throw  drop  place  break  interact**  
 > Worlds&nbsp;&nbsp;&nbsp;:**DIM-1  DIM1  world**  
 > QueryExpression : **Currently Default Origin**  
 > UpdateExpression : **Currently Default Origin**  
@@ -117,5 +115,4 @@ Now **click "Save"**, waiting for message "Saved", which means succeed.
 
 ## Summary
 
-The goal of EpicBanItem is to reach the balance of easy and useful. 
-Above only introduced the basic usage of this plugin, for more detailed information of usage, please read the remain part of the docs.
+The goal of EpicBanItem is to reach the balance of easy and useful. Above only introduced the basic usage of this plugin, for more detailed information of usage, please read the remain part of the docs.
