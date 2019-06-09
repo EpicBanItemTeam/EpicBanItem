@@ -142,7 +142,6 @@ public class InventoryListener {
         }
     }
 
-    //todo:remove this when https://github.com/SpongePowered/SpongeCommon/issues/2184 is fixed
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onInteractBlock(InteractBlockEvent event, @First Player player) {
         Optional<ItemStackSnapshot> optionalItem = event.getContext().get(EventContextKeys.USED_ITEM);
