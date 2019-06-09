@@ -254,7 +254,15 @@ public class CommandEditor extends AbstractCommand {
                                         }
                                         // TODO: 2018/11/25 Warn on no id matches ?
 //                                        Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString()); id is unused ??
-                                        service.appendRule(rule).thenRun(() -> src.sendMessage(getMessage("saved")));
+                                        service.appendRule(rule).thenRun(() -> src.sendMessage(Text.of(
+                                                Text.NEW_LINE,
+                                                Text.NEW_LINE,
+                                                Text.NEW_LINE,
+                                                Text.NEW_LINE,
+                                                Text.NEW_LINE,
+                                                getMessage("saved"),
+                                                Text.NEW_LINE
+                                        )));
                                         editorMap.remove(owner);
                                         CommandCallback.clear(owner);
                                         return CommandResult.success();
