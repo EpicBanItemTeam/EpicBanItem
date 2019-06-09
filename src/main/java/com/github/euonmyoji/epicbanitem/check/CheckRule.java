@@ -27,6 +27,7 @@ import org.spongepowered.api.world.World;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 /**
@@ -320,7 +321,16 @@ public class CheckRule implements TextRepresentable {
             }
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
+            BiConsumer<String, Tristate> setTristate = (key, value) -> {
+                if(value == Tristate.UNDEFINED) {
+                    node.removeChild(key);
+                } else {
+                    node.getNode(key, value.asBoolean());
+                }
+            };
+            setTristate.accept("world-default-setting", rule.worldDefaultSetting);
             rule.worldSettings.forEach((k, v) -> node.getNode("enabled-worlds", k).setValue(v));
+            setTristate.accept("trigger-default-setting", rule.triggerDefaultSetting);
             rule.triggerSettings.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
             node.getNode("query").setValue(rule.queryNode);
             node.getNode("update").setValue(rule.updateNode);
