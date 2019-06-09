@@ -77,6 +77,7 @@ epicbanitem.command.remove.args.rule = The name of the rule to be removed
 epicbanitem.command.edit.description = Edit a rule
 epicbanitem.command.edit.extendedDescription = Edit a rule
 epicbanitem.command.edit.args.rule = The rule to edit
+epicbanitem.command.edit.playerOnly = Only players can use this command
 
 epicbanitem.command.editor.description = Chat Gui Rule Editor
 epicbanitem.command.editor.extendedDescription =  Chat Gui Rule Editor
