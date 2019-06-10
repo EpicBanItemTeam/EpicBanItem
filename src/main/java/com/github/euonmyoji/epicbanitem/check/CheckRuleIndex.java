@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.item.ItemType;
@@ -8,6 +9,8 @@ import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
+
+import java.util.regex.Pattern;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -19,7 +22,8 @@ public final class CheckRuleIndex implements Comparable<CheckRuleIndex> {
     private final String name;
 
     private CheckRuleIndex(String name) {
-        this.name = name.indexOf(':') < 0 ? "*" : name;
+        int colonIndex = name.indexOf(':');
+        this.name = colonIndex < 0 || !Sponge.getPluginManager().isLoaded(name.substring(colonIndex)) ? "*" : name;
     }
 
     private CheckRuleIndex(ItemType type) {
