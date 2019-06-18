@@ -10,39 +10,6 @@ jobs:
       - run: find . -name "*.md" ! -name "SUMMARY.md" | tee files
       - run: npm install --force --save-prod --verbose markdownlint-cli
       - run: xargs node node_modules/markdownlint-cli/markdownlint.js <files
-  build:
-    docker:
-      - image: circleci/openjdk:8-jdk
-    working_directory: ~/EpicBanItem
-    environment:
-      JVM_OPTS: -Xmx3200m
-    steps:
-      - checkout:
-          path: ~/EpicBanItem
-      - restore_cache:
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-      - run: ./gradlew dependencies
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-      - run: ./gradlew clean build -Psigning.password=$SIGNING_PASSWORD
-      - store_artifacts:
-          path: build/libs
-  deploy:
-    docker:
-      - image: circleci/openjdk:8-jdk
-    working_directory: ~/EpicBanItem
-    environment:
-      JVM_OPTS: -Xmx3200m
-    steps:
-      - checkout:
-          path: ~/EpicBanItem
-      - run: >
-          curl -F "recommended=true" -F "forumPost=true" -F "channel=PreRelease" -F "apiKey=$BUILD_DEPLOYMENT_KEY" \
-               -F "pluginSig=@$(find build/libs/ -regex "build/libs/EpicBanItem-${CIRCLE_TAG:1}-\w+.jar.asc")" \
-               -F "pluginFile=@$(find build/libs/ -regex "build/libs/EpicBanItem-${CIRCLE_TAG:1}-\w+.jar")" \
-               https://ore.spongepowered.org/api/v1/projects/EpicBanItem/versions/${CIRCLE_TAG:1} \
 workflows:
   version: 2
   build:
@@ -51,17 +18,3 @@ workflows:
           filters:
             branches:
               only: gh-pages
-      - build:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: master
-      - deploy:
-          requires:
-            - build
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
