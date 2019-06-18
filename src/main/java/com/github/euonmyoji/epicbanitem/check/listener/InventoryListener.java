@@ -31,6 +31,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -100,20 +101,12 @@ public class InventoryListener {
     @Listener(order = Order.FIRST, beforeModifications = true)
     @Exclude({ClickInventoryEvent.Drop.class})
     public void onClicked(ClickInventoryEvent event, @First Player player) {
-        Transaction<ItemStackSnapshot> tran = event.getCursorTransaction();
-        ItemStackSnapshot item = tran.getFinal();
         String trigger = Triggers.CLICK;
-        CheckResult result = service.check(item, player.getWorld(), trigger, player);
-        if (result.isBanned()) {
-            Optional<DataContainer> viewOptional = result.getFinalView();
-            if (viewOptional.isPresent()) {
-                tran.setCustom(getItem(viewOptional.get(), item.getQuantity()).createSnapshot());
-            } else {
-                event.setCancelled(true);
-                return; // Event cancelled, so there is no need to check slots.
-            }
+        Stream<SlotTransaction> slotTransactionStream = event.getTransactions().stream();
+        Stream<Transaction<ItemStackSnapshot>> cursorTransactionStream = Stream.of(event.getCursorTransaction());
+        if (this.checkInventory(player, trigger, Stream.concat(cursorTransactionStream, slotTransactionStream))) {
+            event.setCancelled(true);
         }
-        onInventoryChanged(event, player, trigger);
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
@@ -158,18 +151,20 @@ public class InventoryListener {
         }
     }
 
-    private void onInventoryChanged(ChangeInventoryEvent event, Player player, String trigger) {
-        for (SlotTransaction tran : event.getTransactions()) {
+    private boolean checkInventory(Player player, String trigger, Stream<? extends Transaction<ItemStackSnapshot>> trans) {
+        return trans.anyMatch(tran -> {
             ItemStackSnapshot item = tran.getFinal();
             CheckResult result = service.check(item, player.getWorld(), trigger, player);
             if (result.isBanned()) {
                 Optional<DataContainer> viewOptional = result.getFinalView();
                 if (viewOptional.isPresent()) {
-                    tran.setCustom(getItem(viewOptional.get(), item.getQuantity()));
+                    tran.setCustom(getItem(viewOptional.get(), item.getQuantity()).createSnapshot());
                 } else {
-                    event.setCancelled(true);
+                    return true;
                 }
             }
-        }
+            return false;
+        });
     }
+
 }
