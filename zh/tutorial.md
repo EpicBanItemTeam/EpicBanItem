@@ -8,8 +8,9 @@
 
 **为保证 EpicBanItem 正常工作，你的服务器需要以下两点条件之一**：
 
-* **使用不低于 `1.12.2-7.1.0-BETA-98` 的 SpongeVanilla 版本**。
-* **使用不低于 `1.12.2-2705-7.1.0-BETA-3361` 的 SpongeForge 版本**。
+* **使用不低于 `1.12.2-7.1.5` 的稳定推荐版本**。
+* **使用不低于 `1.12.2-7.1.6-RC154` 的 SpongeVanilla 版本**。
+* **使用不低于 `1.12.2-2768-7.1.6-RC3555` 的 SpongeForge 版本**。
 
 不过，即使 EpicBanItem 本身理应能在不低于这两个版本的任何版本上工作，我们也建议服务器安装 SpongeVanilla 或 SpongeForge 的最新版本。这是因为其他插件或 Sponge 本身的 BUG 也可能干扰 EpicBanItem 的正常工作。
 
