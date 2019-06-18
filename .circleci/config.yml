@@ -1,15 +1,5 @@
 version: 2
 jobs:
-  docs:
-    docker:
-      - image: circleci/node:8.9.4
-    working_directory: ~/EpicBanItemDocs
-    steps:
-      - checkout:
-          path: ~/EpicBanItemDocs
-      - run: find . -name "*.md" ! -name "SUMMARY.md" | tee files
-      - run: npm install --force --save-prod --verbose markdownlint-cli
-      - run: xargs node node_modules/markdownlint-cli/markdownlint.js <files
   build:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -51,10 +41,6 @@ workflows:
   version: 2
   build:
     jobs:
-      - docs:
-          filters:
-            branches:
-              only: gh-pages
       - build:
           filters:
             tags:
