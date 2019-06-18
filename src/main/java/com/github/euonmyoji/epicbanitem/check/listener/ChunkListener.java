@@ -70,18 +70,4 @@ public class ChunkListener {
             }
         }
     }
-
-    @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onInteractBlock(InteractBlockEvent event, @First Player player) {
-        BlockSnapshot snapshot = event.getTargetBlock();
-        UUID worldUniqueId = snapshot.getWorldUniqueId();
-        World world = server.getWorld(worldUniqueId).orElse(player.getWorld());
-        CheckResult result = service.check(snapshot, world, Triggers.INTERACT, player);
-        if (result.isBanned()) {
-            result.getFinalView().ifPresent(view -> {
-                BlockState oldState = snapshot.getState();
-                NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId).restore(true, BlockChangeFlags.NONE);
-            });
-        }
-    }
 }
