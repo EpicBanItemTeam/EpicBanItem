@@ -20,6 +20,7 @@ import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContextKeys;
+import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
@@ -27,6 +28,9 @@ import org.spongepowered.api.event.filter.type.Include;
 import org.spongepowered.api.event.item.inventory.*;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.Slot;
+import org.spongepowered.api.item.inventory.equipment.WornEquipmentType;
+import org.spongepowered.api.item.inventory.property.EquipmentSlotType;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Locatable;
@@ -134,6 +138,18 @@ public class InventoryListener {
         ItemStackSnapshot item = event.getItemStack();
         if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
             event.setCancelled(true);
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onEquip(ChangeEntityEquipmentEvent event, @First Player player) {
+        Slot slot = event.getTargetInventory();
+        Optional<EquipmentSlotType> equipmentSlotType = slot.getInventoryProperty(EquipmentSlotType.class);
+        if (equipmentSlotType.isPresent() && equipmentSlotType.get().getValue() instanceof WornEquipmentType) {
+            String trigger = Triggers.EQUIP;
+            if (this.checkInventory(player, trigger, Stream.of(event.getTransaction()))) {
+                event.setCancelled(true);
+            }
         }
     }
 

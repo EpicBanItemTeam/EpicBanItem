@@ -13,12 +13,14 @@ import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.google.inject.Inject;
 import org.bstats.sponge.Metrics;
 import org.slf4j.Logger;
+import org.spongepowered.api.Platform;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.*;
+import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 
 import java.io.IOException;
@@ -29,6 +31,7 @@ import java.util.Optional;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @Plugin(id = "epicbanitem", name = "EpicBanItem", version = "@version@",
+        dependencies = @Dependency(id = Platform.API_ID, version = "7.1.0"),
         authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"}, description = "A banitem with nbt plugin in sponge")
 public class EpicBanItem {
     private static EpicBanItem instance;
