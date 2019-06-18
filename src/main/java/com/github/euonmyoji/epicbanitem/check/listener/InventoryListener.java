@@ -9,6 +9,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
@@ -125,30 +126,36 @@ public class InventoryListener {
     @Listener(order = Order.FIRST, beforeModifications = true)
     @Include(HandInteractEvent.class)
     public void onItemUsed(InteractItemEvent event, @First Player player) {
-        ItemStack item = event.getItemStack().createStack();
-        CheckResult result = service.check(item, player.getWorld(), Triggers.USE, player);
-        if (result.isBanned()) {
+        String trigger = Triggers.USE;
+        ItemStackSnapshot item = event.getItemStack();
+        if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
             event.setCancelled(true);
-            result.getFinalView()
-                    .map(view -> getItem(view, item.getQuantity()))
-                    .ifPresent(finalItem -> player.setItemInHand(((HandInteractEvent) event).getHandType(), finalItem));
         }
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onInteractBlock(InteractBlockEvent event, @First Player player) {
         Optional<ItemStackSnapshot> optionalItem = event.getContext().get(EventContextKeys.USED_ITEM);
-        if (!optionalItem.isPresent()) {
-            return;
+        if (optionalItem.isPresent()) {
+            String trigger = Triggers.USE;
+            ItemStackSnapshot item = optionalItem.get();
+            if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
+                event.setCancelled(true);
+            }
         }
-        ItemStackSnapshot item = optionalItem.get();
-        CheckResult result = service.check(item, player.getWorld(), Triggers.USE, player);
+    }
+
+    private boolean checkUseItem(Player player, String trigger, HandType handType, ItemStackSnapshot item) {
+        CheckResult result = service.check(item, player.getWorld(), trigger, player);
         if (result.isBanned()) {
-            event.setCancelled(true);
-            result.getFinalView()
-                    .map(view -> getItem(view, item.getQuantity()))
-                    .ifPresent(finalItem -> player.setItemInHand(((HandInteractEvent) event).getHandType(), finalItem));
+            Optional<DataContainer> finalView = result.getFinalView();
+            if (finalView.isPresent()) {
+                ItemStack finalItem = getItem(finalView.get(), item.getQuantity());
+                player.setItemInHand(handType, finalItem);
+            }
+            return true;
         }
+        return false;
     }
 
     private boolean checkInventory(Player player, String trigger, Stream<? extends Transaction<ItemStackSnapshot>> trans) {
