@@ -7,7 +7,6 @@ import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
@@ -173,9 +172,8 @@ public class InventoryListener {
         CheckResult result = service.check(snapshot, player.getWorld(), trigger, player);
         if (result.isBanned()) {
             result.getFinalView().ifPresent(view -> {
-                BlockState oldState = snapshot.getState();
                 UUID worldUniqueId = snapshot.getWorldUniqueId();
-                NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId).restore(true, BlockChangeFlags.NONE);
+                NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId).restore(true, BlockChangeFlags.NONE);
             });
         }
     }

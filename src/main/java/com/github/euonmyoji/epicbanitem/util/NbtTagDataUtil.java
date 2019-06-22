@@ -1,28 +1,38 @@
 package com.github.euonmyoji.epicbanitem.util;
 
 import com.flowpowered.math.vector.Vector3i;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
-import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.util.Tuple;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.storage.WorldProperties;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -43,29 +53,36 @@ public class NbtTagDataUtil {
     private static final DataQuery BLOCK_STATE = DataQuery.of("BlockState");
     private static final DataQuery UNSAFE_DAMAGE = DataQuery.of("UnsafeDamage");
 
+    private static final Server SERVER = Sponge.getServer();
+    private static final AtomicBoolean LOGGED = new AtomicBoolean(false);
+
     public static void printToLogger(Consumer<String> logger, boolean verbose) {
-        logger.accept("Successfully generated item to block mapping (" + Map.ITEM_TO_BLOCK.size() + " entries).");
-        if (verbose) {
-            Map.ITEM_TO_BLOCK.forEach((k, v) -> {
-                Object id = k.getFirst().orElse(null);
-                Object damage = k.getSecond().orElse(null);
-                logger.accept(String.format("(%s, %s) -> %s", id, damage, v));
-            });
+        if (!LOGGED.getAndSet(true)) {
+            int countOfBlockStates = 0;
+            Optional<UUID> defaultWorldUUID = SERVER.getDefaultWorld().map(WorldProperties::getUniqueId);
+            Location<World> dummyLocation = new Location<>(defaultWorldUUID.flatMap(SERVER::getWorld).get(), 0, 0, 0);
+            for (BlockType type : Sponge.getRegistry().getAllOf(BlockType.class)) {
+                Collection<BlockState> states = type.getAllBlockStates();
+                countOfBlockStates += states.size();
+                for (BlockState state : states) {
+                    DataContainer itemData = Map.getPickBlockGetter().apply(dummyLocation, state).toContainer();
+                    if (verbose) {
+                        Object id = itemData.get(ITEM_TYPE).orElse(null);
+                        Object damage = itemData.get(UNSAFE_DAMAGE).orElse(null);
+                        logger.accept(String.format("(%s, %s) -> %s", id, damage, state));
+                    }
+                }
+            }
+            logger.accept("Successfully tested item to block mapping (" + countOfBlockStates + " entries).");
         }
     }
 
     public static DataContainer toNbt(BlockSnapshot snapshot) {
-        Vector3i position = snapshot.getPosition();
+        DataContainer itemData = snapshot.getLocation().map(Map::getItemByBlock).orElse(DataContainer.createNew());
+        DataContainer result = fromSpongeDataToNbt(itemData);
 
-        DataContainer result = fromSpongeDataToNbt(Map.getItemByBlock(snapshot.getState()).orElseGet(() -> ItemStack.empty().toContainer()));
-
-        snapshot.toContainer().getView(UNSAFE_DATA).ifPresent(nbt -> result.set(BLOCK_ENTITY_TAG, nbt));
-
-        result.set(BLOCK_ENTITY_TAG.then("x"), position.getX());
-        result.set(BLOCK_ENTITY_TAG.then("y"), position.getY());
-        result.set(BLOCK_ENTITY_TAG.then("z"), position.getZ());
-
-        return result;
+        DataView nbt = snapshot.toContainer().getView(UNSAFE_DATA).orElse(DataContainer.createNew());
+        return result.set(BLOCK_ENTITY_TAG, snapshot.getPosition()).set(BLOCK_ENTITY_TAG, nbt);
     }
 
     public static DataContainer toNbt(ItemStackSnapshot stackSnapshot) {
@@ -76,18 +93,17 @@ public class NbtTagDataUtil {
         return fromSpongeDataToNbt(stack.toContainer());
     }
 
-    public static BlockSnapshot toBlockSnapshot(DataView view, BlockState oldState, UUID worldUniqueId) throws InvalidDataException {
+    public static BlockSnapshot toBlockSnapshot(DataView view, UUID worldUniqueId) throws InvalidDataException {
+        Vector3i position = view.getObject(BLOCK_ENTITY_TAG, Vector3i.class).orElseThrow(() -> invalidData(view));
         DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
+        World world = SERVER.getWorld(worldUniqueId).orElseThrow(() -> invalidData(view));
 
-        Map.getBlockByItem(view, oldState).ifPresent(state -> result.set(BLOCK_STATE, state));
-
-        view.get(BLOCK_ENTITY_TAG.then("x")).ifPresent(x -> result.set(POSITION.then("X"), x));
-        view.get(BLOCK_ENTITY_TAG.then("y")).ifPresent(y -> result.set(POSITION.then("Y"), y));
-        view.get(BLOCK_ENTITY_TAG.then("z")).ifPresent(z -> result.set(POSITION.then("Z"), z));
-
-        view.get(BLOCK_ENTITY_TAG).ifPresent(nbt -> result.set(UNSAFE_DATA, nbt));
-
+        result.set(UNSAFE_DATA, view.get(BLOCK_ENTITY_TAG).orElse(DataContainer.createNew()));
+        result.set(BLOCK_STATE, Map.getBlockByItem(view, new Location<>(world, position)));
         result.set(WORLD_UUID, worldUniqueId.toString());
+        result.set(POSITION.then("X"), position.getX());
+        result.set(POSITION.then("Y"), position.getY());
+        result.set(POSITION.then("Z"), position.getZ());
 
         return BlockSnapshot.builder().build(result).orElseThrow(() -> invalidData(view));
     }
@@ -123,35 +139,111 @@ public class NbtTagDataUtil {
     }
 
     private static final class Map {
-        private static final SetMultimap<Tuple<Optional<?>, Optional<?>>, BlockState> ITEM_TO_BLOCK;
+        private static final BiFunction<Location<World>, BlockState, ItemStack> GETTER = getPickBlockGetter();
+        private static final LoadingCache<Location<World>, ImmutableMap<BlockState, ItemStack>> CACHE = getCache();
 
-        static {
-            SetMultimap<Tuple<Optional<?>, Optional<?>>, BlockState> map;
-            map = MultimapBuilder.linkedHashKeys().linkedHashSetValues().build();
-            Stream.concat(BlockTypes.AIR.getAllBlockStates().stream(), Sponge.getRegistry().getAllOf(BlockType.class).stream()
-                    .flatMap(type -> Stream.concat(Stream.of(type.getDefaultState()), type.getAllBlockStates().stream()))).forEach(state -> {
-                DataContainer nbt = getItemByBlock(state).orElseGet(() -> ItemStack.empty().toContainer());
-                map.put(Tuple.of(nbt.get(ITEM_TYPE), nbt.get(UNSAFE_DAMAGE)), state);
+        private static BlockState getBlockByItem(DataView view, Location<World> location) throws InvalidDataException {
+            long bestSimilarity = -1;
+            BlockState oldState = location.getBlock(), bestState = BlockSnapshot.NONE.getState();
+            ImmutableMap<BlockState, ItemStack> map = Objects.requireNonNull(CACHE.get(location));
+            for (java.util.Map.Entry<BlockState, ItemStack> entry : map.entrySet()) {
+                DataContainer d = entry.getValue().toContainer();
+                if (d.get(ITEM_TYPE).equals(view.get(ID)) && d.get(UNSAFE_DAMAGE).equals(view.get(DAMAGE))) {
+                    Predicate<BlockTrait<?>> p = t -> entry.getKey().getTraitValue(t).equals(oldState.getTraitValue(t));
+                    long newSimilarity = oldState.getTraitMap().keySet().stream().filter(p).count();
+                    if (newSimilarity > bestSimilarity) {
+                        bestSimilarity = newSimilarity;
+                        bestState = entry.getKey();
+                    }
+                }
+            }
+            if (bestSimilarity < 0) {
+                Optional<BlockType> typeOptional = view.getCatalogType(ID, ItemType.class).flatMap(ItemType::getBlock);
+                for (BlockState state : typeOptional.orElseThrow(() -> invalidData(view)).getAllBlockStates()) {
+                    DataContainer d = GETTER.apply(location, state).toContainer();
+                    if (d.get(ITEM_TYPE).equals(view.get(ID)) && d.get(UNSAFE_DAMAGE).equals(view.get(DAMAGE))) {
+                        Predicate<BlockTrait<?>> p = t -> state.getTraitValue(t).equals(oldState.getTraitValue(t));
+                        long similarity = oldState.getTraitMap().keySet().stream().filter(p).count();
+                        if (similarity > bestSimilarity) {
+                            bestSimilarity = similarity;
+                            bestState = state;
+                        }
+                    }
+                }
+            }
+            return bestState;
+        }
+
+        private static DataContainer getItemByBlock(Location<World> location) {
+            ImmutableMap<BlockState, ItemStack> map = Objects.requireNonNull(CACHE.get(location));
+            return map.getOrDefault(location.getBlock(), ItemStack.empty()).toContainer();
+        }
+
+        private static LoadingCache<Location<World>, ImmutableMap<BlockState, ItemStack>> getCache() {
+            return Caffeine.newBuilder().weakKeys().expireAfterWrite(30, TimeUnit.MINUTES).build(location -> {
+                ImmutableMap.Builder<BlockState, ItemStack> builder = ImmutableMap.builder();
+                for (BlockState state : location.getBlockType().getAllBlockStates()) {
+                    builder.put(state, GETTER.apply(location, state));
+                }
+                return builder.build();
             });
-            ITEM_TO_BLOCK = Multimaps.unmodifiableSetMultimap(map);
         }
 
-        private static Optional<BlockState> getBlockByItem(DataView view, BlockState oldState) {
-            Set<BlockState> blockStates = ITEM_TO_BLOCK.get(Tuple.of(view.get(ID), view.get(DAMAGE)));
-            if (blockStates.isEmpty()) {
-                return Optional.empty();
-            } else {
-                return Optional.of(blockStates.contains(oldState) ? oldState : blockStates.iterator().next());
-            }
-        }
-
-        private static Optional<DataContainer> getItemByBlock(BlockState state) {
+        private static BiFunction<Location<World>, BlockState, ItemStack> getPickBlockGetter() {
             try {
-                Preconditions.checkArgument(state.getType().getItem().isPresent());
-                return Optional.of(ItemStack.builder().fromBlockState(state).build().toContainer());
-            } catch (Exception e) {
-                return Optional.empty();
+                return getPickBlockGetterUnsafe();
+            } catch (ReflectiveOperationException e) {
+                return getPickBlockGetterFallback();
             }
+        }
+
+        private static BiFunction<Location<World>, BlockState, ItemStack> getPickBlockGetterUnsafe() throws ReflectiveOperationException {
+            // TODO: Add compatibility of Forge servers by using net.minecraft.block.Block#getPickBlock instead
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+            Class<?> itemStackUtil = Class.forName("org.spongepowered.common.item.inventory.util.ItemStackUtil");
+            Class<?> blockUtil = Class.forName("org.spongepowered.common.block.BlockUtil");
+            Class<?> iBlockState = Class.forName("net.minecraft.block.state.IBlockState");
+            Class<?> blockPos = Class.forName("net.minecraft.util.math.BlockPos");
+            Class<?> itemStack = Class.forName("net.minecraft.item.ItemStack");
+            Class<?> world = Class.forName("net.minecraft.world.World");
+            Class<?> block = Class.forName("net.minecraft.block.Block");
+
+            String getItemName = "func_185473_a";
+            String fromNativeName = "fromNative";
+            String toNativeName = "toNative";
+
+            MethodHandle newBlockPos = lookup.findConstructor(blockPos, MethodType.methodType(void.class, int.class, int.class, int.class));
+            MethodHandle getItem5 = lookup.findVirtual(block, getItemName, MethodType.methodType(itemStack, world, blockPos, iBlockState));
+            MethodHandle fromNative = lookup.findStatic(itemStackUtil, fromNativeName, MethodType.methodType(ItemStack.class, itemStack));
+            MethodHandle toNative = lookup.findStatic(blockUtil, toNativeName, MethodType.methodType(iBlockState, BlockState.class));
+
+            MethodHandle getItem4 = getItem5.asType(MethodType.methodType(itemStack, BlockType.class, World.class, blockPos, iBlockState));
+            MethodHandle getItem3 = MethodHandles.collectArguments(getItem4, 2, newBlockPos);
+            MethodHandle getItem2 = MethodHandles.collectArguments(getItem3, 5, toNative);
+            MethodHandle getItem = MethodHandles.filterReturnValue(getItem2, fromNative);
+
+            return (location, state) -> {
+                try {
+                    World extent = location.getExtent();
+                    int x = location.getBlockX(), y = location.getBlockY(), z = location.getBlockZ();
+                    return (ItemStack) getItem.invokeExact(state.getType(), extent, x, y, z, state);
+                } catch (Throwable ignored) {
+                    return getPickBlockGetterFallback().apply(location, state);
+                }
+            };
+        }
+
+        private static BiFunction<Location<World>, BlockState, ItemStack> getPickBlockGetterFallback() {
+            return (location, state) -> {
+                try {
+                    BlockType type = state.getType();
+                    type.getItem().orElseThrow(InvalidDataException::new);
+                    return ItemStack.builder().fromBlockState(state).build();
+                } catch (Exception ignored) {
+                    return ItemStack.empty();
+                }
+            };
         }
     }
 }

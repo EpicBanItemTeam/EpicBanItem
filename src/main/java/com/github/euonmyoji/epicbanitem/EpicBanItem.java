@@ -10,6 +10,7 @@ import com.github.euonmyoji.epicbanitem.configuration.AutoFileLoader;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.message.Messages;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.inject.Inject;
 import org.bstats.sponge.Metrics;
 import org.slf4j.Logger;
@@ -105,6 +106,8 @@ public class EpicBanItem {
         eventManager.registerListeners(this, new ChunkListener());
         eventManager.registerListeners(this, new InventoryListener());
         eventManager.registerListeners(this, new WorldItemMoveListener());
+        NbtTagDataUtil.printToLogger(logger::debug, settings.printItemToBlockMapping());
+        logger.debug("Change the value of 'print-item-to-block-mapping' to enable or disable detailed output.");
     }
 
     @Listener

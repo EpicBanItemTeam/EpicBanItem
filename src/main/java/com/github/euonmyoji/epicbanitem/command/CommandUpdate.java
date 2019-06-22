@@ -66,7 +66,7 @@ public class CommandUpdate extends AbstractCommand {
                 queryResult = query.query(DataQuery.of(), nbt).orElse(QueryResult.success().orElseThrow(NoSuchFieldError::new));
                 updateResult = update.update(queryResult, nbt);
                 updateResult.apply(nbt);
-                b = NbtTagDataUtil.toBlockSnapshot(nbt, b.getState(), b.getWorldUniqueId());
+                b = NbtTagDataUtil.toBlockSnapshot(nbt, b.getWorldUniqueId());
                 b.restore(true, BlockChangeFlags.NONE);
                 // TODO: should it really be none?
 

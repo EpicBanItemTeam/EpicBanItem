@@ -40,8 +40,6 @@ public class Settings {
     private boolean listenLoadingChunk = false;
     private boolean printItemToBlockMapping = true;
 
-    private boolean isMappingNotPrintedBefore = true;
-
     private Map<String, Boolean> enabledWorlds = Maps.newLinkedHashMap();
     private Map<String, Boolean> enabledTriggers = Maps.newLinkedHashMap();
 
@@ -92,13 +90,6 @@ public class Settings {
 
         ConfigurationNode defaultTriggers = cfg.getNode("epicbanitem", DEFAULT_TRIGGER);
         defaultTriggers.getChildrenMap().forEach((k, v) -> this.enabledTriggers.put(k.toString(), v.getBoolean()));
-
-        if (this.isMappingNotPrintedBefore) {
-            this.isMappingNotPrintedBefore = false;
-            Logger logger = EpicBanItem.getLogger();
-            NbtTagDataUtil.printToLogger(logger::debug, this.printItemToBlockMapping);
-            logger.debug("Change the value of 'print-item-to-block-mapping' to enable of disable detailed output.");
-        }
     }
 
     private void save(ConfigurationNode cfg) {
@@ -110,6 +101,10 @@ public class Settings {
         this.enabledWorlds.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
 
         this.enabledTriggers.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_TRIGGER, k).setValue(v));
+    }
+
+    public boolean printItemToBlockMapping() {
+        return this.printItemToBlockMapping;
     }
 
     @SuppressWarnings("unused because the code is not done")

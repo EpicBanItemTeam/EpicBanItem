@@ -13,7 +13,6 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
-import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
@@ -41,9 +40,8 @@ public class ChunkListener {
             if (result.isBanned()) {
                 event.setCancelled(true);
                 result.getFinalView().ifPresent(view -> {
-                    BlockState oldState = snapshot.getState();
                     UUID worldUniqueId = snapshot.getWorldUniqueId();
-                    scheduledChanges.add(NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId));
+                    scheduledChanges.add(NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId));
                 });
             }
         }
@@ -64,8 +62,7 @@ public class ChunkListener {
                 transaction.setValid(false);
                 result.getFinalView().ifPresent(view -> {
                     transaction.setValid(isValidBefore);
-                    BlockState oldState = snapshot.getState();
-                    transaction.setCustom(NbtTagDataUtil.toBlockSnapshot(view, oldState, worldUniqueId));
+                    transaction.setCustom(NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId));
                 });
             }
         }
