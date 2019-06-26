@@ -3,6 +3,7 @@ package com.github.euonmyoji.epicbanitem.util;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.google.common.collect.ImmutableMap;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -193,6 +194,8 @@ public class NbtTagDataUtil {
             try {
                 return getPickBlockGetterUnsafe();
             } catch (ReflectiveOperationException e) {
+                String msg = "Cannot find internal methods and fallback method for mapping blocks will be used";
+                EpicBanItem.getLogger().warn(msg, e);
                 return getPickBlockGetterFallback();
             }
         }
