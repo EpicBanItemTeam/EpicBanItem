@@ -25,9 +25,7 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.filter.type.Include;
 import org.spongepowered.api.event.item.inventory.*;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.Slot;
+import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.equipment.WornEquipmentType;
 import org.spongepowered.api.item.inventory.property.EquipmentSlotType;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
@@ -36,6 +34,7 @@ import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.storage.WorldProperties;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -85,23 +84,39 @@ public class InventoryListener {
     public void onCrafting(AffectItemStackEvent event) {
         if (EpicBanItem.getSettings().isCraftingEventClass(event)) {
             Cause cause = event.getCause();
+            List<World> worlds = new ArrayList<>();
             Optional<Player> playerOptional = cause.first(Player.class);
-            World world = cause.first(Locatable.class).map(Locatable::getWorld).orElseGet(() -> {
-                RuntimeException e = new RuntimeException("EpicBanItem cannot even find a world when crafting");
-                WorldProperties defProps = Sponge.getServer().getDefaultWorld().orElseThrow(RuntimeException::new);
-                World def = Sponge.getServer().getWorld(defProps.getUniqueId()).orElseThrow(RuntimeException::new);
-                EpicBanItem.getLogger().warn("EpicBanItem cannot even find a world! What is the server doing?");
-                EpicBanItem.getLogger().debug(e.getMessage(), e);
-                return def;
-            });
+            playerOptional.ifPresent(player -> worlds.add(player.getWorld()));
+            if (worlds.isEmpty()) {
+                if (event instanceof TargetInventoryEvent) {
+                    Inventory inventory = ((TargetInventoryEvent) event).getTargetInventory();
+                    if (inventory instanceof Container) {
+                        ((Container) inventory).getViewers().forEach(player -> worlds.add(player.getWorld()));
+                    }
+                }
+            }
+            if (worlds.isEmpty()) {
+                worlds.add(cause.first(Locatable.class).map(Locatable::getWorld).orElseGet(() -> {
+                    RuntimeException e = new RuntimeException("EpicBanItem cannot even find a world when crafting");
+                    WorldProperties defProps = Sponge.getServer().getDefaultWorld().orElseThrow(RuntimeException::new);
+                    World def = Sponge.getServer().getWorld(defProps.getUniqueId()).orElseThrow(RuntimeException::new);
+                    EpicBanItem.getLogger().warn("EpicBanItem cannot even find a world! What is the server doing?");
+                    EpicBanItem.getLogger().debug("No world found in " + cause.toString(), e);
+                    return def;
+                }));
+            }
             for (Transaction<ItemStackSnapshot> transaction : event.getTransactions()) {
                 ItemStackSnapshot item = transaction.getFinal();
-                CheckResult result = service.check(item, world, Triggers.CRAFT, playerOptional.orElse(null));
-                if (result.isBanned()) {
-                    result.getFinalView()
-                            .map(view -> getItem(view, item.getQuantity()))
-                            .ifPresent(finalItem -> transaction.setCustom(finalItem.createSnapshot()));
+                for (World world : worlds) {
+                    CheckResult result = service.check(item, world, Triggers.CRAFT, playerOptional.orElse(null));
+                    if (result.isBanned()) {
+                        Optional<DataContainer> viewOptional = result.getFinalView();
+                        if (viewOptional.isPresent()) {
+                            item = getItem(viewOptional.get(), item.getQuantity()).createSnapshot();
+                        }
+                    }
                 }
+                transaction.setCustom(item);
             }
         }
     }
