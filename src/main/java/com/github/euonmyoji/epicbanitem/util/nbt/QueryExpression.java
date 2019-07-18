@@ -5,10 +5,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.Tuple;
 
 import javax.script.*;
@@ -18,6 +20,7 @@ import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -171,6 +174,42 @@ public class QueryExpression implements DataPredicate {
         return QueryResult.successObject(map);
     }
 
+    @Override
+    public Tristate filterString(DataQuery query, String value) {
+        Stream<Tristate> tristates = this.criteria.stream().map(c -> c.filterString(query, value));
+        return tristates.reduce(Tristate.TRUE, QueryExpression::filterAnd);
+    }
+
+    private static Tristate filterAnd(Tristate a, Tristate b) {
+        if (Tristate.TRUE.equals(a) && Tristate.TRUE.equals(b)) {
+            return Tristate.TRUE;
+        }
+        if (Tristate.FALSE.equals(a) || Tristate.FALSE.equals(b)) {
+            return Tristate.FALSE;
+        }
+        return Tristate.UNDEFINED;
+    }
+
+    private static Tristate filterOr(Tristate a, Tristate b) {
+        if (Tristate.TRUE.equals(a) || Tristate.TRUE.equals(b)) {
+            return Tristate.TRUE;
+        }
+        if (Tristate.FALSE.equals(a) && Tristate.FALSE.equals(b)) {
+            return Tristate.FALSE;
+        }
+        return Tristate.UNDEFINED;
+    }
+
+    private static Tristate filterNot(Tristate a) {
+        if (Tristate.TRUE.equals(a)) {
+            return Tristate.FALSE;
+        }
+        if (Tristate.FALSE.equals(a)) {
+            return Tristate.TRUE;
+        }
+        return Tristate.UNDEFINED;
+    }
+
     private static class WithPrefix implements DataPredicate {
         private final DataPredicate criterion;
         private final String prefix;
@@ -191,6 +230,16 @@ public class QueryExpression implements DataPredicate {
             Optional<QueryResult> resultOptional = this.criterion.query(query.then(this.prefix), view);
             return resultOptional.flatMap(result -> QueryResult.successObject(ImmutableMap.of(this.prefix, result)));
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            DataQuery tail = query.popFirst();
+            if (DataQuery.of(this.prefix).then(tail).equals(query)) {
+                return this.criterion.filterString(tail, value);
+            } else {
+                return Tristate.UNDEFINED; // it is matching another field
+            }
+        }
     }
 
     private static class OneOrMore implements DataPredicate {
@@ -207,6 +256,11 @@ public class QueryExpression implements DataPredicate {
             Optional<QueryResult> result = this.criterion.query(query, view);
             return result.isPresent() ? result : this.elemMatchCriterion.query(query, view);
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            return this.criterion.filterString(query, value); // arrays could not be strings at all
+        }
     }
 
     private static class Eq implements DataPredicate {
@@ -221,6 +275,15 @@ public class QueryExpression implements DataPredicate {
             Object value = NbtTypeHelper.getObject(query, view);
             return QueryResult.check(NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, this.node)));
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            if (query.getParts().isEmpty()) {
+                return Tristate.fromBoolean(Objects.equals(value, NbtTypeHelper.convert(value, this.node)));
+            } else {
+                return Tristate.FALSE; // the value is not an object so the matched value is always null
+            }
+        }
     }
 
     private static class Ne implements DataPredicate {
@@ -234,6 +297,15 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             Object value = NbtTypeHelper.getObject(query, view);
             return QueryResult.check(!NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, this.node)));
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            if (query.getParts().isEmpty()) {
+                return Tristate.fromBoolean(!Objects.equals(value, NbtTypeHelper.convert(value, this.node)));
+            } else {
+                return Tristate.TRUE; // the value is not an object so the matched value is always null
+            }
         }
     }
 
@@ -250,6 +322,16 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             OptionalInt optionalInt = NbtTypeHelper.compare(NbtTypeHelper.getObject(query, view), this.node);
             return QueryResult.check(optionalInt.isPresent() && this.predicate.test(optionalInt.getAsInt()));
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            if (query.getParts().isEmpty()) {
+                OptionalInt optionalInt = NbtTypeHelper.compare(value, this.node);
+                return Tristate.fromBoolean(Streams.stream(optionalInt).anyMatch(this.predicate));
+            } else {
+                return Tristate.FALSE; // the value is not an object so the matched value is always null
+            }
         }
     }
 
@@ -271,6 +353,16 @@ public class QueryExpression implements DataPredicate {
                 }
             }
             return QueryResult.failure();
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            if (query.getParts().isEmpty()) {
+                Stream<Tristate> tristates = this.criteria.stream().map(c -> c.filterString(query, value));
+                return QueryExpression.filterNot(tristates.reduce(Tristate.TRUE, QueryExpression::filterAnd));
+            } else {
+                return Tristate.TRUE; // the value is not an object so the matched value is always null
+            }
         }
     }
 
@@ -305,6 +397,12 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.success();
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            Stream<Tristate> tristates = this.criteria.stream().map(c -> c.filterString(query, value));
+            return tristates.reduce(Tristate.TRUE, QueryExpression::filterAnd);
+        }
     }
 
     private static class Or implements DataPredicate {
@@ -325,6 +423,12 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.failure();
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            Stream<Tristate> tristates = this.criteria.stream().map(c -> c.filterString(query, value));
+            return tristates.reduce(Tristate.FALSE, QueryExpression::filterOr);
+        }
     }
 
     private static class Nor implements DataPredicate {
@@ -344,6 +448,12 @@ public class QueryExpression implements DataPredicate {
                 }
             }
             return QueryResult.success();
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            Stream<Tristate> tristates = this.criteria.stream().map(c -> c.filterString(query, value));
+            return QueryExpression.filterNot(tristates.reduce(Tristate.FALSE, QueryExpression::filterOr));
         }
     }
 
@@ -381,6 +491,15 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             String string = NbtTypeHelper.getAsString(NbtTypeHelper.getObject(query, view));
             return QueryResult.check(Optional.ofNullable(string).filter(this.pattern.asPredicate()).isPresent());
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            if (query.getParts().isEmpty()) {
+                return Tristate.fromBoolean(this.pattern.matcher(value).find());
+            } else {
+                return Tristate.FALSE; // the value is not an object so the matched value is always null
+            }
         }
     }
 
@@ -424,6 +543,11 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.failure();
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            return Tristate.FALSE; // arrays could not be strings at all
+        }
     }
 
     private static class Size implements DataPredicate {
@@ -438,6 +562,11 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             int size = getListCount(NbtTypeHelper.getObject(query, view));
             return QueryResult.check(size >= 0 && size == this.size);
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            return Tristate.FALSE; // arrays could not be strings at all
         }
     }
 
@@ -468,6 +597,11 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.failure();
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            return Tristate.FALSE; // arrays could not be strings at all
+        }
     }
 
     private static class Exists implements DataPredicate {
@@ -488,6 +622,15 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             boolean exists = Objects.nonNull(NbtTypeHelper.getObject(query, view));
             return QueryResult.check(this.existentialState == exists);
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            if (query.getParts().isEmpty()) {
+                return Tristate.fromBoolean(this.existentialState); // the value exists
+            } else {
+                return Tristate.fromBoolean(!this.existentialState); // the value does not exist
+            }
         }
     }
 
@@ -575,6 +718,15 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.failure();
         }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            if (query.getParts().isEmpty()) {
+                return Tristate.fromBoolean(IntStream.of(this.types).anyMatch(i -> i == 8)); // 8 is string
+            } else {
+                return Tristate.FALSE; // the value is not an object so none of the types matches
+            }
+        }
     }
 
     private static class Where implements DataPredicate {
@@ -628,6 +780,11 @@ public class QueryExpression implements DataPredicate {
             } catch (ScriptException e) {
                 return QueryResult.failure();
             }
+        }
+
+        @Override
+        public Tristate filterString(DataQuery query, String value) {
+            return Tristate.UNDEFINED; // it can't do anything for you
         }
     }
 }

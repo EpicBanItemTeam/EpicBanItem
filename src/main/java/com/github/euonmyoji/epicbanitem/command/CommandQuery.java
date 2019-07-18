@@ -22,6 +22,7 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.LiteralText;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -73,13 +74,16 @@ public class CommandQuery extends AbstractCommand {
             }
             QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(rule));
 
+            DataQuery idQuery = DataQuery.of("id");
             Optional<QueryResult> result = query.query(DataQuery.of(), nbt);
+            Optional<Tristate> tristate = nbt.getString(idQuery).map(s -> query.filterString(idQuery, s));
             if (result.isPresent()) {
-                LiteralText text = Text.of(result.get().toString());
+                LiteralText text = Text.of("id -> " + tristate + "\n" + result.get().toString());
                 Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
                 src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, result.get())));
             } else {
-                src.sendMessage(getMessage("failed"));
+                LiteralText text = Text.of("id -> " + tristate);
+                src.sendMessage(getMessage("failed").toBuilder().onHover(TextActions.showText(text)).build());
             }
 
             if (unusedHistory[0]) {
