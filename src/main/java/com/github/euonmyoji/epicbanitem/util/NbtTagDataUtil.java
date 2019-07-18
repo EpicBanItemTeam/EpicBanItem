@@ -61,12 +61,13 @@ public class NbtTagDataUtil {
         if (!LOGGED.getAndSet(true)) {
             int countOfBlockStates = 0;
             Optional<UUID> defaultWorldUUID = SERVER.getDefaultWorld().map(WorldProperties::getUniqueId);
+            BiFunction<Location<World>, BlockState, ItemStack> pickBlockGetter = Map.getPickBlockGetter();
             Location<World> dummyLocation = new Location<>(defaultWorldUUID.flatMap(SERVER::getWorld).get(), 0, 0, 0);
             for (BlockType type : Sponge.getRegistry().getAllOf(BlockType.class)) {
                 Collection<BlockState> states = type.getAllBlockStates();
                 countOfBlockStates += states.size();
                 for (BlockState state : states) {
-                    DataContainer itemData = Map.getPickBlockGetter().apply(dummyLocation, state).toContainer();
+                    DataContainer itemData = pickBlockGetter.apply(dummyLocation, state).toContainer();
                     if (verbose) {
                         Object id = itemData.get(ITEM_TYPE).orElse(null);
                         Object damage = itemData.get(UNSAFE_DAMAGE).orElse(null);
