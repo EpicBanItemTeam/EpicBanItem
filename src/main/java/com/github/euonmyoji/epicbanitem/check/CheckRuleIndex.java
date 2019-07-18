@@ -23,7 +23,7 @@ public final class CheckRuleIndex implements Comparable<CheckRuleIndex> {
 
     private CheckRuleIndex(String name) {
         int colonIndex = name.indexOf(':');
-        this.name = colonIndex < 0 || !Sponge.getPluginManager().isLoaded(name.substring(colonIndex)) ? "*" : name;
+        this.name = colonIndex < 0 || !Sponge.getPluginManager().isLoaded(name.substring(0, colonIndex)) ? "*" : name;
     }
 
     private CheckRuleIndex(ItemType type) {
