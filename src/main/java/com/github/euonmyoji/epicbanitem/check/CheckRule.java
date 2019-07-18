@@ -15,6 +15,7 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
@@ -28,6 +29,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -208,6 +210,10 @@ public class CheckRule implements TextRepresentable {
             EpicBanItem.getLogger().error("Failed to deserialize ConfigNode to String", e);
             return EpicBanItem.getMessages().getMessage("epicbanitem.error.failDeserialize");
         }
+    }
+
+    public Predicate<String> idIndexFilter() {
+        return id -> !Tristate.FALSE.equals(query.filterString(DataQuery.of("id"), id));
     }
 
     /**

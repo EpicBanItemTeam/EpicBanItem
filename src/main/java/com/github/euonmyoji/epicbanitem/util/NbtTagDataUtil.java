@@ -78,6 +78,10 @@ public class NbtTagDataUtil {
         }
     }
 
+    public static String getId(DataView view) throws InvalidDataException {
+        return view.getString(ID).orElseThrow(InvalidDataException::new);
+    }
+
     public static DataContainer toNbt(BlockSnapshot snapshot) {
         DataContainer itemData = snapshot.getLocation().map(Map::getItemByBlock).orElse(DataContainer.createNew());
         DataContainer result = fromSpongeDataToNbt(itemData);

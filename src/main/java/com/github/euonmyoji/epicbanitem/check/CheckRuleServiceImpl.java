@@ -2,9 +2,8 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Streams;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -80,26 +79,27 @@ public class CheckRuleServiceImpl implements CheckRuleService {
 
     @Override
     public CheckResult check(ItemStack item, World world, String trigger, @Nullable Subject subject) {
-        CheckResult result = CheckResult.empty(NbtTagDataUtil.toNbt(item));
-        return item.isEmpty() ? result : check(result, item.getType(), world, trigger, subject);
+        DataContainer nbt = NbtTagDataUtil.toNbt(item);
+        CheckResult checkResult = CheckResult.empty(nbt);
+        return item.isEmpty() ? checkResult : check(checkResult, NbtTagDataUtil.getId(nbt), world, trigger, subject);
     }
 
     @Override
     public CheckResult check(ItemStackSnapshot item, World world, String trigger, @Nullable Subject subject) {
-        CheckResult result = CheckResult.empty(NbtTagDataUtil.toNbt(item));
-        return item.isEmpty() ? result : check(result, item.getType(), world, trigger, subject);
+        DataContainer nbt = NbtTagDataUtil.toNbt(item);
+        CheckResult checkResult = CheckResult.empty(nbt);
+        return item.isEmpty() ? checkResult : check(checkResult, NbtTagDataUtil.getId(nbt), world, trigger, subject);
     }
 
     @Override
-    public CheckResult check(BlockSnapshot snapshot, World world, String trigger, @Nullable Subject subject) {
-        CheckResult result = CheckResult.empty(NbtTagDataUtil.toNbt(snapshot));
-        return check(result, snapshot.getState().getType().getItem().orElse(ItemTypes.AIR), world, trigger, subject);
+    public CheckResult check(BlockSnapshot block, World world, String trigger, @Nullable Subject subject) {
+        DataContainer nbt = NbtTagDataUtil.toNbt(block);
+        CheckResult checkResult = CheckResult.empty(nbt);
+        return check(checkResult, NbtTagDataUtil.getId(nbt), world, trigger, subject);
     }
 
-    private CheckResult check(CheckResult origin, ItemType itemType, World world, String trigger, @Nullable Subject subject) {
-        CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(itemType);
-        List<List<CheckRule>> ruleLists = Arrays.asList(getCheckRulesByIndex(i), getCheckRulesByIndex(j));
-        return Streams.stream(Iterables.mergeSorted(ruleLists, EpicBanItem.getBanConfig().getComparator()))
+    private CheckResult check(CheckResult origin, String id, World world, String trigger, @Nullable Subject subject) {
+        return EpicBanItem.getBanConfig().getRulesWithIdFiltered(id).stream()
                 .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
                 .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result))).apply(origin);
     }

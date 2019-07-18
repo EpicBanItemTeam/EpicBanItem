@@ -1,8 +1,11 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -18,6 +21,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -33,6 +37,7 @@ public class BanConfig {
     private final AutoFileLoader fileLoader;
     private ImmutableSortedMap<String, CheckRule> checkRulesByName;
     private ImmutableListMultimap<CheckRuleIndex, CheckRule> checkRulesByIndex;
+    private final LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
 
     public BanConfig(AutoFileLoader fileLoader, Path path) {
         this.path = path;
@@ -40,6 +45,13 @@ public class BanConfig {
 
         this.checkRulesByIndex = ImmutableListMultimap.of();
         this.checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
+
+        this.cacheFromIdToCheckRules = Caffeine.newBuilder().build(k -> {
+            CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(k);
+            Iterable<? extends List<CheckRule>> rules = Arrays.asList(getRules(i), getRules(j));
+            Stream<CheckRule> stream = Streams.stream(Iterables.mergeSorted(rules, getComparator()));
+            return stream.filter(r -> r.idIndexFilter().test(k)).collect(ImmutableList.toImmutableList());
+        });
 
         TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
 
@@ -101,6 +113,10 @@ public class BanConfig {
         return Objects.requireNonNull(checkRulesByIndex).keySet();
     }
 
+    public List<CheckRule> getRulesWithIdFiltered(String id) {
+        return MoreObjects.firstNonNull(cacheFromIdToCheckRules.get(id), ImmutableList.of());
+    }
+
     public List<CheckRule> getRules(CheckRuleIndex index) {
         return Objects.requireNonNull(checkRulesByIndex).get(index);
     }
@@ -133,6 +149,7 @@ public class BanConfig {
 
             this.checkRulesByIndex = ImmutableListMultimap.copyOf(rules);
             this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
+            this.cacheFromIdToCheckRules.invalidateAll();
 
             forceSave();
             return CompletableFuture.completedFuture(Boolean.TRUE);
@@ -156,6 +173,7 @@ public class BanConfig {
                 });
                 this.checkRulesByIndex = builder.build();
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
+                this.cacheFromIdToCheckRules.invalidateAll();
 
                 forceSave();
                 return CompletableFuture.completedFuture(Boolean.TRUE);
@@ -206,6 +224,7 @@ public class BanConfig {
             }
             this.checkRulesByIndex = ImmutableListMultimap.copyOf(rulesByItem);
             this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
+            this.cacheFromIdToCheckRules.invalidateAll();
             if (needSave) {
                 forceSave();
             }
