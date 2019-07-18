@@ -2,7 +2,9 @@ package com.github.euonmyoji.epicbanitem.util.nbt;
 
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import org.spongepowered.api.data.DataQuery;
@@ -16,7 +18,6 @@ import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -170,11 +171,6 @@ public class QueryExpression implements DataPredicate {
         return QueryResult.successObject(map);
     }
 
-    @Override
-    public boolean filterString(DataQuery query, String value) {
-        return this.criteria.stream().allMatch(criterion -> criterion.filterString(query, value));
-    }
-
     private static class WithPrefix implements DataPredicate {
         private final DataPredicate criterion;
         private final String prefix;
@@ -195,12 +191,6 @@ public class QueryExpression implements DataPredicate {
             Optional<QueryResult> resultOptional = this.criterion.query(query.then(this.prefix), view);
             return resultOptional.flatMap(result -> QueryResult.successObject(ImmutableMap.of(this.prefix, result)));
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            DataQuery tail = query.popFirst();
-            return DataQuery.of(this.prefix).then(tail).equals(query) && this.criterion.filterString(tail, value);
-        }
     }
 
     private static class OneOrMore implements DataPredicate {
@@ -217,11 +207,6 @@ public class QueryExpression implements DataPredicate {
             Optional<QueryResult> result = this.criterion.query(query, view);
             return result.isPresent() ? result : this.elemMatchCriterion.query(query, view);
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return this.criterion.filterString(query, value) || this.elemMatchCriterion.filterString(query, value);
-        }
     }
 
     private static class Eq implements DataPredicate {
@@ -236,11 +221,6 @@ public class QueryExpression implements DataPredicate {
             Object value = NbtTypeHelper.getObject(query, view);
             return QueryResult.check(NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, this.node)));
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return !query.getParts().isEmpty() || Objects.equals(value, NbtTypeHelper.convert(value, this.node));
-        }
     }
 
     private static class Ne implements DataPredicate {
@@ -254,11 +234,6 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             Object value = NbtTypeHelper.getObject(query, view);
             return QueryResult.check(!NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, this.node)));
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return !query.getParts().isEmpty() || !Objects.equals(value, NbtTypeHelper.convert(value, this.node));
         }
     }
 
@@ -275,11 +250,6 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             OptionalInt optionalInt = NbtTypeHelper.compare(NbtTypeHelper.getObject(query, view), this.node);
             return QueryResult.check(optionalInt.isPresent() && this.predicate.test(optionalInt.getAsInt()));
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return query.getParts().isEmpty() && Streams.stream(NbtTypeHelper.compare(value, this.node)).anyMatch(this.predicate);
         }
     }
 
@@ -301,11 +271,6 @@ public class QueryExpression implements DataPredicate {
                 }
             }
             return QueryResult.failure();
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return !query.getParts().isEmpty() || this.criteria.stream().anyMatch(criterion -> !criterion.filterString(query, value));
         }
     }
 
@@ -340,11 +305,6 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.success();
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return this.criteria.stream().allMatch(criterion -> criterion.filterString(query, value));
-        }
     }
 
     private static class Or implements DataPredicate {
@@ -365,11 +325,6 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.failure();
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return this.criteria.stream().anyMatch(criterion -> criterion.filterString(query, value));
-        }
     }
 
     private static class Nor implements DataPredicate {
@@ -389,11 +344,6 @@ public class QueryExpression implements DataPredicate {
                 }
             }
             return QueryResult.success();
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return this.criteria.stream().noneMatch(criterion -> criterion.filterString(query, value));
         }
     }
 
@@ -431,11 +381,6 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             String string = NbtTypeHelper.getAsString(NbtTypeHelper.getObject(query, view));
             return QueryResult.check(Optional.ofNullable(string).filter(this.pattern.asPredicate()).isPresent());
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return query.getParts().isEmpty() && this.pattern.matcher(value).matches();
         }
     }
 
@@ -479,11 +424,6 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.failure();
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return !query.getParts().isEmpty(); // arrays could not be strings at all
-        }
     }
 
     private static class Size implements DataPredicate {
@@ -498,11 +438,6 @@ public class QueryExpression implements DataPredicate {
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             int size = getListCount(NbtTypeHelper.getObject(query, view));
             return QueryResult.check(size >= 0 && size == this.size);
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return !query.getParts().isEmpty(); // arrays could not be strings at all
         }
     }
 
@@ -533,11 +468,6 @@ public class QueryExpression implements DataPredicate {
             }
             return QueryResult.failure();
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return !query.getParts().isEmpty(); // arrays could not be strings at all
-        }
     }
 
     private static class Exists implements DataPredicate {
@@ -559,17 +489,11 @@ public class QueryExpression implements DataPredicate {
             boolean exists = Objects.nonNull(NbtTypeHelper.getObject(query, view));
             return QueryResult.check(this.existentialState == exists);
         }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return this.existentialState;
-        }
     }
 
     private static class TagType implements DataPredicate {
         private static final List<Predicate<Object>> MATCHERS = getMatchers();
         private static final List<Tuple<String, Integer>> MATCHER_ALIASES = getMatcherAliases();
-        private static final Set<Integer> TYPES_SATISFYING_STRINGS = getTypesSatisfyingStrings();
 
         private final int[] types;
 
@@ -642,10 +566,6 @@ public class QueryExpression implements DataPredicate {
             return builder.build();
         }
 
-        private static Set<Integer> getTypesSatisfyingStrings() {
-            return ImmutableSet.of(1, 2, 3, 4, 5, 6, 8); // byte, short, int, long, float, double, string
-        }
-
         @Override
         public Optional<QueryResult> query(DataQuery query, DataView view) {
             for (int type : this.types) {
@@ -654,11 +574,6 @@ public class QueryExpression implements DataPredicate {
                 }
             }
             return QueryResult.failure();
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return !query.getParts().isEmpty() || IntStream.of(this.types).anyMatch(TYPES_SATISFYING_STRINGS::contains);
         }
     }
 
@@ -713,11 +628,6 @@ public class QueryExpression implements DataPredicate {
             } catch (ScriptException e) {
                 return QueryResult.failure();
             }
-        }
-
-        @Override
-        public boolean filterString(DataQuery query, String value) {
-            return true; // it can't do anything for you
         }
     }
 }

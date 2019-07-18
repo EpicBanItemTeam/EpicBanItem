@@ -18,8 +18,4 @@ public interface DataPredicate {
      * @return query result, if present
      */
     Optional<QueryResult> query(DataQuery query, DataView view);
-
-    default boolean filterString(DataQuery query, String value) {
-        return true;
-    }
 }
