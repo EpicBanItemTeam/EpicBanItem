@@ -44,19 +44,19 @@ public class CheckRule implements TextRepresentable {
     /**
      * 0-9 higher first
      */
-    private int priority;
-    private Tristate worldDefaultSetting;
-    private Map<String, Boolean> worldSettings;
-    private Tristate triggerDefaultSetting;
-    private Map<String, Boolean> triggerSettings;
+    private final int priority;
+    private final Tristate worldDefaultSetting;
+    private final Map<String, Boolean> worldSettings;
+    private final Tristate triggerDefaultSetting;
+    private final Map<String, Boolean> triggerSettings;
     private QueryExpression query;
-    private ConfigurationNode queryNode;
-    private @Nullable
-    UpdateExpression update;
-    private @Nullable
-    ConfigurationNode updateNode;
-    private @Nullable
-    ConfigurationNode configurationNode;
+    private final ConfigurationNode queryNode;
+    @Nullable
+    private final UpdateExpression update;
+    @Nullable
+    private final ConfigurationNode updateNode;
+    @Nullable
+    private ConfigurationNode configurationNode;
 
     public CheckRule(String ruleName) {
         this(ruleName, getDefaultQueryNode());
