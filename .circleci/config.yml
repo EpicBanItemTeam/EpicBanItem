@@ -30,13 +30,11 @@ jobs:
     environment:
       JVM_OPTS: -Xmx3200m
     steps:
+      - checkout:
+          path: ~/EpicBanItem
       - attach_workspace:
           at: ~/EpicBanItem
-      - run: >
-          curl -F "recommended=true" -F "forumPost=true" -F "channel=PreRelease" -F "apiKey=$BUILD_DEPLOYMENT_KEY" \
-               -F "pluginSig=@$(find build/libs/ -regex "build/libs/EpicBanItem-${CIRCLE_TAG:1}-\w+.jar.asc")" \
-               -F "pluginFile=@$(find build/libs/ -regex "build/libs/EpicBanItem-${CIRCLE_TAG:1}-\w+.jar")" \
-               https://ore.spongepowered.org/api/v1/projects/EpicBanItem/versions/${CIRCLE_TAG:1} \
+      - run: .circleci/deploy.sh
 workflows:
   version: 2
   build:
