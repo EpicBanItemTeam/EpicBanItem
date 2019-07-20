@@ -36,27 +36,52 @@ import java.util.regex.Pattern;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "NullableProblems"})
 public class CheckRule implements TextRepresentable {
 
     public static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
+    /**
+     * the name which should match {@link #NAME_PATTERN}
+     */
     private final String name;
     /**
-     * 0-9 higher first
+     * priority (0-9), higher first
      */
     private final int priority;
+    /**
+     * world default setting, {@link EpicBanItem#getSettings()} will be used if it is {@link Tristate#UNDEFINED}
+     */
     private final Tristate worldDefaultSetting;
-    private final Map<String, Boolean> worldSettings;
+    /**
+     * world settings, {@link #worldDefaultSetting} will be used if the corresponding value does not exist
+     */
+    private final ImmutableMap<String, Boolean> worldSettings;
+    /**
+     * trigger default setting, {@link EpicBanItem#getSettings()} will be used if it is {@link Tristate#UNDEFINED}
+     */
     private final Tristate triggerDefaultSetting;
-    private final Map<String, Boolean> triggerSettings;
-    private QueryExpression query;
+    /**
+     * trigger settings, {@link #triggerDefaultSetting} will be used if the corresponding value does not exist
+     */
+    private final ImmutableMap<String, Boolean> triggerSettings;
+    /**
+     * query expression
+     */
+    private final QueryExpression query;
+    /**
+     * serialized query expression
+     */
     private final ConfigurationNode queryNode;
+    /**
+     * update expression
+     */
     @Nullable
     private final UpdateExpression update;
+    /**
+     * serialized update expression
+     */
     @Nullable
     private final ConfigurationNode updateNode;
-    @Nullable
-    private ConfigurationNode configurationNode;
 
     public CheckRule(String ruleName) {
         this(ruleName, getDefaultQueryNode());
@@ -167,10 +192,6 @@ public class CheckRule implements TextRepresentable {
         return updateNode;
     }
 
-    public void setConfigurationNode(@Nullable ConfigurationNode configurationNode) {
-        this.configurationNode = configurationNode;
-    }
-
     private Text getWorldInfo() {
         return Text.of(worldDefaultSetting.toString().toLowerCase(), getEnableInfo(worldSettings));
     }
@@ -263,16 +284,6 @@ public class CheckRule implements TextRepresentable {
         return builder.build();
     }
 
-    public boolean tryFixId(String itemId) {
-        if (queryNode.getNode("id").isVirtual()) {
-            queryNode.getNode("id").setValue(itemId);
-            query = new QueryExpression(queryNode);
-            configurationNode = null;
-            return true;
-        }
-        return false;
-    }
-
     private boolean hasBypassPermission(Subject subject, String trigger) {
         return subject.hasPermission(getContext(subject, trigger), "epicbanitem.bypass." + name);
     }
@@ -318,17 +329,11 @@ public class CheckRule implements TextRepresentable {
 
         @Override
         public void serialize(TypeToken<?> type, @Nullable CheckRule rule, ConfigurationNode node) {
-            if (rule == null) {
-                return;
-            }
-            if (rule.configurationNode != null) {
-                node.setValue(rule.configurationNode);
-                return;
-            }
+            Objects.requireNonNull(rule);
             node.getNode("name").setValue(rule.name);
             node.getNode("priority").setValue(rule.priority);
             BiConsumer<String, Tristate> setTristate = (key, value) -> {
-                if(value == Tristate.UNDEFINED) {
+                if (value == Tristate.UNDEFINED) {
                     node.removeChild(key);
                 } else {
                     node.getNode(key, value.asBoolean());

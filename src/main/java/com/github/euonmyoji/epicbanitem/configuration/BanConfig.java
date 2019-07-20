@@ -193,43 +193,47 @@ public class BanConfig {
             EpicBanItem.getLogger().warn("Try loading using current version {}.", CURRENT_VERSION);
             return CURRENT_VERSION;
         });
-        try {
-            SortedMap<String, CheckRule> rulesByName = new TreeMap<>(RULE_NAME_COMPARATOR);
-            Multimap<CheckRuleIndex, CheckRule> rulesByItem = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
-            Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
-            boolean needSave = false;
-            for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
-                String item = entry.getKey().toString();
-                List<CheckRule> ruleList = new ArrayList<>();
-                for (ConfigurationNode node1 : entry.getValue().getChildrenList()) {
-                    ConfigurationNode originNode = node1.copy();
-                    //check name before TypeSerializer of CheckRule
-                    String name = node1.getNode("name").getString();
-                    if (name == null || !CheckRule.NAME_PATTERN.matcher(name).matches() || rulesByName.containsKey(name)) {
-                        String newName = findNewName(name, rulesByName::containsKey);
-                        node1.getNode("name").setValue(newName);
-                        EpicBanItem.getLogger().warn("Find duplicate or illegal name,temporarily renamed \"{}\" in {} to \"{}\"", name, item, newName);
+        SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
+        ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap.builder();
+        Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
+        boolean needSave = false;
+        for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
+            List<CheckRule> ruleList = new ArrayList<>();
+            CheckRuleIndex index = CheckRuleIndex.of(entry.getKey().toString());
+            for (ConfigurationNode checkRuleNode : entry.getValue().getChildrenList()) {
+                // fix id
+                if (!index.isWildcard()) {
+                    ConfigurationNode queryIndex = node.getNode("query", "id");
+                    if (queryIndex.isVirtual()) {
+                        queryIndex.setValue(index.toString());
+                        needSave = true;
                     }
-                    CheckRule rule = Objects.requireNonNull(node1.getValue(RULE_TOKEN));
-                    rule.setConfigurationNode(originNode);
-                    // fix id
-                    if (!"*".equals(item)) {
-                        needSave = rule.tryFixId(item) || needSave;
-                    }
-                    rulesByName.put(rule.getName(), rule);
-                    ruleList.add(rule);
                 }
-                ruleList.sort(COMPARATOR);
-                rulesByItem.putAll(CheckRuleIndex.of(item), ruleList);
+                // fix name
+                String name = checkRuleNode.getNode("name").getString("");
+                if (!CheckRule.NAME_PATTERN.matcher(name).matches() || byName.containsKey(name)) {
+                    String newName = findNewName(name, byName::containsKey);
+                    checkRuleNode.getNode("name").setValue(newName);
+                    String msg = "Find duplicate or illegal name, renamed \"{}\" in {} to \"{}\"";
+                    EpicBanItem.getLogger().warn(msg, name, index, newName);
+                }
+                // add to rules
+                try {
+                    CheckRule rule = Objects.requireNonNull(checkRuleNode.getValue(RULE_TOKEN));
+                    byName.put(rule.getName(), rule);
+                    ruleList.add(rule);
+                } catch (ObjectMappingException e) {
+                    throw new IOException(e);
+                }
             }
-            this.checkRulesByIndex = ImmutableListMultimap.copyOf(rulesByItem);
-            this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
-            this.cacheFromIdToCheckRules.invalidateAll();
-            if (needSave) {
-                forceSave();
-            }
-        } catch (ObjectMappingException e) {
-            throw new IOException(e);
+            ruleList.sort(COMPARATOR);
+            byItem.putAll(index, ruleList);
+        }
+        this.checkRulesByIndex = byItem.build();
+        this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
+        this.cacheFromIdToCheckRules.invalidateAll();
+        if (needSave) {
+            forceSave();
         }
     }
 
@@ -239,12 +243,14 @@ public class BanConfig {
 
     private void save(ConfigurationNode node) throws IOException {
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
-        try {
-            for (Map.Entry<CheckRuleIndex, CheckRule> entry : checkRulesByIndex.entries()) {
-                node.getNode("epicbanitem", entry.getKey().toString()).getAppendedNode().setValue(RULE_TOKEN, entry.getValue());
+        for (Map.Entry<CheckRuleIndex, CheckRule> entry : checkRulesByIndex.entries()) {
+            String key = entry.getKey().toString();
+            CheckRule value = entry.getValue();
+            try {
+                node.getNode("epicbanitem", key).getAppendedNode().setValue(RULE_TOKEN, value);
+            } catch (ObjectMappingException e) {
+                throw new IOException(e);
             }
-        } catch (ObjectMappingException e) {
-            throw new IOException(e);
         }
     }
 }
