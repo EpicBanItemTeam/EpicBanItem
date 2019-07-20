@@ -203,7 +203,7 @@ public class BanConfig {
             for (ConfigurationNode checkRuleNode : entry.getValue().getChildrenList()) {
                 // fix id
                 if (!index.isWildcard()) {
-                    ConfigurationNode queryIndex = node.getNode("query", "id");
+                    ConfigurationNode queryIndex = checkRuleNode.getNode("query", "id");
                     if (queryIndex.isVirtual()) {
                         queryIndex.setValue(index.toString());
                         needSave = true;
