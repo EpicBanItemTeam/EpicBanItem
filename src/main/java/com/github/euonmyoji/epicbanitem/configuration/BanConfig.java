@@ -210,12 +210,19 @@ public class BanConfig {
                     }
                 }
                 // fix name
-                String name = checkRuleNode.getNode("name").getString("");
+                ConfigurationNode nameNode = checkRuleNode.getNode("name");
+                ConfigurationNode legacyNameNode = checkRuleNode.getNode("legacy-name");
+                String name = nameNode.getValue(Types::asString, legacyNameNode.getString(""));
                 if (!CheckRule.NAME_PATTERN.matcher(name).matches() || byName.containsKey(name)) {
                     String newName = findNewName(name, byName::containsKey);
-                    checkRuleNode.getNode("name").setValue(newName);
+
+                    legacyNameNode.setValue(name);
+                    nameNode.setValue(newName);
+
                     String msg = "Find duplicate or illegal name, renamed \"{}\" in {} to \"{}\"";
                     EpicBanItem.getLogger().warn(msg, name, index, newName);
+
+                    needSave = true;
                 }
                 // add to rules
                 try {

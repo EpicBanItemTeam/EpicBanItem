@@ -45,6 +45,10 @@ public class CheckRule implements TextRepresentable {
      */
     private final String name;
     /**
+     * the legacy name
+     */
+    private final String legacyName;
+    /**
      * priority (0-9), higher first
      */
     private final int priority;
@@ -88,7 +92,7 @@ public class CheckRule implements TextRepresentable {
     }
 
     public CheckRule(String ruleName, CheckRule rule) {
-        this(ruleName, rule.queryNode, rule.updateNode, rule.priority, rule.worldDefaultSetting, rule.worldSettings, rule.triggerDefaultSetting, rule.triggerSettings);
+        this(ruleName, rule.queryNode, rule.updateNode, rule.legacyName, rule.priority, rule.worldDefaultSetting, rule.worldSettings, rule.triggerDefaultSetting, rule.triggerSettings);
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode) {
@@ -96,14 +100,15 @@ public class CheckRule implements TextRepresentable {
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode) {
-        this(ruleName, queryNode, updateNode, 5, Tristate.UNDEFINED, Collections.emptyMap(), Tristate.UNDEFINED, Collections.emptyMap());
+        this(ruleName, queryNode, updateNode, "", 5, Tristate.UNDEFINED, Collections.emptyMap(), Tristate.UNDEFINED, Collections.emptyMap());
     }
 
-    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, int priority, Tristate worldDefaultSetting, Map<String, Boolean> worldSettings, Tristate triggerDefaultSetting, Map<String, Boolean> triggerSettings) {
+    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, String legacyName, int priority, Tristate worldDefaultSetting, Map<String, Boolean> worldSettings, Tristate triggerDefaultSetting, Map<String, Boolean> triggerSettings) {
         this.worldDefaultSetting = worldDefaultSetting;
         this.triggerDefaultSetting = triggerDefaultSetting;
         Preconditions.checkArgument(checkName(ruleName), "Rule name should match \"[a-z0-9-_]+\"");
         this.name = Objects.requireNonNull(ruleName);
+        this.legacyName = legacyName;
         this.queryNode = queryNode.copy();
         this.query = new QueryExpression(queryNode);
         this.updateNode = Objects.isNull(updateNode) ? null : updateNode.copy();
@@ -298,6 +303,7 @@ public class CheckRule implements TextRepresentable {
         @Override
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
             String name = Objects.requireNonNull(node.getNode("name").getString());
+            String legacyName = node.getNode("legacy-name").getString("");
             int priority = node.getNode("priority").getInt(5);
             Map<String, Boolean> enableWorld = new HashMap<>();
             Tristate worldDefaultSetting = Tristate.UNDEFINED;
@@ -324,13 +330,16 @@ public class CheckRule implements TextRepresentable {
             if (updateNode.isVirtual() && node.getNode("remove").getBoolean(false)) {
                 updateNode = getDefaultUpdateNode();
             }
-            return new CheckRule(name, queryNode, updateNode.isVirtual() ? null : updateNode, priority, worldDefaultSetting, enableWorld, triggerDefaultSetting, enableTriggers);
+            return new CheckRule(name, queryNode, updateNode.isVirtual() ? null : updateNode, legacyName, priority, worldDefaultSetting, enableWorld, triggerDefaultSetting, enableTriggers);
         }
 
         @Override
         public void serialize(TypeToken<?> type, @Nullable CheckRule rule, ConfigurationNode node) {
             Objects.requireNonNull(rule);
             node.getNode("name").setValue(rule.name);
+            if (!rule.legacyName.isEmpty()) {
+                node.getNode("legacy-name").setValue(rule.legacyName);
+            }
             node.getNode("priority").setValue(rule.priority);
             BiConsumer<String, Tristate> setTristate = (key, value) -> {
                 if (value == Tristate.UNDEFINED) {
@@ -351,6 +360,7 @@ public class CheckRule implements TextRepresentable {
     @SuppressWarnings("UnusedReturnValue for builder")
     public static final class Builder {
         private String name;
+        private String legacyName = "";
         private int priority = 5;
         private Tristate worldDefaultSetting = Tristate.UNDEFINED;
         private Map<String, Boolean> worldSettings = new TreeMap<>();
@@ -451,7 +461,7 @@ public class CheckRule implements TextRepresentable {
         }
 
         public CheckRule build() {
-            return new CheckRule(name, queryNode, updateNode, priority, worldDefaultSetting, worldSettings, triggerDefaultSetting, triggerSettings);
+            return new CheckRule(name, queryNode, updateNode, legacyName, priority, worldDefaultSetting, worldSettings, triggerDefaultSetting, triggerSettings);
         }
     }
 }
