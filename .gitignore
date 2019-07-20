@@ -5,6 +5,7 @@
 !.gitignore
 
 # GitHub Files
+!CHANGELOG.md
 !README.md
 !LICENSE
 
