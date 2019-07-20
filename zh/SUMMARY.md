@@ -12,3 +12,4 @@
   * [禁用物品](zh/tutorial?id=禁用物品)
   * [定制规则](zh/tutorial?id=定制规则)
   * [小结](zh/tutorial?id=小结)
+* [更新日志（英文）](zh/changelog)

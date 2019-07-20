@@ -12,3 +12,4 @@
   * [Making the Items Banned](en/tutorial?id=making-the-items-banned)
   * [Editing the Rules](en/tutorial?id=editing-the-rules)
   * [Summary](en/tutorial?id=summary)
+* [Changelog](en/changelog)
