@@ -24,8 +24,10 @@ public class CommandCallback extends AbstractCommand {
     /**
      * player uuid -> key-callback map
      */
-    private static Cache<UUID, Map<String, Tuple<CommandElement, CommandExecutor>>> callbacks =
+    private static final Cache<UUID, Map<String, Tuple<CommandElement, CommandExecutor>>> callbacks =
             Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build();
+
+    private static final Random RANDOM = new Random();
 
     public CommandCallback() {
         super("callback", "cb");
@@ -59,7 +61,7 @@ public class CommandCallback extends AbstractCommand {
             for (int i = 0; i < 100; i++) {
                 char[] chars = new char[length];
                 for (int j = 0; j < length; j++) {
-                    chars[j] = s.charAt((int) (Math.random() * s.length()));
+                    chars[j] = s.charAt(RANDOM.nextInt(s.length()));
                 }
                 String r = new String(chars);
                 if (!set.contains(r)) {
