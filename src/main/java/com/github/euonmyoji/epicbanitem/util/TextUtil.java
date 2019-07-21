@@ -179,6 +179,8 @@ public class TextUtil {
         try (StringReader in = new StringReader(string); BufferedReader bufferedReader = new BufferedReader(in)) {
             delegationReader = bufferedReader;
             return LOADER.load();
+        } finally {
+            delegationReader = null;
         }
     }
 
@@ -187,6 +189,8 @@ public class TextUtil {
             delegationWriter = bufferedWriter;
             LOADER.save(configNode);
             return out.toString();
+        } finally {
+            delegationWriter = null;
         }
     }
 
@@ -195,6 +199,8 @@ public class TextUtil {
             delegationWriter = bufferedWriter;
             CONCISE_LOADER.save(configNode);
             return out.toString();
+        } finally {
+            delegationWriter = null;
         }
     }
 }
