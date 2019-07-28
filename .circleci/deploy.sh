@@ -9,12 +9,10 @@ print_changelog_text() {
     done
 }
 
-print_changelog_text >CHANGELOG-$CIRCLE_TAG.md
-
 file=$(find build/libs/ -regex "build/libs/EpicBanItem-${CIRCLE_TAG:1}-\w+.jar")
 sig=$(find build/libs/ -regex "build/libs/EpicBanItem-${CIRCLE_TAG:1}-\w+.jar.asc")
 
 curl https://ore.spongepowered.org/api/v1/projects/EpicBanItem/versions/${CIRCLE_TAG:1} \
-    -F "pluginFile=@$file" -F "pluginSig=@$sig" -F "changelog=@CHANGELOG-$CIRCLE_TAG.md" \
+    -F "pluginFile=@$file" -F "pluginSig=@$sig" -F "changelog=$(print_changelog_text)" \
     -F "apiKey=$BUILD_DEPLOYMENT_KEY" -F "channel=PreRelease" -F "recommended=true" -F "forumPost=true"
 
