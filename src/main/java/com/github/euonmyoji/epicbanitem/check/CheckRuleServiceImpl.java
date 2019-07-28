@@ -3,6 +3,7 @@ package com.github.euonmyoji.epicbanitem.check;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
@@ -95,7 +96,8 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     public CheckResult check(BlockSnapshot block, World world, String trigger, @Nullable Subject subject) {
         DataContainer nbt = NbtTagDataUtil.toNbt(block);
         CheckResult checkResult = CheckResult.empty(nbt);
-        return check(checkResult, NbtTagDataUtil.getId(nbt), world, trigger, subject);
+        boolean isAir = BlockTypes.AIR.equals(block.getState().getType());
+        return isAir ? checkResult : check(checkResult, NbtTagDataUtil.getId(nbt), world, trigger, subject);
     }
 
     private CheckResult check(CheckResult origin, String id, World world, String trigger, @Nullable Subject subject) {
