@@ -113,7 +113,9 @@ public class EpicBanItem {
     @Listener
     public void onStopping(GameStoppingEvent event) {
         try {
-            autoFileLoader.close();
+            if (autoFileLoader != null) {
+                autoFileLoader.close();
+            }
         } catch (IOException e) {
             throw new RuntimeException("Failed to save EpicBanItem", e);
         }
