@@ -80,7 +80,7 @@ public class NbtTagDataUtil {
     }
 
     public static String getId(DataView view) throws InvalidDataException {
-        return view.getString(ID).orElseThrow(InvalidDataException::new);
+        return view.getString(ID).orElseThrow(() -> invalidData(view));
     }
 
     public static DataContainer toNbt(BlockSnapshot snapshot) {
@@ -210,7 +210,6 @@ public class NbtTagDataUtil {
             MethodHandles.Lookup lookup = MethodHandles.lookup();
 
             Class<?> itemStackUtil = Class.forName("org.spongepowered.common.item.inventory.util.ItemStackUtil");
-            Class<?> blockUtil = Class.forName("org.spongepowered.common.block.BlockUtil");
             Class<?> iBlockState = Class.forName("net.minecraft.block.state.IBlockState");
             Class<?> blockPos = Class.forName("net.minecraft.util.math.BlockPos");
             Class<?> itemStack = Class.forName("net.minecraft.item.ItemStack");
@@ -219,23 +218,24 @@ public class NbtTagDataUtil {
 
             String getItemName = "func_185473_a";
             String fromNativeName = "fromNative";
-            String toNativeName = "toNative";
 
-            MethodHandle newBlockPos = lookup.findConstructor(blockPos, MethodType.methodType(void.class, int.class, int.class, int.class));
-            MethodHandle getItem5 = lookup.findVirtual(block, getItemName, MethodType.methodType(itemStack, world, blockPos, iBlockState));
-            MethodHandle fromNative = lookup.findStatic(itemStackUtil, fromNativeName, MethodType.methodType(ItemStack.class, itemStack));
-            MethodHandle toNative = lookup.findStatic(blockUtil, toNativeName, MethodType.methodType(iBlockState, BlockState.class));
+            MethodType getItemType = MethodType.methodType(itemStack, BlockType.class, World.class, blockPos, BlockState.class);
+            MethodType newBlockPosType = MethodType.methodType(void.class, int.class, int.class, int.class);
+            MethodType getItemTypeOld = MethodType.methodType(itemStack, world, blockPos, iBlockState);
+            MethodType fromNativeType = MethodType.methodType(ItemStack.class, itemStack);
 
-            MethodHandle getItem4 = getItem5.asType(MethodType.methodType(itemStack, BlockType.class, World.class, blockPos, iBlockState));
-            MethodHandle getItem3 = MethodHandles.collectArguments(getItem4, 2, newBlockPos);
-            MethodHandle getItem2 = MethodHandles.collectArguments(getItem3, 5, toNative);
-            MethodHandle getItem = MethodHandles.filterReturnValue(getItem2, fromNative);
+            MethodHandle fromNativeMethod = lookup.findStatic(itemStackUtil, fromNativeName, fromNativeType);
+            MethodHandle newBlockPosMethod = lookup.findConstructor(blockPos, newBlockPosType);
+
+            MethodHandle getItem3Method = lookup.findVirtual(block, getItemName, getItemTypeOld).asType(getItemType);
+            MethodHandle getItem2Method = MethodHandles.collectArguments(getItem3Method, 2, newBlockPosMethod);
+            MethodHandle getItemMethod = MethodHandles.filterReturnValue(getItem2Method, fromNativeMethod);
 
             return (location, state) -> {
                 try {
                     World extent = location.getExtent();
                     int x = location.getBlockX(), y = location.getBlockY(), z = location.getBlockZ();
-                    return (ItemStack) getItem.invokeExact(state.getType(), extent, x, y, z, state);
+                    return (ItemStack) getItemMethod.invokeExact(state.getType(), extent, x, y, z, state);
                 } catch (Throwable ignored) {
                     return getPickBlockGetterFallback().apply(location, state);
                 }
