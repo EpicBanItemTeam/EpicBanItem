@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem;
 
-import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleServiceImpl;
 import com.github.euonmyoji.epicbanitem.check.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.check.listener.InventoryListener;
@@ -23,6 +22,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.service.ServiceManager;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -78,7 +78,10 @@ public class EpicBanItem {
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
-        Sponge.getServiceManager().setProvider(this, CheckRuleService.class, new CheckRuleServiceImpl());
+        CheckRuleServiceImpl impl = new CheckRuleServiceImpl();
+        ServiceManager serviceManager = Sponge.getServiceManager();
+        serviceManager.setProvider(this, com.github.euonmyoji.epicbanitem.api.CheckRuleService.class, impl);
+        serviceManager.setProvider(this, com.github.euonmyoji.epicbanitem.check.CheckRuleService.class, impl);
     }
 
     @Listener
