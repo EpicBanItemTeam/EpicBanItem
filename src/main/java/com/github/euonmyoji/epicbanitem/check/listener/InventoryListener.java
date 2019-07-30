@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check.listener;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
@@ -124,7 +125,7 @@ public class InventoryListener {
     @Listener(order = Order.FIRST, beforeModifications = true)
     @Exclude({ClickInventoryEvent.Drop.class})
     public void onClicked(ClickInventoryEvent event, @First Player player) {
-        String trigger = Triggers.CLICK;
+        CheckRuleTrigger trigger = Triggers.CLICK;
         Stream<SlotTransaction> slotTransactionStream = event.getTransactions().stream();
         Stream<Transaction<ItemStackSnapshot>> cursorTransactionStream = Stream.of(event.getCursorTransaction());
         if (this.checkInventory(player, trigger, Stream.concat(cursorTransactionStream, slotTransactionStream))) {
@@ -148,7 +149,7 @@ public class InventoryListener {
     @Listener(order = Order.FIRST, beforeModifications = true)
     @Include(HandInteractEvent.class)
     public void onItemUsed(InteractItemEvent event, @First Player player) {
-        String trigger = Triggers.USE;
+        CheckRuleTrigger trigger = Triggers.USE;
         ItemStackSnapshot item = event.getItemStack();
         if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
             event.setCancelled(true);
@@ -160,7 +161,7 @@ public class InventoryListener {
         Slot slot = event.getTargetInventory();
         Optional<EquipmentSlotType> equipmentSlotType = slot.getInventoryProperty(EquipmentSlotType.class);
         if (equipmentSlotType.isPresent() && equipmentSlotType.get().getValue() instanceof WornEquipmentType) {
-            String trigger = Triggers.EQUIP;
+            CheckRuleTrigger trigger = Triggers.EQUIP;
             if (this.checkInventory(player, trigger, Stream.of(event.getTransaction()))) {
                 event.setCancelled(true);
             }
@@ -171,19 +172,19 @@ public class InventoryListener {
     public void onInteractBlock(InteractBlockEvent event, @First Player player) {
         Optional<ItemStackSnapshot> optionalItem = event.getContext().get(EventContextKeys.USED_ITEM);
         if (optionalItem.isPresent()) {
-            String trigger = Triggers.USE;
+            CheckRuleTrigger trigger = Triggers.USE;
             ItemStackSnapshot item = optionalItem.get();
             if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
                 event.setCancelled(true);
             }
         }
         if (!event.isCancelled()) {
-            String trigger = Triggers.INTERACT;
+            CheckRuleTrigger trigger = Triggers.INTERACT;
             checkInteractBlock(player, trigger, event.getTargetBlock());
         }
     }
 
-    private void checkInteractBlock(Player player, String trigger, BlockSnapshot snapshot) {
+    private void checkInteractBlock(Player player, CheckRuleTrigger trigger, BlockSnapshot snapshot) {
         CheckResult result = service.check(snapshot, player.getWorld(), trigger, player);
         if (result.isBanned()) {
             result.getFinalView().ifPresent(view -> {
@@ -193,7 +194,7 @@ public class InventoryListener {
         }
     }
 
-    private boolean checkUseItem(Player player, String trigger, HandType handType, ItemStackSnapshot item) {
+    private boolean checkUseItem(Player player, CheckRuleTrigger trigger, HandType handType, ItemStackSnapshot item) {
         CheckResult result = service.check(item, player.getWorld(), trigger, player);
         if (result.isBanned()) {
             Optional<DataContainer> finalView = result.getFinalView();
@@ -206,7 +207,7 @@ public class InventoryListener {
         return false;
     }
 
-    private boolean checkInventory(Player player, String trigger, Stream<? extends Transaction<ItemStackSnapshot>> trans) {
+    private boolean checkInventory(Player player, CheckRuleTrigger trigger, Stream<? extends Transaction<ItemStackSnapshot>> trans) {
         return trans.anyMatch(tran -> {
             ItemStackSnapshot item = tran.getFinal();
             CheckResult result = service.check(item, player.getWorld(), trigger, player);
