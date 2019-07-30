@@ -1,5 +1,10 @@
 # EpicBanItem Changelog
 
+## v0.3.1
+
+* Add air filter for checking blocks.
+* Fix BlockUtil non-existence issue ([#13](https://github.com/euOnmyoji/EpicBanItem---Sponge/issues/13)).
+
 ## v0.3.0
 
 * Add a new algorithm for mapping block states to items more efficiently.
