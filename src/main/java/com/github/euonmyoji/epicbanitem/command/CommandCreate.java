@@ -5,6 +5,7 @@ import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
+import com.google.common.collect.Iterables;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -13,6 +14,9 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.DataTranslators;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.ArmorEquipable;
@@ -27,7 +31,7 @@ import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
@@ -71,52 +75,56 @@ class CommandCreate extends AbstractCommand {
 
     @Override
     public CommandElement getArgument() {
-        return seq(string(Text.of("rule-name")),
-                flags().flag("-no-capture")
-                        .flag("-all-match")
-                        .buildWith(optional(remainingRawJoinedStrings(Text.of("query-rule")))));
+        return seq(string(Text.of("rule-name")), flags()
+                .flag("-no-capture").flag("-simple-capture").flag("-all-capture").flag("-all-match")
+                .buildWith(optional(remainingRawJoinedStrings(Text.of("query-rule")))));
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        boolean noCapture = args.hasAny("no-capture");
-        boolean allMatch = args.hasAny("all-match");
-        //noinspection OptionalGetWithoutIsPresent
+        Set<Predicate<Map.Entry<DataQuery, Object>>> captureMethods = new HashSet<>();
+        if (args.hasAny("no-capture")) {
+            captureMethods.add(e -> false);
+        }
+        if (args.hasAny("simple-capture")) {
+            captureMethods.add(e -> e.getValue() instanceof Number || e.getValue() instanceof String);
+        }
+        if (args.hasAny("all-capture") || args.hasAny("all-match")) {
+            captureMethods.add(e -> Objects.nonNull(e.getValue()));
+        }
         String name = args.<String>getOne("rule-name").get();
         String query = args.<String>getOne("query-rule").orElse("{}");
-        if (noCapture && allMatch) {
-            throw new CommandException(getMessage("conflict"));
-        }
+        Predicate<Map.Entry<DataQuery, Object>> capture = e -> "id".equals(e.getKey().toString());
         try {
             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
             if (service.getCheckRuleByName(name).isPresent()) {
                 throw new CommandException(getMessage("existed", "rule_name", name));
             }
             Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
-            ConfigurationNode queryNode;
-            if (allMatch) {
-                if (handItem.isPresent()) {
-                    queryNode = DataTranslators.CONFIGURATION_NODE.translate(NbtTagDataUtil.toNbt(handItem.get().getSecond()));
+            try {
+                capture = Iterables.getOnlyElement(captureMethods, capture);
+            } catch (IllegalArgumentException e) {
+                throw new CommandException(getMessage("conflict"));
+            }
+            ConfigurationNode queryNode = TextUtil.serializeStringToConfigNode(query);
+            DataView nbt = handItem.map(e -> NbtTagDataUtil.toNbt(e.getSecond())).orElse(DataContainer.createNew());
+            for (Map.Entry<DataQuery, Object> entry : nbt.getValues(false).entrySet()) {
+                if (!capture.test(entry)) {
+                    nbt.remove(entry.getKey());
+                }
+            }
+            ConfigurationNode nbtNode = DataTranslators.CONFIGURATION_NODE.translate(nbt);
+            for (Map.Entry<Object, ? extends ConfigurationNode> entry : nbtNode.getChildrenMap().entrySet()) {
+                Object key = entry.getKey();
+                ConfigurationNode node = queryNode.getNode(key);
+                if (node.isVirtual()) {
+                    node.setValue(entry.getValue());
                 } else {
-                    throw new CommandException(getMessage("noItem"));
+                    throw new CommandException(getMessage("override", "key", key.toString()));
                 }
-            } else {
-                queryNode = TextUtil.serializeStringToConfigNode(query);
-                Optional<String> id = Optional.ofNullable(queryNode.getNode("id").getString());
-                if (!noCapture) {
-                    if (handItem.isPresent()) {
-                        if (id.isPresent()) {
-                            throw new CommandException(getMessage("override"));
-                        } else {
-                            String s = handItem.get().getSecond().getType().getId();
-                            queryNode.getNode("id").setValue(s);
-                        }
-                    } else {
-                        if (!id.isPresent()) {
-                            throw new CommandException(getMessage("empty"));
-                        }
-                    }
-                }
+            }
+            if (queryNode.getNode("id").isVirtual() && !args.hasAny("no-capture")) {
+                throw new CommandException(getMessage("empty"));
             }
             if (src instanceof Player) {
                 CommandEditor.add((Player) src, name, queryNode, true);
