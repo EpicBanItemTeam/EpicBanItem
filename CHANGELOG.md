@@ -1,5 +1,9 @@
 # EpicBanItem Changelog
 
+## v0.3.2
+
+* Add a new flag named `--simple-capture`.
+
 ## v0.3.1
 
 * Add air filter for checking blocks.
