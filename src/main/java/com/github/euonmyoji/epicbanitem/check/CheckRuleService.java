@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -19,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @SuppressWarnings("unused because of api")
 @NonnullByDefault
-public interface CheckRuleService {
+public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.CheckRuleService {
     /**
      * return name set of all active rules
      *
@@ -66,37 +67,13 @@ public interface CheckRuleService {
      */
     Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name);
 
-    /**
-     * 检查一个物品并返回一个result
-     *
-     * @param itemStack 被检查的物品
-     * @param world     检查发生世界
-     * @param trigger   触发器
-     * @param subject   subject
-     * @return 检查结果
-     */
+    @Deprecated
     CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject);
 
-    /**
-     * 检查一个物品并返回一个result
-     *
-     * @param itemStack 被检查的物品
-     * @param world     检查发生世界
-     * @param trigger   触发器
-     * @param subject   subject
-     * @return 检查结果
-     */
+    @Deprecated
     CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject);
 
-    /**
-     * 检查一个物品并返回一个result
-     *
-     * @param blockSnapshot 被检查的Block
-     * @param world         检查发生世界
-     * @param trigger       触发器
-     * @param subject       subject
-     * @return 检查结果
-     */
+    @Deprecated
     CheckResult check(BlockSnapshot blockSnapshot, World world, String trigger, @Nullable Subject subject);
 
     /**
@@ -114,4 +91,19 @@ public interface CheckRuleService {
      * @return <tt>true</tt> if a rule was removed as a result of this call
      */
     CompletableFuture<Boolean> removeRule(CheckRule rule);
+
+    @Override
+    default <T extends Subject> CheckResult check(ItemStackSnapshot snapshot, World world, CheckRuleTrigger trigger, @Nullable T subject) {
+        return this.check(snapshot, world, trigger.toString(), subject);
+    }
+
+    @Override
+    default <T extends Subject> CheckResult check(BlockSnapshot snapshot, World world, CheckRuleTrigger trigger, @Nullable T subject) {
+        return this.check(snapshot, world, trigger.toString(), subject);
+    }
+
+    @Override
+    default <T extends Subject> CheckResult check(ItemStack stack, World world, CheckRuleTrigger trigger, @Nullable T subject) {
+        return this.check(stack, world, trigger.toString(), subject);
+    }
 }

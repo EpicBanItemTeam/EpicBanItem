@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.command.CommandCheck;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
@@ -13,9 +14,7 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
-import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
@@ -252,15 +251,24 @@ public class CheckRule implements TextRepresentable {
     public CheckResult check(CheckResult origin, World world, String trigger, @Nullable Subject subject) {
         if (isEnabledTrigger(trigger) && isEnabledWorld(world)) {
             if (subject == null || !hasBypassPermission(subject, trigger)) {
-                DataContainer view = origin.getFinalViewUnchecked();
-                Optional<QueryResult> optionalQueryResult = query.query(DataQuery.of(), view);
-                if (optionalQueryResult.isPresent()) {
-                    if (update != null) {
-                        update.update(optionalQueryResult.get(), view).apply(view);
-                        return CheckResult.concat(origin, this, view);
-                    } else {
-                        return CheckResult.concat(origin, this);
+                QueryResult[] queryResult = new QueryResult[1];
+                CheckResult result = origin.banFor(view -> {
+                    Optional<QueryResult> optionalQueryResult = this.query.query(DataQuery.of(), view);
+                    if (optionalQueryResult.isPresent()) {
+                        queryResult[0] = optionalQueryResult.get();
+                        return true;
                     }
+                    return false;
+                });
+                if (result instanceof CheckResult.Banned) {
+                    CommandCheck.addContext(this);
+                    if (update != null) {
+                        return ((CheckResult.Banned) result).updateBy(view -> {
+                            update.update(queryResult[0], view).apply(view);
+                            return view;
+                        });
+                    }
+                    return result;
                 }
             }
         }

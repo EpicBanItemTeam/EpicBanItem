@@ -1,57 +1,61 @@
 package com.github.euonmyoji.epicbanitem.check;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Streams;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class CheckResult {
-    private final DataView view;
-    private final boolean banned;
-    private final boolean updated;
-    private final Iterable<CheckRule> breakRules;
+    protected final DataView view;
 
-    private CheckResult(Iterable<CheckRule> breakRules, boolean updated, boolean banned, DataView view) {
-        this.breakRules = breakRules;
-        this.updated = updated;
-        this.banned = banned;
+    private CheckResult(DataView view) {
         this.view = view;
     }
 
-    public static CheckResult empty(DataContainer view) {
-        return new CheckResult(ImmutableList.of(), false, false, view);
-    }
-
-    public static CheckResult concat(CheckResult parent, CheckRule rule) {
-        return new CheckResult(Iterables.concat(parent.breakRules, ImmutableList.of(rule)), parent.updated, true, parent.view);
-    }
-
-    public static CheckResult concat(CheckResult parent, CheckRule rule, DataView newView) {
-        return new CheckResult(Iterables.concat(parent.breakRules, ImmutableList.of(rule)), true, true, newView);
-    }
-
     public boolean isBanned() {
-        return this.banned;
-    }
-
-    public Stream<CheckRule> getBreakRules() {
-        return Streams.stream(this.breakRules);
+        return this instanceof CheckResult.Banned;
     }
 
     public Optional<DataContainer> getFinalView() {
-        return this.updated ? Optional.of(this.view.copy()) : Optional.empty();
+        return Optional.empty();
     }
 
-    public DataContainer getFinalViewUnchecked() {
-        return this.view.copy();
+    public CheckResult banFor(Predicate<? super DataView> predicate) {
+        return predicate.test(this.view) ? new Banned(false, this.view) : this;
+    }
+
+    public static CheckResult empty(DataContainer view) {
+        return new CheckResult(view);
+    }
+
+    @NonnullByDefault
+    public static class Banned extends CheckResult {
+        private final boolean updated;
+
+        private Banned(boolean updated, DataView view) {
+            super(view);
+            this.updated = updated;
+        }
+
+        @Override
+        public Optional<DataContainer> getFinalView() {
+            return this.updated ? Optional.of(this.view.copy()) : Optional.empty();
+        }
+
+        @Override
+        public CheckResult.Banned banFor(Predicate<? super DataView> predicate) {
+            return this;
+        }
+
+        public CheckResult updateBy(Function<? super DataView, ? extends DataView> function) {
+            return new Banned(true, function.apply(this.view));
+        }
     }
 }

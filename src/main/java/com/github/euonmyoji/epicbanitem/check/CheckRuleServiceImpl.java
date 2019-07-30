@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
@@ -76,6 +77,18 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
     public Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name) {
         return EpicBanItem.getBanConfig().getRules(index).stream().filter(c -> c.getName().equals(name)).findFirst();
+    }
+
+    @Override
+    public Optional<CheckRuleTrigger> getTrigger(String name, boolean registerIfAbsent) {
+        SortedMap<String, CheckRuleTrigger> triggers = Triggers.getTriggers();
+        if (triggers.containsKey(name)) {
+            return Optional.of(triggers.get(name));
+        }
+        if (registerIfAbsent && CheckRule.NAME_PATTERN.matcher(name).matches()) {
+            return Optional.of(triggers.computeIfAbsent(name, Triggers.Impl::new));
+        }
+        return Optional.empty();
     }
 
     @Override

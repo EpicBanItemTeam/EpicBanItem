@@ -1,6 +1,6 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.check.CheckResult;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
@@ -20,16 +20,14 @@ import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class CommandCheck extends AbstractCommand {
 
-    private CheckRuleService service;
+    private static Map<String, CheckRule> checkRuleContext = new LinkedHashMap<>();
 
     CommandCheck() {
         super("check", "k");
@@ -46,32 +44,35 @@ public class CommandCheck extends AbstractCommand {
                 );
     }
 
+    public static void addContext(CheckRule rule) {
+        checkRuleContext.put(rule.getName(), rule);
+    }
+
     @Override
     @Nonnull
     public CommandResult execute(@Nonnull CommandSource src, @Nonnull CommandContext args) throws CommandException {
         boolean lookAt = args.hasAny("l");
-        Map<String, CheckRule> checkRules = new TreeMap<>();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         if (lookAt) {
+            checkRuleContext.clear();
             Optional<BlockSnapshot> optional = CommandCreate.getBlockLookAt(src);
             BlockSnapshot blockSnapshot = optional.orElseThrow(() -> new CommandException(getMessage("noBlock")));
             World world = ((Locatable) src).getWorld();
-            for (String trigger : Triggers.getDefaultTriggers()) {
-                CheckResult checkResult = service.check(blockSnapshot, world, trigger, null);
-                checkResult.getBreakRules().forEach(checkRule -> checkRules.put(checkRule.getName(), checkRule));
+            for (CheckRuleTrigger trigger : Triggers.getTriggers().values()) {
+                service.check(blockSnapshot, world, trigger, null);
             }
         } else {
+            checkRuleContext.clear();
             Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
             ItemStack itemStack = optional.orElseThrow(() -> new CommandException(getMessage("noItem"))).getSecond();
             World world = ((Locatable) src).getWorld();
-            for (String trigger : Triggers.getDefaultTriggers()) {
-                CheckResult checkResult = service.check(itemStack, world, trigger, null);
-                checkResult.getBreakRules().forEach(checkRule -> checkRules.put(checkRule.getName(), checkRule));
+            for (CheckRuleTrigger trigger : Triggers.getTriggers().values()) {
+                service.check(itemStack, world, trigger, null);
             }
         }
         Text.Builder info = Text.builder();
-        for (CheckRule rule : checkRules.values()) {
-            info.append(rule.toText(), Text.NEW_LINE);
+        for (Iterator<CheckRule> it = checkRuleContext.values().iterator(); it.hasNext(); it.remove()) {
+            info.append(it.next().toText(), Text.NEW_LINE);
         }
         src.sendMessage(info.toText());
         return CommandResult.success();
