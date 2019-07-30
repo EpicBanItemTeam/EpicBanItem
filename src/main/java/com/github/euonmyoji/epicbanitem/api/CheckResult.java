@@ -1,4 +1,4 @@
-package com.github.euonmyoji.epicbanitem.check;
+package com.github.euonmyoji.epicbanitem.api;
 
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataView;

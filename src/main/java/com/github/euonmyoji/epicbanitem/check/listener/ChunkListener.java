@@ -1,6 +1,6 @@
 package com.github.euonmyoji.epicbanitem.check.listener;
 
-import com.github.euonmyoji.epicbanitem.check.CheckResult;
+import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;

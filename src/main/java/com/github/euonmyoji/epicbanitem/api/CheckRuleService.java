@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.api;
 
-import com.github.euonmyoji.epicbanitem.check.CheckResult;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.inventory.ItemStack;
