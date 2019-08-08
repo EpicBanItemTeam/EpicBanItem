@@ -99,9 +99,11 @@ public class InventoryListener {
             if (worlds.isEmpty()) {
                 worlds.add(cause.first(Locatable.class).map(Locatable::getWorld).orElseGet(() -> {
                     RuntimeException e = new RuntimeException("EpicBanItem cannot even find a world when crafting");
+                    WorldProperties defProps = Sponge.getServer().getDefaultWorld().orElseThrow(RuntimeException::new);
+                    World def = Sponge.getServer().getWorld(defProps.getUniqueId()).orElseThrow(RuntimeException::new);
                     EpicBanItem.getLogger().warn("EpicBanItem cannot even find a world! What is the server doing?");
                     EpicBanItem.getLogger().debug("No world found in " + cause.toString(), e);
-                    return NbtTagDataUtil.getDefaultWorld();
+                    return def;
                 }));
             }
             for (Transaction<ItemStackSnapshot> transaction : event.getTransactions()) {

@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.util;
 
-import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -15,10 +14,7 @@ import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.persistence.InvalidDataException;
-import org.spongepowered.api.entity.Entity;
-import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -38,16 +34,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class NbtTagDataUtil {
     private static final DataQuery ID = DataQuery.of("id");
+    private static final DataQuery TAG = DataQuery.of("tag");
     private static final DataQuery DAMAGE = DataQuery.of("Damage");
     private static final DataQuery BLOCK_ENTITY_TAG = DataQuery.of("tag", "BlockEntityTag");
+    private static final DataQuery CUSTOM_MANIPULATORS = DataQuery.of("tag", "SpongeData", "CustomManipulators");
 
+    private static final DataQuery DATA = DataQuery.of("Data");
     private static final DataQuery COUNT = DataQuery.of("Count");
     private static final DataQuery POSITION = DataQuery.of("Position");
     private static final DataQuery ITEM_TYPE = DataQuery.of("ItemType");
@@ -55,8 +53,6 @@ public class NbtTagDataUtil {
     private static final DataQuery UNSAFE_DATA = DataQuery.of("UnsafeData");
     private static final DataQuery BLOCK_STATE = DataQuery.of("BlockState");
     private static final DataQuery UNSAFE_DAMAGE = DataQuery.of("UnsafeDamage");
-
-    private static final DataQuery UNSAFE_DATA_ITEM = DataQuery.of("UnsafeData", "Item");
 
     private static final Server SERVER = Sponge.getServer();
     private static final AtomicBoolean LOGGED = new AtomicBoolean(false);
@@ -83,37 +79,24 @@ public class NbtTagDataUtil {
         }
     }
 
-    public static World getDefaultWorld() {
-        WorldProperties defProps = Sponge.getServer().getDefaultWorld().orElseThrow(RuntimeException::new);
-        return Sponge.getServer().getWorld(defProps.getUniqueId()).orElseThrow(RuntimeException::new);
-    }
-
     public static String getId(DataView view) throws InvalidDataException {
         return view.getString(ID).orElseThrow(() -> invalidData(view));
     }
 
     public static DataContainer toNbt(BlockSnapshot snapshot) {
-        ItemStack item = snapshot.getLocation().map(Map::getItemByBlock).orElse(ItemStack.empty());
-        DataContainer result = toNbt(item.createSnapshot());
+        DataContainer itemData = snapshot.getLocation().map(Map::getItemByBlock).orElse(DataContainer.createNew());
+        DataContainer result = fromSpongeDataToNbt(itemData);
 
         DataView nbt = snapshot.toContainer().getView(UNSAFE_DATA).orElse(DataContainer.createNew());
         return result.set(BLOCK_ENTITY_TAG, snapshot.getPosition()).set(BLOCK_ENTITY_TAG, nbt);
     }
 
     public static DataContainer toNbt(ItemStackSnapshot stackSnapshot) {
-        World world = getDefaultWorld();
-        Entity entity = world.createEntity(EntityTypes.ITEM, Vector3d.ZERO);
-
-        entity.offer(Keys.REPRESENTED_ITEM, stackSnapshot);
-        DataView.SafetyMode safetyMode = DataView.SafetyMode.NO_DATA_CLONED;
-        Optional<DataView> data = entity.toContainer().getView(UNSAFE_DATA_ITEM);
-        Supplier<DataContainer> def = () -> DataContainer.createNew(safetyMode).set(ID, "minecraft:air");
-
-        return data.map(v -> v.copy(safetyMode)).orElseGet(def).remove(COUNT);
+        return fromSpongeDataToNbt(stackSnapshot.toContainer());
     }
 
     public static DataContainer toNbt(ItemStack stack) {
-        return toNbt(stack.createSnapshot());
+        return fromSpongeDataToNbt(stack.toContainer());
     }
 
     public static BlockSnapshot toBlockSnapshot(DataView view, UUID worldUniqueId) throws InvalidDataException {
@@ -132,21 +115,33 @@ public class NbtTagDataUtil {
     }
 
     public static ItemStack toItemStack(DataView view, int stackSize) throws InvalidDataException {
-        World world = getDefaultWorld();
+        DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
 
-        Entity entity = world.createEntity(EntityTypes.ITEM, Vector3d.ZERO);
-        DataContainer data = entity.toContainer();
-        data.set(UNSAFE_DATA_ITEM, view);
+        view.get(CUSTOM_MANIPULATORS).ifPresent(data -> result.set(DATA, data));
 
-        Optional<ItemStackSnapshot> optional = world.createEntity(data).flatMap(i -> i.get(Keys.REPRESENTED_ITEM));
-        ItemStack result = optional.orElseThrow(() -> invalidData(view)).createStack();
-        result.setQuantity(stackSize);
+        view.get(ID).ifPresent(id -> result.set(ITEM_TYPE, id));
+        view.get(TAG).ifPresent(nbt -> result.set(UNSAFE_DATA, nbt));
+        view.get(DAMAGE).ifPresent(damage -> result.set(UNSAFE_DAMAGE, damage));
 
-        return result;
+        result.set(COUNT, stackSize);
+
+        return ItemStack.builder().build(result).orElseThrow(() -> invalidData(view));
     }
 
     private static InvalidDataException invalidData(DataView dataView) {
         return new InvalidDataException("InvalidData: " + TextUtil.serializeNbtToString(dataView).toPlain());
+    }
+
+    private static DataContainer fromSpongeDataToNbt(DataContainer view) {
+        DataContainer result = DataContainer.createNew(DataView.SafetyMode.NO_DATA_CLONED);
+
+        view.get(ITEM_TYPE).ifPresent(id -> result.set(ID, id));
+        view.get(UNSAFE_DATA).ifPresent(nbt -> result.set(TAG, nbt));
+        view.get(UNSAFE_DAMAGE).ifPresent(damage -> result.set(DAMAGE, damage));
+
+        view.get(DATA).ifPresent(data -> result.set(CUSTOM_MANIPULATORS, data));
+
+        return result;
     }
 
     private static final class Map {
@@ -185,9 +180,9 @@ public class NbtTagDataUtil {
             return bestState;
         }
 
-        private static ItemStack getItemByBlock(Location<World> location) {
+        private static DataContainer getItemByBlock(Location<World> location) {
             ImmutableMap<BlockState, ItemStack> map = Objects.requireNonNull(CACHE.get(location));
-            return map.getOrDefault(location.getBlock(), ItemStack.empty());
+            return map.getOrDefault(location.getBlock(), ItemStack.empty()).toContainer();
         }
 
         private static LoadingCache<Location<World>, ImmutableMap<BlockState, ItemStack>> getCache() {
