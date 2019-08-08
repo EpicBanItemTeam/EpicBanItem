@@ -339,9 +339,15 @@ public class QueryExpression implements DataPredicate {
         private final List<DataPredicate> criteria;
 
         private Not(ConfigurationNode node, boolean checkEmpty) {
-            ImmutableList<DataPredicate> operators = findOperators(node);
-            Preconditions.checkArgument(!checkEmpty || !operators.isEmpty());
-            this.criteria = operators;
+            String string = node.getString("");
+            int regexpEnd = getRegexpEnd(string);
+            if (regexpEnd < 0) {
+                ImmutableList<DataPredicate> operators = findOperators(node);
+                Preconditions.checkArgument(!checkEmpty || !operators.isEmpty());
+                this.criteria = operators;
+                return;
+            }
+            this.criteria = ImmutableList.of(new Regexp(string, regexpEnd, ""));
         }
 
         @Override
