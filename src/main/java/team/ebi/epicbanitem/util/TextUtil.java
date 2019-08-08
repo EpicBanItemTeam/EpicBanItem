@@ -1,5 +1,9 @@
 package team.ebi.epicbanitem.util;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.util.nbt.NbtTagRenderVisitor;
+import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
+import com.github.euonmyoji.epicbanitem.util.nbt.visitor.SpongeDataContainerReader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
@@ -134,12 +138,24 @@ public class TextUtil {
         return builder.toText();
     }
 
-    public static List<Text> serializeNbtToString(DataView nbt, QueryResult result) {
-        return new NbtTagRenderer(result).render(nbt);
+    public static Text serializeNbtToString(DataView nbt, QueryResult result) {
+        Text.Builder textBuilder = Text.builder();
+
+        SpongeDataContainerReader dataContainerReader = new SpongeDataContainerReader(nbt);
+        NbtTagRenderVisitor visitor = new NbtTagRenderVisitor(textBuilder, result);
+        dataContainerReader.accept(visitor);
+
+        return textBuilder.build();
     }
 
-    public static List<Text> serializeNbtToString(DataView nbt) {
-        return NbtTagRenderer.EMPTY_RENDERER.render(nbt);
+    public static Text serializeNbtToString(DataView nbt) {
+        Text.Builder textBuilder = Text.builder();
+
+        SpongeDataContainerReader dataContainerReader = new SpongeDataContainerReader(nbt);
+        NbtTagRenderVisitor visitor = new NbtTagRenderVisitor(textBuilder);
+        dataContainerReader.accept(visitor);
+
+        return textBuilder.build();
     }
 
     public static String escape(String unescapedString) {
