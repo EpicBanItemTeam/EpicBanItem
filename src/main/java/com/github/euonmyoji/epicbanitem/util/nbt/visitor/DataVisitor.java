@@ -7,29 +7,12 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
  */
 @NonnullByDefault
 public interface DataVisitor {
-    void visitByte(byte b);
-
-    void visitShort(short s);
-
-    void visitInt(int i);
-
-    void visitLong(long l);
-
-    void visitFloat(float f);
-
-    void visitDouble(double d);
-
-    void visitString(String s);
-
-    void visitByteArray(byte... bytes);
-
-    void visitIntArray(int... ints);
-
-    void visitLongArray(long... longs);
-
-    DataListVisitor visitList();
-
-    DataCompoundVisitor visitCompound();
+    DataVisitor EMPTY = new DataVisitor() {
+        @Override
+        public String toString() {
+            return DataVisitor.class.getName() + ".EMPTY";
+        }
+    };
 
     abstract class Impl implements DataVisitor {
         private final DataVisitor parent;
@@ -99,65 +82,51 @@ public interface DataVisitor {
         }
     }
 
-    class Empty implements DataVisitor {
-        @Override
-        public void visitByte(byte b) {
-            // do nothing here
-        }
+    default void visitByte(byte b) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitShort(short s) {
-            // do nothing here
-        }
+    default void visitShort(short s) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitInt(int i) {
-            // do nothing here
-        }
+    default void visitInt(int i) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitLong(long l) {
-            // do nothing here
-        }
+    default void visitLong(long l) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitFloat(float f) {
-            // do nothing here
-        }
+    default void visitFloat(float f) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitDouble(double d) {
-            // do nothing here
-        }
+    default void visitDouble(double d) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitString(String s) {
-            // do nothing here
-        }
+    default void visitString(String s) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitByteArray(byte... bytes) {
-            // do nothing here
-        }
+    default void visitByteArray(byte... bytes) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitIntArray(int... ints) {
-            // do nothing here
-        }
+    default void visitIntArray(int... ints) {
+        // do nothing here
+    }
 
-        @Override
-        public void visitLongArray(long... longs) {
-            // do nothing here
-        }
+    default void visitLongArray(long... longs) {
+        // do nothing here
+    }
 
-        @Override
-        public DataListVisitor visitList() {
-            return new DataListVisitor.Empty();
-        }
+    default DataListVisitor visitList() {
+        return DataListVisitor.EMPTY;
+    }
 
-        @Override
-        public DataCompoundVisitor visitCompound() {
-            return new DataCompoundVisitor.Empty();
-        }
+    default DataCompoundVisitor visitCompound() {
+        return DataCompoundVisitor.EMPTY;
     }
 }

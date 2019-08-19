@@ -7,9 +7,12 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
  */
 @NonnullByDefault
 public interface DataListVisitor {
-    DataVisitor visitListValue();
-
-    void visitListEnd();
+    DataListVisitor EMPTY = new DataListVisitor() {
+        @Override
+        public String toString() {
+            return DataListVisitor.class + ".EMPTY";
+        }
+    };
 
     abstract class Impl implements DataListVisitor {
         private final DataListVisitor parent;
@@ -29,15 +32,11 @@ public interface DataListVisitor {
         }
     }
 
-    class Empty implements DataListVisitor {
-        @Override
-        public DataVisitor visitListValue() {
-            return new DataVisitor.Empty();
-        }
+    default DataVisitor visitListValue() {
+        return DataVisitor.EMPTY;
+    }
 
-        @Override
-        public void visitListEnd() {
-            // do nothing here
-        }
+    default void visitListEnd() {
+        // do nothing here
     }
 }
