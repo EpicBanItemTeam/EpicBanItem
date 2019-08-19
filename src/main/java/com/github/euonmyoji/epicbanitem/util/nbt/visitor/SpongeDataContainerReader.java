@@ -14,6 +14,10 @@ import java.util.Map;
 public class SpongeDataContainerReader {
     private final DataView view;
 
+    public <T extends DataSerializable> SpongeDataContainerReader(T value) {
+        this.view = value.toContainer();
+    }
+
     public SpongeDataContainerReader(DataView view) {
         this.view = view;
     }

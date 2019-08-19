@@ -1,8 +1,10 @@
 package com.github.euonmyoji.epicbanitem.util.nbt.visitor;
 
 import com.google.common.collect.ImmutableList;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -10,6 +12,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -30,6 +33,11 @@ public class SpongeDataContainerWriter implements DataCompoundVisitor {
 
     public DataContainer toContainer() throws InvalidDataException {
         return this.container.copy(DataView.SafetyMode.ALL_DATA_CLONED);
+    }
+
+    public <T extends DataSerializable> T to(Class<T> clazz) throws InvalidDataException {
+        Supplier<InvalidDataException> supplier = () -> new InvalidDataException("No value present");
+        return Sponge.getDataManager().deserialize(clazz, this.container).orElseThrow(supplier);
     }
 
     @Override
