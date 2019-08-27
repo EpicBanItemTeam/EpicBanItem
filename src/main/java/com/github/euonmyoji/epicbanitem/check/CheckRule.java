@@ -261,7 +261,7 @@ public class CheckRule implements TextRepresentable {
                     }
                     return false;
                 });
-                if (result instanceof CheckResult.Banned) {
+                if (Objects.nonNull(queryResult[0])) {
                     CommandCheck.addContext(this);
                     if (update != null) {
                         return ((CheckResult.Banned) result).updateBy(view -> {
