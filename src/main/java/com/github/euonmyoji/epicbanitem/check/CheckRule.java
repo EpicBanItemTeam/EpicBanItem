@@ -354,7 +354,7 @@ public class CheckRule implements TextRepresentable {
                 if (value == Tristate.UNDEFINED) {
                     node.removeChild(key);
                 } else {
-                    node.getNode(key, value.asBoolean());
+                    node.getNode(key).setValue(value.asBoolean());
                 }
             };
             setTristate.accept("world-default-setting", rule.worldDefaultSetting);
