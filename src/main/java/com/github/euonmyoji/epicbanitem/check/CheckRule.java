@@ -16,6 +16,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
@@ -253,23 +254,22 @@ public class CheckRule implements TextRepresentable {
         if (isEnabledTrigger(trigger) && isEnabledWorld(world)) {
             if (subject == null || !hasBypassPermission(subject, trigger)) {
                 QueryResult[] queryResult = new QueryResult[1];
-                CheckResult result = origin.banFor(view -> {
+                Predicate<DataView> predicate = view -> {
                     Optional<QueryResult> optionalQueryResult = this.query.query(DataQuery.of(), view);
                     if (optionalQueryResult.isPresent()) {
                         queryResult[0] = optionalQueryResult.get();
+                        CommandCheck.addContext(this);
                         return true;
                     }
                     return false;
-                });
-                if (Objects.nonNull(queryResult[0])) {
-                    CommandCheck.addContext(this);
-                    if (update != null) {
-                        return ((CheckResult.Banned) result).updateBy(view -> {
-                            update.update(queryResult[0], view).apply(view);
-                            return view;
-                        });
-                    }
-                    return result;
+                };
+                if (update != null) {
+                    return origin.banFor(predicate, this, view -> {
+                        update.update(queryResult[0], view).apply(view);
+                        return view;
+                    });
+                } else {
+                    return origin.banFor(predicate, this);
                 }
             }
         }
