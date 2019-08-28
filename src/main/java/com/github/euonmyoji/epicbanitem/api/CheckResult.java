@@ -51,6 +51,7 @@ public class CheckResult {
 
         @Override
         public CheckResult.Banned banFor(Predicate<? super DataView> predicate) {
+            predicate.test(view);//I do not like side effects
             return this;
         }
 
