@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
-import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -75,7 +74,7 @@ public class Settings {
         this.listenLoadingChunk = false;
         this.printItemToBlockMapping = true;
         Collection<WorldProperties> worlds = this.server.getAllWorldProperties();
-        this.enabledTriggers = Maps.newLinkedHashMap(Maps.toMap(Triggers.getDefaultTriggers(), k -> true));
+        this.enabledTriggers = Maps.newLinkedHashMap(Maps.toMap(Triggers.getTriggers().keySet(), k -> true));
         this.enabledWorlds = Maps.newLinkedHashMap(Maps.toMap(Iterables.transform(worlds, WorldProperties::getWorldName), k -> true));
     }
 

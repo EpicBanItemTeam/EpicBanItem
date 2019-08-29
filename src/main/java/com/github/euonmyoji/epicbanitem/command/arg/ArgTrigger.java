@@ -28,7 +28,7 @@ public class ArgTrigger extends CommandElement {
     @Override
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String arg = args.next().toLowerCase();
-        if (Triggers.getDefaultTriggers().contains(arg)) {
+        if (Triggers.getTriggers().containsKey(arg)) {
             return arg;
         }
         throw args.createError(EpicBanItem.getMessages()
@@ -38,6 +38,6 @@ public class ArgTrigger extends CommandElement {
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
-        return Triggers.getDefaultTriggers().stream().filter(s -> s.startsWith(prefix)).collect(Collectors.toList());
+        return Triggers.getTriggers().keySet().stream().filter(s -> s.startsWith(prefix)).collect(Collectors.toList());
     }
 }

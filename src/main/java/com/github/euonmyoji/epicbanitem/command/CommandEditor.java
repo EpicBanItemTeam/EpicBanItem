@@ -231,7 +231,7 @@ public class CommandEditor extends AbstractCommand {
             Tristate triggerDefaultSetting = ruleBuilder.getTriggerDefaultSetting();
             Function<String, Boolean> triggerDefault = triggerDefaultSetting == Tristate.UNDEFINED ?
                     settings::isTriggerDefaultEnabled : s -> triggerDefaultSetting.asBoolean();
-            checkAddRemove(triggers, triggerDefault, setTriggers, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings(), Triggers.getDefaultTriggers());
+            checkAddRemove(triggers, triggerDefault, setTriggers, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings(), Triggers.getTriggers().keySet());
             checkAdd(triggers, triggerDefault, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings(), setTriggers);
             builder.append(getMessage("triggers", "mode",
                     formatMode(triggerDefaultSetting, CheckRule::getTriggerDefaultSetting, ruleBuilder::triggerDefaultSetting))).append(Text.NEW_LINE)
