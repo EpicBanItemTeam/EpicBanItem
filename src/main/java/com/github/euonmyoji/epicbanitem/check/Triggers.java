@@ -1,11 +1,11 @@
 package com.github.euonmyoji.epicbanitem.check;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.plugin.meta.util.NonnullByDefault;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -46,6 +46,7 @@ public class Triggers {
         return triggers.keySet();
     }
 
+    @NonnullByDefault
     public static final class Impl implements CheckRuleTrigger {
         private final String name;
 
@@ -66,6 +67,11 @@ public class Triggers {
         @Override
         public String toString() {
             return this.name;
+        }
+
+        @Override
+        public Text toText() {
+            return EpicBanItem.getMessages().getMessage("epicbanitem.triggers." + toString().toLowerCase(Locale.ROOT));
         }
     }
 }

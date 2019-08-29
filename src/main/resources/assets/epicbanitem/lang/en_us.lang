@@ -141,6 +141,10 @@ epicbanitem.checkrule.triggers = Special rules for triggers: {triggers}
 epicbanitem.error.failDeserialize = Failed to parse and deserialize as string
 epicbanitem.error.missingMessage = [Missing message: {message_key}]
 
+#info
+epicbanitem.info.defaultBannedMessage = You cannot {trigger} this {item_pre} for rule(s): {rules}
+epicbanitem.info.defaultUpdateMessage = Your {item_pre} have been updated to {item_post} for rule(s): {rules}
+
 #triggers
 epicbanitem.triggers.use = Use
 epicbanitem.triggers.craft = Craft

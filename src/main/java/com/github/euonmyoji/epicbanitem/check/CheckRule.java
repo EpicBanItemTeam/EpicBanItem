@@ -10,6 +10,7 @@ import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -21,6 +22,7 @@ import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextRepresentable;
+import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -87,13 +89,19 @@ public class CheckRule implements TextRepresentable {
      */
     @Nullable
     private final ConfigurationNode updateNode;
+    //TODO: javadoc
+    @Nullable
+    private final String customMessageString;
+
+    @Nullable
+    private final TextTemplate customMessage;
 
     public CheckRule(String ruleName) {
         this(ruleName, getDefaultQueryNode());
     }
 
     public CheckRule(String ruleName, CheckRule rule) {
-        this(ruleName, rule.queryNode, rule.updateNode, rule.legacyName, rule.priority, rule.worldDefaultSetting, rule.worldSettings, rule.triggerDefaultSetting, rule.triggerSettings);
+        this(ruleName, rule.queryNode, rule.updateNode, rule.legacyName, rule.priority, rule.worldDefaultSetting, rule.worldSettings, rule.triggerDefaultSetting, rule.triggerSettings, null);
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode) {
@@ -101,10 +109,10 @@ public class CheckRule implements TextRepresentable {
     }
 
     public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode) {
-        this(ruleName, queryNode, updateNode, "", 5, Tristate.UNDEFINED, Collections.emptyMap(), Tristate.UNDEFINED, Collections.emptyMap());
+        this(ruleName, queryNode, updateNode, "", 5, Tristate.UNDEFINED, Collections.emptyMap(), Tristate.UNDEFINED, Collections.emptyMap(), null);
     }
 
-    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, String legacyName, int priority, Tristate worldDefaultSetting, Map<String, Boolean> worldSettings, Tristate triggerDefaultSetting, Map<String, Boolean> triggerSettings) {
+    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, String legacyName, int priority, Tristate worldDefaultSetting, Map<String, Boolean> worldSettings, Tristate triggerDefaultSetting, Map<String, Boolean> triggerSettings, @Nullable String customMessageString) {
         this.worldDefaultSetting = worldDefaultSetting;
         this.triggerDefaultSetting = triggerDefaultSetting;
         Preconditions.checkArgument(checkName(ruleName), "Rule name should match \"[a-z0-9-_]+\"");
@@ -118,6 +126,8 @@ public class CheckRule implements TextRepresentable {
         this.priority = priority;
         this.worldSettings = ImmutableMap.copyOf(Objects.requireNonNull(worldSettings));
         this.triggerSettings = ImmutableMap.copyOf(Objects.requireNonNull(triggerSettings));
+        this.customMessageString = customMessageString;
+        this.customMessage = customMessageString == null ? null : TextUtil.parseTextTemplate(customMessageString, ImmutableSet.of("rules", "trigger", "item"));
     }
 
     public static boolean checkName(@Nullable String s) {
@@ -170,6 +180,15 @@ public class CheckRule implements TextRepresentable {
 
     public Map<String, Boolean> getTriggerSettings() {
         return triggerSettings;
+    }
+
+    public Optional<String> getCustomMessageString() {
+        return Optional.ofNullable(customMessageString);
+    }
+
+    @Nullable
+    public TextTemplate getCustomMessage() {
+        return customMessage;
     }
 
     public boolean isEnabledWorld(World world) {
@@ -339,7 +358,8 @@ public class CheckRule implements TextRepresentable {
             if (updateNode.isVirtual() && node.getNode("remove").getBoolean(false)) {
                 updateNode = getDefaultUpdateNode();
             }
-            return new CheckRule(name, queryNode, updateNode.isVirtual() ? null : updateNode, legacyName, priority, worldDefaultSetting, enableWorld, triggerDefaultSetting, enableTriggers);
+            String customMessageString = node.getNode("custom-message").getString();
+            return new CheckRule(name, queryNode, updateNode.isVirtual() ? null : updateNode, legacyName, priority, worldDefaultSetting, enableWorld, triggerDefaultSetting, enableTriggers, customMessageString);
         }
 
         @Override
@@ -363,6 +383,7 @@ public class CheckRule implements TextRepresentable {
             rule.triggerSettings.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
             node.getNode("query").setValue(rule.queryNode);
             node.getNode("update").setValue(rule.updateNode);
+            node.getNode("custom-message").setValue(rule.customMessageString);
         }
     }
 
@@ -376,8 +397,11 @@ public class CheckRule implements TextRepresentable {
         private Tristate triggerDefaultSetting = Tristate.UNDEFINED;
         private Map<String, Boolean> triggerSettings = new TreeMap<>();
         private ConfigurationNode queryNode;
-        private @Nullable
-        ConfigurationNode updateNode;
+        @Nullable
+        private ConfigurationNode updateNode;
+        @Nullable
+        private String customMessageString;
+
 
         private Builder(String name) {
             Preconditions.checkArgument(checkName(name), "Rule name should match \"[a-z0-9-_]+\"");
@@ -436,6 +460,11 @@ public class CheckRule implements TextRepresentable {
             return this;
         }
 
+        public Builder customMessage(@Nullable String customMessage) {
+            this.customMessageString = customMessage;
+            return this;
+        }
+
         public String getName() {
             return name;
         }
@@ -469,8 +498,13 @@ public class CheckRule implements TextRepresentable {
             return updateNode;
         }
 
+        @Nullable
+        public String getCustomMessageString() {
+            return customMessageString;
+        }
+
         public CheckRule build() {
-            return new CheckRule(name, queryNode, updateNode, legacyName, priority, worldDefaultSetting, worldSettings, triggerDefaultSetting, triggerSettings);
+            return new CheckRule(name, queryNode, updateNode, legacyName, priority, worldDefaultSetting, worldSettings, triggerDefaultSetting, triggerSettings, customMessageString);
         }
     }
 }

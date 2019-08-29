@@ -141,6 +141,10 @@ epicbanitem.checkrule.triggers = 针对监听器的特殊规则：{triggers}
 epicbanitem.error.failDeserialize = 无法将该节点解析为字符串
 epicbanitem.error.missingMessage = 【缺失文本：{message_key}】
 
+#info
+epicbanitem.info.defaultBanMessage = 由于规则{rules},你无法{trigger}这个{item_pre}
+epicbanitem.info.defaultUpdateMessage = 由于规则{rules},你的{item_pre}更新为{item_post}
+
 #triggers
 epicbanitem.triggers.use = 使用
 epicbanitem.triggers.craft = 合成

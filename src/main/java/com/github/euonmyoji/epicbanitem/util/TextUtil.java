@@ -9,10 +9,13 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.value.ValueContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
+import org.spongepowered.api.text.translation.Translatable;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -202,5 +205,9 @@ public class TextUtil {
         } finally {
             delegationWriter = null;
         }
+    }
+
+    public static <T extends ValueContainer<?> & Translatable> Text getDisplayName(T item) {
+        return item.get(Keys.DISPLAY_NAME).orElse(Text.of(item.getTranslation()));
     }
 }

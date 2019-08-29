@@ -30,6 +30,7 @@ import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.equipment.WornEquipmentType;
 import org.spongepowered.api.item.inventory.property.EquipmentSlotType;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import static com.github.euonmyoji.epicbanitem.util.TextUtil.getDisplayName;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -59,9 +62,11 @@ public class InventoryListener {
             CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
             if (result.isBanned()) {
                 event.setCancelled(true);
-                result.getFinalView()
-                        .map(view -> getItem(view, item.getQuantity()))
-                        .ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
+                Optional<ItemStack> optionalFinalItem = result.getFinalView()
+                        .map(view -> getItem(view, item.getQuantity()));
+                optionalFinalItem.ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
+                result.prepareMessage(Triggers.THROW, getDisplayName(item.createStack()), getDisplayName(optionalFinalItem.orElse(item.createStack())))
+                        .forEach(player::sendMessage);
             }
         }
     }
@@ -75,8 +80,12 @@ public class InventoryListener {
             CheckResult result = service.check(item, entity.getWorld(), Triggers.DROP, player);
             if (result.isBanned()) {
                 int immutableIndex = i;
-                result.getFinalView().map(view -> getItem(view, item.getQuantity()))
-                        .ifPresent(finalItem -> droppedItems.set(immutableIndex, finalItem.createSnapshot()));
+                Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+                optionalFinalItem.ifPresent(finalItem -> droppedItems.set(immutableIndex, finalItem.createSnapshot()));
+                if (player != null) {
+                    result.prepareMessage(Triggers.DROP, getDisplayName(item.createStack()), getDisplayName(optionalFinalItem.orElse(item.createStack())))
+                            .forEach(player::sendMessage);
+                }
             }
         }
     }
@@ -140,9 +149,10 @@ public class InventoryListener {
         CheckResult result = service.check(item, player.getWorld(), Triggers.PICKUP, player);
         if (result.isBanned()) {
             event.setCancelled(true);
-            result.getFinalView()
-                    .map(view -> getItem(view, item.getQuantity()))
-                    .ifPresent(finalItem -> itemEntity.offer(Keys.REPRESENTED_ITEM, finalItem.createSnapshot()));
+            Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+            optionalFinalItem.ifPresent(finalItem -> itemEntity.offer(Keys.REPRESENTED_ITEM, finalItem.createSnapshot()));
+            result.prepareMessage(Triggers.PICKUP, getDisplayName(itemEntity), getDisplayName(optionalFinalItem.orElse(item.createStack())))
+                    .forEach(player::sendMessage);
         }
     }
 
@@ -187,6 +197,10 @@ public class InventoryListener {
     private void checkInteractBlock(Player player, CheckRuleTrigger trigger, BlockSnapshot snapshot) {
         CheckResult result = service.check(snapshot, player.getWorld(), trigger, player);
         if (result.isBanned()) {
+            Optional<BlockSnapshot> optionalFinalBlock = result.getFinalView().map(view -> NbtTagDataUtil.toBlockSnapshot(view, snapshot.getWorldUniqueId()));
+            optionalFinalBlock.ifPresent(blockSnapshot -> blockSnapshot.restore(true, BlockChangeFlags.NONE));
+            result.prepareMessage(trigger, Text.of(snapshot.getState().getType().getTranslation()), Text.of(optionalFinalBlock.orElse(snapshot).getState().getType().getTranslation()))
+                    .forEach(player::sendMessage);
             result.getFinalView().ifPresent(view -> {
                 UUID worldUniqueId = snapshot.getWorldUniqueId();
                 NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId).restore(true, BlockChangeFlags.NONE);
@@ -197,11 +211,10 @@ public class InventoryListener {
     private boolean checkUseItem(Player player, CheckRuleTrigger trigger, HandType handType, ItemStackSnapshot item) {
         CheckResult result = service.check(item, player.getWorld(), trigger, player);
         if (result.isBanned()) {
-            Optional<DataContainer> finalView = result.getFinalView();
-            if (finalView.isPresent()) {
-                ItemStack finalItem = getItem(finalView.get(), item.getQuantity());
-                player.setItemInHand(handType, finalItem);
-            }
+            Optional<ItemStack> finalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+            finalItem.ifPresent(itemStack -> player.setItemInHand(handType, itemStack));
+            result.prepareMessage(trigger, getDisplayName(item.createStack()), getDisplayName(finalItem.orElse(item.createStack())))
+                    .forEach(player::sendMessage);
             return true;
         }
         return false;
@@ -214,8 +227,13 @@ public class InventoryListener {
             if (result.isBanned()) {
                 Optional<DataContainer> viewOptional = result.getFinalView();
                 if (viewOptional.isPresent()) {
-                    tran.setCustom(getItem(viewOptional.get(), item.getQuantity()).createSnapshot());
+                    ItemStack finalItem = getItem(viewOptional.get(), item.getQuantity());
+                    result.prepareMessage(trigger, getDisplayName(item.createStack()), getDisplayName(finalItem))
+                            .forEach(player::sendMessage);
+                    tran.setCustom(finalItem.createSnapshot());
                 } else {
+                    Text itemName = getDisplayName(item.createStack());
+                    result.prepareMessage(trigger, itemName, itemName).forEach(player::sendMessage);
                     return true;
                 }
             }
