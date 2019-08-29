@@ -19,6 +19,10 @@ public class CheckResult {
         this.view = view;
     }
 
+    public static CheckResult empty(DataContainer view) {
+        return new CheckResult(view);
+    }
+
     public boolean isBanned() {
         return this instanceof CheckResult.Banned;
     }
@@ -29,10 +33,6 @@ public class CheckResult {
 
     public CheckResult banFor(Predicate<? super DataView> predicate) {
         return predicate.test(this.view) ? new Banned(false, this.view) : this;
-    }
-
-    public static CheckResult empty(DataContainer view) {
-        return new CheckResult(view);
     }
 
     @NonnullByDefault

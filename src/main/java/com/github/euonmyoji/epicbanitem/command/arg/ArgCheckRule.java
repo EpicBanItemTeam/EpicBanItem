@@ -28,7 +28,7 @@ class ArgCheckRule extends CommandElement {
     }
 
     @Override
-    protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+    protected CheckRule parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String argString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         Optional<CheckRule> optionalCheckRule = service.getCheckRuleByName(argString);

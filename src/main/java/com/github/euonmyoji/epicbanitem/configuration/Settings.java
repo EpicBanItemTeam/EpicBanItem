@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
-import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;

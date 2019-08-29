@@ -35,9 +35,9 @@ public class BanConfig {
 
     private final Path path;
     private final AutoFileLoader fileLoader;
+    private final LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
     private ImmutableSortedMap<String, CheckRule> checkRulesByName;
     private ImmutableListMultimap<CheckRuleIndex, CheckRule> checkRulesByIndex;
-    private final LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
 
     public BanConfig(AutoFileLoader fileLoader, Path path) {
         this.path = path;

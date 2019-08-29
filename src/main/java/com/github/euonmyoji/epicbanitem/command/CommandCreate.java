@@ -92,7 +92,7 @@ class CommandCreate extends AbstractCommand {
         if (args.hasAny("all-capture") || args.hasAny("all-match")) {
             captureMethods.add(e -> Objects.nonNull(e.getValue()));
         }
-        String name = args.<String>getOne("rule-name").get();
+        String name = args.<String>getOne("rule-name").orElseThrow(() -> new IllegalArgumentException("What's the sponge version?, EpicBanItem cannot find a rule-name!"));
         String query = args.<String>getOne("query-rule").orElse("{}");
         Predicate<Map.Entry<DataQuery, Object>> capture = e -> "id".equals(e.getKey().toString());
         try {
@@ -109,6 +109,7 @@ class CommandCreate extends AbstractCommand {
             ConfigurationNode queryNode = TextUtil.serializeStringToConfigNode(query);
             DataView nbt = handItem.map(e -> NbtTagDataUtil.toNbt(e.getSecond())).orElse(DataContainer.createNew());
             for (Map.Entry<DataQuery, Object> entry : nbt.getValues(false).entrySet()) {
+                //noinspection ConstantConditions interesting idea
                 if (!capture.test(entry)) {
                     nbt.remove(entry.getKey());
                 }

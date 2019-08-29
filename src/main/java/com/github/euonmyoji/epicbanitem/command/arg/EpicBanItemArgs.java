@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
-@SuppressWarnings({"unused"})
 public class EpicBanItemArgs {
 
     private static final Map<String, Tristate> TRISTATE_MAP = ImmutableMap.<String, Tristate>builder()

@@ -160,26 +160,6 @@ public class QueryExpression implements DataPredicate {
         return -1;
     }
 
-    @Override
-    public Optional<QueryResult> query(DataQuery query, DataView view) {
-        Map<String, QueryResult> map = ImmutableMap.of();
-        for (DataPredicate criterion : this.criteria) {
-            Optional<QueryResult> result = criterion.query(query, view);
-            if (result.isPresent()) {
-                map = result.get().merge(map).getChildren();
-            } else {
-                return QueryResult.failure();
-            }
-        }
-        return QueryResult.successObject(map);
-    }
-
-    @Override
-    public Tristate filterString(DataQuery query, String value) {
-        Stream<Tristate> tristates = this.criteria.stream().map(c -> c.filterString(query, value));
-        return tristates.reduce(Tristate.TRUE, QueryExpression::filterAnd);
-    }
-
     private static Tristate filterAnd(Tristate a, Tristate b) {
         if (Tristate.TRUE.equals(a) && Tristate.TRUE.equals(b)) {
             return Tristate.TRUE;
@@ -208,6 +188,26 @@ public class QueryExpression implements DataPredicate {
             return Tristate.TRUE;
         }
         return Tristate.UNDEFINED;
+    }
+
+    @Override
+    public Optional<QueryResult> query(DataQuery query, DataView view) {
+        Map<String, QueryResult> map = ImmutableMap.of();
+        for (DataPredicate criterion : this.criteria) {
+            Optional<QueryResult> result = criterion.query(query, view);
+            if (result.isPresent()) {
+                map = result.get().merge(map).getChildren();
+            } else {
+                return QueryResult.failure();
+            }
+        }
+        return QueryResult.successObject(map);
+    }
+
+    @Override
+    public Tristate filterString(DataQuery query, String value) {
+        Stream<Tristate> tristates = this.criteria.stream().map(c -> c.filterString(query, value));
+        return tristates.reduce(Tristate.TRUE, QueryExpression::filterAnd);
     }
 
     private static class WithPrefix implements DataPredicate {

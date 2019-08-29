@@ -33,11 +33,6 @@ public class CommandCallback extends AbstractCommand {
         super("callback", "cb");
     }
 
-    @Override
-    public String getRootPermission() {
-        return "epicbanitem.command." + parent + "editor";
-    }
-
     public static void clear(UUID player) {
         callbacks.invalidate(player);
     }
@@ -70,6 +65,11 @@ public class CommandCallback extends AbstractCommand {
             }
             length++;
         }
+    }
+
+    @Override
+    public String getRootPermission() {
+        return "epicbanitem.command." + parent + "editor";
     }
 
     @Override

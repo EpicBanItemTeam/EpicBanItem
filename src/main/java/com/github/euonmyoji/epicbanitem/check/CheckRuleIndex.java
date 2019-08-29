@@ -10,8 +10,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.regex.Pattern;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */

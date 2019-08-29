@@ -20,7 +20,10 @@ import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -33,6 +36,10 @@ public class CommandCheck extends AbstractCommand {
         super("check", "k");
     }
 
+    public static void addContext(CheckRule rule) {
+        checkRuleContext.put(rule.getName(), rule);
+    }
+
     @Override
     public CommandElement getArgument() {
         // TODO: 可选的世界?
@@ -42,10 +49,6 @@ public class CommandCheck extends AbstractCommand {
                 .buildWith(
                         GenericArguments.none()
                 );
-    }
-
-    public static void addContext(CheckRule rule) {
-        checkRuleContext.put(rule.getName(), rule);
     }
 
     @Override
