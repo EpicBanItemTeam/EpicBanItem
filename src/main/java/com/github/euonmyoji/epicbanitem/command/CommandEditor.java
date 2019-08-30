@@ -183,6 +183,7 @@ public class CommandEditor extends AbstractCommand {
          * {worlds}
          * QueryExpression : not editable
          * UpdateExpression: not editable
+         * Custom Message  : Set/Edit (Unset)
          * <p>
          * Save
          */
@@ -241,6 +242,33 @@ public class CommandEditor extends AbstractCommand {
                     .style(TextStyles.RESET).build(), genQueryTexts()))).append(Text.NEW_LINE)
                     .append(getMessage("update", "options", Text.joinWith(Text.builder("  ")
                             .style(TextStyles.RESET).build(), genUpdateTexts()))).append(Text.NEW_LINE);
+            boolean isInfoSet = ruleBuilder.getCustomMessageString() != null;
+            builder.append(getMessage("info",
+                    "edit", format(
+                            getMessage(isInfoSet ? "info.edit" : "info.set"),
+                            origin != null && !Objects.equals(origin.getCustomMessageString().orElse(null), ruleBuilder.getCustomMessageString()),
+                            isInfoSet ? getMessage("info.edit.hover", "messageString", ruleBuilder.getCustomMessageString()) : getMessage("info.set.hover"),
+                            new Tuple<>(
+                                    GenericArguments.remainingJoinedStrings(Text.of("customMessage")),
+                                    (src, args) -> {
+                                        ruleBuilder.customMessage(args.<String>getOne("customMessage").orElseThrow(NoSuchFieldError::new));
+                                        resend();
+                                        return CommandResult.success();
+                                    }
+                            )
+                    ), "unset", isInfoSet ? format(
+                            getMessage("info.unset"),
+                            false,
+                            getMessage("info.unset.hover"),
+                            new Tuple<>(
+                                    GenericArguments.none(),
+                                    (src, args) -> {
+                                        ruleBuilder.customMessage(null);
+                                        resend();
+                                        return CommandResult.success();
+                                    }
+                            )
+                    ) : Text.EMPTY), Text.NEW_LINE);
             //Save
             builder.append(getMessage("save").toBuilder().style(TextStyles.UNDERLINE, TextStyles.BOLD).color(TextColors.RED)
                             .onClick(TextActions.runCommand(String.format("/%s cb %s", EpicBanItem.getMainCommandAlias(),
@@ -277,17 +305,21 @@ public class CommandEditor extends AbstractCommand {
         /* ********************************************************************************************************** */
 
         private Text format(Object value, boolean edited, Tuple<CommandElement, CommandExecutor> action) {
+            return format(value, edited, null, action);
+        }
+
+        private Text format(Object value, boolean edited, @Nullable Text hover, Tuple<CommandElement, CommandExecutor> action) {
             String ebi = EpicBanItem.getMainCommandAlias();
-            Text.Builder builder = Text.builder().append(Text.of(value.toString()));
+            Text.Builder builder = Text.builder().append(Text.of(value));
             //Mark edited parts bold.
             builder.style(builder.getStyle().bold(edited));
             builder.color(TextColors.BLUE);
             if (action.getFirst().equals(GenericArguments.none())) {
                 builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
             } else {
-                builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s %s", ebi, CommandCallback.add(owner, action), value)));
+                builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s %s", ebi, CommandCallback.add(owner, action), value instanceof Text ? ((Text) value).toPlain() : String.valueOf(value))));
             }
-            builder.onHover(TextActions.showText(getMessage("click")));
+            builder.onHover(TextActions.showText(hover == null ? getMessage("click") : hover));
             return builder.build();
         }
 
