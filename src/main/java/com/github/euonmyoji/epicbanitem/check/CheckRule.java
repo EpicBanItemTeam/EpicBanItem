@@ -127,7 +127,7 @@ public class CheckRule implements TextRepresentable {
         this.worldSettings = ImmutableMap.copyOf(Objects.requireNonNull(worldSettings));
         this.triggerSettings = ImmutableMap.copyOf(Objects.requireNonNull(triggerSettings));
         this.customMessageString = customMessageString;
-        this.customMessage = customMessageString == null ? null : TextUtil.parseTextTemplate(customMessageString, ImmutableSet.of("rules", "trigger", "item"));
+        this.customMessage = customMessageString == null ? null : TextUtil.parseTextTemplate(customMessageString, ImmutableSet.of("rules", "trigger", "item_pre", "item_post"));
     }
 
     public static boolean checkName(@Nullable String s) {
@@ -283,12 +283,12 @@ public class CheckRule implements TextRepresentable {
                     return false;
                 };
                 if (update != null) {
-                    return origin.banFor(predicate, this, view -> {
+                    return origin.banFor(predicate, view -> {
                         update.update(queryResult[0], view).apply(view);
                         return view;
-                    });
+                    }, this.toText(), this.customMessageString);
                 } else {
-                    return origin.banFor(predicate, this);
+                    return origin.banFor(predicate, this.toText(), this.customMessageString);
                 }
             }
         }
