@@ -25,10 +25,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
@@ -146,12 +143,13 @@ public class NbtTagDataUtil {
 
     private static final class Map {
         private static final BiFunction<Location<World>, BlockState, ItemStack> GETTER = getPickBlockGetter();
-        private static final LoadingCache<Location<World>, ImmutableMap<BlockState, ItemStack>> CACHE = getCache();
+        private static final LoadingCache<Location<World>, java.util.Map<BlockState, ItemStack>> CACHE = getCache();
 
         private static BlockState getBlockByItem(DataView view, Location<World> location) throws InvalidDataException {
             long bestSimilarity = -1;
             BlockState oldState = location.getBlock(), bestState = BlockSnapshot.NONE.getState();
-            ImmutableMap<BlockState, ItemStack> map = Objects.requireNonNull(CACHE.get(location));
+            java.util.Map<BlockState, ItemStack> map = Objects.requireNonNull(CACHE.get(location));
+            //todo: 2019-09-18 The commit will weak the effect of cache here. Maybe there will be a better way
             for (java.util.Map.Entry<BlockState, ItemStack> entry : map.entrySet()) {
                 DataContainer d = entry.getValue().toContainer();
                 if (d.get(ITEM_TYPE).equals(view.get(ID)) && d.get(UNSAFE_DAMAGE).equals(view.get(DAMAGE))) {
@@ -181,17 +179,16 @@ public class NbtTagDataUtil {
         }
 
         private static DataContainer getItemByBlock(Location<World> location) {
-            ImmutableMap<BlockState, ItemStack> map = Objects.requireNonNull(CACHE.get(location));
-            return map.getOrDefault(location.getBlock(), ItemStack.empty()).toContainer();
+            java.util.Map<BlockState, ItemStack> map = Objects.requireNonNull(CACHE.get(location));
+            return map.computeIfAbsent(location.getBlock(), state -> GETTER.apply(location, state)).toContainer();
         }
 
-        private static LoadingCache<Location<World>, ImmutableMap<BlockState, ItemStack>> getCache() {
+        private static LoadingCache<Location<World>, java.util.Map<BlockState, ItemStack>> getCache() {
             return Caffeine.newBuilder().weakKeys().expireAfterWrite(30, TimeUnit.MINUTES).build(location -> {
-                ImmutableMap.Builder<BlockState, ItemStack> builder = ImmutableMap.builder();
-                for (BlockState state : location.getBlockType().getAllBlockStates()) {
-                    builder.put(state, GETTER.apply(location, state));
-                }
-                return builder.build();
+                HashMap<BlockState, ItemStack> map = new HashMap<>();
+                BlockState state = location.getBlock();
+                map.put(state, GETTER.apply(location, state));
+                return map;
             });
         }
 
