@@ -11,7 +11,7 @@ import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.google.inject.Inject;
-import org.bstats.sponge.Metrics;
+import com.github.euonmyoji.epicbanitem.util.repackage.org.bstats.sponge.Metrics;
 import org.slf4j.Logger;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.Sponge;

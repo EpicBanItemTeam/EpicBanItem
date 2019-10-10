@@ -28,14 +28,9 @@ repositories {
         name = "sponge"
         url = "https://repo.spongepowered.org/maven"
     }
-    maven {
-        name = "bstats"
-        url = 'http://repo.bstats.org/content/repositories/releases'
-    }
 }
 
 dependencies {
-    compile "org.bstats:bstats-sponge:1.2"
     compile "org.spongepowered:spongeapi:$spongeVersion"
 }
 
