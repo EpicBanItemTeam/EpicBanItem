@@ -219,7 +219,7 @@ public class TextUtil {
     private static final Map<String, TextTemplate> customInfoMessageCache = new ConcurrentHashMap<>();
     private static final Set<String> INFO_TOKENS = ImmutableSet.of("rules", "trigger", "item_pre", "item_post");
 
-    public static Collection<Text> prepareMessage(CheckRuleTrigger trigger, Text itemPre, List<Tuple<Text, Optional<String>>> banRules, boolean updated) {
+    public static Collection<Text> prepareMessage(CheckRuleTrigger trigger, Text itemPre, Text itemPost, List<Tuple<Text, Optional<String>>> banRules, boolean updated) {
         LinkedHashMap<String, Tuple<TextTemplate, List<Text>>> map = new LinkedHashMap<>();
         List<Text> undefined = new ArrayList<>();
         for (Tuple<Text, Optional<String>> rule : banRules) {
@@ -235,12 +235,20 @@ public class TextUtil {
                 undefined.add(rule.getFirst());
             }
         }
-        Function<List<Text>, Map<String, Text>> toParams = checkRules -> ImmutableMap.of(
-                "rules", Text.joinWith(Text.of(","), checkRules),
-                "trigger", trigger.toText(),
-                "item_pre", itemPre,
-                "item_post", itemPre
-        );
+        Function<List<Text>, Map<String, Text>> toParams = checkRules -> {
+            Text triggerText;
+            try {
+                triggerText = trigger.toText();
+            } catch (AbstractMethodError e) {
+                triggerText = Text.of(trigger.toString());
+            }
+            return ImmutableMap.of(
+                    "rules", Text.joinWith(Text.of(","), checkRules),
+                    "trigger", triggerText,
+                    "item_pre", itemPre,
+                    "item_post", itemPost
+            );
+        };
         List<Text> result = new ArrayList<>();
         if (!undefined.isEmpty()) {
             result.add(EpicBanItem.getMessages().getMessage(
