@@ -282,14 +282,23 @@ public class CheckRule implements TextRepresentable {
                     }
                     return false;
                 };
-                if (update != null) {
-                    return origin.banFor(predicate, view -> {
-                        update.update(queryResult[0], view).apply(view);
-                        return view;
-                    }, this.toText(), this.customMessageString);
-                } else {
-                    return origin.banFor(predicate, this.toText(), this.customMessageString);
+                origin = origin.banFor(predicate);
+                if (queryResult[0] != null && origin.isBanned()) {
+                    CheckResult.Banned newOne = (CheckResult.Banned) origin;
+                    if (this.customMessageString == null) {
+                        newOne = newOne.withMessage(this.toText());
+                    } else {
+                        newOne = newOne.withMessage(this.toText(), this.customMessageString);
+                    }
+                    if (update != null) {
+                        newOne = newOne.updateBy(view -> {
+                            update.update(queryResult[0], view).apply(view);
+                            return view;
+                        });
+                    }
+                    return newOne;
                 }
+                return origin;
             }
         }
         return origin;

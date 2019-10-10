@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.api;
 
-import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.collect.ImmutableList;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataView;
@@ -8,9 +7,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -27,6 +23,10 @@ public class CheckResult {
         this.view = view;
     }
 
+    public boolean isUpdateNeeded() {
+        return false;
+    }
+
     public boolean isBanned() {
         return this instanceof CheckResult.Banned;
     }
@@ -35,22 +35,8 @@ public class CheckResult {
         return Optional.empty();
     }
 
-    @Deprecated
     public CheckResult banFor(Predicate<? super DataView> predicate) {
         return predicate.test(this.view) ? new Banned(false, this.view, ImmutableList.of()) : this;
-    }
-
-    public CheckResult banFor(Predicate<? super DataView> predicate, Text text, @Nullable String customMessage) {
-        return predicate.test(this.view) ? new Banned(false, this.view, ImmutableList.of(Tuple.of(text, Optional.ofNullable(customMessage)))) : this;
-    }
-
-    public CheckResult banFor(Predicate<? super DataView> predicate, Function<? super DataView, ? extends DataView> update, Text text, @Nullable String customMessage) {
-        List<Tuple<Text, Optional<String>>> rules = ImmutableList.of(Tuple.of(text, Optional.ofNullable(customMessage)));
-        return predicate.test(this.view) ? new Banned(true, update.apply(this.view), rules) : this;
-    }
-
-    public Collection<Text> prepareMessage(CheckRuleTrigger trigger, Text itemPre, Text itemPost) {
-        return Collections.emptyList();
     }
 
     public static CheckResult empty(DataContainer view) {
@@ -68,54 +54,37 @@ public class CheckResult {
             this.banRules = banRules;
         }
 
+        @Deprecated // not a stable api yet
+        public List<Tuple<Text, Optional<String>>> getBanRules() {
+            return this.banRules;
+        }
+
+        @Override
+        public boolean isUpdateNeeded() {
+            return this.updated;
+        }
+
         @Override
         public Optional<DataContainer> getFinalView() {
             return this.updated ? Optional.of(this.view.copy()) : Optional.empty();
         }
 
-        @Deprecated
         @Override
         public CheckResult.Banned banFor(Predicate<? super DataView> predicate) {
             predicate.test(view);//I do not like side effects
             return this;
         }
 
-
-        @Override
-        public CheckResult.Banned banFor(Predicate<? super DataView> predicate, Text text, @Nullable String customMessage) {
-            if (predicate.test(view)) {
-                return new Banned(updated, view,
-                        ImmutableList.<Tuple<Text, Optional<String>>>builder()
-                                .addAll(banRules).add(Tuple.of(text, Optional.ofNullable(customMessage))).build()
-                );
-            } else {
-                return this;
-            }
+        public CheckResult.Banned withMessage(Text text) {
+            return new Banned(updated, view,
+                    ImmutableList.<Tuple<Text, Optional<String>>>builder()
+                            .addAll(banRules).add(Tuple.of(text, Optional.empty())).build());
         }
 
-        @Override
-        public CheckResult.Banned banFor(
-                Predicate<? super DataView> predicate,
-                Function<? super DataView, ? extends DataView> update,
-                Text text, @Nullable String customMessage
-        ) {
-            if (predicate.test(view)) {
-                return new Banned(
-                        true,
-                        update.apply(view),
-                        ImmutableList.<Tuple<Text, Optional<String>>>builder()
-                                .addAll(banRules)
-                                .add(Tuple.of(text, Optional.ofNullable(customMessage)))
-                                .build()
-                );
-            } else {
-                return this;
-            }
-        }
-
-        @Override
-        public Collection<Text> prepareMessage(CheckRuleTrigger trigger, Text itemPre, Text itemPost) {
-            return TextUtil.prepareMessage(trigger, itemPre, banRules, updated);
+        public CheckResult.Banned withMessage(Text text, String customMessageTemplate) {
+            return new Banned(updated, view,
+                    ImmutableList.<Tuple<Text, Optional<String>>>builder()
+                            .addAll(banRules).add(Tuple.of(text, Optional.of(customMessageTemplate))).build());
         }
 
         public CheckResult.Banned updateBy(Function<? super DataView, ? extends DataView> function) {

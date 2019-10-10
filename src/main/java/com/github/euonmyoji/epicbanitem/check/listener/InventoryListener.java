@@ -6,6 +6,7 @@ import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.DataContainer;
@@ -36,10 +37,7 @@ import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.storage.WorldProperties;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.github.euonmyoji.epicbanitem.util.TextUtil.getDisplayName;
@@ -65,7 +63,8 @@ public class InventoryListener {
                 Optional<ItemStack> optionalFinalItem = result.getFinalView()
                         .map(view -> getItem(view, item.getQuantity()));
                 optionalFinalItem.ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
-                result.prepareMessage(Triggers.THROW, getDisplayName(item.createStack()), getDisplayName(optionalFinalItem.orElse(item.createStack())))
+                getDisplayName(optionalFinalItem.orElse(item.createStack()));
+                TextUtil.prepareMessage(Triggers.THROW, getDisplayName(item.createStack()), ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
                         .forEach(player::sendMessage);
             }
         }
@@ -83,7 +82,8 @@ public class InventoryListener {
                 Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
                 optionalFinalItem.ifPresent(finalItem -> droppedItems.set(immutableIndex, finalItem.createSnapshot()));
                 if (player != null) {
-                    result.prepareMessage(Triggers.DROP, getDisplayName(item.createStack()), getDisplayName(optionalFinalItem.orElse(item.createStack())))
+                    getDisplayName(optionalFinalItem.orElse(item.createStack()));
+                    TextUtil.prepareMessage(Triggers.DROP, getDisplayName(item.createStack()), ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
                             .forEach(player::sendMessage);
                 }
             }
@@ -151,7 +151,8 @@ public class InventoryListener {
             event.setCancelled(true);
             Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
             optionalFinalItem.ifPresent(finalItem -> itemEntity.offer(Keys.REPRESENTED_ITEM, finalItem.createSnapshot()));
-            result.prepareMessage(Triggers.PICKUP, getDisplayName(itemEntity), getDisplayName(optionalFinalItem.orElse(item.createStack())))
+            getDisplayName(optionalFinalItem.orElse(item.createStack()));
+            TextUtil.prepareMessage(Triggers.PICKUP, getDisplayName(itemEntity), ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
                     .forEach(player::sendMessage);
         }
     }
@@ -199,7 +200,8 @@ public class InventoryListener {
         if (result.isBanned()) {
             Optional<BlockSnapshot> optionalFinalBlock = result.getFinalView().map(view -> NbtTagDataUtil.toBlockSnapshot(view, snapshot.getWorldUniqueId()));
             optionalFinalBlock.ifPresent(blockSnapshot -> blockSnapshot.restore(true, BlockChangeFlags.NONE));
-            result.prepareMessage(trigger, Text.of(snapshot.getState().getType().getTranslation()), Text.of(optionalFinalBlock.orElse(snapshot).getState().getType().getTranslation()))
+            Text.of(optionalFinalBlock.orElse(snapshot).getState().getType().getTranslation());
+            TextUtil.prepareMessage(trigger, Text.of(snapshot.getState().getType().getTranslation()), ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
                     .forEach(player::sendMessage);
             result.getFinalView().ifPresent(view -> {
                 UUID worldUniqueId = snapshot.getWorldUniqueId();
@@ -213,7 +215,8 @@ public class InventoryListener {
         if (result.isBanned()) {
             Optional<ItemStack> finalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
             finalItem.ifPresent(itemStack -> player.setItemInHand(handType, itemStack));
-            result.prepareMessage(trigger, getDisplayName(item.createStack()), getDisplayName(finalItem.orElse(item.createStack())))
+            getDisplayName(finalItem.orElse(item.createStack()));
+            TextUtil.prepareMessage(trigger, getDisplayName(item.createStack()), ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
                     .forEach(player::sendMessage);
             return true;
         }
@@ -228,12 +231,13 @@ public class InventoryListener {
                 Optional<DataContainer> viewOptional = result.getFinalView();
                 if (viewOptional.isPresent()) {
                     ItemStack finalItem = getItem(viewOptional.get(), item.getQuantity());
-                    result.prepareMessage(trigger, getDisplayName(item.createStack()), getDisplayName(finalItem))
+                    getDisplayName(finalItem);
+                    TextUtil.prepareMessage(trigger, getDisplayName(item.createStack()), ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
                             .forEach(player::sendMessage);
                     tran.setCustom(finalItem.createSnapshot());
                 } else {
                     Text itemName = getDisplayName(item.createStack());
-                    result.prepareMessage(trigger, itemName, itemName).forEach(player::sendMessage);
+                    TextUtil.prepareMessage(trigger, itemName, ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded()).forEach(player::sendMessage);
                     return true;
                 }
             }
