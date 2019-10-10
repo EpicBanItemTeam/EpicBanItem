@@ -1,8 +1,12 @@
 package com.github.euonmyoji.epicbanitem.util;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.api.CheckResult;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.util.nbt.NbtTagRenderer;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonWriter;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -16,14 +20,15 @@ import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.text.translation.Translatable;
+import org.spongepowered.api.util.Tuple;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -209,5 +214,43 @@ public class TextUtil {
 
     public static <T extends ValueContainer<?> & Translatable> Text getDisplayName(T item) {
         return item.get(Keys.DISPLAY_NAME).orElse(Text.of(item.getTranslation()));
+    }
+
+    private static final Map<String, TextTemplate> customInfoMessageCache = new ConcurrentHashMap<>();
+    private static final Set<String> INFO_TOKENS = ImmutableSet.of("rules", "trigger", "item_pre", "item_post");
+
+    public static Collection<Text> prepareMessage(CheckRuleTrigger trigger, Text itemPre, List<Tuple<Text, Optional<String>>> banRules, boolean updated) {
+        LinkedHashMap<String, Tuple<TextTemplate, List<Text>>> map = new LinkedHashMap<>();
+        List<Text> undefined = new ArrayList<>();
+        for (Tuple<Text, Optional<String>> rule : banRules) {
+            if (rule.getSecond().isPresent()) {
+                map.computeIfAbsent(
+                        rule.getSecond().get(),
+                        s -> new Tuple<>(
+                                customInfoMessageCache.computeIfAbsent(s, s1 -> parseTextTemplate(s1, INFO_TOKENS)),
+                                new ArrayList<>()
+                        )
+                ).getSecond().add(rule.getFirst());
+            } else {
+                undefined.add(rule.getFirst());
+            }
+        }
+        Function<List<Text>, Map<String, Text>> toParams = checkRules -> ImmutableMap.of(
+                "rules", Text.joinWith(Text.of(","), checkRules),
+                "trigger", trigger.toText(),
+                "item_pre", itemPre,
+                "item_post", itemPre
+        );
+        List<Text> result = new ArrayList<>();
+        if (!undefined.isEmpty()) {
+            result.add(EpicBanItem.getMessages().getMessage(
+                    updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage",
+                    toParams.apply(undefined)
+            ));
+        }
+        for (Tuple<TextTemplate, List<Text>> tuple : map.values()) {
+            result.add(tuple.getFirst().apply(toParams.apply(tuple.getSecond())).build());
+        }
+        return result.stream().filter(text -> !text.isEmpty()).collect(Collectors.toList());
     }
 }

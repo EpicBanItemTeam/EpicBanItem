@@ -1,32 +1,26 @@
 package com.github.euonmyoji.epicbanitem.api;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class CheckResult {
-    private static final Map<String, TextTemplate> customInfoMessageCache = new ConcurrentHashMap<>();
-    private static final Set<String> INFO_TOKENS = ImmutableSet.of("rules", "trigger", "item_pre", "item_post");
-
     protected final DataView view;
 
     private CheckResult(DataView view) {
@@ -121,38 +115,7 @@ public class CheckResult {
 
         @Override
         public Collection<Text> prepareMessage(CheckRuleTrigger trigger, Text itemPre, Text itemPost) {
-            LinkedHashMap<String, Tuple<TextTemplate, List<Text>>> map = new LinkedHashMap<>();
-            List<Text> undefined = new ArrayList<>();
-            for (Tuple<Text, Optional<String>> rule : banRules) {
-                if (rule.getSecond().isPresent()) {
-                    map.computeIfAbsent(
-                            rule.getSecond().get(),
-                            s -> new Tuple<>(
-                                    customInfoMessageCache.computeIfAbsent(s, s1 -> TextUtil.parseTextTemplate(s1, INFO_TOKENS)),
-                                    new ArrayList<>()
-                            )
-                    ).getSecond().add(rule.getFirst());
-                } else {
-                    undefined.add(rule.getFirst());
-                }
-            }
-            Function<List<Text>, Map<String, Text>> toParams = checkRules -> ImmutableMap.of(
-                    "rules", Text.joinWith(Text.of(","), checkRules),
-                    "trigger", trigger.toText(),
-                    "item_pre", itemPre,
-                    "item_post", itemPre
-            );
-            List<Text> result = new ArrayList<>();
-            if (!undefined.isEmpty()) {
-                result.add(EpicBanItem.getMessages().getMessage(
-                        updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage",
-                        toParams.apply(undefined)
-                ));
-            }
-            for (Tuple<TextTemplate, List<Text>> tuple : map.values()) {
-                result.add(tuple.getFirst().apply(toParams.apply(tuple.getSecond())).build());
-            }
-            return result.stream().filter(text -> !text.isEmpty()).collect(Collectors.toList());
+            return TextUtil.prepareMessage(trigger, itemPre, banRules, updated);
         }
 
         public CheckResult.Banned updateBy(Function<? super DataView, ? extends DataView> function) {
