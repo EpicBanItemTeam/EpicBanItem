@@ -90,6 +90,13 @@ epicbanitem.command.editor.triggers = Triggers :{mode}
 epicbanitem.command.editor.worlds = Worlds   :{mode}
 epicbanitem.command.editor.query = QueryExpression : {options}
 epicbanitem.command.editor.update = UpdateExpression: {options}
+epicbanitem.command.editor.info = InfoMessage: {edit} {unset}
+epicbanitem.command.editor.info.set = Set
+epicbanitem.command.editor.info.set.hover = Use the default message.\nClick to edit.\nYou can use placeholders: {rules}, {trigger}, {item_pre}, {item_post}
+epicbanitem.command.editor.info.edit = Edit
+epicbanitem.command.editor.info.edit.hover = Custom message：{messageString}\nClick to edit.\nYou can use placeholders: {rules}, {trigger}, {item_pre}, {item_post}
+epicbanitem.command.editor.info.unset = Unset
+epicbanitem.command.editor.info.unset.hover = Click to clear the custom message，and use the defualt one.
 epicbanitem.command.editor.save = Save
 epicbanitem.command.editor.saved = &aSaved
 epicbanitem.command.editor.custom = Currently
@@ -140,6 +147,10 @@ epicbanitem.checkrule.triggers = Special rules for triggers: {triggers}
 #error
 epicbanitem.error.failDeserialize = Failed to parse and deserialize as string
 epicbanitem.error.missingMessage = [Missing message: {message_key}]
+
+#info
+epicbanitem.info.defaultBanMessage = You cannot {trigger} this {item_pre} for rule(s): {rules}
+epicbanitem.info.defaultUpdateMessage = Your {item_pre} have been updated to {item_post} for rule(s): {rules}
 
 #triggers
 epicbanitem.triggers.use = Use

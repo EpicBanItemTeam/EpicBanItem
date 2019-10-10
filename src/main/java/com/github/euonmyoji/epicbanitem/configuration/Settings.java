@@ -74,7 +74,7 @@ public class Settings {
         this.listenLoadingChunk = false;
         this.printItemToBlockMapping = true;
         Collection<WorldProperties> worlds = this.server.getAllWorldProperties();
-        this.enabledTriggers = Maps.newLinkedHashMap(Maps.toMap(Triggers.getDefaultTriggers(), k -> true));
+        this.enabledTriggers = Maps.newLinkedHashMap(Maps.toMap(Triggers.getTriggers().keySet(), k -> true));
         this.enabledWorlds = Maps.newLinkedHashMap(Maps.toMap(Iterables.transform(worlds, WorldProperties::getWorldName), k -> true));
     }
 
