@@ -1,5 +1,11 @@
 # EpicBanItem Changelog
 
+## v0.3.3
+
+* Fix that regular expression on `$not` operator cannot work normally.
+* Fix the wrong behavior occurred when multiple rules are applied on an item.
+* Make it possible to show customizable error message immediately after an item is banned.
+
 ## v0.3.2
 
 * Add a new flag named `--simple-capture`.
