@@ -411,7 +411,7 @@ public class CommandEditor extends AbstractCommand {
                             ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule);
                             ruleBuilder.queryNode(node);
                         } catch (IOException e) {
-                            throw new CommandException(Text.of("Error"), e);
+                            throw handleException(src, Text.of("Unexpected error."), e);
                         }
                         resend();
                         return CommandResult.success();
@@ -460,7 +460,7 @@ public class CommandEditor extends AbstractCommand {
                                 ConfigurationNode node = TextUtil.serializeStringToConfigNode(rule.get());
                                 ruleBuilder.updateNode(node);
                             } catch (IOException e) {
-                                throw new CommandException(Text.of("Error"), e);
+                                throw handleException(src, Text.of("Unexpected error."), e);
                             }
                         } else {
                             ruleBuilder.updateNode(null);

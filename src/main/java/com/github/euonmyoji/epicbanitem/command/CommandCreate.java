@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
@@ -34,6 +33,7 @@ import org.spongepowered.api.world.World;
 import java.util.*;
 import java.util.function.Predicate;
 
+import static com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs.patternString;
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
 /**
@@ -75,7 +75,7 @@ class CommandCreate extends AbstractCommand {
 
     @Override
     public CommandElement getArgument() {
-        return seq(string(Text.of("rule-name")), flags()
+        return seq(patternString(Text.of("rule-name"), CheckRule.NAME_PATTERN), flags()
                 .flag("-no-capture").flag("-simple-capture").flag("-all-capture").flag("-all-match")
                 .buildWith(optional(remainingRawJoinedStrings(Text.of("query-rule")))));
     }
@@ -139,8 +139,7 @@ class CommandCreate extends AbstractCommand {
         } catch (CommandException e) {
             throw e;
         } catch (Exception e) {
-            EpicBanItem.getLogger().error("Failed to create.", e);
-            throw new CommandException(getMessage("failed"), e);
+            throw handleException(src, getMessage("failed"), e);
         }
     }
 }

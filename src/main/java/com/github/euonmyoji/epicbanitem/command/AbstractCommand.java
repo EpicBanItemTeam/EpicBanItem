@@ -10,10 +10,13 @@ import org.spongepowered.api.command.args.*;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -194,6 +197,21 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         builder.append(getArgHelp(src), Text.NEW_LINE);
 //                builder.append(getExtendedDescription(),Text.NEW_LINE);
         return builder.build();
+    }
+
+    protected static CommandException handleException(CommandSource src, Text text, Throwable thr) {
+        EpicBanItem.getLogger().error(text.toPlain(), thr);
+        Text.Builder exceptionTextBuilder = Text.builder(thr.toString())
+                .color(TextColors.RED);
+        if (src.hasPermission("epicbanitem.hover-stacktrace")) {
+            StringWriter writer = new StringWriter();
+            thr.printStackTrace(new PrintWriter(writer));
+            exceptionTextBuilder.onHover(TextActions.showText(Text.of(writer.toString()
+                    .replace("\t", "    ")
+                    .replace("\r\n", "\n")
+                    .replace("\r", "\n"))));
+        }
+        return new CommandException(Text.of(text, exceptionTextBuilder.build()), thr);
     }
 
     public abstract CommandElement getArgument();
