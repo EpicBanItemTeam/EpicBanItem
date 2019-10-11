@@ -43,11 +43,7 @@ shadowJar {
 
     build.dependsOn += it
 
-    dependencies {
-        it.include it.dependency("org.bstats:.*")
-    }
-
-    relocate "org.bstats", "${project.group}.epicbanitem.util.repackage.org.bstats"
+    configurations = [] // no dependency now
 }
 
 blossom {
