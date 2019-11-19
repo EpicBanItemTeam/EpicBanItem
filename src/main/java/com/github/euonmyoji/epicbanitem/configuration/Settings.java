@@ -5,7 +5,6 @@ import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -30,7 +29,6 @@ public class Settings {
     private static final String DEFAULT_WORLD = "default-world";
     private static final String DEFAULT_TRIGGER = "default-trigger";
     private static final String PRINT_ITEM_TO_BLOCK_MAPPING = "print-item-to-block-mapping";
-    private static final String ENABLE_CRAFTING_LISTENER = "enable-crafting-listener";
     //    private static final String LISTEN_CHUNK_LOAD = "listen-chunk-load";  not impl yet
 
     private final Server server = Sponge.getServer();
@@ -43,8 +41,6 @@ public class Settings {
 
     private Map<String, Boolean> enabledWorlds = Maps.newLinkedHashMap();
     private Map<String, Boolean> enabledTriggers = Maps.newLinkedHashMap();
-
-    private boolean enableCraftingListener = true;
 
     public Settings(AutoFileLoader fileLoader, Path settingPath) {
         this.resetToDefault();
@@ -93,8 +89,6 @@ public class Settings {
 
         ConfigurationNode defaultTriggers = cfg.getNode("epicbanitem", DEFAULT_TRIGGER);
         defaultTriggers.getChildrenMap().forEach((k, v) -> this.enabledTriggers.put(k.toString(), v.getBoolean()));
-
-        this.enableCraftingListener = cfg.getNode("epicbanitem", ENABLE_CRAFTING_LISTENER).getBoolean(true);
     }
 
     private void save(ConfigurationNode cfg) {
@@ -106,11 +100,6 @@ public class Settings {
         this.enabledWorlds.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
 
         this.enabledTriggers.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_TRIGGER, k).setValue(v));
-
-        cfg.getNode("epicbanitem", ENABLE_CRAFTING_LISTENER).setValue(enableCraftingListener);
-        if (cfg instanceof CommentedConfigurationNode) {
-            ((CommentedConfigurationNode) cfg.getNode("epicbanitem", ENABLE_CRAFTING_LISTENER)).setComment("You can disable the ebi crafting listener or use CraftingResultRedirector(https://github.com/ustc-zzzz/CraftingRecipeRedirector/releases) to avoid a sponge's bug,\n see https://github.com/euOnmyoji/EpicBanItem---Sponge/issues/16 for more details.");
-        }
     }
 
     public boolean printItemToBlockMapping() {
@@ -131,9 +120,6 @@ public class Settings {
     }
 
     public boolean isCraftingEventClass(AffectItemStackEvent event) {
-        if (!enableCraftingListener) {
-            return false;
-        }
         return this.eventClass == null ? event instanceof CraftItemEvent.Preview : this.eventClass.isInstance(event);
     }
 }
