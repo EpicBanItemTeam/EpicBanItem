@@ -4,6 +4,7 @@ import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -13,12 +14,14 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -38,10 +41,15 @@ public class ChunkListener {
             CheckResult result = service.check(snapshot, location.getExtent(), Triggers.BREAK, player);
             if (result.isBanned()) {
                 event.setCancelled(true);
-                result.getFinalView().ifPresent(view -> {
+                Optional<BlockSnapshot> optionalFinal = result.getFinalView().map(view -> {
                     UUID worldUniqueId = snapshot.getWorldUniqueId();
-                    scheduledChanges.add(NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId));
+                    return NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId);
                 });
+                optionalFinal.ifPresent(scheduledChanges::add);
+                Text originBlockName = Text.of(snapshot.getState().getType().getTranslation());
+                Text finalBlockName = Text.of(optionalFinal.orElse(snapshot).getState().getType().getTranslation());
+                TextUtil.prepareMessage(Triggers.BREAK, originBlockName, finalBlockName, ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
+                        .forEach(player::sendMessage);
             }
         }
         for (BlockSnapshot scheduledChange : scheduledChanges) {
@@ -59,10 +67,15 @@ public class ChunkListener {
             CheckResult result = service.check(snapshot, world, Triggers.PLACE, player);
             if (result.isBanned()) {
                 transaction.setValid(false);
-                result.getFinalView().ifPresent(view -> {
+                Optional<BlockSnapshot> optionalFinal = result.getFinalView().map(view -> NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId));
+                optionalFinal.ifPresent(blockSnapshot -> {
                     transaction.setValid(isValidBefore);
-                    transaction.setCustom(NbtTagDataUtil.toBlockSnapshot(view, worldUniqueId));
+                    transaction.setCustom(blockSnapshot);
                 });
+                Text originBlockName = Text.of(snapshot.getState().getType().getTranslation());
+                Text finalBlockName = Text.of(optionalFinal.orElse(snapshot).getState().getType().getTranslation());
+                TextUtil.prepareMessage(Triggers.PLACE, originBlockName, finalBlockName, ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
+                        .forEach(player::sendMessage);
             }
         }
     }
