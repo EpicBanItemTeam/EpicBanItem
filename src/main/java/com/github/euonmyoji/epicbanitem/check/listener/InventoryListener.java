@@ -9,7 +9,10 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.spongepowered.api.Sponge;
@@ -28,18 +31,25 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
-import org.spongepowered.api.event.filter.IsCancelled;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.filter.type.Include;
-import org.spongepowered.api.event.item.inventory.*;
+import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
+import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
+import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
+import org.spongepowered.api.event.item.inventory.DropItemEvent;
+import org.spongepowered.api.event.item.inventory.InteractItemEvent;
+import org.spongepowered.api.event.item.inventory.TargetInventoryEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent.Join;
-import org.spongepowered.api.item.inventory.*;
+import org.spongepowered.api.item.inventory.Container;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.equipment.WornEquipmentType;
 import org.spongepowered.api.item.inventory.property.EquipmentSlotType;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
@@ -207,39 +217,36 @@ public class InventoryListener {
     }
 
     @Listener
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void onJoin(Join event, @First Player player) {
-        StreamSupport
-            .stream(player.getInventory().slots().spliterator(), false)
-            .filter(inventory -> inventory instanceof Slot)
+        service
+            .checkInventory(player.getInventory(), player.getWorld(), Triggers.JOIN, player)
+            .stream()
+            .filter(tuple -> tuple.getFirst().isBanned())
             .forEach(
-                inventory ->
-                    inventory
-                        .peek()
+                tuple -> {
+                    tuple
+                        .getFirst()
+                        .getFinalView()
+                        .map(dataContainer -> NbtTagDataUtil.toItemStack(dataContainer, tuple.getSecond().peek().get().getQuantity()))
                         .ifPresent(
-                            itemStack -> {
-                                CheckResult checkResult = service.check(itemStack, player.getWorld(), Triggers.JOIN, player);
-
-                                if (checkResult.isBanned()) {
-                                    checkResult
-                                        .getFinalView()
-                                        .map(dataContainer -> NbtTagDataUtil.toItemStack(dataContainer, itemStack.getQuantity()))
-                                        .ifPresent(
-                                            finalItem -> {
-                                                inventory.set(finalItem);
-                                                TextUtil
-                                                    .prepareMessage(
-                                                        Triggers.JOIN,
-                                                        TextUtil.getDisplayName(itemStack),
-                                                        TextUtil.getDisplayName(finalItem),
-                                                        ((CheckResult.Banned) checkResult).getBanRules(),
-                                                        checkResult.isUpdateNeeded()
-                                                    )
-                                                    .forEach(player::sendMessage);
-                                            }
-                                        );
-                                }
+                            finalItem -> {
+                                CheckResult checkResult = tuple.getFirst();
+                                Inventory inventory = tuple.getSecond();
+                                ItemStack itemStack = inventory.peek().get();
+                                inventory.set(finalItem);
+                                TextUtil
+                                    .prepareMessage(
+                                        Triggers.JOIN,
+                                        TextUtil.getDisplayName(itemStack),
+                                        TextUtil.getDisplayName(finalItem),
+                                        ((CheckResult.Banned) checkResult).getBanRules(),
+                                        checkResult.isUpdateNeeded()
+                                    )
+                                    .forEach(player::sendMessage);
                             }
-                        )
+                        );
+                }
             );
     }
 
@@ -248,14 +255,8 @@ public class InventoryListener {
         event
             .getContext()
             .get(EventContextKeys.USED_ITEM)
-            .ifPresent(
-                item -> {
-                    CheckRuleTrigger trigger = Triggers.USE;
-                    if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
-                        event.setCancelled(true);
-                    }
-                }
-            );
+            .filter(item -> checkUseItem(player, Triggers.USE, ((HandInteractEvent) event).getHandType(), item))
+            .ifPresent(item -> event.setCancelled(true));
 
         if (!event.isCancelled()) {
             CheckRuleTrigger trigger = Triggers.INTERACT;
