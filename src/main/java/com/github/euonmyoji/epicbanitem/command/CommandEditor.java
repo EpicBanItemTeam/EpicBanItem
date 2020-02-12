@@ -396,65 +396,6 @@ public class CommandEditor extends AbstractCommand {
                                         editorMap.remove(owner);
                                         CommandCallback.clear(owner);
 
-                                        Task
-                                            .builder()
-                                            .execute(
-                                                () ->
-                                                    Sponge
-                                                        .getServer()
-                                                        .getOnlinePlayers()
-                                                        .forEach(
-                                                            player ->
-                                                                StreamSupport
-                                                                    .stream(player.getInventory().slots().spliterator(), false)
-                                                                    .filter(inventory -> inventory instanceof Slot)
-                                                                    .forEach(
-                                                                        inventory ->
-                                                                            inventory
-                                                                                .peek()
-                                                                                .ifPresent(
-                                                                                    itemStack -> {
-                                                                                        CheckResult checkResult = rule.check(
-                                                                                            CheckResult.empty(NbtTagDataUtil.toNbt(itemStack)),
-                                                                                            player.getWorld(),
-                                                                                            Triggers.JOIN.toString(),
-                                                                                            player
-                                                                                        );
-
-                                                                                        //noinspection DuplicatedCode
-                                                                                        if (checkResult.isBanned()) {
-                                                                                            checkResult
-                                                                                                .getFinalView()
-                                                                                                .map(
-                                                                                                    dataContainer ->
-                                                                                                        NbtTagDataUtil.toItemStack(
-                                                                                                            dataContainer,
-                                                                                                            itemStack.getQuantity()
-                                                                                                        )
-                                                                                                )
-                                                                                                .ifPresent(
-                                                                                                    finalItem -> {
-                                                                                                        inventory.set(finalItem);
-                                                                                                        //noinspection deprecation
-                                                                                                        TextUtil
-                                                                                                            .prepareMessage(
-                                                                                                                Triggers.JOIN,
-                                                                                                                TextUtil.getDisplayName(itemStack),
-                                                                                                                TextUtil.getDisplayName(finalItem),
-                                                                                                                ((Banned) checkResult).getBanRules(),
-                                                                                                                checkResult.isUpdateNeeded()
-                                                                                                            )
-                                                                                                            .forEach(player::sendMessage);
-                                                                                                    }
-                                                                                                );
-                                                                                        }
-                                                                                    }
-                                                                                )
-                                                                    )
-                                                        )
-                                            )
-                                            // FIXME: 2020/2/12 改为依赖注入
-                                            .submit(Sponge.getPluginManager().getPlugin("epicbanitem").get());
                                         return CommandResult.success();
                                     }
                                 )

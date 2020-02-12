@@ -23,6 +23,10 @@ epicbanitem.command.check.noItem = 找不到物品。可能因为你不是玩家
 epicbanitem.command.check.noBlock = 找不到方块。请保证目视目标方块，并拉近与它的距离。
 epicbanitem.command.check.flags.l = 对目视方块而非手中物品应用规则
 
+epicbanitem.command.checkall.description = 检查全部在线玩家库存，应用全部拥有JOIN触发器的规则
+epicbanitem.command.checkall.extendedDescription = 检查全部在线玩家库存，应用全部拥有JOIN触发器的规则
+epicbanitem.command.checkall.success = 检测完成
+
 epicbanitem.command.list.description = 列出被封禁的物品
 epicbanitem.command.list.extendedDescription = 列出被封禁的物品
 epicbanitem.command.list.noRule = 无规则
@@ -146,7 +150,7 @@ epicbanitem.checkrule.triggers = 针对监听器的特殊规则：{triggers}
 
 #error
 epicbanitem.error.failDeserialize = 无法将该节点解析为字符串
-epicbanitem.error.missingMessage = 【缺失文本：{message_key}】
+epicbanitem.error.missingMessage = 【缺失文本节点：{message_key}】
 
 #info
 epicbanitem.info.defaultBanMessage = 由于规则{rules},你无法{trigger}这个{item_pre}

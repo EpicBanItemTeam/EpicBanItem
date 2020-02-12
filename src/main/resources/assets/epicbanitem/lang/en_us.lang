@@ -23,6 +23,10 @@ epicbanitem.command.check.noItem = The item is not available. Maybe you are not 
 epicbanitem.command.check.noBlock = The block is not available. Please make sure that you are faced with the block and close enough.
 epicbanitem.command.check.flags.l = Check the block you are faced with instead of the item in hand.
 
+epicbanitem.command.checkall.description = Check all online players' inventories. Will apply all rule with JOIN trigger
+epicbanitem.command.checkall.extendedDescription = Check all online players' inventories. Will apply all rule with JOIN trigger
+epicbanitem.command.checkall.success = Check success
+
 epicbanitem.command.list.description = List all the items to be banned
 epicbanitem.command.list.extendedDescription = List all the items to be banned
 epicbanitem.command.list.noRule = No rules
@@ -146,7 +150,7 @@ epicbanitem.checkrule.triggers = Special rules for triggers: {triggers}
 
 #error
 epicbanitem.error.failDeserialize = Failed to parse and deserialize as string
-epicbanitem.error.missingMessage = [Missing message: {message_key}]
+epicbanitem.error.missingMessage = [Missing language key: {message_key}]
 
 #info
 epicbanitem.info.defaultBanMessage = You cannot {trigger} this {item_pre} for rule(s): {rules}
