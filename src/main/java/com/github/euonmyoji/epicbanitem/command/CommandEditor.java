@@ -449,7 +449,7 @@ public class CommandEditor extends AbstractCommand {
                                                         )
                                             )
                                             // FIXME: 2020/2/12 改为依赖注入
-                                            .submit(Sponge.getPluginManager().getPlugin("epicbanitem"));
+                                            .submit(Sponge.getPluginManager().getPlugin("epicbanitem").get());
                                         return CommandResult.success();
                                     }
                                 )
