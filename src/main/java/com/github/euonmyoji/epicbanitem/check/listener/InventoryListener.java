@@ -243,19 +243,24 @@ public class InventoryListener {
             );
     }
 
-    @IsCancelled(Tristate.FALSE)
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onInteractBlock(InteractBlockEvent event, @First Player player) {
-        Optional<ItemStackSnapshot> optionalItem = event.getContext().get(EventContextKeys.USED_ITEM);
-        if (optionalItem.isPresent()) {
-            CheckRuleTrigger trigger = Triggers.USE;
-            ItemStackSnapshot item = optionalItem.get();
-            if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
-                event.setCancelled(true);
-            }
+        event
+            .getContext()
+            .get(EventContextKeys.USED_ITEM)
+            .ifPresent(
+                item -> {
+                    CheckRuleTrigger trigger = Triggers.USE;
+                    if (checkUseItem(player, trigger, ((HandInteractEvent) event).getHandType(), item)) {
+                        event.setCancelled(true);
+                    }
+                }
+            );
+
+        if (!event.isCancelled()) {
+            CheckRuleTrigger trigger = Triggers.INTERACT;
+            checkInteractBlock(player, trigger, event.getTargetBlock());
         }
-        CheckRuleTrigger trigger = Triggers.INTERACT;
-        checkInteractBlock(player, trigger, event.getTargetBlock());
     }
 
     private void checkInteractBlock(Player player, CheckRuleTrigger trigger, BlockSnapshot snapshot) {

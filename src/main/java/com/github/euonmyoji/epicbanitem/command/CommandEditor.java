@@ -10,8 +10,6 @@ import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +37,6 @@ import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.Slot;
-import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
@@ -189,10 +186,18 @@ public class CommandEditor extends AbstractCommand {
         }
 
         /**
-         * enable   - Green disable  - Red undefine - Italic clickable- Underline
+         * enable   - Green
+         * disable  - Red
+         * undefine - Italic
+         * clickable- Underline
          * <p>
-         * CheckRule:{name} Priority :{priority} Triggers : White/Black list {triggers} Worlds   : White/Black list {worlds} QueryExpression : not
-         * editable UpdateExpression: not editable Custom Message  : Set/Edit (Unset)
+         * CheckRule:{name}
+         * Priority :{priority}
+         * Triggers : White/Black list {triggers}
+         * Worlds   : White/Black list {worlds}
+         * QueryExpression : not editable
+         * UpdateExpression: not editable
+         * Custom Message  : Set/Edit (Unset)
          * <p>
          * Save
          */
