@@ -8,7 +8,16 @@ import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -178,10 +187,8 @@ public class CommandEditor extends AbstractCommand {
          * <p>
          * CheckRule:{name}
          * Priority :{priority}
-         * Triggers : White/Black list
-         * {triggers}
-         * Worlds   : White/Black list
-         * {worlds}
+         * Triggers : White/Black list {triggers}
+         * Worlds   : White/Black list {worlds}
          * QueryExpression : not editable
          * UpdateExpression: not editable
          * Custom Message  : Set/Edit (Unset)
@@ -237,6 +244,7 @@ public class CommandEditor extends AbstractCommand {
                 .append(Text.NEW_LINE);
             Settings settings = EpicBanItem.getSettings();
             boolean isOriginNull = origin == null;
+
             //Worlds
             Set<String> setWorlds = new HashSet<>(ruleBuilder.getWorldSettings().keySet());
             List<Text> worlds = new ArrayList<>();
@@ -350,13 +358,15 @@ public class CommandEditor extends AbstractCommand {
                                     (src, args) -> {
                                         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
                                         CheckRule rule = ruleBuilder.build();
+
                                         // remove th origin one.
                                         if (origin != null) {
                                             // TODO: 2018/11/24 Is the rule with that name the rule we get on created the editor.
                                             service.removeRule(origin).join();
                                         }
+
                                         // TODO: 2018/11/25 Warn on no id matches ?
-                                        //                                        Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString()); id is unused ??
+                                        // Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString()); id is unused ??
                                         service
                                             .appendRule(rule)
                                             .thenRun(
@@ -375,6 +385,7 @@ public class CommandEditor extends AbstractCommand {
                                             );
                                         editorMap.remove(owner);
                                         CommandCallback.clear(owner);
+
                                         return CommandResult.success();
                                     }
                                 )
@@ -389,7 +400,6 @@ public class CommandEditor extends AbstractCommand {
         /* ********************************************************************************************************** */
         /* Gen the text helper                                                                                        */
         /* ********************************************************************************************************** */
-
         private Text format(Object value, boolean edited, Tuple<CommandElement, CommandExecutor> action) {
             return format(value, edited, null, action);
         }
@@ -397,6 +407,7 @@ public class CommandEditor extends AbstractCommand {
         private Text format(Object value, boolean edited, @Nullable Text hover, Tuple<CommandElement, CommandExecutor> action) {
             String ebi = EpicBanItem.getMainCommandAlias();
             Text.Builder builder = Text.builder().append(Text.of(value));
+
             //Mark edited parts bold.
             builder.style(builder.getStyle().bold(edited));
             builder.color(TextColors.BLUE);
@@ -428,6 +439,7 @@ public class CommandEditor extends AbstractCommand {
         ) {
             String ebi = EpicBanItem.getMainCommandAlias();
             Text.Builder builder = Text.builder(text);
+
             //Mark edited parts bold.
             builder.style(builder.getStyle().bold(edited).italic(Objects.isNull(vale)));
             builder.color((Objects.isNull(vale) ? defaultVale : vale) ? TextColors.GREEN : TextColors.RED);
@@ -582,6 +594,7 @@ public class CommandEditor extends AbstractCommand {
             updates.add(formatNode(getMessage("custom").toPlain(), getMessage("customUpdate"), ruleBuilder.getUpdateNode(), updateKey));
             updates.add(formatNode(getMessage("default").toPlain(), getMessage("defaultUpdate"), CheckRule.getDefaultUpdateNode(), updateKey));
             updates.add(formatNode(getMessage("empty").toPlain(), getMessage("emptyUpdate"), null, updateKey));
+
             // TODO: 2018/11/24 History of update command
             if (origin != null) {
                 updates.add(formatNode(getMessage("origin").toPlain(), getMessage("customUpdate"), origin.getUpdateNode(), updateKey));

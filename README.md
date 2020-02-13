@@ -26,6 +26,7 @@ Assist developers:
 
 * GiNYAi ([@ginyai](https://github.com/ginyai))
 * ustc_zzzz ([@ustc-zzzz](https://github.com/ustc-zzzz))
+* SettingDust([@SettingDust](https://github.com/SettingDust))
 
 EpicBanItem is now based on Minecraft 1.12.2 and SpongeAPI 7.1.0.
 
@@ -47,6 +48,7 @@ EpicBanItem is entirely [licensed under GPL-3.0](LICENSE) and includes `bstats-m
 
 * GiNYAi（[@ginyai](https://github.com/ginyai)）
 * ustc_zzzz（[@ustc-zzzz](https://github.com/ustc-zzzz)）
+* SettingDust([@SettingDust](https://github.com/SettingDust))
 
 EpicBanItem 目前适用于 Minecraft 1.12.2 和 SpongeAPI 7.1.0。
 

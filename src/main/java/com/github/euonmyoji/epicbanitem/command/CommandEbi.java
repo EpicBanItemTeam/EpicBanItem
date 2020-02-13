@@ -1,6 +1,10 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandMapping;
@@ -13,17 +17,11 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 /**
  * @author EBI
  */
 @NonnullByDefault
 public class CommandEbi extends AbstractCommand {
-
     private static final String ARGUMENT_KEY = "string";
     private Map<List<String>, CommandCallable> childrenMap = new HashMap<>();
 
@@ -33,6 +31,7 @@ public class CommandEbi extends AbstractCommand {
         addChildCommand(new CommandQuery());
         addChildCommand(new CommandShow());
         addChildCommand(new CommandCheck());
+        addChildCommand(new CommandCheckAll());
         addChildCommand(new CommandCreate());
         addChildCommand(new CommandUpdate());
         addChildCommand(new CommandRemove());
@@ -40,7 +39,9 @@ public class CommandEbi extends AbstractCommand {
         addChildCommand(new CommandEditor());
         addChildCommand(new CommandCallback());
         addChildCommand(new CommandHelp(childrenMap));
-        commandSpec = CommandSpec.builder()
+        commandSpec =
+            CommandSpec
+                .builder()
                 .permission(getPermission("base"))
                 .description(getDescription())
                 .extendedDescription(getExtendedDescription())
@@ -58,7 +59,6 @@ public class CommandEbi extends AbstractCommand {
         int d = 0;
         if (rawLen * offset >= s.length()) {
             for (int i = 0; i < s.length(); i++) {
-
                 if (s.contains(raw)) {
                     return rawLen + d;
                 }
@@ -90,27 +90,31 @@ public class CommandEbi extends AbstractCommand {
     public CommandResult execute(CommandSource src, CommandContext args) {
         src.sendMessage(getMessage("version", "version", "@version@"));
         src.sendMessage(getMessage("useHelp", "help_command", suggestCommand("help")));
-        args.<String>getOne(ARGUMENT_KEY).ifPresent(s -> {
-            String lastMatchCommand = null;
-            int lastM = -1;
-            for (Map.Entry<List<String>, CommandCallable> entry : childrenMap.entrySet()) {
-                if (entry.getValue().testPermission(src)) {
-                    try {
-                        String command = entry.getKey().get(0);
-                        int d = getHowClose(command, s);
-                        if (d > lastM) {
-                            lastMatchCommand = command;
-                            lastM = d;
+        args
+            .<String>getOne(ARGUMENT_KEY)
+            .ifPresent(
+                s -> {
+                    String lastMatchCommand = null;
+                    int lastM = -1;
+                    for (Map.Entry<List<String>, CommandCallable> entry : childrenMap.entrySet()) {
+                        if (entry.getValue().testPermission(src)) {
+                            try {
+                                String command = entry.getKey().get(0);
+                                int d = getHowClose(command, s);
+                                if (d > lastM) {
+                                    lastMatchCommand = command;
+                                    lastM = d;
+                                }
+                            } catch (IndexOutOfBoundsException e) {
+                                EpicBanItem.getLogger().debug("Unexpected IndexOutOfBoundsException", e);
+                            }
                         }
-                    } catch (IndexOutOfBoundsException e) {
-                        EpicBanItem.getLogger().debug("Unexpected IndexOutOfBoundsException", e);
+                    }
+                    if (lastMatchCommand != null) {
+                        src.sendMessage(getMessage("suggestCommand", "suggest", suggestCommand(lastMatchCommand)));
                     }
                 }
-            }
-            if (lastMatchCommand != null) {
-                src.sendMessage(getMessage("suggestCommand", "suggest", suggestCommand(lastMatchCommand)));
-            }
-        });
+            );
         return CommandResult.success();
     }
 

@@ -2,19 +2,24 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
-import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.util.annotation.NonnullByDefault;
-import org.spongepowered.api.world.World;
-
-import javax.annotation.Nullable;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+import javax.annotation.Nullable;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.Slot;
+import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.util.Tuple;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
+import org.spongepowered.api.world.World;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -106,5 +111,48 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
     @Override
     default <T extends Subject> CheckResult check(ItemStack stack, World world, CheckRuleTrigger trigger, @Nullable T subject) {
         return this.check(stack, world, trigger.toString(), subject);
+    }
+
+    default <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
+        Inventory inventory,
+        World world,
+        CheckRuleTrigger trigger,
+        @Nullable T subject
+    ) {
+        return StreamSupport
+            .stream(inventory.slots().spliterator(), false)
+            .filter(slot -> slot instanceof Slot)
+            .map(slot -> (Slot) slot)
+            .filter(slot -> slot.peek().isPresent())
+            .map(slot -> slot.peek().map(itemStack -> Tuple.of(check(itemStack, world, trigger, subject), slot)).get())
+            .collect(Collectors.toList());
+    }
+
+    default <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
+        Inventory inventory,
+        World world,
+        CheckRuleTrigger trigger,
+        CheckRule checkRule,
+        @Nullable T subject
+    ) {
+        return StreamSupport
+            .stream(inventory.slots().spliterator(), false)
+            .filter(slot -> slot instanceof Slot)
+            .map(slot -> (Slot) slot)
+            .filter(slot -> slot.peek().isPresent())
+            .map(
+                slot ->
+                    slot
+                        .peek()
+                        .map(
+                            itemStack ->
+                                Tuple.of(
+                                    checkRule.check(CheckResult.empty(NbtTagDataUtil.toNbt(itemStack)), world, trigger.toString(), subject),
+                                    slot
+                                )
+                        )
+                        .get()
+            )
+            .collect(Collectors.toList());
     }
 }

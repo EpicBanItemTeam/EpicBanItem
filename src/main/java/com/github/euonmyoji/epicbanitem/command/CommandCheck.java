@@ -4,6 +4,11 @@ import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
@@ -19,17 +24,10 @@ import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 
-import javax.annotation.Nonnull;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 public class CommandCheck extends AbstractCommand {
-
     private static Map<String, CheckRule> checkRuleContext = new LinkedHashMap<>();
 
     CommandCheck() {
@@ -44,11 +42,7 @@ public class CommandCheck extends AbstractCommand {
     public CommandElement getArgument() {
         // TODO: 可选的世界?
         // TODO: 可选的Trigger?
-        return GenericArguments.flags()
-                .flag("l")
-                .buildWith(
-                        GenericArguments.none()
-                );
+        return GenericArguments.flags().flag("l").buildWith(GenericArguments.none());
     }
 
     @Override
@@ -56,8 +50,8 @@ public class CommandCheck extends AbstractCommand {
     public CommandResult execute(@Nonnull CommandSource src, @Nonnull CommandContext args) throws CommandException {
         boolean lookAt = args.hasAny("l");
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+        checkRuleContext.clear();
         if (lookAt) {
-            checkRuleContext.clear();
             Optional<BlockSnapshot> optional = CommandCreate.getBlockLookAt(src);
             BlockSnapshot blockSnapshot = optional.orElseThrow(() -> new CommandException(getMessage("noBlock")));
             World world = ((Locatable) src).getWorld();
@@ -65,7 +59,6 @@ public class CommandCheck extends AbstractCommand {
                 service.check(blockSnapshot, world, trigger, null);
             }
         } else {
-            checkRuleContext.clear();
             Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
             ItemStack itemStack = optional.orElseThrow(() -> new CommandException(getMessage("noItem"))).getSecond();
             World world = ((Locatable) src).getWorld();

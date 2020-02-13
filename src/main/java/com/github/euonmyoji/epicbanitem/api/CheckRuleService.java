@@ -1,15 +1,18 @@
 package com.github.euonmyoji.epicbanitem.api;
 
+import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
-
-import javax.annotation.Nullable;
-import java.util.Optional;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -57,6 +60,40 @@ public interface CheckRuleService {
      * @return 检查结果
      */
     <T extends Subject> CheckResult check(ItemStack stack, World world, CheckRuleTrigger trigger, @Nullable T subject);
+
+    /**
+     * 检查一个库存并返回 result
+     *
+     * @param inventory  被检查的库存
+     * @param world      检查发生世界
+     * @param trigger    触发器
+     * @param subject    用于检查权限的对象
+     * @return 检查结果和相应 {@link org.spongepowered.api.item.inventory.Slot}
+     */
+    <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
+        Inventory inventory,
+        World world,
+        CheckRuleTrigger trigger,
+        @Nullable T subject
+    );
+
+    /**
+     * 检查一个库存并返回 result
+     *
+     * @param inventory  被检查的库存
+     * @param world      检查发生世界
+     * @param trigger    触发器
+     * @param checkRule  用于检查的规则
+     * @param subject    用于检查权限的对象
+     * @return 检查结果和相应 {@link org.spongepowered.api.item.inventory.Slot}
+     */
+    <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
+        Inventory inventory,
+        World world,
+        CheckRuleTrigger trigger,
+        CheckRule checkRule,
+        @Nullable T subject
+    );
 
     /**
      * 获取名称对应的触发器，可设置是否在名称不存在时注册一个新的

@@ -2,10 +2,9 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
+import java.util.*;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
-
-import java.util.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -21,6 +20,7 @@ public class Triggers {
     public static final Impl PLACE = new Impl("place");
     public static final Impl BREAK = new Impl("break");
     public static final Impl INTERACT = new Impl("interact");
+    public static final Impl JOIN = new Impl("join");
 
     private static final SortedMap<String, CheckRuleTrigger> triggers = initTriggerMap();
 
@@ -30,7 +30,7 @@ public class Triggers {
 
     private static SortedMap<String, CheckRuleTrigger> initTriggerMap() {
         SortedMap<String, CheckRuleTrigger> triggerMap = new TreeMap<>();
-        for (Impl impl : Arrays.asList(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT)) {
+        for (Impl impl : Arrays.asList(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT, JOIN)) {
             triggerMap.put(impl.name, impl);
         }
         return triggerMap;
