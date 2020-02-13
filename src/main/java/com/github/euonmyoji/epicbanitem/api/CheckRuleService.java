@@ -8,6 +8,7 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -69,7 +70,7 @@ public interface CheckRuleService {
      * @param subject    用于检查权限的对象
      * @return 检查结果和相应 {@link org.spongepowered.api.item.inventory.Slot}
      */
-    <T extends Subject> Iterable<Tuple<CheckResult, Inventory>> checkInventory(
+    <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
         Inventory inventory,
         World world,
         CheckRuleTrigger trigger,
@@ -86,7 +87,7 @@ public interface CheckRuleService {
      * @param subject    用于检查权限的对象
      * @return 检查结果和相应 {@link org.spongepowered.api.item.inventory.Slot}
      */
-    <T extends Subject> Iterable<Tuple<CheckResult, Inventory>> checkInventory(
+    <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
         Inventory inventory,
         World world,
         CheckRuleTrigger trigger,

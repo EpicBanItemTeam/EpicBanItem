@@ -113,7 +113,7 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
         return this.check(stack, world, trigger.toString(), subject);
     }
 
-    default <T extends Subject> Iterable<Tuple<CheckResult, Inventory>> checkInventory(
+    default <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
         Inventory inventory,
         World world,
         CheckRuleTrigger trigger,
@@ -122,12 +122,13 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
         return StreamSupport
             .stream(inventory.slots().spliterator(), false)
             .filter(slot -> slot instanceof Slot)
+            .map(slot -> (Slot) slot)
             .filter(slot -> slot.peek().isPresent())
             .map(slot -> slot.peek().map(itemStack -> Tuple.of(check(itemStack, world, trigger, subject), slot)).get())
             .collect(Collectors.toList());
     }
 
-    default <T extends Subject> Iterable<Tuple<CheckResult, Inventory>> checkInventory(
+    default <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
         Inventory inventory,
         World world,
         CheckRuleTrigger trigger,
@@ -137,6 +138,7 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
         return StreamSupport
             .stream(inventory.slots().spliterator(), false)
             .filter(slot -> slot instanceof Slot)
+            .map(slot -> (Slot) slot)
             .filter(slot -> slot.peek().isPresent())
             .map(
                 slot ->
