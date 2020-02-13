@@ -4,7 +4,19 @@ import com.flowpowered.math.vector.Vector3i;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.google.common.collect.ImmutableMap;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -18,23 +30,15 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.storage.WorldProperties;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@SuppressWarnings("DuplicatedCode")
 public class NbtTagDataUtil {
     private static final DataQuery ID = DataQuery.of("id");
     private static final DataQuery TAG = DataQuery.of("tag");
@@ -126,7 +130,7 @@ public class NbtTagDataUtil {
     }
 
     private static InvalidDataException invalidData(DataView dataView) {
-        return new InvalidDataException("InvalidData: " + TextUtil.serializeNbtToString(dataView).toPlain());
+        return new InvalidDataException("InvalidData: " + Text.join(TextUtil.serializeNbtToString(dataView)).toPlain());
     }
 
     private static DataContainer fromSpongeDataToNbt(DataContainer view) {
