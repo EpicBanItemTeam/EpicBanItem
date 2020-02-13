@@ -260,7 +260,6 @@ public class CommandEditor extends AbstractCommand {
                 ruleBuilder.getWorldSettings(),
                 Sponge.getServer().getAllWorldProperties().stream().map(WorldProperties::getWorldName).collect(Collectors.toSet())
             );
-
             //worlds that not in the sponge data?
             checkAdd(worlds, worldDefault, origin != null ? origin.getWorldSettings() : null, ruleBuilder.getWorldSettings(), setWorlds);
             builder
@@ -270,7 +269,6 @@ public class CommandEditor extends AbstractCommand {
                 .append(Text.NEW_LINE)
                 .append(Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), worlds))
                 .append(Text.NEW_LINE);
-
             //Triggers
             Set<String> setTriggers = new HashSet<>(ruleBuilder.getTriggerSettings().keySet());
             List<Text> triggers = new ArrayList<>();
@@ -298,7 +296,6 @@ public class CommandEditor extends AbstractCommand {
                 .append(Text.NEW_LINE)
                 .append(Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), triggers))
                 .append(Text.NEW_LINE);
-
             //Query Updates
             builder
                 .append(getMessage("query", "options", Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genQueryTexts())))
@@ -317,9 +314,9 @@ public class CommandEditor extends AbstractCommand {
                             ? getMessage("info.edit.hover", "messageString", ruleBuilder.getCustomMessageString())
                             : getMessage("info.set.hover"),
                         new Tuple<>(
-                            GenericArguments.remainingJoinedStrings(Text.of("customMessage")),
+                            GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("customMessage"))),
                             (src, args) -> {
-                                ruleBuilder.customMessage(args.<String>getOne("customMessage").orElseThrow(NoSuchFieldError::new));
+                                ruleBuilder.customMessage(args.<String>getOne("customMessage").orElse(""));
                                 resend();
                                 return CommandResult.success();
                             }
@@ -344,7 +341,6 @@ public class CommandEditor extends AbstractCommand {
                 ),
                 Text.NEW_LINE
             );
-
             //Save
             builder.append(
                 getMessage("save")
