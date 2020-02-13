@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.api;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import java.util.Optional;
-import java.util.Set;
 import javax.annotation.Nullable;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -70,7 +69,7 @@ public interface CheckRuleService {
      * @param subject    用于检查权限的对象
      * @return 检查结果和相应 {@link org.spongepowered.api.item.inventory.Slot}
      */
-    <T extends Subject> Set<Tuple<CheckResult, Inventory>> checkInventory(
+    <T extends Subject> Iterable<Tuple<CheckResult, Inventory>> checkInventory(
         Inventory inventory,
         World world,
         CheckRuleTrigger trigger,
@@ -87,7 +86,7 @@ public interface CheckRuleService {
      * @param subject    用于检查权限的对象
      * @return 检查结果和相应 {@link org.spongepowered.api.item.inventory.Slot}
      */
-    <T extends Subject> Set<Tuple<CheckResult, Inventory>> checkInventory(
+    <T extends Subject> Iterable<Tuple<CheckResult, Inventory>> checkInventory(
         Inventory inventory,
         World world,
         CheckRuleTrigger trigger,
