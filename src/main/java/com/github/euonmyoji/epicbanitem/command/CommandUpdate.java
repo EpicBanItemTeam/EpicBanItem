@@ -7,6 +7,7 @@ import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateResult;
+import java.util.Optional;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -26,23 +27,24 @@ import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.BlockChangeFlags;
 
-import java.util.Optional;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
 public class CommandUpdate extends AbstractCommand {
+
     CommandUpdate() {
         super("update", "u");
     }
 
     @Override
     public CommandElement getArgument() {
-        return GenericArguments.flags().flag("l")
-                .setUnknownLongFlagBehavior(CommandFlags.UnknownFlagBehavior.IGNORE)
-                .setUnknownShortFlagBehavior(CommandFlags.UnknownFlagBehavior.IGNORE)
-                .buildWith(GenericArguments.remainingRawJoinedStrings(Text.of("update-rule")));
+        return GenericArguments
+            .flags()
+            .flag("l")
+            .setUnknownLongFlagBehavior(CommandFlags.UnknownFlagBehavior.IGNORE)
+            .setUnknownShortFlagBehavior(CommandFlags.UnknownFlagBehavior.IGNORE)
+            .buildWith(GenericArguments.remainingRawJoinedStrings(Text.of("update-rule")));
     }
 
     @SuppressWarnings("Duplicates for lj")
@@ -51,7 +53,7 @@ public class CommandUpdate extends AbstractCommand {
         String id = src.getIdentifier();
         boolean lookAtBlock = args.hasAny("l");
         String updateRule = args.<String>getOne("update-rule").orElseThrow(NoSuchFieldError::new);
-        String queryRule = CommandQuery.histories.get(id, (key) -> "{}");
+        String queryRule = CommandQuery.histories.get(id, key -> "{}");
         try {
             DataContainer nbt;
             QueryResult queryResult;
@@ -82,10 +84,10 @@ public class CommandUpdate extends AbstractCommand {
                 CommandCreate.setItemInHand(src, i);
             }
 
-
             LiteralText text = Text.of(updateResult.toString());
             Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
-            src.sendMessage(Text.of(prefix.build(), TextUtil.serializeNbtToString(nbt, queryResult)));
+            prefix.append(Text.join(TextUtil.serializeNbtToString(nbt, queryResult)));
+            src.sendMessage(prefix.build());
 
             return CommandResult.success();
         } catch (Exception e) {
