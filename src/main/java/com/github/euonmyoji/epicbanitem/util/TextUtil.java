@@ -1,13 +1,30 @@
 package com.github.euonmyoji.epicbanitem.util;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.util.nbt.NbtTagRenderer;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonWriter;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -21,14 +38,6 @@ import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.text.translation.Translatable;
 import org.spongepowered.api.util.Tuple;
-
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -107,11 +116,11 @@ public class TextUtil {
         return builder.toText();
     }
 
-    public static Text serializeNbtToString(DataView nbt, QueryResult result) {
+    public static List<Text> serializeNbtToString(DataView nbt, QueryResult result) {
         return new NbtTagRenderer(result).render(nbt);
     }
 
-    public static Text serializeNbtToString(DataView nbt) {
+    public static List<Text> serializeNbtToString(DataView nbt) {
         return NbtTagRenderer.EMPTY_RENDERER.render(nbt);
     }
 /*

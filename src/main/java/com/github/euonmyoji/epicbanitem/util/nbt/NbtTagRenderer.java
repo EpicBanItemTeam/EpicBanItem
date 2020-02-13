@@ -1,15 +1,18 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
 import com.google.common.base.Strings;
-import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-
-import javax.annotation.Nullable;
+import com.google.common.collect.Lists;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.annotation.Nullable;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.format.TextStyles;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -23,63 +26,113 @@ public class NbtTagRenderer {
         this.queryResult = result;
     }
 
-    public Text render(DataView view) {
-        return this.render(view, this.queryResult, INDENT);
+    public List<Text> render(DataView view) {
+        return this.render(view, this.queryResult, 0, "", "");
     }
 
-    private Text render(Object view, @Nullable QueryResult result, int indent) {
+    private List<Text> render(Object view, @Nullable QueryResult result, int indent, String path, String hoverPath) {
         Map<String, Object> map = NbtTypeHelper.getAsMap(view);
-        if (Objects.nonNull(map)) {
-            String separator = "\n";
-            Text.Builder builder = Text.builder();
-            boolean isResultNull = Objects.isNull(result);
-            Map<String, QueryResult> children = isResultNull ? Collections.emptyMap() : result.getChildren();
-            builder.append(isResultNull ? Text.of("{") : Text.of(TextColors.GREEN, "{"));
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                String key = entry.getKey();
-                if (children.containsKey(key)) {
-                    Text childrenText = this.render(entry.getValue(), children.get(key), indent + INDENT);
-                    Text prefix = Text.of(TextColors.GREEN, Strings.repeat(" ", indent), key, ": ");
-                    builder.append(Text.of(separator)).append(prefix);
-                    builder.append(childrenText);
-                    separator = ", \n";
-                } else {
-                    Text childrenText = this.render(entry.getValue(), null, indent + INDENT);
-                    Text prefix = Text.of(Strings.repeat(" ", indent), key, ": ");
-                    builder.append(Text.of(separator)).append(prefix);
-                    builder.append(childrenText);
-                    separator = ", \n";
-                }
-            }
-            builder.append(Text.of("\n", Strings.repeat(" ", indent - INDENT)));
-            return builder.append(isResultNull ? Text.of("}") : Text.of(TextColors.GREEN, "}")).build();
-        }
         List<Object> list = NbtTypeHelper.getAsList(view);
-        if (Objects.nonNull(list)) {
-            String separator = "\n";
-            Text.Builder builder = Text.builder();
-            boolean isResultNull = Objects.isNull(result);
-            Map<String, QueryResult> children = isResultNull ? Collections.emptyMap() : result.getChildren();
-            builder.append(isResultNull ? Text.of("[") : Text.of(TextColors.GREEN, "["));
+        List<Text> texts = Lists.newArrayList();
+        boolean isTarget = Objects.isNull(result);
+        Text indentText = Text.of(TextColors.DARK_GRAY, Strings.repeat(" │", Math.max(indent / 2 - 1, 0)), Strings.repeat(" ", indent > 1 ? 1 : 0));
+        Map<String, QueryResult> childResult = isTarget ? Collections.emptyMap() : result.getChildren();
+
+        if (Objects.nonNull(map)) {
+            map.forEach(
+                (key, value) -> {
+                    List<String> pathList = Lists.newArrayList();
+                    if (!Strings.isNullOrEmpty(path)) {
+                        pathList.addAll(Arrays.asList(path.split("\\.")));
+                    }
+                    pathList.add(key);
+                    String currentPath = String.join(".", pathList);
+
+                    pathList.clear();
+                    if (!Strings.isNullOrEmpty(hoverPath)) {
+                        pathList.addAll(Arrays.asList(hoverPath.split("\\.")));
+                    }
+                    pathList.add(key);
+
+                    String newHoverPath = String.join(".", pathList);
+
+                    Text.Builder tagNameBuilder = Text
+                        .builder()
+                        .append(indentText)
+                        .onHover(TextActions.showText(Text.of(newHoverPath)))
+                        .onClick(TextActions.suggestCommand(currentPath));
+
+                    Text tagName;
+                    List<Text> childrenText;
+
+                    if (childResult.containsKey(key)) {
+                        childrenText = this.render(value, childResult.get(key), indent + INDENT, currentPath, newHoverPath);
+                        tagNameBuilder.color(TextColors.AQUA).style(TextStyles.BOLD);
+                    } else {
+                        childrenText = this.render(value, null, indent + INDENT, currentPath, newHoverPath);
+                    }
+
+                    tagName = tagNameBuilder.append(Text.of(key, ": ")).build();
+
+                    if (!childrenText.isEmpty() && !childrenText.get(0).toPlain().startsWith(" ")) {
+                        texts.add(tagName.concat(childrenText.get(0)));
+                    } else {
+                        texts.add(tagName);
+                        texts.addAll(childrenText);
+                    }
+                }
+            );
+        } else if (Objects.nonNull(list)) {
             for (int i = 0; i < list.size(); ++i) {
                 String key = Integer.toString(i);
-                if (children.containsKey(key)) {
-                    Text childrenText = this.render(list.get(i), children.get(key), indent + INDENT);
-                    Text prefix = Text.of(TextColors.GREEN, Strings.repeat(" ", indent));
-                    builder.append(Text.of(separator)).append(prefix);
-                    builder.append(childrenText);
-                    separator = ", \n";
+
+                List<String> paths = Lists.newArrayList();
+                if (!Strings.isNullOrEmpty(path)) {
+                    paths.addAll(Arrays.asList(path.split("\\.")));
+                }
+
+                String newHoverPath = String.join(".", paths);
+                newHoverPath += "[" + key + "]";
+
+                Text.Builder tagNameBuilder = Text.builder().append(indentText);
+
+                List<Text> childrenText;
+                Text tagName;
+
+                if (childResult.containsKey(key)) {
+                    childrenText = this.render(list.get(i), childResult.get(key), indent + INDENT * 2, path, newHoverPath);
+                    tagNameBuilder.color(TextColors.AQUA).style(TextStyles.BOLD);
                 } else {
-                    Text childrenText = this.render(list.get(i), null, indent + INDENT);
-                    Text prefix = Text.of(Strings.repeat(" ", indent));
-                    builder.append(Text.of(separator)).append(prefix);
-                    builder.append(childrenText);
-                    separator = ", \n";
+                    childrenText = this.render(list.get(i), null, indent + INDENT * 2, path, newHoverPath);
+                }
+
+                tagName = tagNameBuilder.append(Text.of("[" + key + "]: ")).build();
+
+                if (childrenText.size() == 1) {
+                    texts.add(tagName.concat(childrenText.get(0)));
+                } else {
+                    texts.add(tagName);
+                    texts.addAll(childrenText);
                 }
             }
-            builder.append(Text.of("\n", Strings.repeat(" ", indent - INDENT)));
-            return builder.append(isResultNull ? Text.of("]") : Text.of(TextColors.GREEN, "]")).build();
+        } else {
+            String stringValue = NbtTypeHelper.toString(view);
+            Text.Builder builder = Text.builder(stringValue);
+            if (view instanceof Boolean) {
+                builder.color(TextColors.LIGHT_PURPLE);
+            } else if (view instanceof String) {
+                builder.color(TextColors.GREEN);
+            } else {
+                builder.color(TextColors.GOLD);
+            }
+
+            // TODO: 2020/2/13 需要本地化？
+            builder.onHover(TextActions.showText(Text.of(view.getClass().getSimpleName())));
+            builder.onClick(TextActions.suggestCommand(stringValue));
+
+            texts.add(builder.build());
         }
-        return Text.of(NbtTypeHelper.toString(view));
+
+        return texts;
     }
 }
