@@ -17,6 +17,7 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
@@ -437,7 +438,8 @@ public class CheckRule implements TextRepresentable {
             this.name = checkRule.name;
             this.priority = checkRule.priority;
             this.worldSettings = new TreeMap<>(checkRule.worldSettings);
-            this.triggerSettings = new TreeMap<>(checkRule.triggerSettings);
+            this.triggerSettings = new TreeMap<>(Comparator.comparing(CatalogType::getId));
+            this.triggerSettings.putAll(checkRule.triggerSettings);
             this.queryNode = checkRule.queryNode;
             this.updateNode = checkRule.updateNode;
         }
@@ -470,7 +472,8 @@ public class CheckRule implements TextRepresentable {
         }
 
         public Builder enableTriggers(Map<CheckRuleTrigger, Boolean> enableTriggers) {
-            this.triggerSettings = new TreeMap<>(enableTriggers);
+            this.triggerSettings = new TreeMap<>(Comparator.comparing(CatalogType::getId));
+            this.triggerSettings.putAll(enableTriggers);
             return this;
         }
 
