@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -41,7 +42,7 @@ public class Settings {
     private boolean printItemToBlockMapping = true;
 
     private Map<String, Boolean> enabledWorlds = Maps.newLinkedHashMap();
-    private Map<String, Boolean> enabledTriggers = Maps.newLinkedHashMap();
+    private Map<CheckRuleTrigger, Boolean> enabledTriggers = Maps.newLinkedHashMap();
 
     public Settings(AutoFileLoader fileLoader, Path settingPath) {
         this.resetToDefault();
@@ -75,7 +76,7 @@ public class Settings {
         this.listenLoadingChunk = false;
         this.printItemToBlockMapping = true;
         Collection<WorldProperties> worlds = this.server.getAllWorldProperties();
-        this.enabledTriggers = Maps.newLinkedHashMap(Maps.toMap(Triggers.getTriggers().keySet(), k -> true));
+        this.enabledTriggers = Maps.newLinkedHashMap(Maps.toMap(Triggers.getTriggers().values(), k -> true));
         this.enabledWorlds = Maps.newLinkedHashMap(Maps.toMap(Iterables.transform(worlds, WorldProperties::getWorldName), k -> true));
     }
 
@@ -89,7 +90,20 @@ public class Settings {
         defaultWorlds.getChildrenMap().forEach((k, v) -> this.enabledWorlds.put(k.toString(), v.getBoolean()));
 
         ConfigurationNode defaultTriggers = cfg.getNode("epicbanitem", DEFAULT_TRIGGER);
-        defaultTriggers.getChildrenMap().forEach((k, v) -> this.enabledTriggers.put(k.toString(), v.getBoolean()));
+        defaultTriggers.getChildrenMap().forEach((k, v) -> {
+            String key = k.toString();
+            Optional<CheckRuleTrigger> optionalTrigger;
+            if (key.indexOf(':') == -1) {
+                optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, EpicBanItem.PLUGIN_ID + ":" + key);
+            } else {
+                optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, key);
+            }
+            if (!optionalTrigger.isPresent()) {
+                EpicBanItem.getLogger().warn("Find unknown trigger {} at global default settings, it will be ignored.", key);
+            } else {
+                enabledTriggers.put(optionalTrigger.get(), v.getBoolean());
+            }
+        });
     }
 
     private void save(ConfigurationNode cfg) {
@@ -117,7 +131,7 @@ public class Settings {
     }
 
     public boolean isTriggerDefaultEnabled(CheckRuleTrigger trigger) {
-        return this.enabledTriggers.getOrDefault(trigger.toString(), true);
+        return this.enabledTriggers.getOrDefault(trigger, true);
     }
 
     public boolean isCraftingEventClass(AffectItemStackEvent event) {

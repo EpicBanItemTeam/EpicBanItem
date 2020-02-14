@@ -18,6 +18,7 @@ import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.service.context.Context;
@@ -357,7 +358,20 @@ public class CheckRule implements TextRepresentable {
             }
             Map<CheckRuleTrigger, Boolean> enableTriggers = new HashMap<>();
             ConfigurationNode triggerNode = node.getNode("use-trigger");
-            triggerNode.getChildrenMap().forEach((k, v) -> CheckRuleService.instance().getTrigger(k.toString(), false).ifPresent(trigger -> enableTriggers.put(trigger, v.getBoolean())));
+            triggerNode.getChildrenMap().forEach((k, v) -> {
+                String key = k.toString();
+                Optional<CheckRuleTrigger> optionalTrigger;
+                if (key.indexOf(':') == -1) {
+                    optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, EpicBanItem.PLUGIN_ID + ":" + key);
+                } else {
+                    optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, key);
+                }
+                if (!optionalTrigger.isPresent()) {
+                    EpicBanItem.getLogger().warn("Find unknown trigger {} at check rule {}, it will be ignored.", key, name);
+                } else {
+                    enableTriggers.put(optionalTrigger.get(), v.getBoolean());
+                }
+            });
             Tristate triggerDefaultSetting;
             if (!node.getNode("trigger-default-setting").isVirtual()) {
                 triggerDefaultSetting = Tristate.fromBoolean(node.getNode("trigger-default-setting").getBoolean());
@@ -406,7 +420,7 @@ public class CheckRule implements TextRepresentable {
         private Tristate worldDefaultSetting = Tristate.UNDEFINED;
         private Map<String, Boolean> worldSettings = new TreeMap<>();
         private Tristate triggerDefaultSetting = Tristate.UNDEFINED;
-        private Map<CheckRuleTrigger, Boolean> triggerSettings = new TreeMap<>(Comparator.comparing(CheckRuleTrigger::toString));
+        private Map<CheckRuleTrigger, Boolean> triggerSettings = new TreeMap<>(Comparator.comparing(CheckRuleTrigger::getId));
         private ConfigurationNode queryNode;
         @Nullable
         private ConfigurationNode updateNode;

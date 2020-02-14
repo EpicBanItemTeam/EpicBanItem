@@ -107,7 +107,7 @@ public class CheckRuleServiceImpl implements CheckRuleService {
             return Optional.of(triggers.get(name));
         }
         if (registerIfAbsent && CheckRule.NAME_PATTERN.matcher(name).matches()) {
-            return Optional.of(triggers.computeIfAbsent(name, Triggers.Impl::new));
+            throw new UnsupportedOperationException("unable to register new trigger");
         }
         return Optional.empty();
     }

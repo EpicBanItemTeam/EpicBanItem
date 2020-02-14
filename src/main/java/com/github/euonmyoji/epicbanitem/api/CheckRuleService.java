@@ -102,5 +102,6 @@ public interface CheckRuleService {
      * @param registerIfAbsent 若设为 {@code true}，则在名称不存在时注册一个新的
      * @return 触发器
      */
+    @Deprecated
     Optional<CheckRuleTrigger> getTrigger(String name, boolean registerIfAbsent);
 }
