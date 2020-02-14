@@ -2,7 +2,6 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckResult;
-import com.github.euonmyoji.epicbanitem.api.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.command.CommandCheck;
 import com.github.euonmyoji.epicbanitem.message.Messages;

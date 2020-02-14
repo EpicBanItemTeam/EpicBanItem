@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.api;
 
 import org.spongepowered.api.CatalogType;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextRepresentable;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -18,8 +17,4 @@ public interface CheckRuleTrigger extends TextRepresentable, CatalogType {
     @Override
     String toString();
 
-    @Override
-    default Text toText() {
-        return Text.of(toString());
-    }
 }

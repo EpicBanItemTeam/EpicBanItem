@@ -73,24 +73,6 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
      */
     Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name);
 
-    @Deprecated
-    default CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject) {
-        CheckRuleTrigger ruleTrigger = getTrigger(trigger, false).orElseThrow(() -> new IllegalStateException("request unregistered trigger " + trigger));
-        return check(itemStack, world, ruleTrigger, subject);
-    }
-
-    @Deprecated
-    default CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject) {
-        CheckRuleTrigger ruleTrigger = getTrigger(trigger, false).orElseThrow(() -> new IllegalStateException("request unregistered trigger " + trigger));
-        return check(itemStack, world, ruleTrigger, subject);
-    }
-
-    @Deprecated
-    default CheckResult check(BlockSnapshot blockSnapshot, World world, String trigger, @Nullable Subject subject) {
-        CheckRuleTrigger ruleTrigger = getTrigger(trigger, false).orElseThrow(() -> new IllegalStateException("request unregistered trigger " + trigger));
-        return check(blockSnapshot, world, ruleTrigger, subject);
-    }
-
     /**
      * Add a rule to the service and save it in the default config.
      *

@@ -42,12 +42,6 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
                 .collect(Collectors.toMap(CatalogType::getId, Function.identity(), (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); }, TreeMap::new));
     }
 
-    @Deprecated
-    public static Set<String> getDefaultTriggers() {
-        // TODO: change to #getTriggers instead
-        return triggers.keySet();
-    }
-
     @Override
     public Optional<CheckRuleTrigger> getById(String id) {
         return Optional.ofNullable(triggers.get(id));

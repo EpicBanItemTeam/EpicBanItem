@@ -100,18 +100,6 @@ public class CheckRuleServiceImpl implements CheckRuleService {
         return EpicBanItem.getBanConfig().getRules(index).stream().filter(c -> c.getName().equals(name)).findFirst();
     }
 
-    @Override
-    public Optional<CheckRuleTrigger> getTrigger(String name, boolean registerIfAbsent) {
-        SortedMap<String, CheckRuleTrigger> triggers = Triggers.getTriggers();
-        if (triggers.containsKey(name)) {
-            return Optional.of(triggers.get(name));
-        }
-        if (registerIfAbsent && CheckRule.NAME_PATTERN.matcher(name).matches()) {
-            throw new UnsupportedOperationException("unable to register new trigger");
-        }
-        return Optional.empty();
-    }
-
     private CheckResult check(CheckResult origin, String id, World world, CheckRuleTrigger trigger, @Nullable Subject subject) {
         return EpicBanItem.getBanConfig().getRulesWithIdFiltered(id).stream()
                 .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))

@@ -11,10 +11,6 @@ import com.github.euonmyoji.epicbanitem.util.TextUtil;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import com.google.common.collect.Streams;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -23,13 +19,14 @@ import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.Tuple;
+import org.spongepowered.plugin.meta.util.NonnullByDefault;
 
+@NonnullByDefault
 public class CommandCheckAll extends AbstractCommand {
     private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
 
