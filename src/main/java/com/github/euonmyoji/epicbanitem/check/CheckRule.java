@@ -2,6 +2,8 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckResult;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleService;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.command.CommandCheck;
 import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
@@ -39,7 +41,7 @@ import java.util.regex.Pattern;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
-@SuppressWarnings({"WeakerAccess", "NullableProblems"})
+@SuppressWarnings({"WeakerAccess"})
 public class CheckRule implements TextRepresentable {
 
     public static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
@@ -70,7 +72,7 @@ public class CheckRule implements TextRepresentable {
     /**
      * trigger settings, {@link #triggerDefaultSetting} will be used if the corresponding value does not exist
      */
-    private final ImmutableMap<String, Boolean> triggerSettings;
+    private final ImmutableMap<CheckRuleTrigger, Boolean> triggerSettings;
     /**
      * query expression
      */
@@ -112,7 +114,7 @@ public class CheckRule implements TextRepresentable {
         this(ruleName, queryNode, updateNode, "", 5, Tristate.UNDEFINED, Collections.emptyMap(), Tristate.UNDEFINED, Collections.emptyMap(), null);
     }
 
-    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, String legacyName, int priority, Tristate worldDefaultSetting, Map<String, Boolean> worldSettings, Tristate triggerDefaultSetting, Map<String, Boolean> triggerSettings, @Nullable String customMessageString) {
+    public CheckRule(String ruleName, ConfigurationNode queryNode, @Nullable ConfigurationNode updateNode, String legacyName, int priority, Tristate worldDefaultSetting, Map<String, Boolean> worldSettings, Tristate triggerDefaultSetting, Map<CheckRuleTrigger, Boolean> triggerSettings, @Nullable String customMessageString) {
         this.worldDefaultSetting = worldDefaultSetting;
         this.triggerDefaultSetting = triggerDefaultSetting;
         Preconditions.checkArgument(checkName(ruleName), "Rule name should match \"[a-z0-9-_]+\"");
@@ -178,7 +180,7 @@ public class CheckRule implements TextRepresentable {
         return triggerDefaultSetting;
     }
 
-    public Map<String, Boolean> getTriggerSettings() {
+    public Map<CheckRuleTrigger, Boolean> getTriggerSettings() {
         return triggerSettings;
     }
 
@@ -200,7 +202,7 @@ public class CheckRule implements TextRepresentable {
         }
     }
 
-    public boolean isEnabledTrigger(String trigger) {
+    public boolean isEnabledTrigger(CheckRuleTrigger trigger) {
         if (triggerDefaultSetting == Tristate.UNDEFINED) {
             return triggerSettings.getOrDefault(trigger, EpicBanItem.getSettings().isTriggerDefaultEnabled(trigger));
         } else {
@@ -225,11 +227,11 @@ public class CheckRule implements TextRepresentable {
         return Text.of(worldDefaultSetting.toString().toLowerCase(), getEnableInfo(triggerSettings));
     }
 
-    private Text getEnableInfo(Map<String, Boolean> enableMap) {
+    private Text getEnableInfo(Map<?, Boolean> enableMap) {
         Text.Builder builder = Text.builder("[");
         if (!enableMap.isEmpty()) {
             Text separator = Text.of();
-            for (Map.Entry<String, Boolean> entry : enableMap.entrySet()) {
+            for (Map.Entry<?, Boolean> entry : enableMap.entrySet()) {
                 builder.append(separator).append(Text.of(entry.getValue() ? "+" : "-")).append(Text.of(entry.getKey()));
                 separator = Text.of(", ");
             }
@@ -269,7 +271,7 @@ public class CheckRule implements TextRepresentable {
      * @param subject 被检查的权限主体
      * @return 检查结果
      */
-    public CheckResult check(CheckResult origin, World world, String trigger, @Nullable Subject subject) {
+    public CheckResult check(CheckResult origin, World world, CheckRuleTrigger trigger, @Nullable Subject subject) {
         if (isEnabledTrigger(trigger) && isEnabledWorld(world)) {
             if (subject == null || !hasBypassPermission(subject, trigger)) {
                 QueryResult[] queryResult = new QueryResult[1];
@@ -326,8 +328,8 @@ public class CheckRule implements TextRepresentable {
         return builder.build();
     }
 
-    private boolean hasBypassPermission(Subject subject, String trigger) {
-        return subject.hasPermission(getContext(subject, trigger), "epicbanitem.bypass." + name);
+    private boolean hasBypassPermission(Subject subject, CheckRuleTrigger trigger) {
+        return subject.hasPermission(getContext(subject, trigger.toString()), "epicbanitem.bypass." + name);
     }
 
     private Set<Context> getContext(Subject subject, String trigger) {
@@ -353,9 +355,9 @@ public class CheckRule implements TextRepresentable {
                     worldDefaultSetting = Tristate.fromBoolean(node.getNode("world-default-setting").getBoolean());
                 }
             }
-            Map<String, Boolean> enableTriggers = new HashMap<>();
+            Map<CheckRuleTrigger, Boolean> enableTriggers = new HashMap<>();
             ConfigurationNode triggerNode = node.getNode("use-trigger");
-            triggerNode.getChildrenMap().forEach((k, v) -> enableTriggers.put(k.toString(), v.getBoolean()));
+            triggerNode.getChildrenMap().forEach((k, v) -> CheckRuleService.instance().getTrigger(k.toString(), false).ifPresent(trigger -> enableTriggers.put(trigger, v.getBoolean())));
             Tristate triggerDefaultSetting;
             if (!node.getNode("trigger-default-setting").isVirtual()) {
                 triggerDefaultSetting = Tristate.fromBoolean(node.getNode("trigger-default-setting").getBoolean());
@@ -389,7 +391,7 @@ public class CheckRule implements TextRepresentable {
             setTristate.accept("world-default-setting", rule.worldDefaultSetting);
             rule.worldSettings.forEach((k, v) -> node.getNode("enabled-worlds", k).setValue(v));
             setTristate.accept("trigger-default-setting", rule.triggerDefaultSetting);
-            rule.triggerSettings.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v));
+            rule.triggerSettings.forEach((k, v) -> node.getNode("use-trigger", k).setValue(v.toString()));
             node.getNode("query").setValue(rule.queryNode);
             node.getNode("update").setValue(rule.updateNode);
             node.getNode("custom-message").setValue(rule.customMessageString);
@@ -404,7 +406,7 @@ public class CheckRule implements TextRepresentable {
         private Tristate worldDefaultSetting = Tristate.UNDEFINED;
         private Map<String, Boolean> worldSettings = new TreeMap<>();
         private Tristate triggerDefaultSetting = Tristate.UNDEFINED;
-        private Map<String, Boolean> triggerSettings = new TreeMap<>();
+        private Map<CheckRuleTrigger, Boolean> triggerSettings = new TreeMap<>(Comparator.comparing(CheckRuleTrigger::toString));
         private ConfigurationNode queryNode;
         @Nullable
         private ConfigurationNode updateNode;
@@ -454,8 +456,8 @@ public class CheckRule implements TextRepresentable {
             return this;
         }
 
-        public Builder enableTriggers(Map<String, Boolean> enableTriggers) {
-            this.triggerSettings = new TreeMap<>(worldSettings);
+        public Builder enableTriggers(Map<CheckRuleTrigger, Boolean> enableTriggers) {
+            this.triggerSettings = new TreeMap<>(enableTriggers);
             return this;
         }
 
@@ -494,7 +496,7 @@ public class CheckRule implements TextRepresentable {
             return triggerDefaultSetting;
         }
 
-        public Map<String, Boolean> getTriggerSettings() {
+        public Map<CheckRuleTrigger, Boolean> getTriggerSettings() {
             return triggerSettings;
         }
 

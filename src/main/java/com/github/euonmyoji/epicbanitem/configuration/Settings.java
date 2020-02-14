@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -115,8 +116,8 @@ public class Settings {
         return this.enabledWorlds.getOrDefault(world, true);
     }
 
-    public boolean isTriggerDefaultEnabled(String trigger) {
-        return this.enabledTriggers.getOrDefault(trigger, true);
+    public boolean isTriggerDefaultEnabled(CheckRuleTrigger trigger) {
+        return this.enabledTriggers.getOrDefault(trigger.toString(), true);
     }
 
     public boolean isCraftingEventClass(AffectItemStackEvent event) {

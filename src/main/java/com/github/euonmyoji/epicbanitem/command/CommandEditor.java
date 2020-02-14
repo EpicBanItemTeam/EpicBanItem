@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
@@ -270,21 +271,14 @@ public class CommandEditor extends AbstractCommand {
                 .append(Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), worlds))
                 .append(Text.NEW_LINE);
             //Triggers
-            Set<String> setTriggers = new HashSet<>(ruleBuilder.getTriggerSettings().keySet());
             List<Text> triggers = new ArrayList<>();
             Tristate triggerDefaultSetting = ruleBuilder.getTriggerDefaultSetting();
-            Function<String, Boolean> triggerDefault = triggerDefaultSetting == Tristate.UNDEFINED
+            Function<CheckRuleTrigger, Boolean> triggerDefault = triggerDefaultSetting == Tristate.UNDEFINED
                 ? settings::isTriggerDefaultEnabled
                 : s -> triggerDefaultSetting.asBoolean();
-            checkAddRemove(
-                triggers,
-                triggerDefault,
-                setTriggers,
-                isOriginNull ? null : origin.getTriggerSettings(),
-                ruleBuilder.getTriggerSettings(),
-                Triggers.getTriggers().keySet()
-            );
-            checkAdd(triggers, triggerDefault, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings(), setTriggers);
+            for (CheckRuleTrigger name : Triggers.getTriggers().values()) {
+                checkAdd2(triggers, triggerDefault, name, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings());
+            }
             builder
                 .append(
                     getMessage(
@@ -430,7 +424,7 @@ public class CommandEditor extends AbstractCommand {
         }
 
         private Text format(
-            String text,
+            Object text,
             Text hover,
             @Nullable Boolean vale,
             boolean defaultVale,
@@ -438,7 +432,7 @@ public class CommandEditor extends AbstractCommand {
             Tuple<CommandElement, CommandExecutor> action
         ) {
             String ebi = EpicBanItem.getMainCommandAlias();
-            Text.Builder builder = Text.builder(text);
+            Text.Builder builder = Text.of(text).toBuilder();
 
             //Mark edited parts bold.
             builder.style(builder.getStyle().bold(edited).italic(Objects.isNull(vale)));
@@ -657,6 +651,38 @@ public class CommandEditor extends AbstractCommand {
                         }
                     )
                 )
+            );
+        }
+
+        private void checkAdd2(
+                List<Text> listToAdd,
+                Function<CheckRuleTrigger, Boolean> defValue,
+                CheckRuleTrigger name,
+                @Nullable Map<CheckRuleTrigger, Boolean> originEnableInfo,
+                Map<CheckRuleTrigger, Boolean> enableInfo
+        ) {
+            final Boolean value = enableInfo.get(name);
+            listToAdd.add(
+                    format(
+                            name,
+                            Text.of(name),
+                            value,
+                            defValue.apply(name),
+                            originEnableInfo != null && !Objects.equals(originEnableInfo.get(name), enableInfo.get(name)),
+                            new Tuple<>(
+                                    GenericArguments.none(),
+                                    (src, args) -> {
+                                        Boolean next = next(value);
+                                        if (next == null) {
+                                            enableInfo.remove(name);
+                                        } else {
+                                            enableInfo.put(name, next);
+                                        }
+                                        resend();
+                                        return CommandResult.success();
+                                    }
+                            )
+                    )
             );
         }
     }

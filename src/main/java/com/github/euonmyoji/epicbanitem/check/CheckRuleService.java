@@ -74,13 +74,22 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
     Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name);
 
     @Deprecated
-    CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject);
+    default CheckResult check(ItemStack itemStack, World world, String trigger, @Nullable Subject subject) {
+        CheckRuleTrigger ruleTrigger = getTrigger(trigger, false).orElseThrow(() -> new IllegalStateException("request unregistered trigger " + trigger));
+        return check(itemStack, world, ruleTrigger, subject);
+    }
 
     @Deprecated
-    CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject);
+    default CheckResult check(ItemStackSnapshot itemStack, World world, String trigger, @Nullable Subject subject) {
+        CheckRuleTrigger ruleTrigger = getTrigger(trigger, false).orElseThrow(() -> new IllegalStateException("request unregistered trigger " + trigger));
+        return check(itemStack, world, ruleTrigger, subject);
+    }
 
     @Deprecated
-    CheckResult check(BlockSnapshot blockSnapshot, World world, String trigger, @Nullable Subject subject);
+    default CheckResult check(BlockSnapshot blockSnapshot, World world, String trigger, @Nullable Subject subject) {
+        CheckRuleTrigger ruleTrigger = getTrigger(trigger, false).orElseThrow(() -> new IllegalStateException("request unregistered trigger " + trigger));
+        return check(blockSnapshot, world, ruleTrigger, subject);
+    }
 
     /**
      * Add a rule to the service and save it in the default config.
@@ -99,19 +108,13 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
     CompletableFuture<Boolean> removeRule(CheckRule rule);
 
     @Override
-    default <T extends Subject> CheckResult check(ItemStackSnapshot snapshot, World world, CheckRuleTrigger trigger, @Nullable T subject) {
-        return this.check(snapshot, world, trigger.toString(), subject);
-    }
+    <T extends Subject> CheckResult check(ItemStackSnapshot snapshot, World world, CheckRuleTrigger trigger, @Nullable T subject);
 
     @Override
-    default <T extends Subject> CheckResult check(BlockSnapshot snapshot, World world, CheckRuleTrigger trigger, @Nullable T subject) {
-        return this.check(snapshot, world, trigger.toString(), subject);
-    }
+    <T extends Subject> CheckResult check(BlockSnapshot snapshot, World world, CheckRuleTrigger trigger, @Nullable T subject);
 
     @Override
-    default <T extends Subject> CheckResult check(ItemStack stack, World world, CheckRuleTrigger trigger, @Nullable T subject) {
-        return this.check(stack, world, trigger.toString(), subject);
-    }
+    <T extends Subject> CheckResult check(ItemStack stack, World world, CheckRuleTrigger trigger, @Nullable T subject);
 
     default <T extends Subject> Iterable<Tuple<CheckResult, Slot>> checkInventory(
         Inventory inventory,
@@ -147,7 +150,7 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
                         .map(
                             itemStack ->
                                 Tuple.of(
-                                    checkRule.check(CheckResult.empty(NbtTagDataUtil.toNbt(itemStack)), world, trigger.toString(), subject),
+                                    checkRule.check(CheckResult.empty(NbtTagDataUtil.toNbt(itemStack)), world, trigger, subject),
                                     slot
                                 )
                         )
