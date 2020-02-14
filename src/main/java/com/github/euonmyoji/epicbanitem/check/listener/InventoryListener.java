@@ -227,40 +227,7 @@ public class InventoryListener {
             }
         }
     }
-
-    @Listener
-    @SuppressWarnings({ "OptionalGetWithoutIsPresent", "UnstableApiUsage" })
-    public void onJoin(Join event, @First Player player) {
-        Streams
-            .stream(service.checkInventory(player.getInventory(), player.getWorld(), Triggers.JOIN, player))
-            .filter(tuple -> tuple.getFirst().isBanned())
-            .forEach(
-                tuple -> {
-                    tuple
-                        .getFirst()
-                        .getFinalView()
-                        .map(dataContainer -> NbtTagDataUtil.toItemStack(dataContainer, tuple.getSecond().peek().get().getQuantity()))
-                        .ifPresent(
-                            finalItem -> {
-                                CheckResult checkResult = tuple.getFirst();
-                                Inventory inventory = tuple.getSecond();
-                                ItemStack itemStack = inventory.peek().get();
-                                inventory.set(finalItem);
-                                TextUtil
-                                    .prepareMessage(
-                                        Triggers.JOIN,
-                                        TextUtil.getDisplayName(itemStack),
-                                        TextUtil.getDisplayName(finalItem),
-                                        ((CheckResult.Banned) checkResult).getBanRules(),
-                                        checkResult.isUpdateNeeded()
-                                    )
-                                    .forEach(player::sendMessage);
-                            }
-                        );
-                }
-            );
-    }
-
+  
     @Listener(order = Order.FIRST, beforeModifications = true)
     public void onInteractBlock(InteractBlockEvent event, @First Player player) {
         event
