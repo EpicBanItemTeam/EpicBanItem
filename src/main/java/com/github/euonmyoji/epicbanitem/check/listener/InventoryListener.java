@@ -9,14 +9,14 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
+import com.google.common.util.concurrent.Atomics;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import com.google.common.collect.Streams;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.DataContainer;
@@ -33,6 +33,7 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
+import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.filter.type.Include;
@@ -121,20 +122,25 @@ public class InventoryListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onCrafting(AffectItemStackEvent event) {
+    public void onCrafting(
+        AffectItemStackEvent event,
+        @Getter("getCause") Cause cause,
+        @Getter("getTransactions") List<? extends Transaction<ItemStackSnapshot>> transactions
+    ) {
         if (EpicBanItem.getSettings().isCraftingEventClass(event)) {
-            Cause cause = event.getCause();
-            List<World> worlds = new ArrayList<>();
+            List<World> worlds = Lists.newArrayList();
             Optional<Player> playerOptional = cause.first(Player.class);
-            playerOptional.ifPresent(player -> worlds.add(player.getWorld()));
+            playerOptional.map(Locatable::getWorld).ifPresent(worlds::add);
+
             if (worlds.isEmpty()) {
                 if (event instanceof TargetInventoryEvent) {
                     Inventory inventory = ((TargetInventoryEvent) event).getTargetInventory();
                     if (inventory instanceof Container) {
-                        ((Container) inventory).getViewers().forEach(player -> worlds.add(player.getWorld()));
+                        ((Container) inventory).getViewers().stream().map(Locatable::getWorld).forEach(worlds::add);
                     }
                 }
             }
+
             if (worlds.isEmpty()) {
                 worlds.add(
                     cause
@@ -152,19 +158,23 @@ public class InventoryListener {
                         )
                 );
             }
-            for (Transaction<ItemStackSnapshot> transaction : event.getTransactions()) {
-                ItemStackSnapshot item = transaction.getFinal();
-                for (World world : worlds) {
-                    CheckResult result = service.check(item, world, Triggers.CRAFT, playerOptional.orElse(null));
-                    if (result.isBanned()) {
-                        Optional<DataContainer> viewOptional = result.getFinalView();
-                        if (viewOptional.isPresent()) {
-                            item = getItem(viewOptional.get(), item.getQuantity()).createSnapshot();
-                        }
-                    }
+
+            transactions.forEach(
+                transaction -> {
+                    ItemStackSnapshot finalItem = transaction.getFinal();
+                    AtomicReference<Optional<ItemStackSnapshot>> item = Atomics.newReference();
+                    worlds
+                        .stream()
+                        .map(world -> service.check(finalItem, world, Triggers.CRAFT, playerOptional.orElse(null)))
+                        .filter(CheckResult::isBanned)
+                        .map(CheckResult::getFinalView)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .forEach(dataContainer -> item.set(Optional.of(getItem(dataContainer, finalItem.getQuantity()).createSnapshot())));
+
+                    item.get().ifPresent(itemStack -> transaction.setCustom(itemStack));
                 }
-                transaction.setCustom(item);
-            }
+            );
         }
     }
 
@@ -219,10 +229,10 @@ public class InventoryListener {
     }
 
     @Listener
-    @SuppressWarnings({"OptionalGetWithoutIsPresent", "UnstableApiUsage"})
+    @SuppressWarnings({ "OptionalGetWithoutIsPresent", "UnstableApiUsage" })
     public void onJoin(Join event, @First Player player) {
-        Streams.stream(service
-            .checkInventory(player.getInventory(), player.getWorld(), Triggers.JOIN, player))
+        Streams
+            .stream(service.checkInventory(player.getInventory(), player.getWorld(), Triggers.JOIN, player))
             .filter(tuple -> tuple.getFirst().isBanned())
             .forEach(
                 tuple -> {
