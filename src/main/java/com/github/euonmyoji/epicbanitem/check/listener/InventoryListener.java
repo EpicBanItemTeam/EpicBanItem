@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import com.google.common.collect.Streams;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.DataContainer;
@@ -217,11 +219,10 @@ public class InventoryListener {
     }
 
     @Listener
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    @SuppressWarnings({"OptionalGetWithoutIsPresent", "UnstableApiUsage"})
     public void onJoin(Join event, @First Player player) {
-        service
-            .checkInventory(player.getInventory(), player.getWorld(), Triggers.JOIN, player)
-            .stream()
+        Streams.stream(service
+            .checkInventory(player.getInventory(), player.getWorld(), Triggers.JOIN, player))
             .filter(tuple -> tuple.getFirst().isBanned())
             .forEach(
                 tuple -> {

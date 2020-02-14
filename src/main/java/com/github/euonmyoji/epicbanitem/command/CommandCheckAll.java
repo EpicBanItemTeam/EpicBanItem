@@ -8,17 +8,24 @@ import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import com.google.common.collect.Streams;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.Tuple;
@@ -57,34 +64,28 @@ public class CommandCheckAll extends AbstractCommand {
         return CommandResult.success();
     }
 
-    @SuppressWarnings({ "DuplicatedCode", "OptionalGetWithoutIsPresent" })
-    private void replaceItems(Player player, Set<Tuple<CheckResult, Inventory>> tuples) {
-        tuples
-            .stream()
-            .filter(tuple -> tuple.getFirst().isBanned())
-            .forEach(
-                tuple ->
-                    tuple
-                        .getFirst()
-                        .getFinalView()
-                        .map(dataContainer -> NbtTagDataUtil.toItemStack(dataContainer, tuple.getSecond().peek().get().getQuantity()))
-                        .ifPresent(
-                            finalItem -> {
-                                CheckResult checkResult = tuple.getFirst();
-                                Inventory inventory = tuple.getSecond();
-                                ItemStack itemStack = inventory.peek().get();
-                                inventory.set(finalItem);
-                                TextUtil
-                                    .prepareMessage(
-                                        Triggers.JOIN,
-                                        TextUtil.getDisplayName(itemStack),
-                                        TextUtil.getDisplayName(finalItem),
-                                        ((CheckResult.Banned) checkResult).getBanRules(),
-                                        checkResult.isUpdateNeeded()
-                                    )
-                                    .forEach(player::sendMessage);
-                            }
-                        )
-            );
+    @SuppressWarnings("DuplicatedCode")
+    private void replaceItems(Player player, Iterable<Tuple<CheckResult, Slot>> tuples) {
+        for (Tuple<CheckResult, Slot> tuple : tuples) {
+            CheckResult result = tuple.getFirst();
+            if (result.isBanned()) {
+                Optional<DataContainer> viewOptional = result.getFinalView();
+                if (viewOptional.isPresent()) {
+                    Slot slot = tuple.getSecond();
+                    ItemStack item = slot.peek().orElse(ItemStack.empty());
+                    ItemStack finalItem = NbtTagDataUtil.toItemStack(viewOptional.get(), item.getQuantity());
+
+                    slot.set(finalItem);
+
+                    Text itemName = TextUtil.getDisplayName(item);
+                    Text finalItemName = TextUtil.getDisplayName(finalItem);
+                    List<Tuple<Text, Optional<String>>> banRules = ((CheckResult.Banned) result).getBanRules();
+
+                    TextUtil
+                        .prepareMessage(Triggers.JOIN, itemName, finalItemName, banRules, result.isUpdateNeeded())
+                        .forEach(player::sendMessage);
+                }
+            }
+        }
     }
 }
