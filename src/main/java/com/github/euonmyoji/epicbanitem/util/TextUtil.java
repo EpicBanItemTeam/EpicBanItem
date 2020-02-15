@@ -34,6 +34,8 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.value.ValueContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
+import org.spongepowered.api.text.action.HoverAction;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.text.translation.Translatable;
@@ -47,7 +49,22 @@ public class TextUtil {
 
     private static BufferedReader delegationReader;
     private static BufferedWriter delegationWriter;
+    /*
+      TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
+        private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = HoconConfigurationLoader.builder()
+                .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+                .setRenderOptions(ConfigRenderOptions.concise())
+                .build();
+    */
     private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = getConciseLoader();
+    /*
+      TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
+        private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
+                .setSource(() -> delegationReader).setSink(() -> delegationWriter)
+                .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))
+                .setRenderOptions(ConfigRenderOptions.defaults().setOriginComments(false))
+                .build();
+    */
     private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
 
     /**
@@ -123,13 +140,6 @@ public class TextUtil {
     public static List<Text> serializeNbtToString(DataView nbt) {
         return NbtTagRenderer.EMPTY_RENDERER.render(nbt);
     }
-/*
-  TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
-    private static final ConfigurationLoader<CommentedConfigurationNode> CONCISE_LOADER = HoconConfigurationLoader.builder()
-            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
-            .setRenderOptions(ConfigRenderOptions.concise())
-            .build();
-*/
 
     public static String escape(String unescapedString) {
         try (StringWriter out = new StringWriter()) {
@@ -158,15 +168,6 @@ public class TextUtil {
         }
         return builder.build();
     }
-
-/*
-  TODO: use this when sponge forge do not relocate 'com.typesafe.config' to 'configurate.typesafe.config'
-    private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = HoconConfigurationLoader.builder()
-            .setSource(() -> delegationReader).setSink(() -> delegationWriter)
-            .setParseOptions(ConfigParseOptions.defaults().setAllowMissing(true))
-            .setRenderOptions(ConfigRenderOptions.defaults().setOriginComments(false))
-            .build();
-*/
 
     private static ConfigurationLoader<CommentedConfigurationNode> getLoader() {
         HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
@@ -269,5 +270,17 @@ public class TextUtil {
             result.add(tuple.getFirst().apply(toParams.apply(tuple.getSecond())).build());
         }
         return result.stream().filter(text -> !text.isEmpty()).collect(Collectors.toList());
+    }
+
+    public static Text.Builder addHoverMessage(Text.Builder builder, Text text) {
+        Optional<HoverAction<?>> optionalHoverAction = builder.getHoverAction();
+        if (optionalHoverAction.isPresent()) {
+            HoverAction<?> hoverAction = optionalHoverAction.get();
+            if (hoverAction instanceof HoverAction.ShowText) {
+                Text origin = ((HoverAction.ShowText)hoverAction).getResult();
+                text = origin.toBuilder().append(Text.NEW_LINE, Text.NEW_LINE, text).build();
+            }
+        }
+        return builder.onHover(TextActions.showText(text));
     }
 }

@@ -3,13 +3,24 @@ package com.github.euonmyoji.epicbanitem.check;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableSet;
+import org.spongepowered.api.CatalogType;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.registry.AdditionalCatalogRegistryModule;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-public class Triggers {
+@NonnullByDefault
+public final class Triggers implements AdditionalCatalogRegistryModule<CheckRuleTrigger> {
+    public static final Triggers RegisterModule = new Triggers();
+
     public static final Impl USE = new Impl("use");
     public static final Impl EQUIP = new Impl("equip");
     public static final Impl CRAFT = new Impl("craft");
@@ -22,35 +33,40 @@ public class Triggers {
     public static final Impl INTERACT = new Impl("interact");
     public static final Impl JOIN = new Impl("join");
 
-    private static final SortedMap<String, CheckRuleTrigger> triggers = initTriggerMap();
+    private static final SortedMap<String, CheckRuleTrigger> triggers = new TreeMap<>();
 
-    private Triggers() {
-        throw new UnsupportedOperationException();
-    }
-
-    private static SortedMap<String, CheckRuleTrigger> initTriggerMap() {
-        SortedMap<String, CheckRuleTrigger> triggerMap = new TreeMap<>();
-        for (Impl impl : Arrays.asList(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT, JOIN)) {
-            triggerMap.put(impl.name, impl);
-        }
-        return triggerMap;
-    }
+    private Triggers() {}
 
     public static SortedMap<String, CheckRuleTrigger> getTriggers() {
-        return triggers;
+        return Sponge.getRegistry().getAllOf(CheckRuleTrigger.class).stream()
+                .collect(Collectors.toMap(CatalogType::getId, Function.identity(), (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); }, TreeMap::new));
     }
 
-    @Deprecated
-    public static Set<String> getDefaultTriggers() {
-        // TODO: change to #getTriggers instead
-        return triggers.keySet();
+    @Override
+    public Optional<CheckRuleTrigger> getById(String id) {
+        return Optional.ofNullable(triggers.get(id));
+    }
+
+    @Override
+    public Collection<CheckRuleTrigger> getAll() {
+        return ImmutableSet.copyOf(triggers.values());
+    }
+
+    @Override
+    public void registerDefaults() {
+        Stream.of(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT, JOIN).forEach(this::registerAdditionalCatalog);
+    }
+
+    @Override
+    public void registerAdditionalCatalog(CheckRuleTrigger extraCatalog) {
+        triggers.put(extraCatalog.getId(), extraCatalog);
     }
 
     @NonnullByDefault
     public static final class Impl implements CheckRuleTrigger {
         private final String name;
 
-        public Impl(String name) {
+        private Impl(String name) {
             this.name = name;
         }
 
@@ -72,6 +88,16 @@ public class Triggers {
         @Override
         public Text toText() {
             return EpicBanItem.getMessages().getMessage("epicbanitem.triggers." + toString().toLowerCase(Locale.ROOT));
+        }
+
+        @Override
+        public String getId() {
+            return EpicBanItem.PLUGIN_ID + ":" + name.toLowerCase(Locale.ROOT);
+        }
+
+        @Override
+        public String getName() {
+            return name;
         }
     }
 }

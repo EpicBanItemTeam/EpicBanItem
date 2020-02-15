@@ -1,6 +1,8 @@
 package com.github.euonmyoji.epicbanitem;
 
+import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleServiceImpl;
+import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.check.listener.ChunkListener;
 import com.github.euonmyoji.epicbanitem.check.listener.InventoryListener;
 import com.github.euonmyoji.epicbanitem.check.listener.WorldItemMoveListener;
@@ -31,10 +33,14 @@ import java.util.Optional;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-@Plugin(id = "epicbanitem", name = "EpicBanItem", version = "@version@",
+@Plugin(id = EpicBanItem.PLUGIN_ID, name = EpicBanItem.NAME, version = EpicBanItem.VERSION,
         dependencies = @Dependency(id = Platform.API_ID, version = "7.1.0"),
         authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"}, description = "A banitem with nbt plugin in sponge")
 public class EpicBanItem {
+    public static final String PLUGIN_ID = "epicbanitem";
+    public static final String NAME = "EpicBanItem";
+    public static final String VERSION = "@version@";
+
     private static EpicBanItem instance;
 
     private final Path cfgDir;
@@ -82,6 +88,7 @@ public class EpicBanItem {
         ServiceManager serviceManager = Sponge.getServiceManager();
         serviceManager.setProvider(this, com.github.euonmyoji.epicbanitem.api.CheckRuleService.class, impl);
         serviceManager.setProvider(this, com.github.euonmyoji.epicbanitem.check.CheckRuleService.class, impl);
+        Sponge.getRegistry().registerModule(CheckRuleTrigger.class, Triggers.RegisterModule);
     }
 
     @Listener

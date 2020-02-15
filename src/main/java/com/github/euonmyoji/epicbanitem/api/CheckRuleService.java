@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.api;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -95,12 +94,4 @@ public interface CheckRuleService {
         @Nullable T subject
     );
 
-    /**
-     * 获取名称对应的触发器，可设置是否在名称不存在时注册一个新的
-     *
-     * @param name             名称，必须匹配[a-z0-9-_]+
-     * @param registerIfAbsent 若设为 {@code true}，则在名称不存在时注册一个新的
-     * @return 触发器
-     */
-    Optional<CheckRuleTrigger> getTrigger(String name, boolean registerIfAbsent);
 }
