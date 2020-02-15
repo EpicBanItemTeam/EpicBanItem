@@ -1,11 +1,10 @@
 package com.github.euonmyoji.epicbanitem.ui;
 
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.Text;
 
 public class VariableHeightLines {
     private List<TextLine> lines;
@@ -21,11 +20,11 @@ public class VariableHeightLines {
         }
         int l = (height - lines.size()) / 2;
         List<Text> result = new ArrayList<>();
-        for (int i = 0; i< l; i++) {
+        for (int i = 0; i < l; i++) {
             result.add(Text.EMPTY);
         }
         result.addAll(lines);
-        for (int i = 0; i< height - lines.size() - l; i++) {
+        for (int i = 0; i < height - lines.size() - l; i++) {
             result.add(Text.EMPTY);
         }
         return result;

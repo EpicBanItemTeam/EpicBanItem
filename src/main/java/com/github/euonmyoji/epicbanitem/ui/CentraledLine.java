@@ -1,16 +1,16 @@
 package com.github.euonmyoji.epicbanitem.ui;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextRepresentable;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class CentraledLine implements TextLine {
     private int width;
     private List<UiTextElement> elements;
+
     @Nullable
     private Text fill;
 
@@ -19,7 +19,6 @@ public class CentraledLine implements TextLine {
         this.elements = elements;
         this.fill = fill;
     }
-
 
     @Override
     public Text getLine(Player viewer) {
@@ -31,14 +30,14 @@ public class CentraledLine implements TextLine {
         int l = width - cWidth / 2;
         if (fill == null) {
             StringBuilder builder = new StringBuilder();
-            for (int i = 0; i< l; i++) {
+            for (int i = 0; i < l; i++) {
                 builder.append(" ");
             }
             return Text.builder(builder.toString()).append(texts).build();
         } else {
             String s = fill.toPlain();
             StringBuilder builder = new StringBuilder();
-            for (int i = 0; i< l; i++) {
+            for (int i = 0; i < l; i++) {
                 builder.append(s);
             }
             Text t = Text.builder(fill, builder.toString()).toText();

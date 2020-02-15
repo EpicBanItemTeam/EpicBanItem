@@ -8,7 +8,8 @@ import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
 import org.spongepowered.api.Sponge;
@@ -26,9 +27,11 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 
+@Singleton
 @NonnullByDefault
 public class CommandCheckAll extends AbstractCommand {
-    private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+    @Inject
+    private CheckRuleService service;
 
     public CommandCheckAll() {
         super("checkall", "ca");
@@ -78,9 +81,7 @@ public class CommandCheckAll extends AbstractCommand {
                     Text finalItemName = TextUtil.getDisplayName(finalItem);
                     List<Tuple<Text, Optional<String>>> banRules = ((CheckResult.Banned) result).getBanRules();
 
-                    TextUtil
-                        .prepareMessage(Triggers.JOIN, itemName, finalItemName, banRules, result.isUpdateNeeded())
-                        .forEach(player::sendMessage);
+                    TextUtil.prepareMessage(Triggers.JOIN, itemName, finalItemName, banRules, result.isUpdateNeeded()).forEach(player::sendMessage);
                 }
             }
         }

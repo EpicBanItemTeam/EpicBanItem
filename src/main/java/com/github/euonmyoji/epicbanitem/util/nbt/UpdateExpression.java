@@ -3,23 +3,28 @@ package com.github.euonmyoji.epicbanitem.util.nbt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import ninja.leaping.configurate.ConfigurationNode;
-import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.DataQuery;
-import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.util.Tuple;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.util.Tuple;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@SuppressWarnings("UnstableApiUsage")
 public class UpdateExpression implements DataTransformer {
     private static final Map<String, BiFunction<String, ConfigurationNode, DataTransformer>> OPERATORS;
 
@@ -50,10 +55,15 @@ public class UpdateExpression implements DataTransformer {
             String key = entry.getKey().toString();
             BiFunction<String, ConfigurationNode, DataTransformer> operator = OPERATORS.get(key);
             if (Objects.nonNull(operator)) {
-                entry.getValue().getChildrenMap().forEach((k, v) -> {
-                    DataTransformer transformer = operator.apply(k.toString(), v);
-                    this.transformers.add(transformer);
-                });
+                entry
+                    .getValue()
+                    .getChildrenMap()
+                    .forEach(
+                        (k, v) -> {
+                            DataTransformer transformer = operator.apply(k.toString(), v);
+                            this.transformers.add(transformer);
+                        }
+                    );
                 continue;
             }
             this.transformers.clear();
@@ -68,7 +78,7 @@ public class UpdateExpression implements DataTransformer {
         for (String part : Lists.reverse(query.getParts())) {
             operation = UpdateResult.Operation.update(UpdateResult.update(ImmutableMap.of(part, operation)));
         }
-        // noinspection ConstantConditions
+        //noinspection OptionalGetWithoutIsPresent
         return operation.getUpdateResult().get();
     }
 
@@ -79,44 +89,59 @@ public class UpdateExpression implements DataTransformer {
         for (String previousPart : previousParts) {
             switch (previousPart) {
                 case "$":
-                    parts = parts.flatMap(tuple -> {
-                        ImmutableList<String> part = tuple.getFirst();
-                        Optional<QueryResult> partResult = tuple.getSecond();
-                        if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
-                            String message = "Cannot match \"$\" in \"" + String.join(".", part) + ".$\" because its parent is not an array";
-                            throw new IllegalArgumentException(message);
-                        }
-                        Map<String, QueryResult> queryMap = partResult.get().getChildren();
-                        if (!queryMap.isEmpty()) {
-                            ImmutableList.Builder<String> b = ImmutableList.builder();
-                            Map.Entry<String, QueryResult> e = queryMap.entrySet().iterator().next();
-                            return Stream.of(Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue())));
-                        }
-                        return Stream.empty();
-                    });
+                    parts =
+                        parts.flatMap(
+                            tuple -> {
+                                ImmutableList<String> part = tuple.getFirst();
+                                Optional<QueryResult> partResult = tuple.getSecond();
+                                if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
+                                    String message = "Cannot match \"$\" in \"" + String.join(".", part) + ".$\" because its parent is not an array";
+                                    throw new IllegalArgumentException(message);
+                                }
+                                Map<String, QueryResult> queryMap = partResult.get().getChildren();
+                                if (!queryMap.isEmpty()) {
+                                    ImmutableList.Builder<String> b = ImmutableList.builder();
+                                    Map.Entry<String, QueryResult> e = queryMap.entrySet().iterator().next();
+                                    return Stream.of(Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue())));
+                                }
+                                return Stream.empty();
+                            }
+                        );
                     break;
                 case "$[]":
-                    parts = parts.flatMap(tuple -> {
-                        ImmutableList<String> part = tuple.getFirst();
-                        Optional<QueryResult> partResult = tuple.getSecond();
-                        if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
-                            String message = "Cannot match \"$[]\" in \"" + String.join(".", part) + ".$[]\" because its parent is not an array";
-                            throw new IllegalArgumentException(message);
-                        }
-                        Map<String, QueryResult> queryMap = partResult.get().getChildren();
-                        return queryMap.entrySet().stream().map(e -> {
-                            ImmutableList.Builder<String> b = ImmutableList.builder();
-                            return Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue()));
-                        });
-                    });
+                    parts =
+                        parts.flatMap(
+                            tuple -> {
+                                ImmutableList<String> part = tuple.getFirst();
+                                Optional<QueryResult> partResult = tuple.getSecond();
+                                if (!partResult.isPresent() || !partResult.get().isArrayChildren()) {
+                                    String message =
+                                        "Cannot match \"$[]\" in \"" + String.join(".", part) + ".$[]\" because its parent is not an array";
+                                    throw new IllegalArgumentException(message);
+                                }
+                                Map<String, QueryResult> queryMap = partResult.get().getChildren();
+                                return queryMap
+                                    .entrySet()
+                                    .stream()
+                                    .map(
+                                        e -> {
+                                            ImmutableList.Builder<String> b = ImmutableList.builder();
+                                            return Tuple.of(b.addAll(part).add(e.getKey()).build(), Optional.of(e.getValue()));
+                                        }
+                                    );
+                            }
+                        );
                     break;
                 default:
-                    parts = parts.map(tuple -> {
-                        ImmutableList<String> part = tuple.getFirst();
-                        Optional<QueryResult> partResult = tuple.getSecond();
-                        partResult = partResult.flatMap(v -> Optional.ofNullable(v.getChildren().get(previousPart)));
-                        return Tuple.of(ImmutableList.<String>builder().addAll(part).add(previousPart).build(), partResult);
-                    });
+                    parts =
+                        parts.map(
+                            tuple -> {
+                                ImmutableList<String> part = tuple.getFirst();
+                                Optional<QueryResult> partResult = tuple.getSecond();
+                                partResult = partResult.flatMap(v -> Optional.ofNullable(v.getChildren().get(previousPart)));
+                                return Tuple.of(ImmutableList.<String>builder().addAll(part).add(previousPart).build(), partResult);
+                            }
+                        );
             }
         }
         return parts.map(tuple -> DataQuery.of(tuple.getFirst())).collect(ImmutableList.toImmutableList());
@@ -146,20 +171,28 @@ public class UpdateExpression implements DataTransformer {
     }
 
     private static IntPredicate pullFilter(DataQuery query, DataView view, ConfigurationNode node) {
-        return node.hasMapChildren() ? i -> {
-            QueryExpression queryExpression = new QueryExpression(node);
-            return !queryExpression.query(query.then(Integer.toString(i)), view).isPresent();
-        } : i -> {
-            Object value = NbtTypeHelper.getObject(query.then(Integer.toString(i)), view);
-            return !NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, node));
-        };
+        return node.hasMapChildren()
+            ? i -> {
+                QueryExpression queryExpression = new QueryExpression(node);
+                return !queryExpression.query(query.then(Integer.toString(i)), view).isPresent();
+            }
+            : i -> {
+                Object value = NbtTypeHelper.getObject(query.then(Integer.toString(i)), view);
+                return !NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, node));
+            };
     }
 
     private static IntPredicate pullAllFilter(DataQuery query, DataView view, ConfigurationNode node) {
-        return i -> node.getChildrenList().stream().noneMatch(n -> {
-            Object value = NbtTypeHelper.getObject(query.then(Integer.toString(i)), view);
-            return NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, n));
-        });
+        return i ->
+            node
+                .getChildrenList()
+                .stream()
+                .noneMatch(
+                    n -> {
+                        Object value = NbtTypeHelper.getObject(query.then(Integer.toString(i)), view);
+                        return NbtTypeHelper.isEqual(value, NbtTypeHelper.convert(value, n));
+                    }
+                );
     }
 
     private static Object multiplyValue(Object previousValue, Object multiplier) {

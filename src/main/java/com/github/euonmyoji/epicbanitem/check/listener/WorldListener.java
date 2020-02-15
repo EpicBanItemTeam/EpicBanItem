@@ -6,11 +6,14 @@ import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.collect.Streams;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Transform;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.MoveEntityEvent.Teleport;
@@ -20,6 +23,7 @@ import org.spongepowered.api.event.network.ClientConnectionEvent.Join;
 import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.channel.MessageReceiver;
 import org.spongepowered.api.world.World;
@@ -28,8 +32,15 @@ import org.spongepowered.api.world.World;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @SuppressWarnings("UnstableApiUsage")
-public class WorldItemMoveListener {
-    private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+@Singleton
+public class WorldListener {
+    @Inject
+    private CheckRuleService service;
+
+    @Inject
+    public WorldListener(PluginContainer pluginContainer, EventManager eventManager) {
+        eventManager.registerListeners(pluginContainer, this);
+    }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Listener

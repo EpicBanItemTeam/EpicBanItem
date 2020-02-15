@@ -1,10 +1,24 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import static com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs.patternString;
+import static org.spongepowered.api.command.args.GenericArguments.flags;
+import static org.spongepowered.api.command.args.GenericArguments.optional;
+import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
+import static org.spongepowered.api.command.args.GenericArguments.seq;
+
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.collect.Iterables;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -30,17 +44,14 @@ import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
 
-import java.util.*;
-import java.util.function.Predicate;
-
-import static com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs.patternString;
-import static org.spongepowered.api.command.args.GenericArguments.*;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 class CommandCreate extends AbstractCommand {
+    @Inject
+    private CheckRuleService service;
 
     CommandCreate() {
         super("create", "c");
@@ -75,9 +86,15 @@ class CommandCreate extends AbstractCommand {
 
     @Override
     public CommandElement getArgument() {
-        return seq(patternString(Text.of("rule-name"), CheckRule.NAME_PATTERN), flags()
-                .flag("-no-capture").flag("-simple-capture").flag("-all-capture").flag("-all-match")
-                .buildWith(optional(remainingRawJoinedStrings(Text.of("query-rule")))));
+        return seq(
+            patternString(Text.of("rule-name"), CheckRule.NAME_PATTERN),
+            flags()
+                .flag("-no-capture")
+                .flag("-simple-capture")
+                .flag("-all-capture")
+                .flag("-all-match")
+                .buildWith(optional(remainingRawJoinedStrings(Text.of("query-rule"))))
+        );
     }
 
     @Override
@@ -92,11 +109,12 @@ class CommandCreate extends AbstractCommand {
         if (args.hasAny("all-capture") || args.hasAny("all-match")) {
             captureMethods.add(e -> Objects.nonNull(e.getValue()));
         }
-        String name = args.<String>getOne("rule-name").orElseThrow(() -> new IllegalArgumentException("What's the sponge version?, EpicBanItem cannot find a rule-name!"));
+        String name = args
+            .<String>getOne("rule-name")
+            .orElseThrow(() -> new IllegalArgumentException("What's the sponge version?, EpicBanItem cannot find a rule-name!"));
         String query = args.<String>getOne("query-rule").orElse("{}");
         Predicate<Map.Entry<DataQuery, Object>> capture = e -> "id".equals(e.getKey().toString());
         try {
-            CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
             if (service.getCheckRuleByName(name).isPresent()) {
                 throw new CommandException(getMessage("existed", "rule_name", name));
             }
@@ -130,10 +148,14 @@ class CommandCreate extends AbstractCommand {
             if (src instanceof Player) {
                 CommandEditor.add((Player) src, name, queryNode, true);
             } else {
-                service.appendRule(new CheckRule(name, queryNode)).thenRun(() -> {
-                    Text succeedMessage = getMessage("succeed", "rule_name", name);
-                    src.sendMessage(succeedMessage);
-                });
+                service
+                    .appendRule(new CheckRule(name, queryNode))
+                    .thenRun(
+                        () -> {
+                            Text succeedMessage = getMessage("succeed", "rule_name", name);
+                            src.sendMessage(succeedMessage);
+                        }
+                    );
             }
             return CommandResult.success();
         } catch (CommandException e) {

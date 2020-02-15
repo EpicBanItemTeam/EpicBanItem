@@ -4,12 +4,13 @@ import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -27,8 +28,12 @@ import org.spongepowered.api.world.World;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 public class CommandCheck extends AbstractCommand {
     private static Map<String, CheckRule> checkRuleContext = new LinkedHashMap<>();
+
+    @Inject
+    private CheckRuleService service;
 
     CommandCheck() {
         super("check", "k");
@@ -49,7 +54,6 @@ public class CommandCheck extends AbstractCommand {
     @Nonnull
     public CommandResult execute(@Nonnull CommandSource src, @Nonnull CommandContext args) throws CommandException {
         boolean lookAt = args.hasAny("l");
-        CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         checkRuleContext.clear();
         if (lookAt) {
             Optional<BlockSnapshot> optional = CommandCreate.getBlockLookAt(src);

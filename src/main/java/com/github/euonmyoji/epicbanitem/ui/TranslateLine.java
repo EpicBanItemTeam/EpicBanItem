@@ -1,9 +1,8 @@
 package com.github.euonmyoji.epicbanitem.ui;
 
+import java.util.function.Function;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
-
-import java.util.function.Function;
 
 public class TranslateLine implements TextLine {
     private UiTextElement element;

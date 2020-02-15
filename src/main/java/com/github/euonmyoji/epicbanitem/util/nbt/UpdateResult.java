@@ -1,11 +1,14 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import java.util.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -28,15 +31,17 @@ public final class UpdateResult {
     }
 
     private void apply(DataQuery query, DataView view) {
-        this.children.forEach((k, v) -> {
-            if (v.replace) {
-                Optional<?> value = (Optional<?>) v.value;
-                NbtTypeHelper.setObject(query.then(k), view, o -> value.orElse(null));
-            } else {
-                UpdateResult value = (UpdateResult) v.value;
-                value.apply(query.then(k), view);
-            }
-        });
+        this.children.forEach(
+                (k, v) -> {
+                    if (v.replace) {
+                        Optional<?> value = (Optional<?>) v.value;
+                        NbtTypeHelper.setObject(query.then(k), view, o -> value.orElse(null));
+                    } else {
+                        UpdateResult value = (UpdateResult) v.value;
+                        value.apply(query.then(k), view);
+                    }
+                }
+            );
     }
 
     public void apply(DataView view) {
@@ -51,15 +56,18 @@ public final class UpdateResult {
         Map<String, Operation> children = new LinkedHashMap<>(this.children);
         for (Map.Entry<String, Operation> entry : anotherChildren.entrySet()) {
             Operation value = entry.getValue();
-            children.compute(entry.getKey(), (k, v) -> {
-                if (Objects.isNull(v)) {
-                    return value;
-                } else if (!v.replace && !value.replace) {
-                    return Operation.update(((UpdateResult) v.value).merge(((UpdateResult) value.value).getChildren()));
-                } else {
-                    throw new IllegalArgumentException("Find two apply operations for the same field: \"" + k + "\"");
+            children.compute(
+                entry.getKey(),
+                (k, v) -> {
+                    if (Objects.isNull(v)) {
+                        return value;
+                    } else if (!v.replace && !value.replace) {
+                        return Operation.update(((UpdateResult) v.value).merge(((UpdateResult) value.value).getChildren()));
+                    } else {
+                        throw new IllegalArgumentException("Find two apply operations for the same field: \"" + k + "\"");
+                    }
                 }
-            });
+            );
         }
         return new UpdateResult(children);
     }

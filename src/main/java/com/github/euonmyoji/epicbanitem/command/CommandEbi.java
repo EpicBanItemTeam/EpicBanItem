@@ -1,55 +1,83 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import java.util.HashMap;
+import com.github.euonmyoji.epicbanitem.CommandMapService;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCallable;
-import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
  * @author EBI
  */
-@NonnullByDefault
+@Singleton
 public class CommandEbi extends AbstractCommand {
-    private static final String ARGUMENT_KEY = "string";
-    private Map<List<String>, CommandCallable> childrenMap = new HashMap<>();
+    public static String COMMAND_PREFIX;
 
-    public CommandEbi() {
+    private static final String ARGUMENT_KEY = "string";
+
+    @Inject
+    private PluginContainer pluginContainer;
+
+    @Inject
+    private CommandMapService service;
+
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private CommandHelp commandHelp;
+
+    @Inject
+    private CommandList commandList;
+
+    @Inject
+    private CommandCallback commandCallback;
+
+    @Inject
+    private CommandQuery commandQuery;
+
+    @Inject
+    private CommandShow commandShow;
+
+    @Inject
+    private CommandCheck commandCheck;
+
+    @Inject
+    private CommandCheckAll commandCheckAll;
+
+    @Inject
+    private CommandCreate commandCreate;
+
+    @Inject
+    private CommandUpdate commandUpdate;
+
+    @Inject
+    private CommandRemove commandRemove;
+
+    @Inject
+    private CommandEdit commandEdit;
+
+    @Inject
+    private CommandEditor commandEditor;
+
+    @Inject
+    public CommandEbi(EventManager eventManager, PluginContainer pluginContainer) {
         super("ebi", "epicbanitem", "banitem", "bi");
-        addChildCommand(new CommandList());
-        addChildCommand(new CommandQuery());
-        addChildCommand(new CommandShow());
-        addChildCommand(new CommandCheck());
-        addChildCommand(new CommandCheckAll());
-        addChildCommand(new CommandCreate());
-        addChildCommand(new CommandUpdate());
-        addChildCommand(new CommandRemove());
-        addChildCommand(new CommandEdit());
-        addChildCommand(new CommandEditor());
-        addChildCommand(new CommandCallback());
-        addChildCommand(new CommandHelp(childrenMap));
-        commandSpec =
-            CommandSpec
-                .builder()
-                .permission(getPermission("base"))
-                .description(getDescription())
-                .extendedDescription(getExtendedDescription())
-                .children(childrenMap)
-                .arguments(getArgument())
-                .childArgumentParseExceptionFallback(true)
-                .executor(this)
-                .build();
+        eventManager.registerListeners(pluginContainer, this);
     }
 
     private static int getHowClose(String raw, String s) {
@@ -77,10 +105,6 @@ public class CommandEbi extends AbstractCommand {
         return d;
     }
 
-    public Optional<CommandMapping> registerFor(EpicBanItem instance) {
-        return Sponge.getCommandManager().register(instance, this.getCallable(), this.getNameList());
-    }
-
     @Override
     public CommandElement getArgument() {
         return GenericArguments.optionalWeak(GenericArguments.remainingJoinedStrings(Text.of(ARGUMENT_KEY)));
@@ -96,7 +120,8 @@ public class CommandEbi extends AbstractCommand {
                 s -> {
                     String lastMatchCommand = null;
                     int lastM = -1;
-                    for (Map.Entry<List<String>, CommandCallable> entry : childrenMap.entrySet()) {
+                    int finalLastM = lastM;
+                    for (Map.Entry<List<String>, CommandCallable> entry : service.getChildrenMap().entrySet()) {
                         if (entry.getValue().testPermission(src)) {
                             try {
                                 String command = entry.getKey().get(0);
@@ -106,7 +131,7 @@ public class CommandEbi extends AbstractCommand {
                                     lastM = d;
                                 }
                             } catch (IndexOutOfBoundsException e) {
-                                EpicBanItem.getLogger().debug("Unexpected IndexOutOfBoundsException", e);
+                                logger.debug("Unexpected IndexOutOfBoundsException", e);
                             }
                         }
                     }
@@ -119,10 +144,39 @@ public class CommandEbi extends AbstractCommand {
     }
 
     private String suggestCommand(String childCommand) {
-        return "/" + EpicBanItem.getMainCommandAlias() + " " + childCommand;
+        return "/" + CommandEbi.COMMAND_PREFIX + " " + childCommand;
     }
 
-    private void addChildCommand(ICommand command) {
-        childrenMap.put(command.getNameList(), command.getCallable());
+    @Listener
+    public void onInit(GameInitializationEvent event) {
+        service.registerCommand(commandHelp);
+        service.registerCommand(commandList);
+        service.registerCommand(commandCallback);
+        service.registerCommand(commandQuery);
+        service.registerCommand(commandShow);
+        service.registerCommand(commandCheck);
+        service.registerCommand(commandCheckAll);
+        service.registerCommand(commandCreate);
+        service.registerCommand(commandUpdate);
+        service.registerCommand(commandRemove);
+        service.registerCommand(commandEdit);
+        service.registerCommand(commandEditor);
+
+        commandSpec =
+            CommandSpec
+                .builder()
+                .permission(getPermission("base"))
+                .description(getDescription())
+                .extendedDescription(getExtendedDescription())
+                .children(service.getChildrenMap())
+                .arguments(getArgument())
+                .childArgumentParseExceptionFallback(true)
+                .executor(this)
+                .build();
+
+        Sponge
+            .getCommandManager()
+            .register(pluginContainer, this.getCallable(), this.getNameList())
+            .ifPresent(mapping -> COMMAND_PREFIX = mapping.getPrimaryAlias());
     }
 }

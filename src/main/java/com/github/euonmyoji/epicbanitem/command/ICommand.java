@@ -1,11 +1,10 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import org.spongepowered.api.command.CommandCallable;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.spongepowered.api.command.CommandCallable;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz

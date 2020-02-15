@@ -1,35 +1,61 @@
 package com.github.euonmyoji.epicbanitem.check;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
+import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.UnaryOperator;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.UnaryOperator;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 public class CheckRuleServiceImpl implements CheckRuleService {
+    @Inject
+    BanConfig banConfig;
+
+    @Inject
+    Logger logger;
+
+    PluginContainer pluginContainer;
+
+    @Inject
+    private CheckRuleServiceImpl(PluginContainer pluginContainer, EventManager eventManager) {
+        eventManager.registerListeners(pluginContainer, this);
+        this.pluginContainer = pluginContainer;
+    }
+
     @Override
     public CompletableFuture<Boolean> appendRule(CheckRule rule) {
         try {
-            return EpicBanItem.getBanConfig().addRule(CheckRuleIndex.of(rule.getQueryNode()), rule);
+            return banConfig.addRule(CheckRuleIndex.of(rule.getQueryNode()), rule);
         } catch (IOException e) {
-            EpicBanItem.getLogger().error("Failed to save ban config.", e);
+            logger.error("Failed to save ban config.", e);
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
@@ -39,9 +65,9 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
     public CompletableFuture<Boolean> removeRule(CheckRule rule) {
         try {
-            return EpicBanItem.getBanConfig().removeRule(CheckRuleIndex.of(rule.getQueryNode()), rule.getName());
+            return banConfig.removeRule(CheckRuleIndex.of(rule.getQueryNode()), rule.getName());
         } catch (IOException e) {
-            EpicBanItem.getLogger().error("Failed to save ban config.", e);
+            logger.error("Failed to save ban config.", e);
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
@@ -72,37 +98,47 @@ public class CheckRuleServiceImpl implements CheckRuleService {
 
     @Override
     public Set<CheckRuleIndex> getIndexes() {
-        return EpicBanItem.getBanConfig().getItems();
+        return banConfig.getItems();
     }
 
     @Override
     public List<CheckRule> getCheckRulesByIndex(CheckRuleIndex index) {
-        return EpicBanItem.getBanConfig().getRules(index);
+        return banConfig.getRules(index);
     }
 
     @Override
     public Collection<CheckRule> getCheckRules() {
-        return EpicBanItem.getBanConfig().getRules();
+        return banConfig.getRules();
     }
 
     @Override
     public Set<String> getNames() {
-        return EpicBanItem.getBanConfig().getRuleNames();
+        return banConfig.getRuleNames();
     }
 
     @Override
     public Optional<CheckRule> getCheckRuleByName(String name) {
-        return EpicBanItem.getBanConfig().getRule(name);
+        return banConfig.getRule(name);
     }
 
     @Override
     public Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name) {
-        return EpicBanItem.getBanConfig().getRules(index).stream().filter(c -> c.getName().equals(name)).findFirst();
+        return banConfig.getRules(index).stream().filter(c -> c.getName().equals(name)).findFirst();
     }
 
     private CheckResult check(CheckResult origin, String id, World world, CheckRuleTrigger trigger, @Nullable Subject subject) {
-        return EpicBanItem.getBanConfig().getRulesWithIdFiltered(id).stream()
-                .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
-                .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result))).apply(origin);
+        return banConfig
+            .getRulesWithIdFiltered(id)
+            .stream()
+            .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
+            .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result)))
+            .apply(origin);
+    }
+
+    @Listener
+    public void onPreInit(GamePreInitializationEvent event) {
+        ServiceManager serviceManager = Sponge.getServiceManager();
+        serviceManager.setProvider(pluginContainer, com.github.euonmyoji.epicbanitem.api.CheckRuleService.class, this);
+        serviceManager.setProvider(pluginContainer, com.github.euonmyoji.epicbanitem.check.CheckRuleService.class, this);
     }
 }

@@ -2,18 +2,24 @@ package com.github.euonmyoji.epicbanitem.util.nbt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.OptionalInt;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -213,11 +219,7 @@ final class NbtTypeHelper {
             return value.toString() + "d";
         }
         if (value instanceof String) {
-            return "\"" + value.toString()
-                    .replace("\\", "\\\\")
-                    .replace("\"", "\\\"")
-                    .replace("\u00a7", "\\u00a7") + "\"";
-
+            return "\"" + value.toString().replace("\\", "\\\\").replace("\"", "\\\"").replace("\u00a7", "\\u00a7") + "\"";
         }
         byte[] bytes = getAsByteArray(value);
         if (Objects.nonNull(bytes)) {

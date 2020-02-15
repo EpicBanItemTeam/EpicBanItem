@@ -2,14 +2,23 @@ package com.github.euonmyoji.epicbanitem.check;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
-import java.util.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.google.common.collect.ImmutableSet;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.registry.AdditionalCatalogRegistryModule;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
@@ -17,29 +26,43 @@ import org.spongepowered.plugin.meta.util.NonnullByDefault;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 public final class Triggers implements AdditionalCatalogRegistryModule<CheckRuleTrigger> {
-    public static final Triggers RegisterModule = new Triggers();
-
-    public static final Impl USE = new Impl("use");
-    public static final Impl EQUIP = new Impl("equip");
-    public static final Impl CRAFT = new Impl("craft");
-    public static final Impl PICKUP = new Impl("pickup");
-    public static final Impl CLICK = new Impl("click");
-    public static final Impl THROW = new Impl("throw");
-    public static final Impl DROP = new Impl("drop");
-    public static final Impl PLACE = new Impl("place");
-    public static final Impl BREAK = new Impl("break");
-    public static final Impl INTERACT = new Impl("interact");
-    public static final Impl JOIN = new Impl("join");
+    public static final CheckRuleTrigger USE = new Impl("use");
+    public static final CheckRuleTrigger EQUIP = new Impl("equip");
+    public static final CheckRuleTrigger CRAFT = new Impl("craft");
+    public static final CheckRuleTrigger PICKUP = new Impl("pickup");
+    public static final CheckRuleTrigger CLICK = new Impl("click");
+    public static final CheckRuleTrigger THROW = new Impl("throw");
+    public static final CheckRuleTrigger DROP = new Impl("drop");
+    public static final CheckRuleTrigger PLACE = new Impl("place");
+    public static final CheckRuleTrigger BREAK = new Impl("break");
+    public static final CheckRuleTrigger INTERACT = new Impl("interact");
+    public static final CheckRuleTrigger JOIN = new Impl("join");
 
     private static final SortedMap<String, CheckRuleTrigger> triggers = new TreeMap<>();
 
-    private Triggers() {}
+    @Inject
+    public Triggers(EventManager eventManager, PluginContainer pluginContainer) {
+        eventManager.registerListeners(pluginContainer, this);
+    }
 
     public static SortedMap<String, CheckRuleTrigger> getTriggers() {
-        return Sponge.getRegistry().getAllOf(CheckRuleTrigger.class).stream()
-                .collect(Collectors.toMap(CatalogType::getId, Function.identity(), (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); }, TreeMap::new));
+        return Sponge
+            .getRegistry()
+            .getAllOf(CheckRuleTrigger.class)
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    CatalogType::getId,
+                    Function.identity(),
+                    (u, v) -> {
+                        throw new IllegalStateException(String.format("Duplicate key %s", u));
+                    },
+                    TreeMap::new
+                )
+            );
     }
 
     @Override
@@ -60,6 +83,11 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     @Override
     public void registerAdditionalCatalog(CheckRuleTrigger extraCatalog) {
         triggers.put(extraCatalog.getId(), extraCatalog);
+    }
+
+    @Listener
+    public void onPreInit(GamePreInitializationEvent event) {
+        Sponge.getRegistry().registerModule(CheckRuleTrigger.class, this);
     }
 
     @NonnullByDefault

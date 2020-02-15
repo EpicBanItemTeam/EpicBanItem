@@ -1,22 +1,41 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
+import org.slf4j.Logger;
+import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GameStoppingEvent;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
-import java.util.function.Function;
-
-import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 public class AutoFileLoader implements Closeable {
     private final Path cfgDir;
     private final WatchService service;
@@ -29,7 +48,12 @@ public class AutoFileLoader implements Closeable {
 
     private final Map<String, ConfigurationLoader<? extends ConfigurationNode>> configurationLoaders;
 
-    public AutoFileLoader(EpicBanItem plugin, Path configDir) throws IOException {
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private AutoFileLoader(@ConfigDir(sharedRoot = false) Path configDir, PluginContainer pluginContainer, EventManager eventManager)
+        throws IOException {
         this.cfgDir = configDir.toAbsolutePath();
         this.service = FileSystems.getDefault().newWatchService();
 
@@ -42,7 +66,9 @@ public class AutoFileLoader implements Closeable {
         this.configurationLoaders = new LinkedHashMap<>();
 
         configDir.register(this.service, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-        Task.builder().execute(this::tick).name("EpicBanItemAutoFileLoader").intervalTicks(1).submit(plugin);
+        Task.builder().execute(this::tick).name("EpicBanItemAutoFileLoader").intervalTicks(1).submit(pluginContainer);
+
+        eventManager.registerListeners(pluginContainer, this);
     }
 
     private static ConfigurationLoader<? extends ConfigurationNode> toLoader(Path path) {
@@ -72,7 +98,7 @@ public class AutoFileLoader implements Closeable {
             for (String pathString : pathStrings) {
                 this.pendingLoadTasks.remove(pathString);
                 if (this.configurationLoaders.containsKey(pathString)) {
-                    EpicBanItem.getLogger().info(pathString + " has been changed. Try reloading now.");
+                    logger.info(pathString + " has been changed. Try reloading now.");
                     this.loadFile(pathString, pathString + " reloaded successfully.");
                 }
             }
@@ -105,9 +131,9 @@ public class AutoFileLoader implements Closeable {
         try {
             ConfigurationLoader<? extends ConfigurationNode> loader = this.configurationLoaders.get(pathString);
             this.readListeners.get(pathString).accept(loader.load());
-            EpicBanItem.getLogger().info(msg);
+            logger.info(msg);
         } catch (IOException e) {
-            EpicBanItem.getLogger().error("Find error while reading from " + pathString + ".", e);
+            logger.error("Find error while reading from " + pathString + ".", e);
         }
     }
 
@@ -117,9 +143,9 @@ public class AutoFileLoader implements Closeable {
             ConfigurationNode configurationNode = transformer.apply(loader.createEmptyNode());
             this.writeListeners.get(pathString).accept(configurationNode);
             loader.save(configurationNode);
-            EpicBanItem.getLogger().info(msg);
+            logger.info(msg);
         } catch (IOException e) {
-            EpicBanItem.getLogger().error("Find error while writing to " + pathString + ".", e);
+            logger.error("Find error while writing to " + pathString + ".", e);
         }
     }
 
@@ -155,5 +181,14 @@ public class AutoFileLoader implements Closeable {
     @FunctionalInterface
     public interface FileConsumer {
         void accept(ConfigurationNode node) throws IOException;
+    }
+
+    @Listener
+    public void onStopping(GameStoppingEvent event) {
+        try {
+            this.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save EpicBanItem", e);
+        }
     }
 }

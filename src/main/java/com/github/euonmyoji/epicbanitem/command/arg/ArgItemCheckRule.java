@@ -4,6 +4,10 @@ import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.ArgumentParseException;
@@ -14,11 +18,6 @@ import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.StartsWithPredicate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -40,8 +39,9 @@ class ArgItemCheckRule extends CommandElement {
         if (optionalCheckRule.isPresent()) {
             context.putArg(getKey(), optionalCheckRule.get());
         } else {
-            throw args.createError(EpicBanItem.getMessages()
-                    .getMessage("epicbanitem.args.itemCheckRule.notFound", "name", argString, "item", itemType.getId()));
+            throw args.createError(
+                EpicBanItem.getMessages().getMessage("epicbanitem.args.itemCheckRule.notFound", "name", argString, "item", itemType.getId())
+            );
         }
     }
 
@@ -56,6 +56,11 @@ class ArgItemCheckRule extends CommandElement {
         CheckRuleIndex index = CheckRuleIndex.of(itemType);
         String prefix = args.nextIfPresent().orElse("").toLowerCase();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        return service.getCheckRulesByIndex(index).stream().map(CheckRule::getName).filter(new StartsWithPredicate(prefix)).collect(Collectors.toList());
+        return service
+            .getCheckRulesByIndex(index)
+            .stream()
+            .map(CheckRule::getName)
+            .filter(new StartsWithPredicate(prefix))
+            .collect(Collectors.toList());
     }
 }

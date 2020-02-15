@@ -2,13 +2,15 @@ package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
@@ -34,9 +36,13 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 public class CommandQuery extends AbstractCommand {
     static Cache<String, String> histories = Caffeine.newBuilder().softValues().expireAfterAccess(5, TimeUnit.MINUTES).build();
+
+    @Inject
+    Logger logger;
 
     CommandQuery() {
         super("query", "q");
@@ -110,7 +116,7 @@ public class CommandQuery extends AbstractCommand {
             }
             return CommandResult.success();
         } catch (Exception e) {
-            EpicBanItem.getLogger().error(getMessage("error").toPlain(), e);
+            logger.error(getMessage("error").toPlain(), e);
             throw new CommandException(Text.of(getMessage("error"), e.getMessage()));
         }
     }

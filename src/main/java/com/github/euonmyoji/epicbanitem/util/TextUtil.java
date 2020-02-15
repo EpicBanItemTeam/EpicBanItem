@@ -46,7 +46,6 @@ import org.spongepowered.api.util.Tuple;
  */
 @SuppressWarnings("WeakerAccess")
 public class TextUtil {
-
     private static BufferedReader delegationReader;
     private static BufferedWriter delegationWriter;
     /*
@@ -152,8 +151,10 @@ public class TextUtil {
     }
 
     private static ConfigurationLoader<CommentedConfigurationNode> getConciseLoader() {
-        HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
-                .setSource(() -> delegationReader).setSink(() -> delegationWriter);
+        HoconConfigurationLoader.Builder builder = HoconConfigurationLoader
+            .builder()
+            .setSource(() -> delegationReader)
+            .setSink(() -> delegationWriter);
         try {
             for (Method method : HoconConfigurationLoader.Builder.class.getMethods()) {
                 if ("setRenderOptions".equals(method.getName())) {
@@ -170,8 +171,10 @@ public class TextUtil {
     }
 
     private static ConfigurationLoader<CommentedConfigurationNode> getLoader() {
-        HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
-                .setSource(() -> delegationReader).setSink(() -> delegationWriter);
+        HoconConfigurationLoader.Builder builder = HoconConfigurationLoader
+            .builder()
+            .setSource(() -> delegationReader)
+            .setSink(() -> delegationWriter);
         try {
             for (Method method : HoconConfigurationLoader.Builder.class.getMethods()) {
                 if ("setParseOptions".equals(method.getName())) {
@@ -229,18 +232,24 @@ public class TextUtil {
     private static final Map<String, TextTemplate> customInfoMessageCache = new ConcurrentHashMap<>();
     private static final Set<String> INFO_TOKENS = ImmutableSet.of("rules", "trigger", "item_pre", "item_post");
 
-    public static Collection<Text> prepareMessage(CheckRuleTrigger trigger, Text itemPre, Text itemPost, List<Tuple<Text, Optional<String>>> banRules, boolean updated) {
+    public static Collection<Text> prepareMessage(
+        CheckRuleTrigger trigger,
+        Text itemPre,
+        Text itemPost,
+        List<Tuple<Text, Optional<String>>> banRules,
+        boolean updated
+    ) {
         LinkedHashMap<String, Tuple<TextTemplate, List<Text>>> map = new LinkedHashMap<>();
         List<Text> undefined = new ArrayList<>();
         for (Tuple<Text, Optional<String>> rule : banRules) {
             if (rule.getSecond().isPresent()) {
-                map.computeIfAbsent(
+                map
+                    .computeIfAbsent(
                         rule.getSecond().get(),
-                        s -> new Tuple<>(
-                                customInfoMessageCache.computeIfAbsent(s, s1 -> parseTextTemplate(s1, INFO_TOKENS)),
-                                new ArrayList<>()
-                        )
-                ).getSecond().add(rule.getFirst());
+                        s -> new Tuple<>(customInfoMessageCache.computeIfAbsent(s, s1 -> parseTextTemplate(s1, INFO_TOKENS)), new ArrayList<>())
+                    )
+                    .getSecond()
+                    .add(rule.getFirst());
             } else {
                 undefined.add(rule.getFirst());
             }
@@ -253,18 +262,23 @@ public class TextUtil {
                 triggerText = Text.of(trigger.toString());
             }
             return ImmutableMap.of(
-                    "rules", Text.joinWith(Text.of(","), checkRules),
-                    "trigger", triggerText,
-                    "item_pre", itemPre,
-                    "item_post", itemPost
+                "rules",
+                Text.joinWith(Text.of(","), checkRules),
+                "trigger",
+                triggerText,
+                "item_pre",
+                itemPre,
+                "item_post",
+                itemPost
             );
         };
         List<Text> result = new ArrayList<>();
         if (!undefined.isEmpty()) {
-            result.add(EpicBanItem.getMessages().getMessage(
-                    updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage",
-                    toParams.apply(undefined)
-            ));
+            result.add(
+                EpicBanItem
+                    .getMessages()
+                    .getMessage(updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage", toParams.apply(undefined))
+            );
         }
         for (Tuple<TextTemplate, List<Text>> tuple : map.values()) {
             result.add(tuple.getFirst().apply(toParams.apply(tuple.getSecond())).build());
@@ -277,7 +291,7 @@ public class TextUtil {
         if (optionalHoverAction.isPresent()) {
             HoverAction<?> hoverAction = optionalHoverAction.get();
             if (hoverAction instanceof HoverAction.ShowText) {
-                Text origin = ((HoverAction.ShowText)hoverAction).getResult();
+                Text origin = ((HoverAction.ShowText) hoverAction).getResult();
                 text = origin.toBuilder().append(Text.NEW_LINE, Text.NEW_LINE, text).build();
             }
         }
