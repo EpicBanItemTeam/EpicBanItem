@@ -2,63 +2,88 @@ package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
+import com.github.euonmyoji.epicbanitem.util.repackage.org.bstats.sponge.Metrics;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
-import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.plugin.PluginContainer;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-@NonnullByDefault
+@SuppressWarnings("UnstableApiUsage")
+@Singleton
 public class BanConfig {
     static final int CURRENT_VERSION = 1;
     private static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
     private static final Comparator<String> RULE_NAME_COMPARATOR = Comparator.naturalOrder();
-    private static final Comparator<CheckRule> COMPARATOR = Comparator.comparing(CheckRule::getPriority).thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
+    private static final Comparator<CheckRule> COMPARATOR = Comparator
+        .comparing(CheckRule::getPriority)
+        .thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
 
     private final Path path;
-    private final AutoFileLoader fileLoader;
-    private final LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
+
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private Metrics metrics;
+
+    @Inject
+    private AutoFileLoader fileLoader;
+
+    @Inject
+    private Injector injector;
+
+    private LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
     private ImmutableSortedMap<String, CheckRule> checkRulesByName;
     private ImmutableListMultimap<CheckRuleIndex, CheckRule> checkRulesByIndex;
 
-    public BanConfig(AutoFileLoader fileLoader, Path path) {
-        this.path = path;
-        this.fileLoader = fileLoader;
+    @Inject
+    private BanConfig(@ConfigDir(sharedRoot = false) Path configDir, EventManager eventManager, PluginContainer pluginContainer) {
+        this.path = configDir.resolve("banitem.conf");
 
-        this.checkRulesByIndex = ImmutableListMultimap.of();
-        this.checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
-
-        this.cacheFromIdToCheckRules = Caffeine.newBuilder().build(k -> {
-            CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(k);
-            Iterable<? extends List<CheckRule>> rules = Arrays.asList(getRules(i), getRules(j));
-            Stream<CheckRule> stream = Streams.stream(Iterables.mergeSorted(rules, getComparator()));
-            return stream.filter(r -> r.idIndexFilter().test(k)).collect(ImmutableList.toImmutableList());
-        });
-
-        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, new CheckRule.Serializer());
-
-        fileLoader.addListener(path, this::load, this::save);
-        if (Files.notExists(path)) {
-            fileLoader.forceSaving(path, n -> n.getNode("epicbanitem-version").setValue(CURRENT_VERSION).getParent());
-        }
+        eventManager.registerListeners(pluginContainer, this);
     }
 
     private static int parseOrElse(String string, int orElse) {
@@ -166,11 +191,13 @@ public class BanConfig {
                 SortedMap<String, CheckRule> rulesByName = new TreeMap<>(checkRulesByName);
                 rulesByName.remove(name);
                 ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> builder = ImmutableListMultimap.builder();
-                checkRulesByIndex.forEach((s, rule1) -> {
-                    if (!rule1.getName().equals(name)) {
-                        builder.put(s, rule1);
+                checkRulesByIndex.forEach(
+                    (s, rule1) -> {
+                        if (!rule1.getName().equals(name)) {
+                            builder.put(s, rule1);
+                        }
                     }
-                });
+                );
                 this.checkRulesByIndex = builder.build();
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
                 this.cacheFromIdToCheckRules.invalidateAll();
@@ -188,11 +215,16 @@ public class BanConfig {
 
     private void load(ConfigurationNode node) throws IOException {
         // noinspection unused
-        int version = node.getNode("epicbanitem-version").<Integer>getValue(Types::asInt, () -> {
-            EpicBanItem.getLogger().warn("Ban Config at {} is missing epicbanitem-version option.", path);
-            EpicBanItem.getLogger().warn("Try loading using current version {}.", CURRENT_VERSION);
-            return CURRENT_VERSION;
-        });
+        int version = node
+            .getNode("epicbanitem-version")
+            .<Integer>getValue(
+                Types::asInt,
+                () -> {
+                    logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
+                    logger.warn("Try loading using current version {}.", CURRENT_VERSION);
+                    return CURRENT_VERSION;
+                }
+            );
         SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
         ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap.builder();
         Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
@@ -220,7 +252,7 @@ public class BanConfig {
                     nameNode.setValue(newName);
 
                     String msg = "Find duplicate or illegal name, renamed \"{}\" in {} to \"{}\"";
-                    EpicBanItem.getLogger().warn(msg, name, index, newName);
+                    logger.warn(msg, name, index, newName);
 
                     needSave = true;
                 }
@@ -259,5 +291,35 @@ public class BanConfig {
                 throw new IOException(e);
             }
         }
+    }
+
+    @Listener
+    public void onPreInit(GamePreInitializationEvent event) {
+        this.checkRulesByIndex = ImmutableListMultimap.of();
+        this.checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
+
+        this.cacheFromIdToCheckRules =
+            Caffeine
+                .newBuilder()
+                .build(
+                    k -> {
+                        CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(k);
+                        Iterable<? extends List<CheckRule>> rules = Arrays.asList(getRules(i), getRules(j));
+                        Stream<CheckRule> stream = Streams.stream(Iterables.mergeSorted(rules, getComparator()));
+                        return stream.filter(r -> r.idIndexFilter().test(k)).collect(ImmutableList.toImmutableList());
+                    }
+                );
+
+        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, injector.getInstance(CheckRule.Serializer.class));
+
+        fileLoader.addListener(path, this::load, this::save);
+        if (Files.notExists(path)) {
+            fileLoader.forceSaving(path, n -> n.getNode("epicbanitem-version").setValue(CURRENT_VERSION).getParent());
+        }
+    }
+
+    @Listener
+    public void onStarting(GameStartingServerEvent event) {
+        metrics.addCustomChart(new Metrics.SingleLineChart("enabledCheckRules", () -> this.getRules().size()));
     }
 }

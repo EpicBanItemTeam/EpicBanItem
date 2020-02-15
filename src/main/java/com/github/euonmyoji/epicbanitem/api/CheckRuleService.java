@@ -1,8 +1,9 @@
 package com.github.euonmyoji.epicbanitem.api;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
+import com.github.euonmyoji.epicbanitem.check.CheckRuleServiceImpl;
+import com.google.inject.ImplementedBy;
 import javax.annotation.Nullable;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -17,16 +18,8 @@ import org.spongepowered.api.world.World;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @NonnullByDefault
+@ImplementedBy(CheckRuleServiceImpl.class)
 public interface CheckRuleService {
-    /**
-     * 获取实例
-     *
-     * @return 实例
-     */
-    static CheckRuleService instance() {
-        return Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-    }
-
     /**
      * 检查一个物品并返回一个 result
      *
@@ -93,5 +86,4 @@ public interface CheckRuleService {
         CheckRule checkRule,
         @Nullable T subject
     );
-
 }

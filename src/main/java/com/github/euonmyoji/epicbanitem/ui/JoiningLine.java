@@ -1,10 +1,9 @@
 package com.github.euonmyoji.epicbanitem.ui;
 
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.Text;
 
 public class JoiningLine implements TextLine {
     private List<UiTextElement> elements;
@@ -17,6 +16,6 @@ public class JoiningLine implements TextLine {
 
     @Override
     public Text getLine(Player viewer) {
-        return Text.joinWith(joining.toText(viewer), elements.stream().map(e->e.toText(viewer)).collect(Collectors.toList()));
+        return Text.joinWith(joining.toText(viewer), elements.stream().map(e -> e.toText(viewer)).collect(Collectors.toList()));
     }
 }

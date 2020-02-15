@@ -3,13 +3,14 @@ package com.github.euonmyoji.epicbanitem.check;
 import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.google.common.collect.Streams;
+import com.google.inject.ImplementedBy;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.inventory.Inventory;
@@ -24,8 +25,9 @@ import org.spongepowered.api.world.World;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-@SuppressWarnings("unused because of api")
+@SuppressWarnings({ "unused because of api", "UnstableApiUsage" })
 @NonnullByDefault
+@ImplementedBy(CheckRuleServiceImpl.class)
 public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.CheckRuleService {
     /**
      * return name set of all active rules
@@ -104,8 +106,8 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
         CheckRuleTrigger trigger,
         @Nullable T subject
     ) {
-        return StreamSupport
-            .stream(inventory.slots().spliterator(), false)
+        return Streams
+            .stream(inventory.slots())
             .filter(slot -> slot instanceof Slot)
             .map(slot -> (Slot) slot)
             .filter(slot -> slot.peek().isPresent())
@@ -120,8 +122,8 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
         CheckRule checkRule,
         @Nullable T subject
     ) {
-        return StreamSupport
-            .stream(inventory.slots().spliterator(), false)
+        return Streams
+            .stream(inventory.slots())
             .filter(slot -> slot instanceof Slot)
             .map(slot -> (Slot) slot)
             .filter(slot -> slot.peek().isPresent())
@@ -130,11 +132,7 @@ public interface CheckRuleService extends com.github.euonmyoji.epicbanitem.api.C
                     slot
                         .peek()
                         .map(
-                            itemStack ->
-                                Tuple.of(
-                                    checkRule.check(CheckResult.empty(NbtTagDataUtil.toNbt(itemStack)), world, trigger, subject),
-                                    slot
-                                )
+                            itemStack -> Tuple.of(checkRule.check(CheckResult.empty(NbtTagDataUtil.toNbt(itemStack)), world, trigger, subject), slot)
                         )
                         .get()
             )

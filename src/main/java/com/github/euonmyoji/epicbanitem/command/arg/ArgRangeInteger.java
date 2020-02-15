@@ -1,13 +1,16 @@
 package com.github.euonmyoji.epicbanitem.command.arg;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import java.util.List;
+import javax.annotation.Nullable;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.*;
+import org.spongepowered.api.command.args.ArgumentParseException;
+import org.spongepowered.api.command.args.CommandArgs;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import javax.annotation.Nullable;
-import java.util.List;
 
 @NonnullByDefault
 public class ArgRangeInteger extends CommandElement {
@@ -32,7 +35,9 @@ public class ArgRangeInteger extends CommandElement {
         warp.parse(source, args, context);
         Integer integer = context.<Integer>getOne(warp.getKey()).orElseThrow(IllegalStateException::new);
         if (integer < min || integer > max) {
-            throw args.createError(EpicBanItem.getMessages().getMessage("epicbanitem.args.range.outOfRange", "input", integer, "min", min, "max", max));
+            throw args.createError(
+                EpicBanItem.getMessages().getMessage("epicbanitem.args.range.outOfRange", "input", integer, "min", min, "max", max)
+            );
         }
     }
 

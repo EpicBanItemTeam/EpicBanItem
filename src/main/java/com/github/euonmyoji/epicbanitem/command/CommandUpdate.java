@@ -1,13 +1,15 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.UpdateResult;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.Optional;
+import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -30,8 +32,11 @@ import org.spongepowered.api.world.BlockChangeFlags;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 public class CommandUpdate extends AbstractCommand {
+    @Inject
+    private Logger logger;
 
     CommandUpdate() {
         super("update", "u");
@@ -91,7 +96,7 @@ public class CommandUpdate extends AbstractCommand {
 
             return CommandResult.success();
         } catch (Exception e) {
-            EpicBanItem.getLogger().error(getMessage("error").toPlain(), e);
+            logger.error(getMessage("error").toPlain(), e);
             throw new CommandException(Text.of(getMessage("error"), e.getMessage()));
         }
     }

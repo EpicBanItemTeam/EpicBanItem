@@ -6,12 +6,32 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.command.arg.ArgRangeInteger;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
-import com.github.euonmyoji.epicbanitem.ui.*;
 import com.github.euonmyoji.epicbanitem.ui.Button;
+import com.github.euonmyoji.epicbanitem.ui.ChatView;
+import com.github.euonmyoji.epicbanitem.ui.FixedTextElement;
+import com.github.euonmyoji.epicbanitem.ui.InputRequestElement;
+import com.github.euonmyoji.epicbanitem.ui.JoiningLine;
+import com.github.euonmyoji.epicbanitem.ui.SimpleLine;
 import com.github.euonmyoji.epicbanitem.ui.SwitchButton;
+import com.github.euonmyoji.epicbanitem.ui.TextLine;
+import com.github.euonmyoji.epicbanitem.ui.TranslateLine;
+import com.github.euonmyoji.epicbanitem.ui.UiTextElement;
+import com.github.euonmyoji.epicbanitem.ui.VariableHeightLines;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
+import com.google.inject.Singleton;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -40,6 +60,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 public class CommandEditor extends AbstractCommand {
     private static Map<UUID, Editor> editorMap = new HashMap<>();
@@ -128,10 +149,26 @@ public class CommandEditor extends AbstractCommand {
             context.add(tristateTitle(ruleBuilder::getWorldDefaultSetting, ruleBuilder::worldDefaultSetting, "worlds"));
             Set<String> worlds = new TreeSet<>(ruleBuilder.getWorldSettings().keySet());
             Sponge.getServer().getAllWorldProperties().stream().map(WorldProperties::getWorldName).forEach(worlds::add);
-            context.add(tristateElements(worlds, ruleBuilder.getWorldSettings(), ruleBuilder::getWorldDefaultSetting, EpicBanItem.getSettings()::isWorldDefaultEnabled, Text::builder));
+            context.add(
+                tristateElements(
+                    worlds,
+                    ruleBuilder.getWorldSettings(),
+                    ruleBuilder::getWorldDefaultSetting,
+                    EpicBanItem.getSettings()::isWorldDefaultEnabled,
+                    Text::builder
+                )
+            );
             //triggers
             context.add(tristateTitle(ruleBuilder::getTriggerDefaultSetting, ruleBuilder::triggerDefaultSetting, "triggers"));
-            context.add(tristateElements(Triggers.getTriggers().values(), ruleBuilder.getTriggerSettings(), ruleBuilder::getTriggerDefaultSetting, EpicBanItem.getSettings()::isTriggerDefaultEnabled, t -> t.toText().toBuilder()));
+            context.add(
+                tristateElements(
+                    Triggers.getTriggers().values(),
+                    ruleBuilder.getTriggerSettings(),
+                    ruleBuilder::getTriggerDefaultSetting,
+                    EpicBanItem.getSettings()::isTriggerDefaultEnabled,
+                    t -> t.toText().toBuilder()
+                )
+            );
             //query
             context.add(query());
             //update
@@ -144,95 +181,121 @@ public class CommandEditor extends AbstractCommand {
         }
 
         private TextLine ruleName() {
-            return new TranslateLine(new InputRequestElement<>(
+            return new TranslateLine(
+                new InputRequestElement<>(
                     () -> addHoverMessage(Text.builder(ruleBuilder.getName()).color(TextColors.BLUE), getMessage("click")),
                     ruleBuilder::getName,
                     updateAndResend(ruleBuilder::name),
                     EpicBanItemArgs.patternString(Text.of("name"), CheckRule.NAME_PATTERN)
-            ), t -> getMessage("name", "name", t));
+                ),
+                t -> getMessage("name", "name", t)
+            );
         }
 
         private TextLine priority() {
-            return new TranslateLine(new InputRequestElement<>(
+            return new TranslateLine(
+                new InputRequestElement<>(
                     () -> addHoverMessage(Text.builder(String.valueOf(ruleBuilder.getPriority())).color(TextColors.BLUE), getMessage("click")),
                     ruleBuilder::getPriority,
                     updateAndResend(ruleBuilder::priority),
                     ArgRangeInteger.range(Text.of("priority"), 0, 9)
-            ), t -> getMessage("priority", "priority", t));
+                ),
+                t -> getMessage("priority", "priority", t)
+            );
         }
 
         private TextLine tristateTitle(Supplier<Tristate> mode, Consumer<Tristate> update, String messageKey) {
-            return new TranslateLine(new SwitchButton<>(
-                    () -> updateFormat(getModeDisplayName(mode.get()).toBuilder(), mode.get())
+            return new TranslateLine(
+                new SwitchButton<>(
+                    () ->
+                        updateFormat(getModeDisplayName(mode.get()).toBuilder(), mode.get())
                             .onHover(TextActions.showText(Text.of(getModeDisplayName(mode.get()), Text.NEW_LINE, getModeDescription(mode.get())))),
                     mode.get(),
                     Arrays.asList(Tristate.values()),
                     updateAndResend(update),
-                    (to) -> getMessage("tristate.click", "to", getModeDisplayName(to))
-            ), t -> getMessage(messageKey, "mode", t));
+                    to -> getMessage("tristate.click", "to", getModeDisplayName(to))
+                ),
+                t -> getMessage(messageKey, "mode", t)
+            );
         }
 
-        private <T> TextLine tristateElements(Collection<T> allT, Map<T, Boolean> settingsMap, Supplier<Tristate> getRuleDefault, Function<T, Boolean> getGlobalDefault, Function<T, Text.Builder> toTextBuilder) {
+        private <T> TextLine tristateElements(
+            Collection<T> allT,
+            Map<T, Boolean> settingsMap,
+            Supplier<Tristate> getRuleDefault,
+            Function<T, Boolean> getGlobalDefault,
+            Function<T, Text.Builder> toTextBuilder
+        ) {
             List<UiTextElement> elements = new ArrayList<>();
             Function<T, Boolean> getDefault = world -> {
                 Tristate worldSetting = getRuleDefault.get();
-                return worldSetting == Tristate.UNDEFINED ?
-                        getGlobalDefault.apply(world) : worldSetting.asBoolean();
+                return worldSetting == Tristate.UNDEFINED ? getGlobalDefault.apply(world) : worldSetting.asBoolean();
             };
             Function<T, Boolean> getWorldSetting = world -> settingsMap.getOrDefault(world, getDefault.apply(world));
-            for (T t: allT) {
-                elements.add(new SwitchButton<>(
+            for (T t : allT) {
+                elements.add(
+                    new SwitchButton<>(
                         () -> updateFormat(toTextBuilder.apply(t), getWorldSetting.apply(t), settingsMap.containsKey(t)),
                         toTristate(settingsMap.get(t)),
                         Arrays.asList(Tristate.values()),
                         updateAndResend(to -> updateMap(settingsMap, t, to)),
-                        to -> Text.of(
-                                getMessage("tristate.display", "value", toText(settingsMap.get(t)), "default", toText(getDefault.apply(t))), Text.NEW_LINE,
+                        to ->
+                            Text.of(
+                                getMessage("tristate.display", "value", toText(settingsMap.get(t)), "default", toText(getDefault.apply(t))),
+                                Text.NEW_LINE,
                                 getMessage("tristate.click", "to", toText(to))
-                        )
-                ));
+                            )
+                    )
+                );
             }
             return new JoiningLine(elements, new FixedTextElement(Text.of("  ")));
         }
 
         private TextLine query() {
             return new TranslateLine(
-                    p -> Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genQueryTexts()),
-                    t -> getMessage("query", "options", t)
+                p -> Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genQueryTexts()),
+                t -> getMessage("query", "options", t)
             );
         }
 
         private TextLine update() {
             return new TranslateLine(
-                    p -> Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genUpdateTexts()),
-                    t -> getMessage("update", "options", t)
+                p -> Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genUpdateTexts()),
+                t -> getMessage("update", "options", t)
             );
         }
 
         private TextLine customInfo() {
             BooleanSupplier isCustom = () -> ruleBuilder.getCustomMessageString() != null;
             UiTextElement edit = new InputRequestElement<>(
-                    () -> getMessage(isCustom.getAsBoolean() ? "info.edit" : "info.set").toBuilder(),
-                    () -> ruleBuilder.getCustomMessageString(),
-                    GenericArguments.optional(GenericArguments.string(Text.of("customMessage"))),
-                    (src, args) -> {
-                        ruleBuilder.customMessage(args.<String>getOne("customMessage").orElse(""));
-                        resend();
-                        return CommandResult.success();
-                    });
-            Supplier<UiTextElement> unset = () -> isCustom.getAsBoolean() ? new Button(getMessage("info.unset")::toBuilder){
-                @Override
-                public void onClick(CommandSource source) {
-                    ruleBuilder.customMessage(null);
+                () -> getMessage(isCustom.getAsBoolean() ? "info.edit" : "info.set").toBuilder(),
+                () -> ruleBuilder.getCustomMessageString(),
+                GenericArguments.optional(GenericArguments.string(Text.of("customMessage"))),
+                (src, args) -> {
+                    ruleBuilder.customMessage(args.<String>getOne("customMessage").orElse(""));
                     resend();
+                    return CommandResult.success();
                 }
-            } : new FixedTextElement(Text.EMPTY);
+            );
+            Supplier<UiTextElement> unset = () ->
+                isCustom.getAsBoolean()
+                    ? new Button(getMessage("info.unset")::toBuilder) {
+
+                        @Override
+                        public void onClick(CommandSource source) {
+                            ruleBuilder.customMessage(null);
+                            resend();
+                        }
+                    }
+                    : new FixedTextElement(Text.EMPTY);
             return viewer -> getMessage("info", "edit", edit.toText(viewer), "unset", unset.get().toText(viewer));
         }
 
         private TextLine save() {
-            return new SimpleLine(Collections.singletonList(
+            return new SimpleLine(
+                Collections.singletonList(
                     new Button(getMessage("save")::toBuilder) {
+
                         @Override
                         public void onClick(CommandSource source) {
                             CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
@@ -246,15 +309,16 @@ public class CommandEditor extends AbstractCommand {
                             // TODO: 2018/11/25 Warn on no id matches ?
                             // Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString()); id is unused ??
                             service
-                                    .appendRule(rule)
-                                    .whenComplete((aBoolean, throwable) ->
-                                            getOwner().ifPresent(player -> createResultView(aBoolean, throwable).showTo(player))
-                                    );
+                                .appendRule(rule)
+                                .whenComplete(
+                                    (aBoolean, throwable) -> getOwner().ifPresent(player -> createResultView(aBoolean, throwable).showTo(player))
+                                );
                             editorMap.remove(owner);
                             CommandCallback.clear(owner);
                         }
                     }
-            ));
+                )
+            );
         }
 
         private ChatView createResultView(@Nullable Boolean b, @Nullable Throwable t) {
@@ -335,10 +399,7 @@ public class CommandEditor extends AbstractCommand {
          * undefine - Italic
          */
         private static Text.Builder updateFormat(Text.Builder builder, boolean enable, boolean set) {
-            TextFormat format = TextFormat.of(
-                    enable ? TextColors.GREEN : TextColors.RED,
-                    builder.getStyle().italic(!set)
-            );
+            TextFormat format = TextFormat.of(enable ? TextColors.GREEN : TextColors.RED, builder.getStyle().italic(!set));
             return builder.format(format);
         }
 
@@ -355,10 +416,7 @@ public class CommandEditor extends AbstractCommand {
                 default:
                     color = TextColors.GRAY;
             }
-            TextFormat format = TextFormat.of(
-                    color,
-                    builder.getStyle()
-            );
+            TextFormat format = TextFormat.of(color, builder.getStyle());
             return builder.format(format);
         }
 
@@ -367,7 +425,7 @@ public class CommandEditor extends AbstractCommand {
             if (optionalHoverAction.isPresent()) {
                 HoverAction<?> hoverAction = optionalHoverAction.get();
                 if (hoverAction instanceof HoverAction.ShowText) {
-                    Text origin = ((HoverAction.ShowText)hoverAction).getResult();
+                    Text origin = ((HoverAction.ShowText) hoverAction).getResult();
                     text = origin.toBuilder().append(Text.NEW_LINE, text).build();
                 }
             }
@@ -385,7 +443,7 @@ public class CommandEditor extends AbstractCommand {
         }
 
         private Text formatNode(String display, Text description, @Nullable ConfigurationNode node, String key) {
-            String ebi = EpicBanItem.getMainCommandAlias();
+            String ebi = CommandEbi.COMMAND_PREFIX;
             Text.Builder builder = Text.builder(display);
             String nodeString;
             String suggestString;

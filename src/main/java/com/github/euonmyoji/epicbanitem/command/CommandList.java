@@ -5,7 +5,13 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-import org.spongepowered.api.Sponge;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -17,17 +23,14 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 class CommandList extends AbstractCommand {
+    @Inject
+    private CheckRuleService service;
 
     CommandList() {
         super("list", "l");
@@ -40,7 +43,6 @@ class CommandList extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
         LinkedHashMap<String, List<CheckRule>> toShow = new LinkedHashMap<>();
         Stream<CheckRuleIndex> indexStream;
         if (args.hasAny("item-type")) {
@@ -53,10 +55,12 @@ class CommandList extends AbstractCommand {
         indexStream.forEach(i -> toShow.put(i.toString(), service.getCheckRulesByIndex(i)));
         for (Map.Entry<String, List<CheckRule>> entry : toShow.entrySet()) {
             for (CheckRule checkRule : entry.getValue()) {
-                lines.add(Text.of(
+                lines.add(
+                    Text.of(
                         TextUtil.adjustLength(getMessage("firstHalfLine", "item_type", entry.getKey(), "check_rule", checkRule.toText()), 20),
                         getMessage("secondHalfLine", "item_type", entry.getKey(), "check_rule", checkRule.toText())
-                ));
+                    )
+                );
             }
         }
 
@@ -64,10 +68,7 @@ class CommandList extends AbstractCommand {
             lines.add(getMessage("noRule"));
         }
 
-        PaginationList.Builder paginationList = PaginationList.builder()
-                .title(getMessage("title"))
-                .contents(lines)
-                .padding(getMessage("padding"));
+        PaginationList.Builder paginationList = PaginationList.builder().title(getMessage("title")).contents(lines).padding(getMessage("padding"));
         if (src instanceof Player) {
             paginationList.linesPerPage(15);
         } else {

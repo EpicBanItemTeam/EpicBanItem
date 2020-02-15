@@ -2,6 +2,7 @@ package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
+import com.google.inject.Singleton;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -12,8 +13,10 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 class CommandShow extends AbstractCommand {
+
     CommandShow() {
         super("show", "s");
     }

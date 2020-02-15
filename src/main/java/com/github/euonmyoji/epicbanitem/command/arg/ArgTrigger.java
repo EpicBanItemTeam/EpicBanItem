@@ -2,6 +2,9 @@ package com.github.euonmyoji.epicbanitem.command.arg;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.ArgumentParseException;
 import org.spongepowered.api.command.args.CommandArgs;
@@ -9,10 +12,6 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -31,8 +30,7 @@ public class ArgTrigger extends CommandElement {
         if (Triggers.getTriggers().containsKey(arg)) {
             return arg;
         }
-        throw args.createError(EpicBanItem.getMessages()
-                .getMessage("epicbanitem.args.trigger.notFound", "name", arg));
+        throw args.createError(EpicBanItem.getMessages().getMessage("epicbanitem.args.trigger.notFound", "name", arg));
     }
 
     @Override

@@ -1,16 +1,15 @@
 package com.github.euonmyoji.epicbanitem.api;
 
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -71,20 +70,28 @@ public class CheckResult {
 
         @Override
         public CheckResult.Banned banFor(Predicate<? super DataView> predicate) {
-            predicate.test(view);//I do not like side effects
+            predicate.test(view); //I do not like side effects
             return this;
         }
 
         public CheckResult.Banned withMessage(Text text) {
-            return new Banned(updated, view,
-                    ImmutableList.<Tuple<Text, Optional<String>>>builder()
-                            .addAll(banRules).add(Tuple.of(text, Optional.empty())).build());
+            return new Banned(
+                updated,
+                view,
+                ImmutableList.<Tuple<Text, Optional<String>>>builder().addAll(banRules).add(Tuple.of(text, Optional.empty())).build()
+            );
         }
 
         public CheckResult.Banned withMessage(Text text, String customMessageTemplate) {
-            return new Banned(updated, view,
-                    ImmutableList.<Tuple<Text, Optional<String>>>builder()
-                            .addAll(banRules).add(Tuple.of(text, Optional.of(customMessageTemplate))).build());
+            return new Banned(
+                updated,
+                view,
+                ImmutableList
+                    .<Tuple<Text, Optional<String>>>builder()
+                    .addAll(banRules)
+                    .add(Tuple.of(text, Optional.of(customMessageTemplate)))
+                    .build()
+            );
         }
 
         public CheckResult.Banned updateBy(Function<? super DataView, ? extends DataView> function) {

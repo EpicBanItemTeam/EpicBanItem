@@ -188,12 +188,18 @@ public class NbtTagDataUtil {
         }
 
         private static LoadingCache<Location<World>, java.util.Map<BlockState, ItemStack>> getCache() {
-            return Caffeine.newBuilder().weakKeys().expireAfterWrite(30, TimeUnit.MINUTES).build(location -> {
-                HashMap<BlockState, ItemStack> map = new HashMap<>();
-                BlockState state = location.getBlock();
-                map.put(state, GETTER.apply(location, state));
-                return map;
-            });
+            return Caffeine
+                .newBuilder()
+                .weakKeys()
+                .expireAfterWrite(30, TimeUnit.MINUTES)
+                .build(
+                    location -> {
+                        HashMap<BlockState, ItemStack> map = new HashMap<>();
+                        BlockState state = location.getBlock();
+                        map.put(state, GETTER.apply(location, state));
+                        return map;
+                    }
+                );
         }
 
         private static BiFunction<Location<World>, BlockState, ItemStack> getPickBlockGetter() {

@@ -9,13 +9,14 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
-
+import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.DataContainer;
@@ -25,6 +26,7 @@ import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.InteractBlockEvent;
@@ -49,6 +51,7 @@ import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.equipment.WornEquipmentType;
 import org.spongepowered.api.item.inventory.property.EquipmentSlotType;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Locatable;
@@ -59,8 +62,18 @@ import org.spongepowered.api.world.storage.WorldProperties;
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @SuppressWarnings("DuplicatedCode")
+@Singleton
 public class InventoryListener {
-    private CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private CheckRuleService service;
+
+    @Inject
+    public InventoryListener(PluginContainer pluginContainer, EventManager eventManager) {
+        eventManager.registerListeners(pluginContainer, this);
+    }
 
     private static ItemStack getItem(DataContainer view, int quantity) {
         return NbtTagDataUtil.toItemStack(view, quantity);
@@ -143,8 +156,8 @@ public class InventoryListener {
                                 RuntimeException e = new RuntimeException("EpicBanItem cannot even find a world when crafting");
                                 WorldProperties defProps = Sponge.getServer().getDefaultWorld().orElseThrow(RuntimeException::new);
                                 World def = Sponge.getServer().getWorld(defProps.getUniqueId()).orElseThrow(RuntimeException::new);
-                                EpicBanItem.getLogger().warn("EpicBanItem cannot even find a world! What is the server doing?");
-                                EpicBanItem.getLogger().debug("No world found in " + cause.toString(), e);
+                                logger.warn("EpicBanItem cannot even find a world! What is the server doing?");
+                                logger.debug("No world found in " + cause.toString(), e);
                                 return def;
                             }
                         )

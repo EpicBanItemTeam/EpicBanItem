@@ -1,12 +1,11 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
 import com.google.common.collect.ImmutableMap;
-import org.spongepowered.api.util.annotation.NonnullByDefault;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -60,13 +59,16 @@ public final class QueryResult {
         Map<String, QueryResult> children = new LinkedHashMap<>(this.children);
         for (Map.Entry<String, QueryResult> entry : anotherChildren.entrySet()) {
             QueryResult value = entry.getValue();
-            children.compute(entry.getKey(), (k, v) -> {
-                if (Objects.isNull(v)) {
-                    return value;
-                } else {
-                    return v.merge(value.getChildren());
+            children.compute(
+                entry.getKey(),
+                (k, v) -> {
+                    if (Objects.isNull(v)) {
+                        return value;
+                    } else {
+                        return v.merge(value.getChildren());
+                    }
                 }
-            });
+            );
         }
         return new QueryResult(this.isArray, this.isObject, children);
     }

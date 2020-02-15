@@ -1,12 +1,30 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.message.Messages;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.CaseFormat;
+import com.google.inject.Inject;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.*;
+import org.spongepowered.api.command.args.ArgumentParseException;
+import org.spongepowered.api.command.args.CommandArgs;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.args.CommandFlags;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
@@ -14,17 +32,16 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import javax.annotation.Nullable;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.util.*;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class AbstractCommand implements ICommand, CommandExecutor {
+    @Inject
+    private Logger logger;
+
+    @Inject
+    protected Messages messages;
 
     protected CommandSpec commandSpec;
 
@@ -44,7 +61,9 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     private void init() {
         if (commandSpec == null) {
             help = new Help();
-            commandSpec = CommandSpec.builder()
+            commandSpec =
+                CommandSpec
+                    .builder()
                     .permission(getPermission("base"))
                     .description(getDescription())
                     .extendedDescription(getExtendedDescription())
@@ -56,10 +75,9 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     public String getCommandString() {
         if (parent.isEmpty()) {
-            return "/" + EpicBanItem.getMainCommandAlias() + " " + name + " ";
+            return "/" + CommandEbi.COMMAND_PREFIX + " " + name + " ";
         } else {
-            return "/" + EpicBanItem.getMainCommandAlias() +
-                    String.join(" ", parent.split("\\.")) + " " + name + " ";
+            return "/" + CommandEbi.COMMAND_PREFIX + String.join(" ", parent.split("\\.")) + " " + name + " ";
         }
     }
 
@@ -76,15 +94,15 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     protected Text getMessage(String s) {
-        return EpicBanItem.getMessages().getMessage(getMessageKey(s));
+        return messages.getMessage(getMessageKey(s));
     }
 
     protected Text getMessage(String s, String k1, Object v1) {
-        return EpicBanItem.getMessages().getMessage(getMessageKey(s), k1, v1);
+        return messages.getMessage(getMessageKey(s), k1, v1);
     }
 
     protected Text getMessage(String s, String k1, Object v1, String k2, Object v2) {
-        return EpicBanItem.getMessages().getMessage(getMessageKey(s), k1, v1, k2, v2);
+        return messages.getMessage(getMessageKey(s), k1, v1, k2, v2);
     }
 
     public Text getDescription() {
@@ -102,7 +120,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             return Text.EMPTY;
         }
         Text.Builder builder = Text.builder();
-        builder.append(EpicBanItem.getMessages().getMessage("epicbanitem.commands.args"));
+        builder.append(messages.getMessage("epicbanitem.commands.args"));
         scanArg(element, source, builder);
         return builder.toText();
     }
@@ -139,15 +157,18 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                     objects.add("]");
                     objects.add(" ");
                     String id = availableFlags.get(0).toString();
-                    builder.append(Text.NEW_LINE,
-                            Text.of("    "), TextUtil.adjustLength(Text.of(objects.toArray()), 30),
-                            getMessage("flags." + CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, id)));
+                    builder.append(
+                        Text.NEW_LINE,
+                        Text.of("    "),
+                        TextUtil.adjustLength(Text.of(objects.toArray()), 30),
+                        getMessage("flags." + CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, id))
+                    );
                 }
                 Field field1 = CommandFlags.class.getDeclaredField("childElement");
                 field1.setAccessible(true);
                 scanArg((CommandElement) field1.get(commandElement), source, builder);
             } catch (NoSuchFieldException | IllegalAccessException e) {
-                EpicBanItem.getLogger().error("Failed to parse help for CommandFlags");
+                logger.error("Failed to parse help for CommandFlags");
             }
         }
         String id = commandElement.getUntranslatedKey();
@@ -179,37 +200,38 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
                 // do nothing
             }
         } else {
-            builder.append(Text.NEW_LINE,
-                    Text.of("    "), TextUtil.adjustLength(commandElement.getUsage(source), 30),
-                    getMessage("args." + CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, id)));
+            builder.append(
+                Text.NEW_LINE,
+                Text.of("    "),
+                TextUtil.adjustLength(commandElement.getUsage(source), 30),
+                getMessage("args." + CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, id))
+            );
         }
-
     }
 
     public Text getHelpMessage(CommandSource src, CommandContext args) {
         init();
         Text.Builder builder = Text.builder();
-        builder.append(EpicBanItem.getMessages().getMessage("epicbanitem.commands.name",
-                "name", getName(),
-                "alias", String.join(" ", getAlias())), Text.NEW_LINE);
+        builder.append(messages.getMessage("epicbanitem.commands.name", "name", getName(), "alias", String.join(" ", getAlias())), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
-        builder.append(EpicBanItem.getMessages().getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))), Text.NEW_LINE);
+        builder.append(
+            messages.getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))),
+            Text.NEW_LINE
+        );
         builder.append(getArgHelp(src), Text.NEW_LINE);
-//                builder.append(getExtendedDescription(),Text.NEW_LINE);
+        //                builder.append(getExtendedDescription(),Text.NEW_LINE);
         return builder.build();
     }
 
     protected static CommandException handleException(CommandSource src, Text text, Throwable thr) {
         EpicBanItem.getLogger().error(text.toPlain(), thr);
-        Text.Builder exceptionTextBuilder = Text.builder(thr.toString())
-                .color(TextColors.RED);
+        Text.Builder exceptionTextBuilder = Text.builder(thr.toString()).color(TextColors.RED);
         if (src.hasPermission("epicbanitem.hover-stacktrace")) {
             StringWriter writer = new StringWriter();
             thr.printStackTrace(new PrintWriter(writer));
-            exceptionTextBuilder.onHover(TextActions.showText(Text.of(writer.toString()
-                    .replace("\t", "    ")
-                    .replace("\r\n", "\n")
-                    .replace("\r", "\n"))));
+            exceptionTextBuilder.onHover(
+                TextActions.showText(Text.of(writer.toString().replace("\t", "    ").replace("\r\n", "\n").replace("\r", "\n")))
+            );
         }
         return new CommandException(Text.of(text, exceptionTextBuilder.build()), thr);
     }
@@ -245,7 +267,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             try {
                 element.parse(source, args, context);
                 if (args.hasNext()) {
-                    throw args.createError(EpicBanItem.getMessages().getMessage("epicbanitem.commands.tooManyArgs"));
+                    throw args.createError(messages.getMessage("epicbanitem.commands.tooManyArgs"));
                 }
             } catch (ArgumentParseException e) {
                 context.putArg("help", e);
@@ -297,5 +319,4 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             return AbstractCommand.this.getHelpMessage(src, args);
         }
     }
-
 }

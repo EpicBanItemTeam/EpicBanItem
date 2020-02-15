@@ -4,18 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.spongepowered.api.Platform;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.config.ConfigDir;
-import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.scheduler.Scheduler;
-import org.spongepowered.api.scheduler.Task;
-
-import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -35,6 +23,17 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.zip.GZIPOutputStream;
+import javax.net.ssl.HttpsURLConnection;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.spongepowered.api.Platform;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.scheduler.Scheduler;
+import org.spongepowered.api.scheduler.Task;
 
 /**
  * bStats collects some data for plugin authors.
@@ -48,8 +47,9 @@ public class Metrics {
         if (System.getProperty("bstats.relocatecheck") == null || !System.getProperty("bstats.relocatecheck").equals("false")) {
             // Maven's Relocate is clever and changes strings, too. So we have to use this little "trick" ... :D
             final String defaultPackage = new String(
-                    new byte[]{'o', 'r', 'g', '.', 'b', 's', 't', 'a', 't', 's', '.', 's', 'p', 'o', 'n', 'g', 'e'});
-            final String examplePackage = new String(new byte[]{'y', 'o', 'u', 'r', '.', 'p', 'a', 'c', 'k', 'a', 'g', 'e'});
+                new byte[] { 'o', 'r', 'g', '.', 'b', 's', 't', 'a', 't', 's', '.', 's', 'p', 'o', 'n', 'g', 'e' }
+            );
+            final String examplePackage = new String(new byte[] { 'y', 'o', 'u', 'r', '.', 'p', 'a', 'c', 'k', 'a', 'g', 'e' });
             // We want to make sure nobody just copy & pastes the example and use the wrong package names
             if (Metrics.class.getPackage().getName().equals(defaultPackage) || Metrics.class.getPackage().getName().equals(examplePackage)) {
                 throw new IllegalStateException("bStats Metrics class has not been relocated correctly!");
@@ -130,7 +130,7 @@ public class Metrics {
         } else {
             // We aren't the first so we link to the first metrics class
             try {
-                usedMetricsClass.getMethod("linkMetrics", Object.class).invoke(null,this);
+                usedMetricsClass.getMethod("linkMetrics", Object.class).invoke(null, this);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 if (logFailedRequests) {
                     logger.warn("Failed to link to first metrics class {}!", usedMetricsClass.getName(), e);
@@ -191,21 +191,26 @@ public class Metrics {
     private void startSubmitting() {
         // We use a timer cause want to be independent from the server tps
         final Timer timer = new Timer(true);
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                // Plugin was disabled, e.g. because of a reload (is this even possible in Sponge?)
-                if (!Sponge.getPluginManager().isLoaded(plugin.getId())) {
-                    timer.cancel();
-                    return;
+        timer.scheduleAtFixedRate(
+            new TimerTask() {
+
+                @Override
+                public void run() {
+                    // Plugin was disabled, e.g. because of a reload (is this even possible in Sponge?)
+                    if (!Sponge.getPluginManager().isLoaded(plugin.getId())) {
+                        timer.cancel();
+                        return;
+                    }
+                    // The data collection (e.g. for custom graphs) is done sync
+                    // Don't be afraid! The connection to the bStats server is still async, only the stats collection is sync ;)
+                    Scheduler scheduler = Sponge.getScheduler();
+                    Task.Builder taskBuilder = scheduler.createTaskBuilder();
+                    taskBuilder.execute(() -> submitData()).submit(plugin);
                 }
-                // The data collection (e.g. for custom graphs) is done sync
-                // Don't be afraid! The connection to the bStats server is still async, only the stats collection is sync ;)
-                Scheduler scheduler = Sponge.getScheduler();
-                Task.Builder taskBuilder = scheduler.createTaskBuilder();
-                taskBuilder.execute(() -> submitData()).submit(plugin);
-            }
-        }, 1000*60*5, 1000*60*30);
+            },
+            1000 * 60 * 5,
+            1000 * 60 * 30
+        );
         // Submit the data every 30 minutes, first time after 5 minutes to give other plugins enough time to start
         // WARNING: Changing the frequency has no effect but your plugin WILL be blocked/deleted!
         // WARNING: Just don't do it!
@@ -219,7 +224,7 @@ public class Metrics {
     private JsonObject getServerData() {
         // Minecraft specific data
         int playerAmount = Sponge.getServer().getOnlinePlayers().size();
-        playerAmount = playerAmount > 200 ? 200 : playerAmount;
+        playerAmount = Math.min(playerAmount, 200);
         int onlineMode = Sponge.getServer().getOnlineMode() ? 1 : 0;
         String minecraftVersion = Sponge.getGame().getPlatform().getMinecraftVersion().getName();
         String spongeImplementation = Sponge.getPlatform().getContainer(Platform.Component.IMPLEMENTATION).getName();
@@ -263,23 +268,26 @@ public class Metrics {
                 if (plugin instanceof JsonObject) {
                     pluginData.add((JsonObject) plugin);
                 }
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) { }
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {}
         }
 
         data.add("plugins", pluginData);
 
         // Create a new thread for the connection to the bStats server
-        new Thread(() ->  {
-            try {
-                // Send the data
-                sendData(data);
-            } catch (Exception e) {
-                // Something went wrong! :(
-                if (logFailedRequests) {
-                    logger.warn("Could not submit plugin stats!", e);
+        new Thread(
+            () -> {
+                try {
+                    // Send the data
+                    sendData(data);
+                } catch (Exception e) {
+                    // Something went wrong! :(
+                    if (logFailedRequests) {
+                        logger.warn("Could not submit plugin stats!", e);
+                    }
                 }
             }
-        }).start();
+        )
+        .start();
     }
 
     /**
@@ -305,12 +313,14 @@ public class Metrics {
             node.getNode("logFailedRequests").setValue(false);
 
             // Add information about bStats
-            node.getNode("enabled").setComment(
+            node
+                .getNode("enabled")
+                .setComment(
                     "bStats collects some data for plugin authors like how many servers are using their plugins.\n" +
-                            "To honor their work, you should not disable it.\n" +
-                            "This has nearly no effect on the server performance!\n" +
-                            "Check out https://bStats.org/ to learn more :)"
-            );
+                    "To honor their work, you should not disable it.\n" +
+                    "This has nearly no effect on the server performance!\n" +
+                    "Check out https://bStats.org/ to learn more :)"
+                );
 
             configurationLoader.save(node);
         } else {
@@ -339,7 +349,7 @@ public class Metrics {
                 try {
                     // Let's check if a class with the given name exists.
                     return Class.forName(className);
-                } catch (ClassNotFoundException ignored) { }
+                } catch (ClassNotFoundException ignored) {}
             }
             writeFile(tempFile, getClass().getName());
             return getClass();
@@ -362,10 +372,7 @@ public class Metrics {
         if (!file.exists()) {
             return null;
         }
-        try (
-                FileReader fileReader = new FileReader(file);
-                BufferedReader bufferedReader =  new BufferedReader(fileReader);
-        ) {
+        try (FileReader fileReader = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(fileReader);) {
             return bufferedReader.readLine();
         }
     }
@@ -381,10 +388,7 @@ public class Metrics {
         if (!file.exists()) {
             file.createNewFile();
         }
-        try (
-                FileWriter fileWriter = new FileWriter(file);
-                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)
-        ) {
+        try (FileWriter fileWriter = new FileWriter(file); BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
             bufferedWriter.write(text);
             bufferedWriter.newLine();
             bufferedWriter.write("Note: This class only exists for internal purpose. You can ignore it :)");
@@ -444,8 +448,7 @@ public class Metrics {
     /**
      * Represents a custom chart.
      */
-    public static abstract class CustomChart {
-
+    public abstract static class CustomChart {
         // The id of the chart
         private final String chartId;
 
@@ -481,14 +484,12 @@ public class Metrics {
         }
 
         protected abstract JsonObject getChartData() throws Exception;
-
     }
 
     /**
      * Represents a custom simple pie.
      */
     public static class SimplePie extends CustomChart {
-
         private final Callable<String> callable;
 
         /**
@@ -519,7 +520,6 @@ public class Metrics {
      * Represents a custom advanced pie.
      */
     public static class AdvancedPie extends CustomChart {
-
         private final Callable<Map<String, Integer>> callable;
 
         /**
@@ -563,7 +563,6 @@ public class Metrics {
      * Represents a custom drilldown pie.
      */
     public static class DrilldownPie extends CustomChart {
-
         private final Callable<Map<String, Map<String, Integer>>> callable;
 
         /**
@@ -612,7 +611,6 @@ public class Metrics {
      * Represents a custom single line chart.
      */
     public static class SingleLineChart extends CustomChart {
-
         private final Callable<Integer> callable;
 
         /**
@@ -637,14 +635,12 @@ public class Metrics {
             data.addProperty("value", value);
             return data;
         }
-
     }
 
     /**
      * Represents a custom multi line chart.
      */
     public static class MultiLineChart extends CustomChart {
-
         private final Callable<Map<String, Integer>> callable;
 
         /**
@@ -682,14 +678,12 @@ public class Metrics {
             data.add("values", values);
             return data;
         }
-
     }
 
     /**
      * Represents a custom simple bar chart.
      */
     public static class SimpleBarChart extends CustomChart {
-
         private final Callable<Map<String, Integer>> callable;
 
         /**
@@ -720,14 +714,12 @@ public class Metrics {
             data.add("values", values);
             return data;
         }
-
     }
 
     /**
      * Represents a custom advanced bar chart.
      */
     public static class AdvancedBarChart extends CustomChart {
-
         private final Callable<Map<String, int[]>> callable;
 
         /**
@@ -769,7 +761,5 @@ public class Metrics {
             data.add("values", values);
             return data;
         }
-
     }
-
 }

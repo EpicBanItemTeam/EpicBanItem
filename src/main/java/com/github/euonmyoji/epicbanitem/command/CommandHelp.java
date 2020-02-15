@@ -1,6 +1,10 @@
 package com.github.euonmyoji.epicbanitem.command;
 
+import com.github.euonmyoji.epicbanitem.CommandMapService;
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -12,32 +16,22 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
+@Singleton
 @NonnullByDefault
 public class CommandHelp extends AbstractCommand {
-    private Map<List<String>, CommandCallable> childrenMap;
-    private Map<String, CommandCallable> flatMap;
+    @Inject
+    private CommandMapService service;
 
-    CommandHelp(Map<List<String>, CommandCallable> childrenMap) {
+    CommandHelp() {
         super("help");
-        this.childrenMap = childrenMap;
-        this.flatMap = new LinkedHashMap<>();
-        for (Map.Entry<List<String>, CommandCallable> entry : childrenMap.entrySet()) {
-            for (String s : entry.getKey()) {
-                flatMap.put(s, entry.getValue());
-            }
-        }
     }
 
     @Override
     public CommandElement getArgument() {
-        return GenericArguments.optional(GenericArguments.choices(Text.of("sub-command"), flatMap, false, false));
+        return GenericArguments.optional(GenericArguments.choices(Text.of("sub-command"), service.getFlatMap(), false, false));
     }
 
     @Override
@@ -51,21 +45,28 @@ public class CommandHelp extends AbstractCommand {
             }
         } else {
             Text.Builder builder = Text.builder();
-            boolean first = true;
-            for (Map.Entry<List<String>, CommandCallable> entry : childrenMap.entrySet()) {
-                if (entry.getValue().testPermission(src)) {
-                    if (first) {
-                        first = false;
-                    } else {
-                        builder.append(Text.NEW_LINE);
-                    }
-                    builder.append(
-                            Text.of(TextColors.GRAY, "/" + EpicBanItem.getMainCommandAlias() + " " + entry.getKey().get(0) + " "),
-                            entry.getValue().getUsage(src), Text.NEW_LINE,
+            AtomicBoolean first = new AtomicBoolean(true);
+            service
+                .getChildrenMap()
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().testPermission(src))
+                .forEach(
+                    entry -> {
+                        if (first.get()) {
+                            first.set(false);
+                        } else {
+                            builder.append(Text.NEW_LINE);
+                        }
+                        builder.append(
+                            Text.of(TextColors.GRAY, "/" + CommandEbi.COMMAND_PREFIX + " " + entry.getKey().get(0) + " "),
+                            entry.getValue().getUsage(src),
+                            Text.NEW_LINE,
                             entry.getValue().getShortDescription(src).orElse(Text.of("no description"))
-                    );
-                }
-            }
+                        );
+                    }
+                );
+
             Text text = builder.build();
             if (text.isEmpty()) {
                 src.sendMessage(EpicBanItem.getMessages().getMessage("epicbanitem.command.help.empty"));

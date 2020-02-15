@@ -1,12 +1,11 @@
 package com.github.euonmyoji.epicbanitem.ui;
 
 import com.github.euonmyoji.epicbanitem.command.CommandCallback;
+import java.util.function.Supplier;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import java.util.function.Supplier;
 
 @NonnullByDefault
 public abstract class Button implements UiTextElement {

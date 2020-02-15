@@ -6,15 +6,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.Types;
-import org.spongepowered.api.data.DataQuery;
-import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.util.Tristate;
-import org.spongepowered.api.util.Tuple;
-
-import javax.script.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
@@ -22,6 +20,19 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.Types;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.util.Tuple;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -375,7 +386,7 @@ public class QueryExpression implements DataPredicate {
     private static class And implements DataPredicate {
         private final List<DataPredicate> criteria;
 
-        private <T> And(List<? extends T> views, Function<T, ? extends DataPredicate> f, boolean checkEmpty) {
+        private <T>And(List<? extends T> views, Function<T, ? extends DataPredicate> f, boolean checkEmpty) {
             Preconditions.checkArgument(!checkEmpty || !views.isEmpty());
             this.criteria = views.stream().map(f).collect(Collectors.toList());
         }
@@ -414,7 +425,7 @@ public class QueryExpression implements DataPredicate {
     private static class Or implements DataPredicate {
         private final List<DataPredicate> criteria;
 
-        private <T> Or(List<? extends T> views, Function<T, ? extends DataPredicate> f, boolean checkEmpty) {
+        private <T>Or(List<? extends T> views, Function<T, ? extends DataPredicate> f, boolean checkEmpty) {
             Preconditions.checkArgument(!checkEmpty || !views.isEmpty());
             this.criteria = views.stream().map(f).collect(Collectors.toList());
         }
@@ -440,7 +451,7 @@ public class QueryExpression implements DataPredicate {
     private static class Nor implements DataPredicate {
         private final List<DataPredicate> criteria;
 
-        private <T> Nor(List<? extends T> views, Function<T, ? extends DataPredicate> f, boolean checkEmpty) {
+        private <T>Nor(List<? extends T> views, Function<T, ? extends DataPredicate> f, boolean checkEmpty) {
             Preconditions.checkArgument(!checkEmpty || !views.isEmpty());
             this.criteria = views.stream().map(f).collect(Collectors.toList());
         }
@@ -753,7 +764,9 @@ public class QueryExpression implements DataPredicate {
             try {
                 // test if it is an expression
                 ((Compilable) ENGINE).compile(script);
-                return "!(function(){return typeof(this)=='function'?this.apply(obj):this;}).apply((function(){return (" + script + ");}).apply(obj))";
+                return (
+                    "!(function(){return typeof(this)=='function'?this.apply(obj):this;}).apply((function(){return (" + script + ");}).apply(obj))"
+                );
             } catch (ScriptException e) {
                 return "!(new Function(" + TextUtil.escape(script) + ").apply(obj))";
             }
@@ -764,17 +777,20 @@ public class QueryExpression implements DataPredicate {
         }
 
         private static Map<String, Object> transform(Map<String, Object> map) {
-            return Maps.transformValues(map, v -> {
-                List<Object> l = NbtTypeHelper.getAsList(v);
-                if (Objects.nonNull(l)) {
-                    return l.toArray(new Object[0]);
+            return Maps.transformValues(
+                map,
+                v -> {
+                    List<Object> l = NbtTypeHelper.getAsList(v);
+                    if (Objects.nonNull(l)) {
+                        return l.toArray(new Object[0]);
+                    }
+                    Map<String, Object> m = NbtTypeHelper.getAsMap(v);
+                    if (Objects.nonNull(m)) {
+                        return transform(m);
+                    }
+                    return v;
                 }
-                Map<String, Object> m = NbtTypeHelper.getAsMap(v);
-                if (Objects.nonNull(m)) {
-                    return transform(m);
-                }
-                return v;
-            });
+            );
         }
 
         @Override

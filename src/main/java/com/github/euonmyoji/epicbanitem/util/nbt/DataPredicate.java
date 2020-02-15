@@ -1,10 +1,9 @@
 package com.github.euonmyoji.epicbanitem.util.nbt;
 
+import java.util.Optional;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.Tristate;
-
-import java.util.Optional;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
