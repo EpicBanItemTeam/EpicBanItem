@@ -10,6 +10,7 @@ epicbanitem.args.itemCheckRule.notFound = The check rule "{name}" for "{item}" i
 epicbanitem.args.item.notFound = The item "{name}" is not found
 epicbanitem.args.trigger.notFound = The trigger "{name}" is not found
 epicbanitem.args.pattern.notMatch = Input string do not match "{pattern}"
+epicbanitem.args.range.outOfRange = {input} is not between {min} and {max}
 
 epicbanitem.command.ebi.description = The command for EpicBanItem
 epicbanitem.command.ebi.extendedDescription = The command for EpicBanItem
@@ -31,7 +32,7 @@ epicbanitem.command.list.description = List all the items to be banned
 epicbanitem.command.list.extendedDescription = List all the items to be banned
 epicbanitem.command.list.noRule = No rules
 epicbanitem.command.list.firstHalfLine = {check_rule}
-epicbanitem.command.list.secondHalfLine = &7{item_type}
+epicbanitem.command.list.secondHalfLine = &7 {item_type}
 epicbanitem.command.list.title = List of rules
 epicbanitem.command.list.padding = &7-
 epicbanitem.command.list.args.itemType = The item to be queried hand. Enter hand to query the items in hand, and leave blank to list all the items

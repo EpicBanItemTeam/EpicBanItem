@@ -2,15 +2,16 @@ package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.ArgumentParseException;
-import org.spongepowered.api.command.args.CommandArgs;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.args.*;
 import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.ClickAction;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.util.Identifiable;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -18,6 +19,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @NonnullByDefault
 public class CommandCallback extends AbstractCommand {
@@ -35,6 +37,14 @@ public class CommandCallback extends AbstractCommand {
 
     public static void clear(UUID player) {
         callbacks.invalidate(player);
+    }
+
+    public static ClickAction.RunCommand addCallback(UUID player, Consumer<CommandSource> consumer) {
+        String key = add(player, GenericArguments.none(), (src, args) -> {
+            consumer.accept(src);
+            return CommandResult.success();
+        });
+        return TextActions.runCommand(String.format("/%s cb %s", EpicBanItem.getMainCommandAlias(), key));
     }
 
     public static String add(UUID player, CommandElement element, CommandExecutor executor) {

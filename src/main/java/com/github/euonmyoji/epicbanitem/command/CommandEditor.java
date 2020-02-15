@@ -1,27 +1,21 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
+import com.github.euonmyoji.epicbanitem.command.arg.ArgRangeInteger;
 import com.github.euonmyoji.epicbanitem.command.arg.EpicBanItemArgs;
-import com.github.euonmyoji.epicbanitem.configuration.Settings;
+import com.github.euonmyoji.epicbanitem.ui.*;
+import com.github.euonmyoji.epicbanitem.ui.Button;
+import com.github.euonmyoji.epicbanitem.ui.SwitchButton;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -31,14 +25,15 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.HoverAction;
 import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.format.TextFormat;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.Tristate;
-import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.storage.WorldProperties;
 
@@ -108,15 +103,182 @@ public class CommandEditor extends AbstractCommand {
 
         private CheckRule.Builder ruleBuilder;
 
+        private ChatView chatView;
+
         private Editor(UUID owner, String name) {
             this.owner = owner;
             this.ruleBuilder = CheckRule.builder(name);
+            chatView = createView();
         }
 
         private Editor(UUID owner, CheckRule origin) {
             this.owner = owner;
             this.origin = origin;
             this.ruleBuilder = CheckRule.builder(origin);
+            chatView = createView();
+        }
+
+        private ChatView createView() {
+            List<TextLine> header = new ArrayList<>();
+            header.add(new SimpleLine(Collections.singletonList(new FixedTextElement(getMessage("header")))));
+            List<TextLine> context = new ArrayList<>();
+            context.add(ruleName());
+            context.add(priority());
+            //worlds
+            context.add(tristateTitle(ruleBuilder::getWorldDefaultSetting, ruleBuilder::worldDefaultSetting, "worlds"));
+            Set<String> worlds = new TreeSet<>(ruleBuilder.getWorldSettings().keySet());
+            Sponge.getServer().getAllWorldProperties().stream().map(WorldProperties::getWorldName).forEach(worlds::add);
+            context.add(tristateElements(worlds, ruleBuilder.getWorldSettings(), ruleBuilder::getWorldDefaultSetting, EpicBanItem.getSettings()::isWorldDefaultEnabled, Text::builder));
+            //triggers
+            context.add(tristateTitle(ruleBuilder::getTriggerDefaultSetting, ruleBuilder::triggerDefaultSetting, "triggers"));
+            context.add(tristateElements(Triggers.getTriggers().values(), ruleBuilder.getTriggerSettings(), ruleBuilder::getTriggerDefaultSetting, EpicBanItem.getSettings()::isTriggerDefaultEnabled, t -> t.toText().toBuilder()));
+            //query
+            context.add(query());
+            //update
+            context.add(update());
+            context.add(customInfo());
+            List<TextLine> footer = new ArrayList<>();
+            footer.add(save());
+            footer.add(new FixedTextElement(getMessage("header")));
+            return new ChatView(20, header, new VariableHeightLines(context), footer);
+        }
+
+        private TextLine ruleName() {
+            return new TranslateLine(new InputRequestElement<>(
+                    () -> addHoverMessage(Text.builder(ruleBuilder.getName()).color(TextColors.BLUE), getMessage("click")),
+                    ruleBuilder::getName,
+                    updateAndResend(ruleBuilder::name),
+                    EpicBanItemArgs.patternString(Text.of("name"), CheckRule.NAME_PATTERN)
+            ), t -> getMessage("name", "name", t));
+        }
+
+        private TextLine priority() {
+            return new TranslateLine(new InputRequestElement<>(
+                    () -> addHoverMessage(Text.builder(String.valueOf(ruleBuilder.getPriority())).color(TextColors.BLUE), getMessage("click")),
+                    ruleBuilder::getPriority,
+                    updateAndResend(ruleBuilder::priority),
+                    ArgRangeInteger.range(Text.of("priority"), 0, 9)
+            ), t -> getMessage("priority", "priority", t));
+        }
+
+        private TextLine tristateTitle(Supplier<Tristate> mode, Consumer<Tristate> update, String messageKey) {
+            return new TranslateLine(new SwitchButton<>(
+                    () -> updateFormat(getModeDisplayName(mode.get()).toBuilder(), mode.get())
+                            .onHover(TextActions.showText(Text.of(getModeDisplayName(mode.get()), Text.NEW_LINE, getModeDescription(mode.get())))),
+                    mode.get(),
+                    Arrays.asList(Tristate.values()),
+                    updateAndResend(update),
+                    (to) -> getMessage("tristate.click", "to", getModeDisplayName(to))
+            ), t -> getMessage(messageKey, "mode", t));
+        }
+
+        private <T> TextLine tristateElements(Collection<T> allT, Map<T, Boolean> settingsMap, Supplier<Tristate> getRuleDefault, Function<T, Boolean> getGlobalDefault, Function<T, Text.Builder> toTextBuilder) {
+            List<UiTextElement> elements = new ArrayList<>();
+            Function<T, Boolean> getDefault = world -> {
+                Tristate worldSetting = getRuleDefault.get();
+                return worldSetting == Tristate.UNDEFINED ?
+                        getGlobalDefault.apply(world) : worldSetting.asBoolean();
+            };
+            Function<T, Boolean> getWorldSetting = world -> settingsMap.getOrDefault(world, getDefault.apply(world));
+            for (T t: allT) {
+                elements.add(new SwitchButton<>(
+                        () -> updateFormat(toTextBuilder.apply(t), getWorldSetting.apply(t), settingsMap.containsKey(t)),
+                        toTristate(settingsMap.get(t)),
+                        Arrays.asList(Tristate.values()),
+                        updateAndResend(to -> updateMap(settingsMap, t, to)),
+                        to -> Text.of(
+                                getMessage("tristate.display", "value", toText(settingsMap.get(t)), "default", toText(getDefault.apply(t))), Text.NEW_LINE,
+                                getMessage("tristate.click", "to", toText(to))
+                        )
+                ));
+            }
+            return new JoiningLine(elements, new FixedTextElement(Text.of("  ")));
+        }
+
+        private TextLine query() {
+            return new TranslateLine(
+                    p -> Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genQueryTexts()),
+                    t -> getMessage("query", "options", t)
+            );
+        }
+
+        private TextLine update() {
+            return new TranslateLine(
+                    p -> Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genUpdateTexts()),
+                    t -> getMessage("update", "options", t)
+            );
+        }
+
+        private TextLine customInfo() {
+            BooleanSupplier isCustom = () -> ruleBuilder.getCustomMessageString() != null;
+            UiTextElement edit = new InputRequestElement<>(
+                    () -> getMessage(isCustom.getAsBoolean() ? "info.edit" : "info.set").toBuilder(),
+                    () -> ruleBuilder.getCustomMessageString(),
+                    GenericArguments.optional(GenericArguments.string(Text.of("customMessage"))),
+                    (src, args) -> {
+                        ruleBuilder.customMessage(args.<String>getOne("customMessage").orElse(""));
+                        resend();
+                        return CommandResult.success();
+                    });
+            Supplier<UiTextElement> unset = () -> isCustom.getAsBoolean() ? new Button(getMessage("info.unset")::toBuilder){
+                @Override
+                public void onClick(CommandSource source) {
+                    ruleBuilder.customMessage(null);
+                    resend();
+                }
+            } : new FixedTextElement(Text.EMPTY);
+            return viewer -> getMessage("info", "edit", edit.toText(viewer), "unset", unset.get().toText(viewer));
+        }
+
+        private TextLine save() {
+            return new SimpleLine(Collections.singletonList(
+                    new Button(getMessage("save")::toBuilder) {
+                        @Override
+                        public void onClick(CommandSource source) {
+                            CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
+                            CheckRule rule = ruleBuilder.build();
+
+                            // remove th origin one.
+                            if (origin != null) {
+                                // TODO: 2018/11/24 Is the rule with that name the rule we get on created the editor.
+                                service.removeRule(origin).join();
+                            }
+                            // TODO: 2018/11/25 Warn on no id matches ?
+                            // Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString()); id is unused ??
+                            service
+                                    .appendRule(rule)
+                                    .whenComplete((aBoolean, throwable) ->
+                                            getOwner().ifPresent(player -> createResultView(aBoolean, throwable).showTo(player))
+                                    );
+                            editorMap.remove(owner);
+                            CommandCallback.clear(owner);
+                        }
+                    }
+            ));
+        }
+
+        private ChatView createResultView(@Nullable Boolean b, @Nullable Throwable t) {
+            List<TextLine> header = new ArrayList<>();
+            header.add(new FixedTextElement(getMessage("header")));
+            List<TextLine> context = new ArrayList<>();
+            if (b != null) {
+                if (b) {
+                    context.add(new FixedTextElement(getMessage("saved")));
+                } else {
+                    context.add(new FixedTextElement(getMessage("existed")));
+                }
+            } else {
+                context.add(new FixedTextElement(getMessage("exception", "e", String.valueOf(t))));
+            }
+            return new ChatView(20, header, new VariableHeightLines(context), header);
+        }
+
+        private <T> Consumer<T> updateAndResend(Consumer<T> update) {
+            return update.andThen(t -> resend());
+        }
+
+        private Optional<Player> getOwner() {
+            return Sponge.getServer().getPlayer(owner);
         }
 
         private static Text getMessage(String key) {
@@ -135,30 +297,19 @@ public class CommandEditor extends AbstractCommand {
             return toTristate(b).toString();
         }
 
-        /**
-         * null->true->false->null
-         *
-         * @param b origin value
-         * @return next value
-         */
-        @Nullable
-        private static Boolean next(@Nullable Boolean b) {
-            if (b == null) {
-                return true;
-            } else if (b) {
-                return false;
-            } else {
-                return null;
-            }
+        private static Text getModeDisplayName(Tristate mode) {
+            return getMessage("mode." + mode.toString().toLowerCase(Locale.ROOT));
         }
 
-        private static Tristate next(Tristate tristate) {
-            if (tristate == Tristate.UNDEFINED) {
-                return Tristate.TRUE;
-            } else if (tristate.asBoolean()) {
-                return Tristate.FALSE;
+        private static Text getModeDescription(Tristate mode) {
+            return getMessage("mode." + mode.toString().toLowerCase(Locale.ROOT) + ".description");
+        }
+
+        private static <T> void updateMap(Map<T, Boolean> map, T key, Tristate value) {
+            if (value == Tristate.UNDEFINED) {
+                map.remove(key);
             } else {
-                return Tristate.UNDEFINED;
+                map.put(key, value.asBoolean());
             }
         }
 
@@ -170,333 +321,67 @@ public class CommandEditor extends AbstractCommand {
             }
         }
 
+        private static Text toText(Tristate tristate) {
+            return getMessage("tristate." + tristate.toString().toLowerCase(Locale.ROOT));
+        }
+
+        private static Text toText(Boolean b) {
+            return toText(toTristate(b));
+        }
+
+        /*
+         * enable   - Green
+         * disable  - Red
+         * undefine - Italic
+         */
+        private static Text.Builder updateFormat(Text.Builder builder, boolean enable, boolean set) {
+            TextFormat format = TextFormat.of(
+                    enable ? TextColors.GREEN : TextColors.RED,
+                    builder.getStyle().italic(!set)
+            );
+            return builder.format(format);
+        }
+
+        private static Text.Builder updateFormat(Text.Builder builder, Tristate tristate) {
+            TextColor color;
+            switch (tristate) {
+                case TRUE:
+                    color = TextColors.GREEN;
+                    break;
+                case FALSE:
+                    color = TextColors.RED;
+                    break;
+                case UNDEFINED:
+                default:
+                    color = TextColors.GRAY;
+            }
+            TextFormat format = TextFormat.of(
+                    color,
+                    builder.getStyle()
+            );
+            return builder.format(format);
+        }
+
+        private static Text.Builder addHoverMessage(Text.Builder builder, Text text) {
+            Optional<HoverAction<?>> optionalHoverAction = builder.getHoverAction();
+            if (optionalHoverAction.isPresent()) {
+                HoverAction<?> hoverAction = optionalHoverAction.get();
+                if (hoverAction instanceof HoverAction.ShowText) {
+                    Text origin = ((HoverAction.ShowText)hoverAction).getResult();
+                    text = origin.toBuilder().append(Text.NEW_LINE, text).build();
+                }
+            }
+            return builder.onHover(TextActions.showText(text));
+        }
+
         private void resend() {
-            Optional<Player> optionalPlayer = Sponge.getServer().getPlayer(owner);
+            Optional<Player> optionalPlayer = getOwner();
             if (!optionalPlayer.isPresent()) {
                 return;
             }
             CommandCallback.clear(owner);
             Player player = optionalPlayer.get();
-            player.sendMessage(genText());
-        }
-
-        /**
-         * enable   - Green
-         * disable  - Red
-         * undefine - Italic
-         * clickable- Underline
-         * <p>
-         * CheckRule:{name}
-         * Priority :{priority}
-         * Triggers : White/Black list {triggers}
-         * Worlds   : White/Black list {worlds}
-         * QueryExpression : not editable
-         * UpdateExpression: not editable
-         * Custom Message  : Set/Edit (Unset)
-         * <p>
-         * Save
-         */
-        private Text genText() {
-            //Builder appends: Header Name Priority
-            Text.Builder builder = Text
-                .builder()
-                .append(getMessage("header"), Text.NEW_LINE)
-                .append(
-                    getMessage(
-                        "name",
-                        "name",
-                        format(
-                            ruleBuilder.getName(),
-                            origin != null && !origin.getName().equals(ruleBuilder.getName()),
-                            new Tuple<>(
-                                EpicBanItemArgs.patternString(Text.of("name"), CheckRule.NAME_PATTERN),
-                                (src, args) -> {
-                                    ruleBuilder.name(args.<String>getOne("name").orElseThrow(NoSuchFieldError::new));
-                                    resend();
-                                    return CommandResult.success();
-                                }
-                            )
-                        )
-                    )
-                )
-                .append(Text.NEW_LINE)
-                .append(
-                    getMessage(
-                        "priority",
-                        "priority",
-                        format(
-                            ruleBuilder.getPriority(),
-                            origin != null && origin.getPriority() != ruleBuilder.getPriority(),
-                            new Tuple<>(
-                                GenericArguments.integer(Text.of("priority")),
-                                (src, args) -> {
-                                    int priority = args.<Integer>getOne("priority").orElseThrow(NoSuchFieldError::new);
-                                    if (priority < 0 || priority > 9) {
-                                        throw new CommandException(getMessage("illegalPriority"));
-                                    }
-                                    ruleBuilder.priority(priority);
-                                    resend();
-                                    return CommandResult.success();
-                                }
-                            )
-                        )
-                    )
-                )
-                .append(Text.NEW_LINE);
-            Settings settings = EpicBanItem.getSettings();
-            boolean isOriginNull = origin == null;
-
-            //Worlds
-            Set<String> setWorlds = new HashSet<>(ruleBuilder.getWorldSettings().keySet());
-            List<Text> worlds = new ArrayList<>();
-            Tristate worldDefaultSetting = ruleBuilder.getWorldDefaultSetting();
-            Function<String, Boolean> worldDefault = worldDefaultSetting == Tristate.UNDEFINED
-                ? settings::isWorldDefaultEnabled
-                : s -> worldDefaultSetting.asBoolean();
-            checkAddRemove(
-                worlds,
-                worldDefault,
-                setWorlds,
-                isOriginNull ? null : origin.getWorldSettings(),
-                ruleBuilder.getWorldSettings(),
-                Sponge.getServer().getAllWorldProperties().stream().map(WorldProperties::getWorldName).collect(Collectors.toSet())
-            );
-            //worlds that not in the sponge data?
-            checkAdd(worlds, worldDefault, origin != null ? origin.getWorldSettings() : null, ruleBuilder.getWorldSettings(), setWorlds);
-            builder
-                .append(
-                    getMessage("worlds", "mode", formatMode(worldDefaultSetting, CheckRule::getWorldDefaultSetting, ruleBuilder::worldDefaultSetting))
-                )
-                .append(Text.NEW_LINE)
-                .append(Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), worlds))
-                .append(Text.NEW_LINE);
-            //Triggers
-            List<Text> triggers = new ArrayList<>();
-            Tristate triggerDefaultSetting = ruleBuilder.getTriggerDefaultSetting();
-            Function<CheckRuleTrigger, Boolean> triggerDefault = triggerDefaultSetting == Tristate.UNDEFINED
-                ? settings::isTriggerDefaultEnabled
-                : s -> triggerDefaultSetting.asBoolean();
-            for (CheckRuleTrigger name : Triggers.getTriggers().values()) {
-                checkAdd2(triggers, triggerDefault, name, isOriginNull ? null : origin.getTriggerSettings(), ruleBuilder.getTriggerSettings());
-            }
-            builder
-                .append(
-                    getMessage(
-                        "triggers",
-                        "mode",
-                        formatMode(triggerDefaultSetting, CheckRule::getTriggerDefaultSetting, ruleBuilder::triggerDefaultSetting)
-                    )
-                )
-                .append(Text.NEW_LINE)
-                .append(Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), triggers))
-                .append(Text.NEW_LINE);
-            //Query Updates
-            builder
-                .append(getMessage("query", "options", Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genQueryTexts())))
-                .append(Text.NEW_LINE)
-                .append(getMessage("update", "options", Text.joinWith(Text.builder("  ").style(TextStyles.RESET).build(), genUpdateTexts())))
-                .append(Text.NEW_LINE);
-            boolean isInfoSet = ruleBuilder.getCustomMessageString() != null;
-            builder.append(
-                getMessage(
-                    "info",
-                    "edit",
-                    format(
-                        getMessage(isInfoSet ? "info.edit" : "info.set"),
-                        origin != null && !Objects.equals(origin.getCustomMessageString().orElse(null), ruleBuilder.getCustomMessageString()),
-                        isInfoSet
-                            ? getMessage("info.edit.hover", "messageString", ruleBuilder.getCustomMessageString())
-                            : getMessage("info.set.hover"),
-                        new Tuple<>(
-                            GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("customMessage"))),
-                            (src, args) -> {
-                                ruleBuilder.customMessage(args.<String>getOne("customMessage").orElse(""));
-                                resend();
-                                return CommandResult.success();
-                            }
-                        )
-                    ),
-                    "unset",
-                    isInfoSet
-                        ? format(
-                            getMessage("info.unset"),
-                            false,
-                            getMessage("info.unset.hover"),
-                            new Tuple<>(
-                                GenericArguments.none(),
-                                (src, args) -> {
-                                    ruleBuilder.customMessage(null);
-                                    resend();
-                                    return CommandResult.success();
-                                }
-                            )
-                        )
-                        : Text.EMPTY
-                ),
-                Text.NEW_LINE
-            );
-            //Save
-            builder.append(
-                getMessage("save")
-                    .toBuilder()
-                    .style(TextStyles.UNDERLINE, TextStyles.BOLD)
-                    .color(TextColors.RED)
-                    .onClick(
-                        TextActions.runCommand(
-                            String.format(
-                                "/%s cb %s",
-                                EpicBanItem.getMainCommandAlias(),
-                                CommandCallback.add(
-                                    owner,
-                                    GenericArguments.none(),
-                                    (src, args) -> {
-                                        CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-                                        CheckRule rule = ruleBuilder.build();
-
-                                        // remove th origin one.
-                                        if (origin != null) {
-                                            // TODO: 2018/11/24 Is the rule with that name the rule we get on created the editor.
-                                            service.removeRule(origin).join();
-                                        }
-
-                                        // TODO: 2018/11/25 Warn on no id matches ?
-                                        // Optional<String> id = Optional.ofNullable(ruleBuilder.getQueryNode().getNode("id").getString()); id is unused ??
-                                        service
-                                            .appendRule(rule)
-                                            .thenRun(
-                                                () ->
-                                                    src.sendMessage(
-                                                        Text.of(
-                                                            Text.NEW_LINE,
-                                                            Text.NEW_LINE,
-                                                            Text.NEW_LINE,
-                                                            Text.NEW_LINE,
-                                                            Text.NEW_LINE,
-                                                            getMessage("saved"),
-                                                            Text.NEW_LINE
-                                                        )
-                                                    )
-                                            );
-                                        editorMap.remove(owner);
-                                        CommandCallback.clear(owner);
-
-                                        return CommandResult.success();
-                                    }
-                                )
-                            )
-                        )
-                    )
-                    .toText()
-            );
-            return builder.toText();
-        }
-
-        /* ********************************************************************************************************** */
-        /* Gen the text helper                                                                                        */
-        /* ********************************************************************************************************** */
-        private Text format(Object value, boolean edited, Tuple<CommandElement, CommandExecutor> action) {
-            return format(value, edited, null, action);
-        }
-
-        private Text format(Object value, boolean edited, @Nullable Text hover, Tuple<CommandElement, CommandExecutor> action) {
-            String ebi = EpicBanItem.getMainCommandAlias();
-            Text.Builder builder = Text.builder().append(Text.of(value));
-
-            //Mark edited parts bold.
-            builder.style(builder.getStyle().bold(edited));
-            builder.color(TextColors.BLUE);
-            if (action.getFirst().equals(GenericArguments.none())) {
-                builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
-            } else {
-                builder.onClick(
-                    TextActions.suggestCommand(
-                        String.format(
-                            "/%s cb %s %s",
-                            ebi,
-                            CommandCallback.add(owner, action),
-                            value instanceof Text ? ((Text) value).toPlain() : String.valueOf(value)
-                        )
-                    )
-                );
-            }
-            builder.onHover(TextActions.showText(hover == null ? getMessage("click") : hover));
-            return builder.build();
-        }
-
-        private Text format(
-            Object text,
-            Text hover,
-            @Nullable Boolean vale,
-            boolean defaultVale,
-            boolean edited,
-            Tuple<CommandElement, CommandExecutor> action
-        ) {
-            String ebi = EpicBanItem.getMainCommandAlias();
-            Text.Builder builder = Text.of(text).toBuilder();
-
-            //Mark edited parts bold.
-            builder.style(builder.getStyle().bold(edited).italic(Objects.isNull(vale)));
-            builder.color((Objects.isNull(vale) ? defaultVale : vale) ? TextColors.GREEN : TextColors.RED);
-            if (action.getFirst().equals(GenericArguments.none())) {
-                builder.onClick(TextActions.runCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
-            } else {
-                builder.onClick(TextActions.suggestCommand(String.format("/%s cb %s", ebi, CommandCallback.add(owner, action))));
-            }
-            Text.Builder tri = Text.builder();
-            Text display = getMessage(
-                "tristate.display",
-                "value",
-                getMessage("tristate." + toString(vale).toLowerCase()),
-                "default",
-                getMessage("tristate." + toString(defaultVale).toLowerCase())
-            );
-            Text click = getMessage("tristate.click", "to", getMessage("tristate." + toString(next(vale)).toLowerCase()));
-            if (!hover.isEmpty()) {
-                tri.append(hover, Text.NEW_LINE, Text.NEW_LINE);
-            }
-            tri.append(display, Text.NEW_LINE).append(click);
-            builder.onHover(TextActions.showText(tri.build()));
-            return builder.build();
-        }
-
-        private Text formatMode(Tristate tristate, Function<CheckRule, Tristate> getter, Consumer<Tristate> setter) {
-            Text.Builder builder = getMessage("mode." + tristate.toString().toLowerCase()).toBuilder();
-            Tristate to = next(tristate);
-            boolean edited;
-            if (origin == null) {
-                edited = false;
-            } else {
-                edited = getter.apply(origin) != tristate;
-            }
-            builder.style(builder.getStyle().bold(edited).italic(false));
-            builder.onClick(
-                TextActions.runCommand(
-                    String.format(
-                        "/%s cb %s",
-                        EpicBanItem.getMainCommandAlias(),
-                        CommandCallback.add(
-                            owner,
-                            new Tuple<>(
-                                GenericArguments.none(),
-                                (src, args) -> {
-                                    setter.accept(to);
-                                    resend();
-                                    return CommandResult.success();
-                                }
-                            )
-                        )
-                    )
-                )
-            );
-            Text tri = Text
-                .builder()
-                .append(getMessage("mode." + tristate.toString().toLowerCase() + ".description"))
-                .append(Text.NEW_LINE)
-                .append(Text.NEW_LINE)
-                .append(getMessage("tristate.click", "to", getMessage("mode." + to.toString().toLowerCase())))
-                .build();
-            builder.onHover(TextActions.showText(tri));
-            return builder.build();
+            chatView.showTo(player);
         }
 
         private Text formatNode(String display, Text description, @Nullable ConfigurationNode node, String key) {
@@ -542,9 +427,7 @@ public class CommandEditor extends AbstractCommand {
             );
             List<Text> queries = new ArrayList<>();
             queries.add(formatNode(getMessage("custom").toPlain(), getMessage("customQuery"), ruleBuilder.getQueryNode(), queryKey));
-            Sponge
-                .getServer()
-                .getPlayer(owner)
+            getOwner()
                 .ifPresent(
                     p -> {
                         String s = CommandQuery.histories.getIfPresent(p.getIdentifier());
@@ -594,96 +477,6 @@ public class CommandEditor extends AbstractCommand {
                 updates.add(formatNode(getMessage("origin").toPlain(), getMessage("customUpdate"), origin.getUpdateNode(), updateKey));
             }
             return updates;
-        }
-
-        private void checkAdd(
-            List<Text> listToAdd,
-            Function<String, Boolean> defValue,
-            @Nullable Map<String, Boolean> originEnableInfo,
-            Map<String, Boolean> enableInfo,
-            Iterable<String> names
-        ) {
-            for (String name : names) {
-                checkAdd(listToAdd, defValue, name, originEnableInfo, enableInfo);
-            }
-        }
-
-        private void checkAddRemove(
-            List<Text> listToAdd,
-            Function<String, Boolean> defValue,
-            Collection<String> toRemove,
-            @Nullable Map<String, Boolean> originEnableInfo,
-            Map<String, Boolean> enableInfo,
-            Iterable<String> names
-        ) {
-            for (String name : names) {
-                checkAdd(listToAdd, defValue, name, originEnableInfo, enableInfo);
-                toRemove.remove(name);
-            }
-        }
-
-        private void checkAdd(
-            List<Text> listToAdd,
-            Function<String, Boolean> defValue,
-            String name,
-            @Nullable Map<String, Boolean> originEnableInfo,
-            Map<String, Boolean> enableInfo
-        ) {
-            final Boolean value = enableInfo.get(name);
-            listToAdd.add(
-                format(
-                    name,
-                    Text.of(name),
-                    value,
-                    defValue.apply(name),
-                    originEnableInfo != null && !Objects.equals(originEnableInfo.get(name), enableInfo.get(name)),
-                    new Tuple<>(
-                        GenericArguments.none(),
-                        (src, args) -> {
-                            Boolean next = next(value);
-                            if (next == null) {
-                                enableInfo.remove(name);
-                            } else {
-                                enableInfo.put(name, next);
-                            }
-                            resend();
-                            return CommandResult.success();
-                        }
-                    )
-                )
-            );
-        }
-
-        private void checkAdd2(
-                List<Text> listToAdd,
-                Function<CheckRuleTrigger, Boolean> defValue,
-                CheckRuleTrigger name,
-                @Nullable Map<CheckRuleTrigger, Boolean> originEnableInfo,
-                Map<CheckRuleTrigger, Boolean> enableInfo
-        ) {
-            final Boolean value = enableInfo.get(name);
-            listToAdd.add(
-                    format(
-                            name,
-                            Text.of(name),
-                            value,
-                            defValue.apply(name),
-                            originEnableInfo != null && !Objects.equals(originEnableInfo.get(name), enableInfo.get(name)),
-                            new Tuple<>(
-                                    GenericArguments.none(),
-                                    (src, args) -> {
-                                        Boolean next = next(value);
-                                        if (next == null) {
-                                            enableInfo.remove(name);
-                                        } else {
-                                            enableInfo.put(name, next);
-                                        }
-                                        resend();
-                                        return CommandResult.success();
-                                    }
-                            )
-                    )
-            );
         }
     }
 }
