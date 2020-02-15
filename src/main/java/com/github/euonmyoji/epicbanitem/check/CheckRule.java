@@ -442,6 +442,7 @@ public class CheckRule implements TextRepresentable {
             this.triggerSettings.putAll(checkRule.triggerSettings);
             this.queryNode = checkRule.queryNode;
             this.updateNode = checkRule.updateNode;
+            this.customMessageString = checkRule.customMessageString;
         }
 
         public Builder name(String name) {
