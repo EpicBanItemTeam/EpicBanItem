@@ -175,19 +175,17 @@ public class InventoryListener {
             }
 
             transactions.forEach(
-                transaction -> {
+                (Transaction<ItemStackSnapshot> transaction) -> {
                     ItemStackSnapshot finalItem = transaction.getFinal();
-                    AtomicReference<Optional<ItemStackSnapshot>> item = Atomics.newReference();
                     worlds
                         .stream()
                         .map(world -> service.check(finalItem, world, Triggers.CRAFT, playerOptional.orElse(null)))
                         .filter(CheckResult::isBanned)
                         .map(CheckResult::getFinalView)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .forEach(dataContainer -> item.set(Optional.of(getItem(dataContainer, finalItem.getQuantity()).createSnapshot())));
-
-                    item.get().ifPresent(itemStack -> transaction.setCustom(itemStack));
+                        .map(optional -> optional.map(dataContainer -> getItem(dataContainer, finalItem.getQuantity()).createSnapshot()))
+                        .map(optional -> optional.orElse(ItemStackSnapshot.NONE))
+                        .findFirst()
+                        .ifPresent(transaction::setCustom);
                 }
             );
         }
