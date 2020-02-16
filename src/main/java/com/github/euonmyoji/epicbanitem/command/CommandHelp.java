@@ -31,7 +31,7 @@ public class CommandHelp extends AbstractCommand {
 
     @Override
     public CommandElement getArgument() {
-        return GenericArguments.optional(GenericArguments.choices(Text.of("sub-command"), service.getFlatMap(), false, false));
+        return GenericArguments.optional(GenericArguments.choices(Text.of("sub-command"), service.getFlatMap()::keySet, service.getFlatMap()::get, false));
     }
 
     @Override
