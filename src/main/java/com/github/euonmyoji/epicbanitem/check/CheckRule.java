@@ -4,7 +4,7 @@ import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.command.CommandCheck;
-import com.github.euonmyoji.epicbanitem.message.Messages;
+import com.github.euonmyoji.epicbanitem.locale.LocaleService;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
@@ -351,23 +351,23 @@ public class CheckRule implements TextRepresentable {
 
     @Override
     public Text toText() {
-        Messages messages = EpicBanItem.getMessages();
+        LocaleService localeService = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
+        builder.append(localeService.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
+        builder.append(localeService.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
         return Text.builder(getName()).onHover(TextActions.showText(builder.build())).build();
     }
 
     public Text info() {
         // TODO: 点击补全指令?
-        Messages messages = EpicBanItem.getMessages();
+        LocaleService localeService = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.query", "query", this.getQueryInfo()), Text.NEW_LINE);
-        builder.append(messages.getMessage("epicbanitem.checkrule.update", "update", this.getUpdateInfo()), Text.NEW_LINE);
+        builder.append(localeService.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
+        builder.append(localeService.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
+        builder.append(localeService.getMessage("epicbanitem.checkrule.query", "query", this.getQueryInfo()), Text.NEW_LINE);
+        builder.append(localeService.getMessage("epicbanitem.checkrule.update", "update", this.getUpdateInfo()), Text.NEW_LINE);
         return builder.build();
     }
 
