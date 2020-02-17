@@ -91,7 +91,7 @@ epicbanitem.command.editor.extendedDescription =  规则编辑器
 epicbanitem.command.editor.useOtherFirst = 使用 /ebi edit <rule> 来开始编辑.
 epicbanitem.command.editor.header = &7=============================================
 epicbanitem.command.editor.name = 规则:   {name}
-epicbanitem.command.editor.priority = "优先度: {priority}"
+epicbanitem.command.editor.priority = 优先度: {priority}
 epicbanitem.command.editor.triggers = 监听器: {mode}
 epicbanitem.command.editor.worlds = 世界:   {mode}
 epicbanitem.command.editor.query = 查询规则: {options}

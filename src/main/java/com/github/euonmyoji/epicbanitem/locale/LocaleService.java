@@ -37,7 +37,7 @@ import org.spongepowered.api.text.format.TextColors;
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
  */
-@SuppressWarnings({ "unchecked", "SpellCheckingInspection" })
+@SuppressWarnings("SpellCheckingInspection")
 @Singleton
 public class LocaleService {
     private static final String MISSING_MESSAGE_KEY = "epicbanitem.error.missingMessage";
