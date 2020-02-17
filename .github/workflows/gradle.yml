@@ -20,8 +20,3 @@ jobs:
     - name: Build with Gradle
       run: |
         ./gradlew build -debug
-    - name: Publish to Github Packages
-      env:
-        GPR_USER: ${{ secrets.GPR_USER }}
-        GPR_API_KEY: ${{ secrets.GPR_TOKEN }}
-      run: ./gradlew build publish
