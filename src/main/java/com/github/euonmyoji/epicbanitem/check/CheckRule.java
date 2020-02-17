@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-import org.slf4j.Logger;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataQuery;
@@ -111,7 +111,7 @@ public class CheckRule implements TextRepresentable {
     private final TextTemplate customMessage;
 
     @Inject
-    private Logger logger;
+    private LocaleService localeService;
 
     public CheckRule(String ruleName) {
         this(ruleName, getDefaultQueryNode());
@@ -284,7 +284,7 @@ public class CheckRule implements TextRepresentable {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
             EpicBanItem.getLogger().error("Failed to deserialize ConfigNode to String", e);
-            return EpicBanItem.getMessages().getMessage("epicbanitem.error.failDeserialize");
+            return localeService.getTextWithFallback("epicbanitem.error.failDeserialize");
         }
     }
 
@@ -296,7 +296,7 @@ public class CheckRule implements TextRepresentable {
             return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
         } catch (IOException e) {
             EpicBanItem.getLogger().error("Failed to deserialize ConfigNode to String", e);
-            return EpicBanItem.getMessages().getMessage("epicbanitem.error.failDeserialize");
+            return localeService.getTextWithFallback("epicbanitem.error.failDeserialize");
         }
     }
 
@@ -351,7 +351,6 @@ public class CheckRule implements TextRepresentable {
 
     @Override
     public Text toText() {
-        LocaleService localeService = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
         builder.append(localeService.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
@@ -361,13 +360,24 @@ public class CheckRule implements TextRepresentable {
 
     public Text info() {
         // TODO: 点击补全指令?
-        LocaleService localeService = EpicBanItem.getMessages();
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
-        builder.append(localeService.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
-        builder.append(localeService.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
-        builder.append(localeService.getMessage("epicbanitem.checkrule.query", "query", this.getQueryInfo()), Text.NEW_LINE);
-        builder.append(localeService.getMessage("epicbanitem.checkrule.update", "update", this.getUpdateInfo()), Text.NEW_LINE);
+        builder.append(
+            localeService.getTextWithFallback("epicbanitem.checkrule.worlds", ImmutablePair.of("worlds", this.getWorldInfo())),
+            Text.NEW_LINE
+        );
+        builder.append(
+            localeService.getTextWithFallback("epicbanitem.checkrule.triggers", ImmutablePair.of("triggers", this.getTriggerInfo())),
+            Text.NEW_LINE
+        );
+        builder.append(
+            localeService.getTextWithFallback("epicbanitem.checkrule.query", ImmutablePair.of("query", this.getQueryInfo())),
+            Text.NEW_LINE
+        );
+        builder.append(
+            localeService.getTextWithFallback("epicbanitem.checkrule.update", ImmutablePair.of("update", this.getUpdateInfo())),
+            Text.NEW_LINE
+        );
         return builder.build();
     }
 
@@ -382,8 +392,6 @@ public class CheckRule implements TextRepresentable {
 
     @Singleton
     public static class Serializer implements TypeSerializer<CheckRule> {
-        @Inject
-        private static Logger logger;
 
         @Override
         public CheckRule deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
@@ -447,6 +455,7 @@ public class CheckRule implements TextRepresentable {
             );
         }
 
+        @SuppressWarnings("UnstableApiUsage")
         @Override
         public void serialize(TypeToken<?> type, @Nullable CheckRule rule, ConfigurationNode node) {
             Objects.requireNonNull(rule);

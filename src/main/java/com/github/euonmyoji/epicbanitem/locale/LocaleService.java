@@ -124,9 +124,11 @@ public class LocaleService {
     }
 
     @SafeVarargs
-    public final Text getMissableText(String path, Pair<String, ?>... pairs) {
+    public final Text getTextWithFallback(String path, Pair<String, ?>... pairs) {
         return getText(path, pairs)
-            .orElseGet(() -> getMissableText(MISSING_MESSAGE_KEY, ImmutablePair.of("message_key", path)).toBuilder().color(TextColors.RED).build());
+            .orElseGet(
+                () -> getTextWithFallback(MISSING_MESSAGE_KEY, ImmutablePair.of("message_key", path)).toBuilder().color(TextColors.RED).build()
+            );
     }
 
     @SafeVarargs
@@ -148,7 +150,9 @@ public class LocaleService {
     @Deprecated
     public Text getMessage(String path, Map<String, ?> params) {
         return getText(path, params)
-            .orElseGet(() -> getMissableText(MISSING_MESSAGE_KEY, ImmutablePair.of("message_key", path)).toBuilder().color(TextColors.RED).build());
+            .orElseGet(
+                () -> getTextWithFallback(MISSING_MESSAGE_KEY, ImmutablePair.of("message_key", path)).toBuilder().color(TextColors.RED).build()
+            );
     }
 
     @Deprecated

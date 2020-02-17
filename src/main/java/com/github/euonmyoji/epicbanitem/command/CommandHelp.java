@@ -71,7 +71,7 @@ public class CommandHelp extends AbstractCommand {
 
             Text text = builder.build();
             if (text.isEmpty()) {
-                src.sendMessage(EpicBanItem.getMessages().getMissableText("epicbanitem.command.help.empty"));
+                src.sendMessage(EpicBanItem.getMessages().getTextWithFallback("epicbanitem.command.help.empty"));
             } else {
                 src.sendMessage(text);
             }
