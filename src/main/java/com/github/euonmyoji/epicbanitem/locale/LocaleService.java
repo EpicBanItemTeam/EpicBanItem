@@ -194,8 +194,7 @@ public class LocaleService {
                             Collections.singleton("message_key")
                         )
                     );
-                },
-                Objects::requireNonNull
+                }
             );
     }
 }
