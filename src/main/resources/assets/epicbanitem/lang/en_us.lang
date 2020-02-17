@@ -1,3 +1,4 @@
+#PARSE_ESCAPES
 
 #command
 epicbanitem.commands.name = Command: {name} {alias}
