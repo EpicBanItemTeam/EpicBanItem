@@ -22,8 +22,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.asset.AssetManager;
 import org.spongepowered.api.config.ConfigDir;
@@ -33,6 +31,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.util.Tuple;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -124,16 +123,14 @@ public class LocaleService {
     }
 
     @SafeVarargs
-    public final Text getTextWithFallback(String path, Pair<String, ?>... pairs) {
+    public final Text getTextWithFallback(String path, Tuple<String, ?>... pairs) {
         return getText(path, pairs)
-            .orElseGet(
-                () -> getTextWithFallback(MISSING_MESSAGE_KEY, ImmutablePair.of("message_key", path)).toBuilder().color(TextColors.RED).build()
-            );
+            .orElseGet(() -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build());
     }
 
     @SafeVarargs
-    public final Optional<Text> getText(String path, Pair<String, ?>... pairs) {
-        return getText(path, Arrays.stream(pairs).collect(Collectors.toMap(Pair::getKey, Pair::getValue)));
+    public final Optional<Text> getText(String path, Tuple<String, ?>... tuples) {
+        return getText(path, Arrays.stream(tuples).collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond)));
     }
 
     public Optional<Text> getText(String path, Map<String, ?> params) {
@@ -151,7 +148,7 @@ public class LocaleService {
     public Text getMessage(String path, Map<String, ?> params) {
         return getText(path, params)
             .orElseGet(
-                () -> getTextWithFallback(MISSING_MESSAGE_KEY, ImmutablePair.of("message_key", path)).toBuilder().color(TextColors.RED).build()
+                () -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build()
             );
     }
 
