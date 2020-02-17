@@ -14,9 +14,16 @@ jobs:
       with:
         java-version: 1.8
     - name: Generate build number
-      uses: einaregilsson/build-number@v1 
+      uses: einaregilsson/build-number@v2
       with:
         token: ${{ secrets.GITHUB_TOKEN }}    
     - name: Build with Gradle
       run: |
         ./gradlew build -debug
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1.0.0
+      with:
+       # Artifact name
+       name: EpicBanItem-$BUILD_NUMBER
+       # Directory containing files to upload
+       path: build/libs
