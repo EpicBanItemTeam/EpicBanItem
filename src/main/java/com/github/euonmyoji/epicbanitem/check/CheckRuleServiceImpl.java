@@ -53,7 +53,7 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
     public CompletableFuture<Boolean> appendRule(CheckRule rule) {
         try {
-            return banConfig.addRule(CheckRuleIndex.of(rule.getQueryNode()), rule);
+            return banConfig.addRule(rule);
         } catch (IOException e) {
             logger.error("Failed to save ban config.", e);
             CompletableFuture<Boolean> future = new CompletableFuture<>();
@@ -65,7 +65,7 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     @Override
     public CompletableFuture<Boolean> removeRule(CheckRule rule) {
         try {
-            return banConfig.removeRule(CheckRuleIndex.of(rule.getQueryNode()), rule.getName());
+            return banConfig.removeRule(rule.getName());
         } catch (IOException e) {
             logger.error("Failed to save ban config.", e);
             CompletableFuture<Boolean> future = new CompletableFuture<>();

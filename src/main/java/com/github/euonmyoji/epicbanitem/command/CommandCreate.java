@@ -149,7 +149,7 @@ class CommandCreate extends AbstractCommand {
                 CommandEditor.add((Player) src, name, queryNode, true);
             } else {
                 service
-                    .appendRule(new CheckRule(name, queryNode))
+                    .appendRule(CheckRule.builder(name).queryNode(queryNode).build())
                     .thenRun(
                         () -> {
                             Text succeedMessage = getMessage("succeed", Tuple.of("rule_name", name));

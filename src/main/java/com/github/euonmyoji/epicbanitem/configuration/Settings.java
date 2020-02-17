@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -15,12 +16,16 @@ import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
@@ -36,6 +41,8 @@ import org.spongepowered.api.world.storage.WorldProperties;
 @Singleton
 @NonnullByDefault
 public class Settings {
+    private static final int CURRENT_VERSION = 1;
+
     private static final String DEFAULT_WORLD = "default-world";
     private static final String DEFAULT_TRIGGER = "default-trigger";
     private static final String PRINT_ITEM_TO_BLOCK_MAPPING = "print-item-to-block-mapping";
@@ -53,13 +60,15 @@ public class Settings {
     private Map<CheckRuleTrigger, Boolean> enabledTriggers = Maps.newLinkedHashMap();
 
     @Inject
-    private AutoFileLoader fileLoader;
+    private ConfigFileManager fileManager;
 
     private Logger logger;
 
     @Inject
     @ConfigDir(sharedRoot = false)
-    Path configDir;
+    private Path configDir;
+
+    private ConfigurationLoader<CommentedConfigurationNode> loader;
 
     @Inject
     private Settings(EventManager eventManager, PluginContainer pluginContainer, Logger logger) {
@@ -94,10 +103,10 @@ public class Settings {
         this.enabledWorlds = Maps.newLinkedHashMap(Maps.toMap(Iterables.transform(worlds, WorldProperties::getWorldName), k -> true));
     }
 
-    private void load(ConfigurationNode cfg) {
+    private void load() throws IOException {
+        ConfigurationNode cfg = loader.load();
         this.resetToDefault();
 
-        //        this.listenLoadingChunk = cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).getBoolean(false); not impl yet
         this.printItemToBlockMapping = cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).getBoolean(true);
 
         ConfigurationNode defaultWorlds = cfg.getNode("epicbanitem", DEFAULT_WORLD);
@@ -124,15 +133,17 @@ public class Settings {
             );
     }
 
-    private void save(ConfigurationNode cfg) {
-        cfg.getNode("epicbanitem-version").setValue(BanConfig.CURRENT_VERSION);
+    private void save() throws IOException {
+        ConfigurationNode cfg = loader.createEmptyNode();
+        cfg.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
 
-        //        cfg.getNode("epicbanitem", LISTEN_CHUNK_LOAD).setValue(this.listenLoadingChunk); not impl yet
         cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).setValue(this.printItemToBlockMapping);
 
         this.enabledWorlds.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
 
         this.enabledTriggers.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_TRIGGER, k).setValue(v));
+
+        loader.save(cfg);
     }
 
     public boolean printItemToBlockMapping() {
@@ -156,13 +167,14 @@ public class Settings {
         return this.eventClass == null ? event instanceof CraftItemEvent.Preview : this.eventClass.isInstance(event);
     }
 
-    @Listener
+    @Listener(order = Order.FIRST)
     public void onPreInit(GamePreInitializationEvent event) {
         Path settingPath = configDir.resolve("settings.conf");
+        this.loader = HoconConfigurationLoader.builder().setPath(settingPath).build();
         this.resetToDefault();
-        fileLoader.addListener(settingPath, this::load, this::save);
+        fileManager.getRootLoader().addListener(settingPath, this::load, this::load, this::save);
         if (Files.notExists(settingPath)) {
-            fileLoader.forceSaving(settingPath);
+            fileManager.getRootLoader().forceSaving(settingPath);
         }
     }
 

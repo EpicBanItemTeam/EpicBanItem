@@ -28,7 +28,7 @@ class CommandShow extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        src.sendMessage(args.<CheckRule>getOne("check-rule").orElseThrow(NoSuchFieldError::new).info());
+        src.sendMessage(args.<CheckRule>getOne("check-rule").orElseThrow(NoSuchFieldError::new).toText());
         return CommandResult.success();
     }
 }
