@@ -4,7 +4,6 @@ import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.api.CheckResult;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.command.CommandCheck;
-import com.github.euonmyoji.epicbanitem.locale.LocaleService;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryExpression;
 import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
@@ -14,7 +13,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
 import java.util.Collections;
@@ -32,7 +30,6 @@ import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataQuery;
@@ -44,6 +41,7 @@ import org.spongepowered.api.text.TextRepresentable;
 import org.spongepowered.api.text.TextTemplate;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 
@@ -109,9 +107,6 @@ public class CheckRule implements TextRepresentable {
 
     @Nullable
     private final TextTemplate customMessage;
-
-    @Inject
-    private LocaleService localeService;
 
     public CheckRule(String ruleName) {
         this(ruleName, getDefaultQueryNode());
@@ -284,7 +279,7 @@ public class CheckRule implements TextRepresentable {
             return Text.of(TextUtil.deserializeConfigNodeToString(queryNode));
         } catch (IOException e) {
             EpicBanItem.getLogger().error("Failed to deserialize ConfigNode to String", e);
-            return localeService.getTextWithFallback("epicbanitem.error.failDeserialize");
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.error.failDeserialize");
         }
     }
 
@@ -296,7 +291,7 @@ public class CheckRule implements TextRepresentable {
             return Text.of(TextUtil.deserializeConfigNodeToString(updateNode));
         } catch (IOException e) {
             EpicBanItem.getLogger().error("Failed to deserialize ConfigNode to String", e);
-            return localeService.getTextWithFallback("epicbanitem.error.failDeserialize");
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.error.failDeserialize");
         }
     }
 
@@ -353,8 +348,14 @@ public class CheckRule implements TextRepresentable {
     public Text toText() {
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
-        builder.append(localeService.getMessage("epicbanitem.checkrule.worlds", "worlds", this.getWorldInfo()), Text.NEW_LINE);
-        builder.append(localeService.getMessage("epicbanitem.checkrule.triggers", "triggers", this.getTriggerInfo()), Text.NEW_LINE);
+        builder.append(
+            EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.checkrule.worlds", Tuple.of("worlds", this.getWorldInfo())),
+            Text.NEW_LINE
+        );
+        builder.append(
+            EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.checkrule.triggers", Tuple.of("triggers", this.getTriggerInfo())),
+            Text.NEW_LINE
+        );
         return Text.builder(getName()).onHover(TextActions.showText(builder.build())).build();
     }
 
@@ -363,19 +364,19 @@ public class CheckRule implements TextRepresentable {
         Text.Builder builder = Text.builder();
         builder.append(Text.of(this.getName()), Text.NEW_LINE);
         builder.append(
-            localeService.getTextWithFallback("epicbanitem.checkrule.worlds", ImmutablePair.of("worlds", this.getWorldInfo())),
+            EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.checkrule.worlds", Tuple.of("worlds", this.getWorldInfo())),
             Text.NEW_LINE
         );
         builder.append(
-            localeService.getTextWithFallback("epicbanitem.checkrule.triggers", ImmutablePair.of("triggers", this.getTriggerInfo())),
+            EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.checkrule.triggers", Tuple.of("triggers", this.getTriggerInfo())),
             Text.NEW_LINE
         );
         builder.append(
-            localeService.getTextWithFallback("epicbanitem.checkrule.query", ImmutablePair.of("query", this.getQueryInfo())),
+            EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.checkrule.query", Tuple.of("query", this.getQueryInfo())),
             Text.NEW_LINE
         );
         builder.append(
-            localeService.getTextWithFallback("epicbanitem.checkrule.update", ImmutablePair.of("update", this.getUpdateInfo())),
+            EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.checkrule.update", Tuple.of("update", this.getUpdateInfo())),
             Text.NEW_LINE
         );
         return builder.build();

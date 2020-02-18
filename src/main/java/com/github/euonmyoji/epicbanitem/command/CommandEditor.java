@@ -54,6 +54,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextFormat;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.storage.WorldProperties;
 
@@ -346,15 +347,15 @@ public class CommandEditor extends AbstractCommand {
         }
 
         private static Text getMessage(String key) {
-            return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key);
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.command.editor." + key);
         }
 
         private static Text getMessage(String key, String k1, Object v1) {
-            return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key, k1, v1);
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.command.editor." + key, Tuple.of(k1, v1));
         }
 
         private static Text getMessage(String key, String k1, Object v1, String k2, Object v2) {
-            return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key, k1, v1, k2, v2);
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.command.editor." + key, Tuple.of(k1, v1), Tuple.of(k2, v2));
         }
 
         private static String toString(@Nullable Boolean b) {

@@ -36,7 +36,7 @@ public class ArgRangeInteger extends CommandElement {
         Integer integer = context.<Integer>getOne(warp.getKey()).orElseThrow(IllegalStateException::new);
         if (integer < min || integer > max) {
             throw args.createError(
-                EpicBanItem.getMessages().getMessage("epicbanitem.args.range.outOfRange", "input", integer, "min", min, "max", max)
+                EpicBanItem.getLocaleService().getMessage("epicbanitem.args.range.outOfRange", "input", integer, "min", min, "max", max)
             );
         }
     }

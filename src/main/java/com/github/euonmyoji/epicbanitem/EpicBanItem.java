@@ -70,7 +70,7 @@ public class EpicBanItem {
         return instance.logger;
     }
 
-    public static LocaleService getMessages() {
+    public static LocaleService getLocaleService() {
         return instance.localeService;
     }
 

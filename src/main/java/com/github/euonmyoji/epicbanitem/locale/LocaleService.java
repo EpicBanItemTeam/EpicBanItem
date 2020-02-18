@@ -1,27 +1,24 @@
 package com.github.euonmyoji.epicbanitem.locale;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.configuration.AutoFileLoader;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
+import java.util.MissingResourceException;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.asset.AssetManager;
 import org.spongepowered.api.config.ConfigDir;
@@ -41,12 +38,9 @@ import org.spongepowered.api.util.Tuple;
 public class LocaleService {
     private static final String MISSING_MESSAGE_KEY = "epicbanitem.error.missingMessage";
 
-    private ConfigurationNode node;
+    private ResourceBundle resourceBundle;
 
     private Map<String, TextTemplate> cache;
-
-    @Inject
-    private AutoFileLoader fileLoader;
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -61,15 +55,7 @@ public class LocaleService {
             .getAsset(pluginContainer, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang")
             .orElse(assetManager.getAsset(pluginContainer, "lang/en_us.lang").orElseThrow(NoSuchFieldError::new));
 
-        /* FIXME: 2020/2/17 Conflict with SpongeForge
-            HoconConfigurationLoader configurationLoader = HoconConfigurationLoader
-                .builder()
-                .setURL(fallbackAsset.getUrl())
-                .setParseOptions(ConfigParseOptions.defaults().setSyntax(ConfigSyntax.PROPERTIES))
-                .build();
-        */
-
-        this.node = getConfigLoader(fallbackAsset).load();
+        this.resourceBundle = new PropertyResourceBundle(new InputStreamReader(fallbackAsset.getUrl().openStream(), Charsets.UTF_8));
 
         cache.put(
             MISSING_MESSAGE_KEY,
@@ -82,49 +68,17 @@ public class LocaleService {
         eventManager.registerListener(pluginContainer, GamePreInitializationEvent.class, this::onPreInit);
     }
 
-    private ConfigurationLoader<CommentedConfigurationNode> getConfigLoader(Asset asset) {
-        HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder().setURL(asset.getUrl());
-
-        try {
-            for (Method setParseOptionsMethod : HoconConfigurationLoader.Builder.class.getMethods()) {
-                if (Objects.equals("setParseOptions", setParseOptionsMethod.getName())) {
-                    Class<?> parseOptionsClass = setParseOptionsMethod.getParameterTypes()[0];
-                    Object defaultParseOptions = parseOptionsClass.getMethod("defaults").invoke(null);
-                    for (Method setSyntaxMethod : parseOptionsClass.getMethods()) {
-                        if (Objects.equals("setSyntax", setSyntaxMethod.getName())) {
-                            Class<?> configSyntaxClass = setSyntaxMethod.getParameterTypes()[0];
-                            builder =
-                                (HoconConfigurationLoader.Builder) setParseOptionsMethod.invoke(
-                                    builder,
-                                    setSyntaxMethod.invoke(defaultParseOptions, configSyntaxClass.getEnumConstants()[2])
-                                );
-                        }
-                    }
-                }
-            }
-        } catch (IndexOutOfBoundsException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            EpicBanItem.getLogger().error("Language files cannot be loaded", e);
-            return builder.build();
-        }
-
-        return builder.build();
-    }
-
-    private ConfigurationNode getNode(String path) {
-        ConfigurationNode node = this.node;
-        for (String key : path.split("\\.")) {
-            node = node.getNode(key);
-        }
-        return node;
-    }
-
     public Optional<String> getString(String path) {
-        return Optional.ofNullable(getNode(path).getString());
+        Optional<String> stringOptional = Optional.empty();
+        try {
+            stringOptional = Optional.of(resourceBundle.getString(path));
+        } catch (MissingResourceException ignore) {}
+        return stringOptional;
     }
 
     @SafeVarargs
-    public final Text getTextWithFallback(String path, Tuple<String, ?>... pairs) {
-        return getText(path, pairs)
+    public final Text getTextWithFallback(String path, Tuple<String, ?>... tuples) {
+        return getText(path, tuples)
             .orElseGet(() -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build());
     }
 
@@ -147,9 +101,7 @@ public class LocaleService {
     @Deprecated
     public Text getMessage(String path, Map<String, ?> params) {
         return getText(path, params)
-            .orElseGet(
-                () -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build()
-            );
+            .orElseGet(() -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build());
     }
 
     @Deprecated
@@ -182,20 +134,24 @@ public class LocaleService {
         return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3, k4, v4, k5, v5));
     }
 
-    private void onPreInit(GamePreInitializationEvent event) {
-        this.fileLoader.addListener(
-                this.configDir.resolve("message.lang"),
-                thatNode -> {
-                    this.node = thatNode.mergeValuesFrom(node);
-                    this.cache.clear();
-                    cache.put(
-                        MISSING_MESSAGE_KEY,
-                        TextUtil.parseTextTemplate(
-                            getString(MISSING_MESSAGE_KEY).orElse("Missing language key: {message_key}"),
-                            Collections.singleton("message_key")
-                        )
-                    );
-                }
-            );
+    private void onPreInit(GamePreInitializationEvent event) throws IOException {
+        Path path = this.configDir.resolve("message.lang");
+        Files.createDirectories(path.getParent());
+        Files.createFile(path);
+        PropertyResourceBundle extraResourceBundle = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(path), Charsets.UTF_8));
+        extraResourceBundle.setParent(this.resourceBundle);
+        this.resourceBundle = extraResourceBundle;
+    }
+
+    private static final class PropertyResourceBundle extends java.util.PropertyResourceBundle {
+
+        public PropertyResourceBundle(Reader reader) throws IOException {
+            super(reader);
+        }
+
+        @Override
+        public void setParent(ResourceBundle parent) {
+            super.setParent(parent);
+        }
     }
 }

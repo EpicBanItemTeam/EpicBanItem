@@ -115,7 +115,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
         @Override
         public Text toText() {
-            return EpicBanItem.getMessages().getMessage("epicbanitem.triggers." + toString().toLowerCase(Locale.ROOT));
+            return EpicBanItem.getLocaleService().getMessage("epicbanitem.triggers." + toString().toLowerCase(Locale.ROOT));
         }
 
         @Override

@@ -276,7 +276,7 @@ public class TextUtil {
         if (!undefined.isEmpty()) {
             result.add(
                 EpicBanItem
-                    .getMessages()
+                    .getLocaleService()
                     .getMessage(updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage", toParams.apply(undefined))
             );
         }
