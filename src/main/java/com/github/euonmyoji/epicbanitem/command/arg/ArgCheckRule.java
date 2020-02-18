@@ -14,6 +14,7 @@ import org.spongepowered.api.command.args.CommandArgs;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
@@ -34,7 +35,7 @@ class ArgCheckRule extends CommandElement {
         if (optionalCheckRule.isPresent()) {
             return optionalCheckRule.get();
         } else {
-            throw args.createError(EpicBanItem.getLocaleService().getMessage("epicbanitem.args.checkRule.notFound", "name", argString));
+            throw args.createError(EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.args.checkRule.notFound", Tuple.of("name", argString)));
         }
     }
 

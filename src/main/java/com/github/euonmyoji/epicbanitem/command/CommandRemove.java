@@ -10,6 +10,7 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
@@ -38,7 +39,7 @@ public class CommandRemove extends AbstractCommand {
             .thenAccept(
                 succeed -> {
                     if (succeed) {
-                        src.sendMessage(getMessage("succeed", "rule", checkRule.getName()));
+                        src.sendMessage(getMessage("succeed", Tuple.of("rule", checkRule.getName())));
                     }
                 }
             );

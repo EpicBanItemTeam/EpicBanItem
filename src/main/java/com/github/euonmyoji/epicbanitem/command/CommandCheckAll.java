@@ -60,7 +60,7 @@ public class CommandCheckAll extends AbstractCommand {
                 .forEach(player -> replaceItems(player, service.checkInventory(player.getInventory(), player.getWorld(), Triggers.JOIN, player)));
         }
 
-        src.sendMessage(Text.of(TextColors.GREEN, EpicBanItem.getLocaleService().getMessage("epicbanitem.command.checkall.success")));
+        src.sendMessage(Text.of(TextColors.GREEN, EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.command.checkall.success")));
         return CommandResult.success();
     }
 

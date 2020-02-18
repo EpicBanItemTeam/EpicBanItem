@@ -8,12 +8,7 @@ import com.google.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
@@ -30,6 +25,7 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
@@ -93,16 +89,13 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         return "epicbanitem.command." + parent + name + "." + s;
     }
 
-    protected Text getMessage(String s) {
-        return localeService.getMessage(getMessageKey(s));
+    @SafeVarargs
+    protected final Text getMessage(String s, Tuple<String, ?>... tuples) {
+        return localeService.getTextWithFallback(getMessageKey(s), tuples);
     }
 
-    protected Text getMessage(String s, String k1, Object v1) {
-        return localeService.getMessage(getMessageKey(s), k1, v1);
-    }
-
-    protected Text getMessage(String s, String k1, Object v1, String k2, Object v2) {
-        return localeService.getMessage(getMessageKey(s), k1, v1, k2, v2);
+    protected final Text getMessage(String s, Collection<Tuple<String, ?>> tuples) {
+        return localeService.getTextWithFallback(getMessageKey(s), tuples);
     }
 
     public Text getDescription() {
@@ -120,7 +113,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             return Text.EMPTY;
         }
         Text.Builder builder = Text.builder();
-        builder.append(localeService.getMessage("epicbanitem.commands.args"));
+        builder.append(localeService.getTextWithFallback("epicbanitem.commands.args"));
         scanArg(element, source, builder);
         return builder.toText();
     }
@@ -212,10 +205,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public Text getHelpMessage(CommandSource src, CommandContext args) {
         init();
         Text.Builder builder = Text.builder();
-        builder.append(localeService.getMessage("epicbanitem.commands.name", "name", getName(), "alias", String.join(" ", getAlias())), Text.NEW_LINE);
+        builder.append(localeService.getTextWithFallback("epicbanitem.commands.name", Tuple.of("name", getName()), Tuple.of("alias", String.join(" ", getAlias()))), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
         builder.append(
-            localeService.getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))),
+            localeService.getTextWithFallback("epicbanitem.commands.usage", Tuple.of("usage", Text.of(getCommandString(), getCallable().getUsage(src)))),
             Text.NEW_LINE
         );
         builder.append(getArgHelp(src), Text.NEW_LINE);
@@ -267,7 +260,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             try {
                 element.parse(source, args, context);
                 if (args.hasNext()) {
-                    throw args.createError(localeService.getMessage("epicbanitem.commands.tooManyArgs"));
+                    throw args.createError(localeService.getTextWithFallback("epicbanitem.commands.tooManyArgs"));
                 }
             } catch (ArgumentParseException e) {
                 context.putArg("help", e);

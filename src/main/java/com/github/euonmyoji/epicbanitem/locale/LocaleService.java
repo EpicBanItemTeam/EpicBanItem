@@ -12,14 +12,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.asset.AssetManager;
 import org.spongepowered.api.config.ConfigDir;
@@ -82,13 +78,17 @@ public class LocaleService {
 
     @SafeVarargs
     public final Text getTextWithFallback(String path, Tuple<String, ?>... tuples) {
-        return getText(path, tuples)
+        return getText(path, Arrays.stream(tuples))
             .orElseGet(() -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build());
     }
 
-    @SafeVarargs
-    public final Optional<Text> getText(String path, Tuple<String, ?>... tuples) {
-        return getText(path, Arrays.stream(tuples).collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond)));
+    public final Text getTextWithFallback(String path, Collection<Tuple<String, ?>> tuples) {
+        return getText(path, tuples.stream())
+                .orElseGet(() -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build());
+    }
+
+    private Optional<Text> getText(String path, Stream<Tuple<String, ?>> tuples) {
+        return getText(path, tuples.collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond)));
     }
 
     public Optional<Text> getText(String path, Map<String, ?> params) {
@@ -100,42 +100,6 @@ public class LocaleService {
             textOptional = Optional.of(cache.get(path).apply(params).build());
         }
         return textOptional;
-    }
-
-    @Deprecated
-    public Text getMessage(String path, Map<String, ?> params) {
-        return getText(path, params)
-            .orElseGet(() -> getTextWithFallback(MISSING_MESSAGE_KEY, Tuple.of("message_key", path)).toBuilder().color(TextColors.RED).build());
-    }
-
-    @Deprecated
-    public Text getMessage(String key) {
-        return getMessage(key, Collections.emptyMap());
-    }
-
-    @Deprecated
-    public Text getMessage(String key, String k1, Object v1) {
-        return getMessage(key, ImmutableMap.of(k1, v1));
-    }
-
-    @Deprecated
-    public Text getMessage(String key, String k1, Object v1, String k2, Object v2) {
-        return getMessage(key, ImmutableMap.of(k1, v1, k2, v2));
-    }
-
-    @Deprecated
-    public Text getMessage(String key, String k1, Object v1, String k2, Object v2, String k3, Object v3) {
-        return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3));
-    }
-
-    @Deprecated
-    public Text getMessage(String key, String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4) {
-        return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3, k4, v4));
-    }
-
-    @Deprecated
-    public Text getMessage(String key, String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4, String k5, Object v5) {
-        return getMessage(key, ImmutableMap.of(k1, v1, k2, v2, k3, v3, k4, v4, k5, v5));
     }
 
     private void onPreInit(GamePreInitializationEvent event) throws IOException {

@@ -116,7 +116,7 @@ class CommandCreate extends AbstractCommand {
         Predicate<Map.Entry<DataQuery, Object>> capture = e -> "id".equals(e.getKey().toString());
         try {
             if (service.getCheckRuleByName(name).isPresent()) {
-                throw new CommandException(getMessage("existed", "rule_name", name));
+                throw new CommandException(getMessage("existed", Tuple.of("rule_name", name)));
             }
             Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
             try {
@@ -139,7 +139,7 @@ class CommandCreate extends AbstractCommand {
                 if (node.isVirtual()) {
                     node.setValue(entry.getValue());
                 } else {
-                    throw new CommandException(getMessage("override", "key", key.toString()));
+                    throw new CommandException(getMessage("override", Tuple.of("key", key.toString())));
                 }
             }
             if (queryNode.getNode("id").isVirtual() && !args.hasAny("no-capture")) {
@@ -152,7 +152,7 @@ class CommandCreate extends AbstractCommand {
                     .appendRule(new CheckRule(name, queryNode))
                     .thenRun(
                         () -> {
-                            Text succeedMessage = getMessage("succeed", "rule_name", name);
+                            Text succeedMessage = getMessage("succeed", Tuple.of("rule_name", name));
                             src.sendMessage(succeedMessage);
                         }
                     );

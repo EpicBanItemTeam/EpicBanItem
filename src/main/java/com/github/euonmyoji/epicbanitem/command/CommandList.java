@@ -21,6 +21,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
@@ -57,8 +58,8 @@ class CommandList extends AbstractCommand {
             for (CheckRule checkRule : entry.getValue()) {
                 lines.add(
                     Text.of(
-                        TextUtil.adjustLength(getMessage("firstHalfLine", "item_type", entry.getKey(), "check_rule", checkRule.toText()), 20),
-                        getMessage("secondHalfLine", "item_type", entry.getKey(), "check_rule", checkRule.toText())
+                        TextUtil.adjustLength(getMessage("firstHalfLine", Tuple.of("item_type", entry.getKey()), Tuple.of("check_rule", checkRule.toText())), 20),
+                        getMessage("secondHalfLine", Tuple.of("item_type", entry.getKey()), Tuple.of("check_rule", checkRule.toText()))
                     )
                 );
             }

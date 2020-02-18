@@ -19,6 +19,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 
 /**
  * @author EBI
@@ -112,8 +113,8 @@ public class CommandEbi extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        src.sendMessage(getMessage("version", "version", "@version@"));
-        src.sendMessage(getMessage("useHelp", "help_command", suggestCommand("help")));
+        src.sendMessage(getMessage("version", Tuple.of("version", pluginContainer.getVersion().orElse("@version@"))));
+        src.sendMessage(getMessage("useHelp", Tuple.of("help_command", suggestCommand("help"))));
         args
             .<String>getOne(ARGUMENT_KEY)
             .ifPresent(
@@ -136,7 +137,7 @@ public class CommandEbi extends AbstractCommand {
                         }
                     }
                     if (lastMatchCommand != null) {
-                        src.sendMessage(getMessage("suggestCommand", "suggest", suggestCommand(lastMatchCommand)));
+                        src.sendMessage(getMessage("suggestCommand", Tuple.of("suggest", suggestCommand(lastMatchCommand))));
                     }
                 }
             );

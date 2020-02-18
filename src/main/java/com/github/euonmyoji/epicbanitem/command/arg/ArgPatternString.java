@@ -12,6 +12,7 @@ import org.spongepowered.api.command.args.CommandArgs;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 
 @NonnullByDefault
@@ -38,7 +39,7 @@ public class ArgPatternString extends CommandElement {
         if (pattern.matcher(string).matches()) {
             return string;
         } else {
-            throw args.createError(EpicBanItem.getLocaleService().getMessage(errorMessageKey, "pattern", pattern));
+            throw args.createError(EpicBanItem.getLocaleService().getTextWithFallback(errorMessageKey, Tuple.of("pattern", pattern)));
         }
     }
 

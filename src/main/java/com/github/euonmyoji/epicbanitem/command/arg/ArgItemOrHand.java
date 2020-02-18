@@ -15,6 +15,7 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
@@ -49,7 +50,7 @@ class ArgItemOrHand extends CommandElement {
             return getItemTypeFormHand((Player) source, args);
         } else {
             args.next();
-            throw args.createError(EpicBanItem.getLocaleService().getMessage("epicbanitem.args.item.notFound", "name", argString));
+            throw args.createError(EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.args.item.notFound", Tuple.of("name", argString)));
         }
     }
 

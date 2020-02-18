@@ -17,6 +17,7 @@ import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.StartsWithPredicate;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
@@ -40,7 +41,7 @@ class ArgItemCheckRule extends CommandElement {
             context.putArg(getKey(), optionalCheckRule.get());
         } else {
             throw args.createError(
-                EpicBanItem.getLocaleService().getMessage("epicbanitem.args.itemCheckRule.notFound", "name", argString, "item", itemType.getId())
+                EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.args.itemCheckRule.notFound", Tuple.of("name", argString), Tuple.of("item", itemType.getId()))
             );
         }
     }

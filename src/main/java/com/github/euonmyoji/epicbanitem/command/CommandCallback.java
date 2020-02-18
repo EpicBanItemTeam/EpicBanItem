@@ -125,7 +125,7 @@ public class CommandCallback extends AbstractCommand {
             try {
                 val.getFirst().parse(source, args, context);
             } catch (ArgumentParseException e) {
-                source.sendMessage(getMessage("neededArgs", "help", val.getFirst().getUsage(source)));
+                source.sendMessage(getMessage("neededArgs", Tuple.of("help", val.getFirst().getUsage(source))));
                 throw e;
             }
         }

@@ -11,6 +11,7 @@ import org.spongepowered.api.command.args.CommandArgs;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
@@ -30,7 +31,7 @@ public class ArgTrigger extends CommandElement {
         if (Triggers.getTriggers().containsKey(arg)) {
             return arg;
         }
-        throw args.createError(EpicBanItem.getLocaleService().getMessage("epicbanitem.args.trigger.notFound", "name", arg));
+        throw args.createError(EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.args.trigger.notFound", Tuple.of("name", arg)));
     }
 
     @Override

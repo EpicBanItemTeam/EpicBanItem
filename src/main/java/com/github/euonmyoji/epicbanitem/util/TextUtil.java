@@ -14,14 +14,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -254,34 +247,22 @@ public class TextUtil {
                 undefined.add(rule.getFirst());
             }
         }
-        Function<List<Text>, Map<String, Text>> toParams = checkRules -> {
-            Text triggerText;
-            try {
-                triggerText = trigger.toText();
-            } catch (AbstractMethodError e) {
-                triggerText = Text.of(trigger.toString());
-            }
-            return ImmutableMap.of(
-                "rules",
-                Text.joinWith(Text.of(","), checkRules),
-                "trigger",
-                triggerText,
-                "item_pre",
-                itemPre,
-                "item_post",
-                itemPost
-            );
-        };
+        Function<List<Text>, List<Tuple<String, ?>>> toParams = checkRules -> Arrays.asList(
+                Tuple.of("rules", Text.joinWith(Text.of(","), checkRules)),
+                Tuple.of("trigger", trigger.toText()),
+                Tuple.of("item_pre", itemPre),
+                Tuple.of("item_post", itemPost)
+        );
         List<Text> result = new ArrayList<>();
         if (!undefined.isEmpty()) {
             result.add(
                 EpicBanItem
                     .getLocaleService()
-                    .getMessage(updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage", toParams.apply(undefined))
+                    .getTextWithFallback(updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage", toParams.apply(undefined))
             );
         }
         for (Tuple<TextTemplate, List<Text>> tuple : map.values()) {
-            result.add(tuple.getFirst().apply(toParams.apply(tuple.getSecond())).build());
+            result.add(tuple.getFirst().apply(toParams.apply(tuple.getSecond()).stream().collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond))).build());
         }
         return result.stream().filter(text -> !text.isEmpty()).collect(Collectors.toList());
     }
