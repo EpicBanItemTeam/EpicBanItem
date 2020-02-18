@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -269,7 +270,16 @@ public class CommandEditor extends AbstractCommand {
         private TextLine customInfo() {
             BooleanSupplier isCustom = () -> ruleBuilder.getCustomMessageString() != null;
             UiTextElement edit = new InputRequestElement<>(
-                () -> getMessage(isCustom.getAsBoolean() ? "info.edit" : "info.set").toBuilder(),
+                () ->
+                    getMessage(isCustom.getAsBoolean() ? "info.edit" : "info.set")
+                        .toBuilder()
+                        .onHover(
+                            isCustom.getAsBoolean()
+                                ? TextActions.showText(
+                                    getMessage("info.edit.hover", "messageString", Objects.requireNonNull(ruleBuilder.getCustomMessageString()))
+                                )
+                                : TextActions.showText(getMessage("info.set.hover"))
+                        ),
                 () -> ruleBuilder.getCustomMessageString(),
                 GenericArguments.optional(GenericArguments.string(Text.of("customMessage"))),
                 (src, args) -> {
@@ -280,7 +290,7 @@ public class CommandEditor extends AbstractCommand {
             );
             Supplier<UiTextElement> unset = () ->
                 isCustom.getAsBoolean()
-                    ? new Button(getMessage("info.unset")::toBuilder) {
+                    ? new Button(() -> getMessage("info.unset").toBuilder().onHover(TextActions.showText(getMessage("info.unset.hover")))) {
 
                         @Override
                         public void onClick(CommandSource source) {
@@ -494,9 +504,7 @@ public class CommandEditor extends AbstractCommand {
                             try {
                                 ConfigurationNode node = TextUtil.serializeStringToConfigNode(s);
                                 queries.add(formatNode(getMessage("history").toPlain(), getMessage("historyQuery"), node, queryKey));
-                            } catch (IOException e) {
-                                //do nothing
-                            }
+                            } catch (IOException ignore) {}
                         }
                     }
                 );
