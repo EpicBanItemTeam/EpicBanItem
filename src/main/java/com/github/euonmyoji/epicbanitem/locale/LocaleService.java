@@ -1,5 +1,6 @@
 package com.github.euonmyoji.epicbanitem.locale;
 
+import com.github.euonmyoji.epicbanitem.configuration.AutoFileLoader;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
@@ -45,6 +46,9 @@ public class LocaleService {
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path configDir;
+
+    @Inject
+    private AutoFileLoader fileLoader;
 
     @Inject
     public LocaleService(AssetManager assetManager, PluginContainer pluginContainer, EventManager eventManager)
@@ -137,7 +141,7 @@ public class LocaleService {
     private void onPreInit(GamePreInitializationEvent event) throws IOException {
         Path path = this.configDir.resolve("message.lang");
         Files.createDirectories(path.getParent());
-        Files.createFile(path);
+        if (!Files.exists(path)) Files.createFile(path);
         PropertyResourceBundle extraResourceBundle = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(path), Charsets.UTF_8));
         extraResourceBundle.setParent(this.resourceBundle);
         this.resourceBundle = extraResourceBundle;
