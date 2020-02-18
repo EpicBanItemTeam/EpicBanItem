@@ -27,6 +27,7 @@ epicbanitem.command.check.flags.l = Check the block you are faced with instead o
 
 epicbanitem.command.checkall.description = Check all online players' inventories. Will apply all rule with JOIN trigger
 epicbanitem.command.checkall.extendedDescription = Check all online players' inventories. Will apply all rule with JOIN trigger
+epicbanitem.command.checkall.args.rule = Rule name
 epicbanitem.command.checkall.success = Check success
 
 epicbanitem.command.list.description = List all the items to be banned
