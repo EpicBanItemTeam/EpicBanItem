@@ -30,7 +30,7 @@ public class ArgTrigger extends CommandElement {
         if (Triggers.getTriggers().containsKey(arg)) {
             return arg;
         }
-        throw args.createError(EpicBanItem.getMessages().getMessage("epicbanitem.args.trigger.notFound", "name", arg));
+        throw args.createError(EpicBanItem.getLocaleService().getMessage("epicbanitem.args.trigger.notFound", "name", arg));
     }
 
     @Override

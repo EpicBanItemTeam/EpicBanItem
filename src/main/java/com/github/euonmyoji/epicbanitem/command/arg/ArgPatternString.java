@@ -38,7 +38,7 @@ public class ArgPatternString extends CommandElement {
         if (pattern.matcher(string).matches()) {
             return string;
         } else {
-            throw args.createError(EpicBanItem.getMessages().getMessage(errorMessageKey, "pattern", pattern));
+            throw args.createError(EpicBanItem.getLocaleService().getMessage(errorMessageKey, "pattern", pattern));
         }
     }
 

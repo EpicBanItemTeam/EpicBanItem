@@ -1,7 +1,7 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.message.Messages;
+import com.github.euonmyoji.epicbanitem.locale.LocaleService;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;
@@ -41,7 +41,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     private Logger logger;
 
     @Inject
-    protected Messages messages;
+    protected LocaleService localeService;
 
     protected CommandSpec commandSpec;
 
@@ -94,15 +94,15 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     }
 
     protected Text getMessage(String s) {
-        return messages.getMessage(getMessageKey(s));
+        return localeService.getMessage(getMessageKey(s));
     }
 
     protected Text getMessage(String s, String k1, Object v1) {
-        return messages.getMessage(getMessageKey(s), k1, v1);
+        return localeService.getMessage(getMessageKey(s), k1, v1);
     }
 
     protected Text getMessage(String s, String k1, Object v1, String k2, Object v2) {
-        return messages.getMessage(getMessageKey(s), k1, v1, k2, v2);
+        return localeService.getMessage(getMessageKey(s), k1, v1, k2, v2);
     }
 
     public Text getDescription() {
@@ -120,7 +120,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             return Text.EMPTY;
         }
         Text.Builder builder = Text.builder();
-        builder.append(messages.getMessage("epicbanitem.commands.args"));
+        builder.append(localeService.getMessage("epicbanitem.commands.args"));
         scanArg(element, source, builder);
         return builder.toText();
     }
@@ -212,10 +212,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public Text getHelpMessage(CommandSource src, CommandContext args) {
         init();
         Text.Builder builder = Text.builder();
-        builder.append(messages.getMessage("epicbanitem.commands.name", "name", getName(), "alias", String.join(" ", getAlias())), Text.NEW_LINE);
+        builder.append(localeService.getMessage("epicbanitem.commands.name", "name", getName(), "alias", String.join(" ", getAlias())), Text.NEW_LINE);
         builder.append(getDescription(), Text.NEW_LINE);
         builder.append(
-            messages.getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))),
+            localeService.getMessage("epicbanitem.commands.usage", "usage", Text.of(getCommandString(), getCallable().getUsage(src))),
             Text.NEW_LINE
         );
         builder.append(getArgHelp(src), Text.NEW_LINE);
@@ -267,7 +267,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
             try {
                 element.parse(source, args, context);
                 if (args.hasNext()) {
-                    throw args.createError(messages.getMessage("epicbanitem.commands.tooManyArgs"));
+                    throw args.createError(localeService.getMessage("epicbanitem.commands.tooManyArgs"));
                 }
             } catch (ArgumentParseException e) {
                 context.putArg("help", e);

@@ -7,7 +7,7 @@ import com.github.euonmyoji.epicbanitem.check.listener.WorldListener;
 import com.github.euonmyoji.epicbanitem.command.CommandEbi;
 import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.configuration.Settings;
-import com.github.euonmyoji.epicbanitem.message.Messages;
+import com.github.euonmyoji.epicbanitem.locale.LocaleService;
 import com.google.inject.Inject;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -36,13 +36,13 @@ public class EpicBanItem {
     @Inject
     private Logger logger;
 
-    private final Messages messages;
+    private final LocaleService localeService;
     private final Settings settings;
 
     @Inject
     public EpicBanItem(
         Settings settings,
-        Messages messages,
+        LocaleService localeService,
         BanConfig banConfig,
         ChunkListener chunkListener,
         InventoryListener inventoryListener,
@@ -52,11 +52,11 @@ public class EpicBanItem {
     ) {
         instance = this;
 
-        this.messages = messages;
+        this.localeService = localeService;
         this.settings = settings;
 
         Objects.requireNonNull(settings);
-        Objects.requireNonNull(messages);
+        Objects.requireNonNull(localeService);
         Objects.requireNonNull(banConfig);
         Objects.requireNonNull(chunkListener);
         Objects.requireNonNull(inventoryListener);
@@ -70,8 +70,8 @@ public class EpicBanItem {
         return instance.logger;
     }
 
-    public static Messages getMessages() {
-        return instance.messages;
+    public static LocaleService getLocaleService() {
+        return instance.localeService;
     }
 
     public static Settings getSettings() {

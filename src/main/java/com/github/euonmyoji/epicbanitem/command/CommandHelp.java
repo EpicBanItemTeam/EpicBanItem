@@ -1,7 +1,7 @@
 package com.github.euonmyoji.epicbanitem.command;
 
 import com.github.euonmyoji.epicbanitem.CommandMapService;
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.locale.LocaleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,13 +25,18 @@ public class CommandHelp extends AbstractCommand {
     @Inject
     private CommandMapService service;
 
+    @Inject
+    private LocaleService localeService;
+
     CommandHelp() {
         super("help");
     }
 
     @Override
     public CommandElement getArgument() {
-        return GenericArguments.optional(GenericArguments.choices(Text.of("sub-command"), service.getFlatMap()::keySet, service.getFlatMap()::get, false));
+        return GenericArguments.optional(
+            GenericArguments.choices(Text.of("sub-command"), () -> service.getFlatMap().keySet(), key -> service.getFlatMap().get(key), false)
+        );
     }
 
     @Override
@@ -69,7 +74,7 @@ public class CommandHelp extends AbstractCommand {
 
             Text text = builder.build();
             if (text.isEmpty()) {
-                src.sendMessage(EpicBanItem.getMessages().getMessage("epicbanitem.command.help.empty"));
+                src.sendMessage(localeService.getTextWithFallback("epicbanitem.command.help.empty"));
             } else {
                 src.sendMessage(text);
             }

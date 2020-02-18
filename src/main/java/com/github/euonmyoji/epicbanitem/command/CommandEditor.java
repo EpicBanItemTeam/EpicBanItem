@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -54,6 +55,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextFormat;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.storage.WorldProperties;
 
@@ -268,7 +270,16 @@ public class CommandEditor extends AbstractCommand {
         private TextLine customInfo() {
             BooleanSupplier isCustom = () -> ruleBuilder.getCustomMessageString() != null;
             UiTextElement edit = new InputRequestElement<>(
-                () -> getMessage(isCustom.getAsBoolean() ? "info.edit" : "info.set").toBuilder(),
+                () ->
+                    getMessage(isCustom.getAsBoolean() ? "info.edit" : "info.set")
+                        .toBuilder()
+                        .onHover(
+                            isCustom.getAsBoolean()
+                                ? TextActions.showText(
+                                    getMessage("info.edit.hover", "messageString", Objects.requireNonNull(ruleBuilder.getCustomMessageString()))
+                                )
+                                : TextActions.showText(getMessage("info.set.hover"))
+                        ),
                 () -> ruleBuilder.getCustomMessageString(),
                 GenericArguments.optional(GenericArguments.string(Text.of("customMessage"))),
                 (src, args) -> {
@@ -279,7 +290,7 @@ public class CommandEditor extends AbstractCommand {
             );
             Supplier<UiTextElement> unset = () ->
                 isCustom.getAsBoolean()
-                    ? new Button(getMessage("info.unset")::toBuilder) {
+                    ? new Button(() -> getMessage("info.unset").toBuilder().onHover(TextActions.showText(getMessage("info.unset.hover")))) {
 
                         @Override
                         public void onClick(CommandSource source) {
@@ -346,15 +357,15 @@ public class CommandEditor extends AbstractCommand {
         }
 
         private static Text getMessage(String key) {
-            return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key);
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.command.editor." + key);
         }
 
         private static Text getMessage(String key, String k1, Object v1) {
-            return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key, k1, v1);
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.command.editor." + key, Tuple.of(k1, v1));
         }
 
         private static Text getMessage(String key, String k1, Object v1, String k2, Object v2) {
-            return EpicBanItem.getMessages().getMessage("epicbanitem.command.editor." + key, k1, v1, k2, v2);
+            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.command.editor." + key, Tuple.of(k1, v1), Tuple.of(k2, v2));
         }
 
         private static String toString(@Nullable Boolean b) {
@@ -493,9 +504,7 @@ public class CommandEditor extends AbstractCommand {
                             try {
                                 ConfigurationNode node = TextUtil.serializeStringToConfigNode(s);
                                 queries.add(formatNode(getMessage("history").toPlain(), getMessage("historyQuery"), node, queryKey));
-                            } catch (IOException e) {
-                                //do nothing
-                            }
+                            } catch (IOException ignore) {}
                         }
                     }
                 );

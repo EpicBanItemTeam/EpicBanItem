@@ -1,3 +1,4 @@
+#PARSE_ESCAPES
 
 #command
 epicbanitem.commands.name = 命令：{name} {alias}
@@ -26,6 +27,7 @@ epicbanitem.command.check.flags.l = 对目视方块而非手中物品应用规�
 
 epicbanitem.command.checkall.description = 检查全部在线玩家库存，应用全部拥有JOIN触发器的规则
 epicbanitem.command.checkall.extendedDescription = 检查全部在线玩家库存，应用全部拥有JOIN触发器的规则
+epicbanitem.command.checkall.args.rule = 规则名称
 epicbanitem.command.checkall.success = 检测完成
 
 epicbanitem.command.list.description = 列出被封禁的物品
