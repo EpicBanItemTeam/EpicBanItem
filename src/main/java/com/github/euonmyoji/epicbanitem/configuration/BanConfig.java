@@ -4,64 +4,66 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
+import com.github.euonmyoji.epicbanitem.configuration.update.BanConfigV1Updater;
+import com.github.euonmyoji.epicbanitem.configuration.update.IConfigUpdater;
+import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.repackage.org.bstats.sponge.Metrics;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Streams;
+import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-/**
- * @author yinyangshi GiNYAi ustc_zzzz
- */
-@SuppressWarnings("UnstableApiUsage")
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+
+@NonnullByDefault
 @Singleton
 public class BanConfig {
-    static final int CURRENT_VERSION = 1;
-    private static final TypeToken<CheckRule> RULE_TOKEN = TypeToken.of(CheckRule.class);
+    static final int CURRENT_VERSION = 2;
+    private static final String MAIN_CONFIG_PATH = "banitem.conf";
+    private static final String EXTRA_CONFIG_DIR = "ban_configs";
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("([a-z0-9-_]+)\\.conf");
+    private static final TypeToken<CheckRule.Builder> RULE_BUILDER_TOKEN = TypeToken.of(CheckRule.Builder.class);
     private static final Comparator<String> RULE_NAME_COMPARATOR = Comparator.naturalOrder();
     private static final Comparator<CheckRule> COMPARATOR = Comparator
-        .comparing(CheckRule::getPriority)
-        .thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
+            .comparing(CheckRule::getPriority)
+            .thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
 
-    private final Path path;
+    private final Path configDir;
+    private final Path mainPath;
+    private final Path extraDir;
 
     @Inject
     private Logger logger;
@@ -70,80 +72,45 @@ public class BanConfig {
     private Metrics metrics;
 
     @Inject
-    private AutoFileLoader fileLoader;
+    private ConfigFileManager fileManager;
 
     @Inject
     private Injector injector;
 
-    private LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
-    private ImmutableSortedMap<String, CheckRule> checkRulesByName;
-    private ImmutableListMultimap<CheckRuleIndex, CheckRule> checkRulesByIndex;
+    private final LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
+    private ImmutableSortedMap<String, CheckRule> checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
+    private ImmutableListMultimap<CheckRuleIndex, CheckRule> checkRulesByIndex = ImmutableListMultimap.of();
+
+    private final Set<String> allKnownIds = new LinkedHashSet<>();
 
     @Inject
-    private BanConfig(@ConfigDir(sharedRoot = false) Path configDir, EventManager eventManager, PluginContainer pluginContainer) {
-        this.path = configDir.resolve("banitem.conf");
+    private BanConfig(@ConfigDir(sharedRoot = false)Path configDir, EventManager eventManager, PluginContainer pluginContainer) {
+        this.configDir = configDir;
+        this.mainPath = configDir.resolve(MAIN_CONFIG_PATH);
+        this.extraDir = configDir.resolve(EXTRA_CONFIG_DIR).toAbsolutePath();
+        this.cacheFromIdToCheckRules =
+            Caffeine
+                .newBuilder()
+                .build(
+                    k -> {
+                        CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(k);
+                        Iterable<? extends List<CheckRule>> rules = Arrays.asList(getRules(i), getRules(j));
+                        Stream<CheckRule> stream = Streams.stream(Iterables.mergeSorted(rules, COMPARATOR));
+                        return stream.filter(r -> r.idIndexFilter().test(k)).collect(ImmutableList.toImmutableList());
+                    }
+                );
 
         eventManager.registerListeners(pluginContainer, this);
     }
 
-    private static int parseOrElse(String string, int orElse) {
-        try {
-            return Integer.parseUnsignedInt(string);
-        } catch (NumberFormatException e) {
-            return orElse;
-        }
-    }
-
-    private static String findNewName(@Nullable String name, Predicate<String> alreadyExists) {
-        if (name == null) {
-            name = "undefined-1";
-        }
-        name = name.toLowerCase();
-        if (!CheckRule.NAME_PATTERN.matcher(name).matches()) {
-            name = "unrecognized-1";
-        }
-        if (alreadyExists.test(name)) {
-            int defNumber = 2;
-            int dashIndex = name.lastIndexOf('-');
-            int number = parseOrElse(name.substring(dashIndex + 1), defNumber);
-            String prefix = dashIndex >= 0 ? name.substring(0, dashIndex) : name;
-            for (name = prefix + '-' + number; alreadyExists.test(name); name = prefix + '-' + number) {
-                ++number;
-            }
-        }
-        return name;
-    }
-
-    private static List<CheckRule> addAndSort(List<CheckRule> original, CheckRule newCheckRule) {
-        CheckRule[] newCheckRules;
-        int ruleSize = original.size();
-        newCheckRules = new CheckRule[ruleSize + 1];
-        newCheckRules[ruleSize] = newCheckRule;
-        for (int i = 0; i < ruleSize; ++i) {
-            CheckRule checkRule = original.get(i);
-            if (checkRule.getName().equals(newCheckRule.getName())) {
-                throw new IllegalArgumentException("Rule with the same name already exits");
-            }
-            newCheckRules[i] = checkRule;
-        }
-        Arrays.sort(newCheckRules, COMPARATOR);
-        return Arrays.asList(newCheckRules);
-    }
-
-    public Comparator<CheckRule> getComparator() {
-        return COMPARATOR;
-    }
-
-    public Set<CheckRuleIndex> getItems() {
-        return Objects.requireNonNull(checkRulesByIndex).keySet();
-    }
 
     public List<CheckRule> getRulesWithIdFiltered(String id) {
-        return MoreObjects.firstNonNull(cacheFromIdToCheckRules.get(id), ImmutableList.of());
+        //noinspection ConstantConditions
+        return cacheFromIdToCheckRules.get(id);
     }
 
     public List<CheckRule> getRules(CheckRuleIndex index) {
-        return Objects.requireNonNull(checkRulesByIndex).get(index);
+        return checkRulesByIndex.get(index);
     }
 
     public Collection<CheckRule> getRules() {
@@ -154,11 +121,15 @@ public class BanConfig {
         return checkRulesByName.keySet();
     }
 
+    public Set<CheckRuleIndex> getItems() {
+        return checkRulesByIndex.keySet();
+    }
+
     public Optional<CheckRule> getRule(String name) {
         return Optional.ofNullable(checkRulesByName.get(name));
     }
 
-    public CompletableFuture<Boolean> addRule(CheckRuleIndex index, CheckRule newRule) throws IOException {
+    public CompletableFuture<Boolean> addRule(CheckRule newRule) throws IOException {
         try {
             SortedMap<String, CheckRule> rulesByName = new TreeMap<>(checkRulesByName);
 
@@ -166,17 +137,36 @@ public class BanConfig {
                 return CompletableFuture.completedFuture(Boolean.FALSE);
             }
 
-            ListMultimap<CheckRuleIndex, CheckRule> rules;
-            rules = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
+            ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap
+                    .<CheckRuleIndex, CheckRule>builder()
+                    .orderKeysBy(Comparator.comparing(Object::toString))
+                    .orderValuesBy(COMPARATOR);
 
-            rules.putAll(this.checkRulesByIndex);
-            rules.putAll(index, addAndSort(rules.removeAll(index), newRule));
+            byItem.putAll(this.checkRulesByIndex);
 
-            this.checkRulesByIndex = ImmutableListMultimap.copyOf(rules);
+            Set<CheckRuleIndex> indices = getIndex(newRule);
+            indices.forEach(index -> byItem.put(index, newRule));
+
+            this.checkRulesByIndex = byItem.build();
             this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
             this.cacheFromIdToCheckRules.invalidateAll();
 
-            forceSave();
+            String name = newRule.getName();
+            Matcher matcher = CheckRule.NAME_PATTERN.matcher(name);
+            if (!matcher.matches()) {
+                throw new IllegalStateException("Illegal rule name " + name);
+            }
+            String group = matcher.group("group");
+            if (group == null) {
+                fileManager.getRootLoader().forceSaving(mainPath);
+            } else {
+                AutoFileLoader loader = fileManager.getOrCreateDirLoader(extraDir);
+                Path configPath = extraDir.resolve(group + ".conf");
+                if (!loader.hasListener(configPath)) {
+                    addNewExtraPath(loader, configPath, group, false);
+                }
+                loader.forceSaving(configPath);
+            }
             return CompletableFuture.completedFuture(Boolean.TRUE);
             // TODO: return CompletableFuture from forceSave
         } catch (Exception e) {
@@ -184,7 +174,7 @@ public class BanConfig {
         }
     }
 
-    public CompletableFuture<Boolean> removeRule(@SuppressWarnings("unused todo: why") CheckRuleIndex index, String name) throws IOException {
+    public CompletableFuture<Boolean> removeRule(String name) throws IOException {
         try {
             CheckRule rule = checkRulesByName.get(name);
             if (rule != null) {
@@ -192,17 +182,37 @@ public class BanConfig {
                 rulesByName.remove(name);
                 ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> builder = ImmutableListMultimap.builder();
                 checkRulesByIndex.forEach(
-                    (s, rule1) -> {
-                        if (!rule1.getName().equals(name)) {
-                            builder.put(s, rule1);
+                        (s, rule1) -> {
+                            if (!rule1.getName().equals(name)) {
+                                builder.put(s, rule1);
+                            }
                         }
-                    }
                 );
                 this.checkRulesByIndex = builder.build();
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
                 this.cacheFromIdToCheckRules.invalidateAll();
 
-                forceSave();
+                Matcher matcher = CheckRule.NAME_PATTERN.matcher(name);
+                if (!matcher.matches()) {
+                    throw new IllegalStateException("Illegal rule name " + name);
+                }
+                String group = matcher.group("group");
+                if (group == null) {
+                    fileManager.getRootLoader().forceSaving(mainPath);
+                } else {
+                    String prefix = group + ".";
+                    boolean anyLeft = checkRulesByName.keySet().stream().anyMatch(s -> s.startsWith(prefix));
+                    AutoFileLoader loader = fileManager.getOrCreateDirLoader(extraDir);
+                    Path configPath = extraDir.resolve(group + ".conf");
+                    if (anyLeft) {
+                        loader.forceSaving(configPath);
+                    } else {
+                        loader.removeListener(configPath);
+                        Files.delete(configPath);
+                    }
+                }
+
+
                 return CompletableFuture.completedFuture(Boolean.TRUE);
                 // TODO: return CompletableFuture from forceSave
             } else {
@@ -213,108 +223,212 @@ public class BanConfig {
         }
     }
 
-    private void load(ConfigurationNode node) throws IOException {
-        // noinspection unused
-        int version = node
-            .getNode("epicbanitem-version")
-            .<Integer>getValue(
-                Types::asInt,
-                () -> {
-                    logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
-                    logger.warn("Try loading using current version {}.", CURRENT_VERSION);
-                    return CURRENT_VERSION;
-                }
-            );
-        SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
-        ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap.builder();
-        Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
-        boolean needSave = false;
-        for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
-            List<CheckRule> ruleList = new ArrayList<>();
-            CheckRuleIndex index = CheckRuleIndex.of(entry.getKey().toString());
-            for (ConfigurationNode checkRuleNode : entry.getValue().getChildrenList()) {
-                // fix id
-                if (!index.isWildcard()) {
-                    ConfigurationNode queryIndex = checkRuleNode.getNode("query", "id");
-                    if (queryIndex.isVirtual()) {
-                        queryIndex.setValue(index.toString());
-                        needSave = true;
+
+    private Set<CheckRuleIndex> getIndex(CheckRule rule) {
+        Set<String> ids = allKnownIds
+            .stream()
+            .filter(rule.idIndexFilter())
+            .collect(Collectors.toSet());
+        if (ids.size() == 0) {
+            CheckRuleIndex index = CheckRuleIndex.of(rule.getQueryNode());
+            logger.warn("unable to find acceptable item for rule {} using {}.", rule.getName(), index);
+            return Collections.singleton(index);
+        } else if (ids.size() > 16) {
+            return Collections.singleton(CheckRuleIndex.of());
+        } else {
+            return ids.stream().map(CheckRuleIndex::of).collect(Collectors.toSet());
+        }
+    }
+
+    private void load(AutoFileLoader fileLoader, ConfigurationLoader<CommentedConfigurationNode> loader, String group) throws IOException {
+        ConfigurationNode node = loader.load();
+        String prefix = group.isEmpty() ? "" : group + ".";
+        Predicate<String> nameChecker = name -> group.isEmpty() ? name.indexOf('.') == -1 : name.startsWith(prefix);
+        AtomicReference<Boolean> needSave = new AtomicReference<>(false);
+        Path path = group.isEmpty() ? mainPath : extraDir.resolve(group + ".conf");
+        int version;
+        if (node.getChildrenMap().isEmpty()) {
+            version = CURRENT_VERSION;
+            needSave.set(true);
+        } else {
+            version = node
+                .getNode("epicbanitem-version")
+                .<Integer>getValue(
+                    Types::asInt,
+                    () -> {
+                        logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
+                        logger.warn("Try loading using current version {}.", CURRENT_VERSION);
+                        needSave.set(true);
+                        return CURRENT_VERSION;
                     }
+                );
+        }
+
+        if (version != CURRENT_VERSION) {
+            if (version < CURRENT_VERSION) {
+                logger.warn("Find old version of config, try updating. {} -> {}", version, CURRENT_VERSION);
+                IConfigUpdater updater;
+                if (version == 1) {
+                    updater = injector.getInstance(BanConfigV1Updater.class);
+                } else {
+                    throw new UnsupportedOperationException("Update ban config from version " + version);
                 }
-                // fix name
-                ConfigurationNode nameNode = checkRuleNode.getNode("name");
-                ConfigurationNode legacyNameNode = checkRuleNode.getNode("legacy-name");
-                String name = nameNode.getValue(Types::asString, legacyNameNode.getString(""));
-                if (!CheckRule.NAME_PATTERN.matcher(name).matches() || byName.containsKey(name)) {
-                    String newName = findNewName(name, byName::containsKey);
+                updater.doUpdate(configDir, path);
+                logger.warn("ban item config updated.");
+                return;
+            } else {
+                //todo: what to do?
+            }
+        }
 
-                    legacyNameNode.setValue(name);
-                    nameNode.setValue(newName);
+        SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
+        ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap
+            .<CheckRuleIndex, CheckRule>builder()
+            .orderKeysBy(Comparator.comparing(Object::toString))
+            .orderValuesBy(COMPARATOR);
 
-                    String msg = "Find duplicate or illegal name, renamed \"{}\" in {} to \"{}\"";
-                    logger.warn(msg, name, index, newName);
-
-                    needSave = true;
-                }
-                // add to rules
-                try {
-                    CheckRule rule = Objects.requireNonNull(checkRuleNode.getValue(RULE_TOKEN));
-                    byName.put(rule.getName(), rule);
-                    ruleList.add(rule);
-                } catch (ObjectMappingException e) {
-                    throw new IOException(e);
+        this.checkRulesByName.forEach(
+            (name, rule) -> {
+                if (!nameChecker.test(name)) {
+                    byName.put(name, rule);
                 }
             }
-            ruleList.sort(COMPARATOR);
-            byItem.putAll(index, ruleList);
-        }
-        this.checkRulesByIndex = byItem.build();
-        this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
-        this.cacheFromIdToCheckRules.invalidateAll();
-        if (needSave) {
-            forceSave();
-        }
-    }
+        );
+        this.checkRulesByIndex.forEach(
+            (index, rule) -> {
+                if (!nameChecker.test(rule.getName())) {
+                    byItem.put(index, rule);
+                }
+            }
+        );
 
-    private void forceSave() {
-        this.fileLoader.forceSaving(this.path);
-    }
-
-    private void save(ConfigurationNode node) throws IOException {
-        node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
-        for (Map.Entry<CheckRuleIndex, CheckRule> entry : checkRulesByIndex.entries()) {
-            String key = entry.getKey().toString();
-            CheckRule value = entry.getValue();
+        Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
+        for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
             try {
-                node.getNode("epicbanitem", key).getAppendedNode().setValue(RULE_TOKEN, value);
+                String name = prefix + entry.getKey().toString();
+                CheckRule rule = Objects.requireNonNull(entry.getValue().getValue(RULE_BUILDER_TOKEN)).name(name).build();
+                byName.put(name, rule);
+                Set<CheckRuleIndex> checkRuleIndices = getIndex(rule);
+                checkRuleIndices.forEach(index -> byItem.put(index, rule));
             } catch (ObjectMappingException e) {
                 throw new IOException(e);
             }
         }
+        this.checkRulesByIndex = byItem.build();
+        this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
+        this.cacheFromIdToCheckRules.invalidateAll();
+        if (needSave.get()) {
+            fileLoader.forceSaving(path);
+        }
+    }
+
+    private void delete(String group) {
+        String prefix = group + ".";
+        Predicate<String> nameChecker = name -> name.startsWith(prefix);
+        SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
+        ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap
+            .<CheckRuleIndex, CheckRule>builder()
+            .orderKeysBy(Comparator.comparing(Object::toString))
+            .orderValuesBy(COMPARATOR);
+
+        this.checkRulesByName.forEach(
+            (name, rule) -> {
+                if (!nameChecker.test(name)) {
+                    byName.put(name, rule);
+                }
+            }
+        );
+        this.checkRulesByIndex.forEach(
+            (index, rule) -> {
+                if (!nameChecker.test(rule.getName())) {
+                    byItem.put(index, rule);
+                }
+            }
+        );
+        this.checkRulesByIndex = byItem.build();
+        this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
+        this.cacheFromIdToCheckRules.invalidateAll();
+    }
+
+
+    private void save(ConfigurationLoader<CommentedConfigurationNode> loader, String group) throws IOException {
+        ConfigurationNode node = loader.createEmptyNode();
+        String prefix = group.isEmpty() ? "" : group + ".";
+        Function<String, Optional<String>> getConfigName = name -> {
+            if (group.isEmpty()) {
+                return name.indexOf('.') == -1 ? Optional.of(name) : Optional.empty();
+            } else {
+                return name.startsWith(prefix) ? Optional.of(name.substring(name.indexOf('.') + 1)) : Optional.empty();
+            }
+        };
+        node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
+        for (CheckRule checkRule : checkRulesByName.values()) {
+            Optional<String> optionalName = getConfigName.apply(checkRule.getName());
+            if (optionalName.isPresent()) {
+                try {
+                    node.getNode("epicbanitem", optionalName.get()).setValue(TypeToken.of(CheckRule.Builder.class), CheckRule.builder(checkRule));
+                } catch (ObjectMappingException e) {
+                    throw new IOException(e);
+                }
+            }
+        }
+        loader.save(node);
+    }
+
+    private void addNewExtraPath(AutoFileLoader fileLoader, Path path, String group, boolean loading) {
+        HoconConfigurationLoader loader = HoconConfigurationLoader.builder().setPath(path).build();
+        fileLoader.addListener(path, () -> load(fileLoader, loader, group), () -> delete(group), () -> save(loader, group), loading);
     }
 
     @Listener
     public void onPreInit(GamePreInitializationEvent event) {
-        this.checkRulesByIndex = ImmutableListMultimap.of();
-        this.checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
+        TypeSerializers.getDefaultSerializers().registerType(RULE_BUILDER_TOKEN, injector.getInstance(CheckRule.BuilderSerializer.class));
+    }
 
-        this.cacheFromIdToCheckRules =
-            Caffeine
-                .newBuilder()
-                .build(
-                    k -> {
-                        CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(k);
-                        Iterable<? extends List<CheckRule>> rules = Arrays.asList(getRules(i), getRules(j));
-                        Stream<CheckRule> stream = Streams.stream(Iterables.mergeSorted(rules, getComparator()));
-                        return stream.filter(r -> r.idIndexFilter().test(k)).collect(ImmutableList.toImmutableList());
+    @Listener
+    public void onPostInit(GamePostInitializationEvent event) {
+        for (ItemType itemType: Sponge.getRegistry().getAllOf(ItemType.class)) {
+            ItemStack itemStack = ItemStack.builder().itemType(itemType).build();
+            String id = NbtTagDataUtil.getId(NbtTagDataUtil.toNbt(itemStack));
+            allKnownIds.add(id);
+        }
+
+        HoconConfigurationLoader configurationLoader = HoconConfigurationLoader.builder().setPath(mainPath).build();
+        AutoFileLoader rootLoader = fileManager.getRootLoader();
+        rootLoader.addListener(mainPath, () -> load(rootLoader, configurationLoader, ""), () -> load(rootLoader, configurationLoader, ""), () -> save(configurationLoader, ""));
+        if (Files.notExists(mainPath)) {
+            rootLoader.forceSaving(mainPath);
+        }
+        try {
+            AutoFileLoader extraDirLoader = fileManager.getOrCreateDirLoader(extraDir);
+            Function<Path, Optional<String>> getGroupName = path -> {
+                Matcher matcher = FILE_NAME_PATTERN.matcher(path.getFileName().toString());
+                if (matcher.matches()) {
+                    return Optional.ofNullable(matcher.group(1));
+                } else {
+                    return Optional.empty();
+                }
+            };
+            Files.list(extraDir).forEach(path -> {
+                Optional<String> optionalS = getGroupName.apply(path);
+                if (optionalS.isPresent()) {
+                    addNewExtraPath(extraDirLoader, path, optionalS.get(), true);
+                } else {
+                    logger.warn("Find unknown file {} in config dir, it will not be loaded.", path);
+                }
+            });
+            extraDirLoader.addFallbackListener((path, kind) -> {
+                if (kind != ENTRY_DELETE) {
+                    Optional<String> optionalS = getGroupName.apply(path);
+                    if (optionalS.isPresent()) {
+                        addNewExtraPath(extraDirLoader, path, optionalS.get(), true);
+                    } else {
+                        logger.warn("Find unknown file {} in config dir, it will not be loaded.", path);
                     }
-                );
-
-        TypeSerializers.getDefaultSerializers().registerType(BanConfig.RULE_TOKEN, injector.getInstance(CheckRule.Serializer.class));
-
-        fileLoader.addListener(path, this::load, this::save);
-        if (Files.notExists(path)) {
-            fileLoader.forceSaving(path, n -> n.getNode("epicbanitem-version").setValue(CURRENT_VERSION).getParent());
+                }
+            });
+        } catch (IOException e) {
+            logger.error("Failed to load form dir " + extraDir, e);
         }
     }
 
