@@ -1,9 +1,8 @@
 package com.github.euonmyoji.epicbanitem.locale;
 
-import com.github.euonmyoji.epicbanitem.configuration.AutoFileLoader;
+import com.github.euonmyoji.epicbanitem.configuration.ConfigFileManager;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -36,15 +35,17 @@ public class LocaleService {
     private static final String MISSING_MESSAGE_KEY = "epicbanitem.error.missingMessage";
 
     private ResourceBundle resourceBundle;
+    private ResourceBundle buildInResource;
 
     private Map<String, TextTemplate> cache;
 
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path configDir;
+    private Path langPath;
 
     @Inject
-    private AutoFileLoader fileLoader;
+    private ConfigFileManager fileManager;
 
     @Inject
     public LocaleService(AssetManager assetManager, PluginContainer pluginContainer, EventManager eventManager)
@@ -55,7 +56,7 @@ public class LocaleService {
             .getAsset(pluginContainer, "lang/" + Locale.getDefault().toString().toLowerCase() + ".lang")
             .orElse(assetManager.getAsset(pluginContainer, "lang/en_us.lang").orElseThrow(NoSuchFieldError::new));
 
-        this.resourceBundle = new PropertyResourceBundle(new InputStreamReader(fallbackAsset.getUrl().openStream(), Charsets.UTF_8));
+        this.resourceBundle = buildInResource = new PropertyResourceBundle(new InputStreamReader(fallbackAsset.getUrl().openStream(), Charsets.UTF_8));
 
         cache.put(
             MISSING_MESSAGE_KEY,
@@ -103,13 +104,19 @@ public class LocaleService {
     }
 
     private void onPreInit(GamePreInitializationEvent event) throws IOException {
-        Path path = this.configDir.resolve("message.lang");
-        Files.createDirectories(path.getParent());
-        if (!Files.exists(path)) Files.createFile(path);
-        PropertyResourceBundle extraResourceBundle = new PropertyResourceBundle(new InputStreamReader(Files.newInputStream(path), Charsets.UTF_8));
-        extraResourceBundle.setParent(this.resourceBundle);
-        this.resourceBundle = extraResourceBundle;
+        langPath = this.configDir.resolve("message.lang");
+        Files.createDirectories(langPath.getParent());
+        fileManager.getRootLoader().addListener(langPath, this::onLoad, this::onLoad, ()->{});
     }
+
+    private void onLoad() throws IOException {
+        if (!Files.exists(langPath)) Files.createFile(langPath);
+        PropertyResourceBundle extraResourceBundle = new PropertyResourceBundle(Files.newBufferedReader(langPath, Charsets.UTF_8));
+        extraResourceBundle.setParent(this.buildInResource);
+        this.resourceBundle = extraResourceBundle;
+        cache.clear();
+    }
+
 
     private static final class PropertyResourceBundle extends java.util.PropertyResourceBundle {
 

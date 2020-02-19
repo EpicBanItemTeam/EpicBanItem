@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
