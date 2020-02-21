@@ -1,10 +1,10 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.ObservableFileService;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.file.ObservableFileService;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;

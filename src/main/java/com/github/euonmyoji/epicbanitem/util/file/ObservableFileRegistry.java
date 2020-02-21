@@ -1,4 +1,4 @@
-package com.github.euonmyoji.epicbanitem;
+package com.github.euonmyoji.epicbanitem.util.file;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;

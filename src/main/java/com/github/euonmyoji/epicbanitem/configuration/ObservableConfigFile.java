@@ -1,7 +1,7 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
-import com.github.euonmyoji.epicbanitem.ObservableFile;
-import com.github.euonmyoji.epicbanitem.Savable;
+import com.github.euonmyoji.epicbanitem.util.file.ObservableFile;
+import com.github.euonmyoji.epicbanitem.util.file.Savable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;

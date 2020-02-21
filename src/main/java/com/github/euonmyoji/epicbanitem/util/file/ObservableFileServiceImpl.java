@@ -1,4 +1,4 @@
-package com.github.euonmyoji.epicbanitem;
+package com.github.euonmyoji.epicbanitem.util.file;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;

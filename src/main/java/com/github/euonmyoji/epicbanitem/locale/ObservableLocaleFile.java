@@ -1,6 +1,6 @@
 package com.github.euonmyoji.epicbanitem.locale;
 
-import com.github.euonmyoji.epicbanitem.ObservableFile;
+import com.github.euonmyoji.epicbanitem.util.file.ObservableFile;
 import com.google.common.base.Charsets;
 import java.io.IOException;
 import java.io.InputStreamReader;

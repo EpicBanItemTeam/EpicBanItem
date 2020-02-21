@@ -99,6 +99,10 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         return localeService.getTextWithFallback(getMessageKey(s), tuples);
     }
 
+    protected final Text getMessage(String s, Iterable<Tuple<String, ?>> tuples) {
+        return localeService.getTextWithFallback(getMessageKey(s), tuples);
+    }
+
     public Text getDescription() {
         return getMessage("description");
     }
@@ -206,10 +210,20 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public Text getHelpMessage(CommandSource src, CommandContext args) {
         init();
         Text.Builder builder = Text.builder();
-        builder.append(localeService.getTextWithFallback("epicbanitem.commands.name", Tuple.of("name", getName()), Tuple.of("alias", String.join(" ", getAlias()))), Text.NEW_LINE);
+        builder.append(
+            localeService.getTextWithFallback(
+                "epicbanitem.commands.name",
+                Tuple.of("name", getName()),
+                Tuple.of("alias", String.join(" ", getAlias()))
+            ),
+            Text.NEW_LINE
+        );
         builder.append(getDescription(), Text.NEW_LINE);
         builder.append(
-            localeService.getTextWithFallback("epicbanitem.commands.usage", Tuple.of("usage", Text.of(getCommandString(), getCallable().getUsage(src)))),
+            localeService.getTextWithFallback(
+                "epicbanitem.commands.usage",
+                Tuple.of("usage", Text.of(getCommandString(), getCallable().getUsage(src)))
+            ),
             Text.NEW_LINE
         );
         builder.append(getArgHelp(src), Text.NEW_LINE);

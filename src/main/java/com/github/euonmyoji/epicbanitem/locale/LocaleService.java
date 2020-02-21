@@ -1,7 +1,7 @@
 package com.github.euonmyoji.epicbanitem.locale;
 
-import com.github.euonmyoji.epicbanitem.ObservableFileService;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
+import com.github.euonmyoji.epicbanitem.util.file.ObservableFileService;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
