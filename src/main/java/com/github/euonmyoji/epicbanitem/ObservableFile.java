@@ -2,15 +2,16 @@ package com.github.euonmyoji.epicbanitem;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.WatchEvent;
+import java.nio.file.WatchEvent.Kind;
 
 public interface ObservableFile {
 
-    void next(WatchEvent.Kind<Path> kind) throws IOException;
-
     Path getPath();
 
+    void next(Kind<Path> kind, Path path) throws IOException;
+
     interface FileConsumer<T> {
+
         void accept(T t) throws IOException;
     }
 }

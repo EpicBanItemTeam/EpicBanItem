@@ -1,97 +1,78 @@
 package com.github.euonmyoji.epicbanitem;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-
-import com.google.common.collect.Maps;
+import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import org.spongepowered.api.event.EventManager;
-import org.spongepowered.api.event.game.state.GameStoppingEvent;
-import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.scheduler.Task;
 
-public class ObservableDirectory implements ObservableFileService {
-    private final Map<String, ObservableFile> registeredFiles;
-    private final Map<String, Long> timestamps;
-    private final WatchService watchService;
-    private final Path directory;
+public class ObservableDirectory implements ObservableFile, Closeable {
+    private final Path path;
+    private final FileConsumer<Path> createConsumer;
+    private final FileConsumer<Path> deleteConsumer;
+    private boolean closed;
 
-    public ObservableDirectory(Path directory, PluginContainer pluginContainer, EventManager eventManager) throws IOException {
-        this.registeredFiles = Maps.newHashMap();
-        this.timestamps = Maps.newHashMap();
-        this.watchService = FileSystems.getDefault().newWatchService();
-        this.directory = directory;
+    public ObservableDirectory(Builder builder) throws IOException {
+        this.path = builder.path.toAbsolutePath();
+        this.createConsumer = builder.createConsumer;
+        this.deleteConsumer = builder.deleteConsumer;
 
-        this.directory.register(this.watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-        Files.createDirectories(this.directory);
-
-        eventManager.registerListener(pluginContainer, GameStoppingEvent.class, this::onStopping);
+        this.next(StandardWatchEventKinds.ENTRY_MODIFY, path);
     }
 
-    void tick(Task task) {
-        WatchKey watchKey = this.watchService.poll();
-        if (Objects.nonNull(watchKey)) {
-            watchKey
-                .pollEvents()
-                .stream()
-                .filter(watchEvent -> watchEvent.context() instanceof Path)
-                .map(watchEvent -> (WatchEvent<Path>) watchEvent)
-                .filter(
-                    watchEvent -> {
-                        // Filter duplicate event in Windows
-                        Path path = directory.resolve(watchEvent.context());
-                        String pathString = path.toString();
-                        return !timestamps.containsKey(pathString) || Math.abs(timestamps.get(pathString) - path.toFile().lastModified()) > 50;
-                    }
-                )
-                .forEach(
-                    watchEvent -> {
-                        Path path = watchEvent.context();
-                        String pathString = path.toString();
-                        if (registeredFiles.containsKey(pathString)) {
-                            try {
-                                registeredFiles.get(pathString).next(watchEvent.kind());
-                                timestamps.put(pathString, directory.resolve(path).toFile().lastModified());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                );
-            if (!watchKey.reset()) {
-                task.cancel();
-                // TODO: 2020/2/21 WHAT TO DO? Register?
+    @Override
+    public void next(WatchEvent.Kind<Path> kind, Path path) throws IOException {
+        if (closed) {
+            return;
+        }
+        if (StandardWatchEventKinds.ENTRY_DELETE.equals(kind)) {
+            if (Objects.nonNull(this.deleteConsumer)) {
+                this.deleteConsumer.accept(path);
+            }
+        } else if (StandardWatchEventKinds.ENTRY_CREATE.equals(kind)) {
+            if (Objects.nonNull(this.createConsumer)) {
+                this.createConsumer.accept(path);
             }
         }
     }
 
     @Override
-    public void register(ObservableFile observableFile) {
-        this.registeredFiles.put(observableFile.getPath().getFileName().toString(), observableFile);
+    public Path getPath() {
+        return path;
     }
 
-    private void onStopping(GameStoppingEvent event) {
-        try {
-            this.watchService.close();
-            for (Savable savable : this.registeredFiles.values()
-                .stream()
-                .filter(Savable.class::isInstance)
-                .map(Savable.class::cast)
-                .collect(Collectors.toList())) {
-                savable.save();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save EpicBanItem", e);
+    @Override
+    public void close() throws IOException {
+        this.closed = true;
+    }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private FileConsumer<Path> createConsumer;
+        private FileConsumer<Path> deleteConsumer;
+        private Path path;
+
+        public Builder createConsumer(FileConsumer<Path> createConsumer) {
+            this.createConsumer = createConsumer;
+            return this;
+        }
+
+        public Builder deleteConsumer(FileConsumer<Path> deleteConsumer) {
+            this.deleteConsumer = deleteConsumer;
+            return this;
+        }
+
+        public Builder path(Path path) {
+            this.path = path;
+            return this;
+        }
+
+        public ObservableDirectory build() throws IOException {
+            return new ObservableDirectory(this);
         }
     }
 }
