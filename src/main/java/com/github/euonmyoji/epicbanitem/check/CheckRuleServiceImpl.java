@@ -35,6 +35,7 @@ import org.spongepowered.api.world.World;
  */
 @Singleton
 @NonnullByDefault
+// TODO: 2020/2/21 Logger I18N
 public class CheckRuleServiceImpl implements CheckRuleService {
     @Inject
     BanConfig banConfig;

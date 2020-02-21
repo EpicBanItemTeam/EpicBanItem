@@ -9,12 +9,12 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleService;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import java.util.ArrayList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import com.google.common.util.concurrent.Atomics;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,6 +68,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
  */
 @SuppressWarnings("DuplicatedCode")
 @Singleton
+// TODO: 2020/2/21 Logger I18N
 public class InventoryListener {
     @Inject
     private Logger logger;

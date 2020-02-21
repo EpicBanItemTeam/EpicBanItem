@@ -65,6 +65,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 @NonnullByDefault
 @Singleton
 // TODO: 2020/2/21 ConfigSerializable
+// TODO: 2020/2/21 Logger I18N
 public class BanConfig {
     private static final int CURRENT_VERSION = 2;
     private static final String MAIN_CONFIG_PATH = "banitem.conf";
