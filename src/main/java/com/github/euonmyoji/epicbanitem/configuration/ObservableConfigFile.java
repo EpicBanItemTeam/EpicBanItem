@@ -93,7 +93,6 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
 
     @Override
     public void close() throws IOException {
-        this.save();
         this.closed = true;
     }
 
