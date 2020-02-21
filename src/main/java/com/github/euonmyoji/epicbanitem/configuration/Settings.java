@@ -1,6 +1,7 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.EpicBanItem;
+import com.github.euonmyoji.epicbanitem.ObservableFileService;
 import com.github.euonmyoji.epicbanitem.api.CheckRuleTrigger;
 import com.github.euonmyoji.epicbanitem.check.Triggers;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
@@ -9,23 +10,18 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
@@ -40,6 +36,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
  */
 @Singleton
 @NonnullByDefault
+// TODO: 2020/2/21 ConfigSerializable
 public class Settings {
     private static final int CURRENT_VERSION = 1;
 
@@ -59,22 +56,20 @@ public class Settings {
     private Map<String, Boolean> enabledWorlds = Maps.newLinkedHashMap();
     private Map<CheckRuleTrigger, Boolean> enabledTriggers = Maps.newLinkedHashMap();
 
-    @Inject
-    private ConfigFileManager fileManager;
-
     private Logger logger;
 
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path configDir;
 
-    private ConfigurationLoader<CommentedConfigurationNode> loader;
+    @Inject
+    private ObservableFileService fileService;
 
     @Inject
     private Settings(EventManager eventManager, PluginContainer pluginContainer, Logger logger) {
         this.logger = logger;
         eventClass = getClassForCraftingResultRedirectionEvent();
-        eventManager.registerListeners(pluginContainer, this);
+        eventManager.registerListener(pluginContainer, GamePreInitializationEvent.class, this::onPreInit);
     }
 
     @Nullable
@@ -103,16 +98,15 @@ public class Settings {
         this.enabledWorlds = Maps.newLinkedHashMap(Maps.toMap(Iterables.transform(worlds, WorldProperties::getWorldName), k -> true));
     }
 
-    private void load() throws IOException {
-        ConfigurationNode cfg = loader.load();
+    private void load(ConfigurationNode node) throws IOException {
         this.resetToDefault();
 
-        this.printItemToBlockMapping = cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).getBoolean(true);
+        this.printItemToBlockMapping = node.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).getBoolean(true);
 
-        ConfigurationNode defaultWorlds = cfg.getNode("epicbanitem", DEFAULT_WORLD);
+        ConfigurationNode defaultWorlds = node.getNode("epicbanitem", DEFAULT_WORLD);
         defaultWorlds.getChildrenMap().forEach((k, v) -> this.enabledWorlds.put(k.toString(), v.getBoolean()));
 
-        ConfigurationNode defaultTriggers = cfg.getNode("epicbanitem", DEFAULT_TRIGGER);
+        ConfigurationNode defaultTriggers = node.getNode("epicbanitem", DEFAULT_TRIGGER);
         defaultTriggers
             .getChildrenMap()
             .forEach(
@@ -133,17 +127,14 @@ public class Settings {
             );
     }
 
-    private void save() throws IOException {
-        ConfigurationNode cfg = loader.createEmptyNode();
-        cfg.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
+    private void save(ConfigurationNode node) throws IOException {
+        node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
 
-        cfg.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).setValue(this.printItemToBlockMapping);
+        node.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).setValue(this.printItemToBlockMapping);
 
-        this.enabledWorlds.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
+        this.enabledWorlds.forEach((k, v) -> node.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
 
-        this.enabledTriggers.forEach((k, v) -> cfg.getNode("epicbanitem", DEFAULT_TRIGGER, k).setValue(v));
-
-        loader.save(cfg);
+        this.enabledTriggers.forEach((k, v) -> node.getNode("epicbanitem", DEFAULT_TRIGGER, k).setValue(v));
     }
 
     public boolean printItemToBlockMapping() {
@@ -167,15 +158,10 @@ public class Settings {
         return this.eventClass == null ? event instanceof CraftItemEvent.Preview : this.eventClass.isInstance(event);
     }
 
-    @Listener(order = Order.FIRST)
-    public void onPreInit(GamePreInitializationEvent event) {
-        Path settingPath = configDir.resolve("settings.conf");
-        this.loader = HoconConfigurationLoader.builder().setPath(settingPath).build();
-        this.resetToDefault();
-        fileManager.getRootLoader().addListener(settingPath, this::load, this::load, this::save);
-        if (Files.notExists(settingPath)) {
-            fileManager.getRootLoader().forceSaving(settingPath);
-        }
+    private void onPreInit(GamePreInitializationEvent event) throws IOException {
+        fileService.register(
+            ObservableConfigFile.builder().path(configDir.resolve("settings.conf")).saveConsumer(this::save).updateConsumer(this::load).build()
+        );
     }
 
     @Listener
