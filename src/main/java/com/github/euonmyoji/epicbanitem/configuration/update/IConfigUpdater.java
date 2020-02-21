@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public interface IConfigUpdater {
-
-    int getVersion();
+    int getTargetVersion();
 
     boolean canAccept(int version);
 
-    void doUpdate(Path configDir, Path configPath) throws IOException;
+    void doUpdate(Path configPath) throws IOException;
 }
