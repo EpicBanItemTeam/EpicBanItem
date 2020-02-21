@@ -15,7 +15,6 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.spongepowered.api.scheduler.Task;
 
 public class ObservableFileRegistry implements ObservableFileService, Closeable {
@@ -83,12 +82,8 @@ public class ObservableFileRegistry implements ObservableFileService, Closeable 
     @Override
     public void close() throws IOException {
         this.watchService.close();
-        for (Savable savable : this.registeredFiles.values()
-            .stream()
-            .filter(Savable.class::isInstance)
-            .map(Savable.class::cast)
-            .collect(Collectors.toList())) {
-            savable.save();
+        for (ObservableFile observableFile : this.registeredFiles.values()) {
+            observableFile.close();
         }
     }
 }

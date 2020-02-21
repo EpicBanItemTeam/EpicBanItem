@@ -1,7 +1,6 @@
 package com.github.euonmyoji.epicbanitem.configuration;
 
 import com.github.euonmyoji.epicbanitem.util.file.ObservableFile;
-import com.github.euonmyoji.epicbanitem.util.file.Savable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,7 +12,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-public class ObservableConfigFile implements ObservableFile, Savable, Closeable {
+public class ObservableConfigFile implements ObservableFile, Closeable {
     private final FileConsumer<ConfigurationNode> deleteConsumer;
     private final FileConsumer<ConfigurationNode> updateConsumer;
     private final FileConsumer<ConfigurationNode> saveConsumer;
@@ -38,7 +37,6 @@ public class ObservableConfigFile implements ObservableFile, Savable, Closeable 
         return new Builder();
     }
 
-    @Override
     public void save() throws IOException {
         if (closed) {
             return;
@@ -95,6 +93,7 @@ public class ObservableConfigFile implements ObservableFile, Savable, Closeable 
 
     @Override
     public void close() throws IOException {
+        this.save();
         this.closed = true;
     }
 

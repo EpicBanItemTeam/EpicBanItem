@@ -1,10 +1,11 @@
 package com.github.euonmyoji.epicbanitem.util.file;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
 
-public interface ObservableFile {
+public interface ObservableFile extends Closeable {
 
     Path getPath();
 

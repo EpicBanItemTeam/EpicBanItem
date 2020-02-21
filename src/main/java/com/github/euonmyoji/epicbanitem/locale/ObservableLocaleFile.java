@@ -13,6 +13,7 @@ import java.nio.file.WatchEvent.Kind;
 public class ObservableLocaleFile implements ObservableFile {
     private final FileConsumer<Reader> updateConsumer;
     private final Path path;
+    private boolean closed;
 
     private ObservableLocaleFile(Builder builder) throws IOException {
         this.updateConsumer = builder.updateConsumer;
@@ -36,12 +37,21 @@ public class ObservableLocaleFile implements ObservableFile {
 
     @Override
     public void next(Kind<Path> kind, Path path) throws IOException {
+        if (closed) {
+            return;
+        }
         if (StandardWatchEventKinds.ENTRY_DELETE.equals(kind)) {
             Files.createFile(path);
         } else if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kind) || StandardWatchEventKinds.ENTRY_CREATE.equals(kind)) {
             Reader reader = new InputStreamReader(Files.newInputStream(path), Charsets.UTF_8);
             this.updateConsumer.accept(reader);
         }
+    }
+
+
+    @Override
+    public void close() throws IOException {
+        this.closed = true;
     }
 
     public static final class Builder {

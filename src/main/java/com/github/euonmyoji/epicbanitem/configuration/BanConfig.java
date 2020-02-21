@@ -9,7 +9,6 @@ import com.github.euonmyoji.epicbanitem.configuration.update.IConfigUpdater;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.file.ObservableDirectory;
 import com.github.euonmyoji.epicbanitem.util.file.ObservableFileService;
-import com.github.euonmyoji.epicbanitem.util.file.Savable;
 import com.github.euonmyoji.epicbanitem.util.repackage.org.bstats.sponge.Metrics;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -260,7 +259,7 @@ public class BanConfig {
         }
     }
 
-    private void load(Savable savable, ConfigurationNode node, String group) throws IOException {
+    private void load(ObservableConfigFile file, ConfigurationNode node, String group) throws IOException {
         String prefix = group.isEmpty() ? "" : group + ".";
         Predicate<String> nameChecker = name -> group.isEmpty() ? name.indexOf('.') == -1 : name.startsWith(prefix);
         AtomicReference<Boolean> needSave = new AtomicReference<>(false);
@@ -338,7 +337,7 @@ public class BanConfig {
         this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
         this.cacheFromIdToCheckRules.invalidateAll();
         if (needSave.get()) {
-            savable.save();
+            file.save();
         }
     }
 
