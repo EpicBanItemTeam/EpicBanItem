@@ -16,8 +16,6 @@ import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.spongepowered.api.event.EventManager;
-import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
 
 public class ObservableFileRegistry implements ObservableFileService, Closeable {
@@ -26,7 +24,7 @@ public class ObservableFileRegistry implements ObservableFileService, Closeable 
     private final WatchService watchService;
     private final Path directory;
 
-    public ObservableFileRegistry(Path directory, PluginContainer pluginContainer, EventManager eventManager) throws IOException {
+    public ObservableFileRegistry(Path directory) throws IOException {
         this.registeredFiles = Maps.newHashMap();
         this.timestamps = Maps.newHashMap();
         this.watchService = FileSystems.getDefault().newWatchService();

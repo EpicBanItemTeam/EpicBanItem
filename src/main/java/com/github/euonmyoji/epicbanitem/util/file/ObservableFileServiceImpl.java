@@ -45,7 +45,7 @@ public class ObservableFileServiceImpl implements ObservableFileService, Closeab
         String dirPathString = dirPath.toString();
         try {
             if (!observableDirectories.containsKey(dirPathString)) {
-                observableDirectories.put(dirPathString, new ObservableFileRegistry(dirPath, pluginContainer, eventManager));
+                observableDirectories.put(dirPathString, new ObservableFileRegistry(dirPath));
             }
             observableDirectories.get(dirPathString).register(observableFile);
         } catch (IOException e) {
