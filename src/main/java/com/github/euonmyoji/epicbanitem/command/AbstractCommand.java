@@ -8,7 +8,12 @@ import com.google.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
@@ -91,10 +96,6 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
 
     @SafeVarargs
     protected final Text getMessage(String s, Tuple<String, ?>... tuples) {
-        return localeService.getTextWithFallback(getMessageKey(s), tuples);
-    }
-
-    protected final Text getMessage(String s, Collection<Tuple<String, ?>> tuples) {
         return localeService.getTextWithFallback(getMessageKey(s), tuples);
     }
 

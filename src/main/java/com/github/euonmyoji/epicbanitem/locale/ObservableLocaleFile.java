@@ -11,7 +11,6 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent.Kind;
 
 public class ObservableLocaleFile implements ObservableFile {
-
     private final FileConsumer<Reader> updateConsumer;
     private final Path path;
 
@@ -23,7 +22,7 @@ public class ObservableLocaleFile implements ObservableFile {
             Files.createFile(path);
         }
 
-        this.next(StandardWatchEventKinds.ENTRY_MODIFY);
+        this.next(StandardWatchEventKinds.ENTRY_MODIFY, path);
     }
 
     public static Builder builder() {
@@ -31,7 +30,12 @@ public class ObservableLocaleFile implements ObservableFile {
     }
 
     @Override
-    public void next(Kind<Path> kind) throws IOException {
+    public Path getPath() {
+        return path;
+    }
+
+    @Override
+    public void next(Kind<Path> kind, Path path) throws IOException {
         if (StandardWatchEventKinds.ENTRY_DELETE.equals(kind)) {
             Files.createFile(path);
         } else if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kind) || StandardWatchEventKinds.ENTRY_CREATE.equals(kind)) {
@@ -40,13 +44,7 @@ public class ObservableLocaleFile implements ObservableFile {
         }
     }
 
-    @Override
-    public Path getPath() {
-        return path;
-    }
-
     public static final class Builder {
-
         private FileConsumer<Reader> updateConsumer;
         private Path path;
 
