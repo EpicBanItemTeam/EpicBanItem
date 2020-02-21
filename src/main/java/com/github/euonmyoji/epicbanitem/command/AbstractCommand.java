@@ -8,7 +8,12 @@ import com.google.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.api.command.CommandException;
@@ -94,7 +99,7 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
         return localeService.getTextWithFallback(getMessageKey(s), tuples);
     }
 
-    protected final Text getMessage(String s, Collection<Tuple<String, ?>> tuples) {
+    protected final Text getMessage(String s, Iterable<Tuple<String, ?>> tuples) {
         return localeService.getTextWithFallback(getMessageKey(s), tuples);
     }
 
@@ -205,10 +210,20 @@ public abstract class AbstractCommand implements ICommand, CommandExecutor {
     public Text getHelpMessage(CommandSource src, CommandContext args) {
         init();
         Text.Builder builder = Text.builder();
-        builder.append(localeService.getTextWithFallback("epicbanitem.commands.name", Tuple.of("name", getName()), Tuple.of("alias", String.join(" ", getAlias()))), Text.NEW_LINE);
+        builder.append(
+            localeService.getTextWithFallback(
+                "epicbanitem.commands.name",
+                Tuple.of("name", getName()),
+                Tuple.of("alias", String.join(" ", getAlias()))
+            ),
+            Text.NEW_LINE
+        );
         builder.append(getDescription(), Text.NEW_LINE);
         builder.append(
-            localeService.getTextWithFallback("epicbanitem.commands.usage", Tuple.of("usage", Text.of(getCommandString(), getCallable().getUsage(src)))),
+            localeService.getTextWithFallback(
+                "epicbanitem.commands.usage",
+                Tuple.of("usage", Text.of(getCommandString(), getCallable().getUsage(src)))
+            ),
             Text.NEW_LINE
         );
         builder.append(getArgHelp(src), Text.NEW_LINE);

@@ -117,9 +117,6 @@ public class CheckRule implements TextRepresentable {
     @Nullable
     private final String customMessageString;
 
-    @Inject
-    private Logger logger;
-
     private CheckRule(
         String ruleName,
         ConfigurationNode queryNode,

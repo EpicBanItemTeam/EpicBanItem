@@ -23,10 +23,11 @@ import org.spongepowered.api.plugin.Plugin;
     name = EpicBanItem.NAME,
     version = EpicBanItem.VERSION,
     dependencies = @Dependency(id = Platform.API_ID, version = "7.1.0"),
-    authors = { "yinyangshi", "GiNYAi", "ustc-zzzz" },
+    authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"},
     description = "A banitem with nbt plugin in sponge"
 )
 public class EpicBanItem {
+
     public static final String PLUGIN_ID = "epicbanitem";
     public static final String NAME = "EpicBanItem";
     public static final String VERSION = "@version@";

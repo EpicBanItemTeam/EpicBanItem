@@ -8,8 +8,18 @@ import com.github.euonmyoji.epicbanitem.configuration.BanConfig;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
+import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.Types;
@@ -22,17 +32,9 @@ import ninja.leaping.configurate.objectmapping.serialize.TypeSerializerCollectio
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.function.Predicate;
 
 @NonnullByDefault
 @Singleton
@@ -42,10 +44,13 @@ public class BanConfigV1Updater implements IConfigUpdater {
     private Logger logger;
 
     @Inject
-    private Injector injector;
+    private BanConfig banConfig;
+    @Inject
+    @ConfigDir(sharedRoot = false)
+    Path configDir;
 
     @Override
-    public int getVersion() {
+    public int getTargetVersion() {
         return 2;
     }
 
@@ -55,7 +60,7 @@ public class BanConfigV1Updater implements IConfigUpdater {
     }
 
     @Override
-    public void doUpdate(Path configDir, Path configPath) throws IOException {
+    public void doUpdate(Path configPath) throws IOException {
         Path backupDir = configDir.resolve("backup");
         String baseName = "banitem_backup_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddhhmm"));
         int i = 0;
@@ -73,12 +78,7 @@ public class BanConfigV1Updater implements IConfigUpdater {
         TypeSerializerCollection serializers = TypeSerializers.getDefaultSerializers().newChild();
         serializers.registerType(TypeToken.of(CheckRule.class), new Serializer());
         ConfigurationOptions options = ConfigurationOptions.defaults().setSerializers(serializers);
-        ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader
-            .builder()
-            .setPath(newPath)
-            .build();
-
-        BanConfig banConfig = injector.getInstance(BanConfig.class);
+        ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(newPath).build();
 
         ConfigurationNode node = loader.load(options);
         for (Map.Entry<Object, ? extends ConfigurationNode> entry : node.getNode("epicbanitem").getChildrenMap().entrySet()) {
@@ -103,7 +103,6 @@ public class BanConfigV1Updater implements IConfigUpdater {
 
                     String msg = "Find duplicate or illegal name, renamed \"{}\" in {} to \"{}\"";
                     logger.warn(msg, name, index, newName);
-
                 }
                 // add to rules
                 try {
@@ -165,23 +164,23 @@ public class BanConfigV1Updater implements IConfigUpdater {
             Map<CheckRuleTrigger, Boolean> enableTriggers = new HashMap<>();
             ConfigurationNode triggerNode = node.getNode("use-trigger");
             triggerNode
-                    .getChildrenMap()
-                    .forEach(
-                            (k, v) -> {
-                                String key = k.toString();
-                                Optional<CheckRuleTrigger> optionalTrigger;
-                                if (key.indexOf(':') == -1) {
-                                    optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, EpicBanItem.PLUGIN_ID + ":" + key);
-                                } else {
-                                    optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, key);
-                                }
-                                if (!optionalTrigger.isPresent()) {
-                                    EpicBanItem.getLogger().warn("Find unknown trigger {} at check rule {}, it will be ignored.", key, name);
-                                } else {
-                                    enableTriggers.put(optionalTrigger.get(), v.getBoolean());
-                                }
-                            }
-                    );
+                .getChildrenMap()
+                .forEach(
+                    (k, v) -> {
+                        String key = k.toString();
+                        Optional<CheckRuleTrigger> optionalTrigger;
+                        if (key.indexOf(':') == -1) {
+                            optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, EpicBanItem.PLUGIN_ID + ":" + key);
+                        } else {
+                            optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, key);
+                        }
+                        if (!optionalTrigger.isPresent()) {
+                            EpicBanItem.getLogger().warn("Find unknown trigger {} at check rule {}, it will be ignored.", key, name);
+                        } else {
+                            enableTriggers.put(optionalTrigger.get(), v.getBoolean());
+                        }
+                    }
+                );
             Tristate triggerDefaultSetting;
             if (!node.getNode("trigger-default-setting").isVirtual()) {
                 triggerDefaultSetting = Tristate.fromBoolean(node.getNode("trigger-default-setting").getBoolean());
@@ -198,7 +197,8 @@ public class BanConfigV1Updater implements IConfigUpdater {
                 }
             }
             String customMessageString = node.getNode("custom-message").getString();
-            return CheckRule.builder()
+            return CheckRule
+                .builder()
                 .name(name)
                 .legacyName(legacyName)
                 .queryNode(queryNode)

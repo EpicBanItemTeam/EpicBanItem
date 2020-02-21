@@ -7,17 +7,45 @@ import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
 import com.github.euonmyoji.epicbanitem.configuration.update.BanConfigV1Updater;
 import com.github.euonmyoji.epicbanitem.configuration.update.IConfigUpdater;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
+import com.github.euonmyoji.epicbanitem.util.file.ObservableDirectory;
+import com.github.euonmyoji.epicbanitem.util.file.ObservableFileService;
+import com.github.euonmyoji.epicbanitem.util.file.Savable;
 import com.github.euonmyoji.epicbanitem.util.repackage.org.bstats.sponge.Metrics;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
@@ -33,35 +61,22 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-
+@SuppressWarnings("UnstableApiUsage")
 @NonnullByDefault
 @Singleton
+// TODO: 2020/2/21 ConfigSerializable
+// TODO: 2020/2/21 Logger I18N
 public class BanConfig {
-    static final int CURRENT_VERSION = 2;
+    private static final int CURRENT_VERSION = 2;
     private static final String MAIN_CONFIG_PATH = "banitem.conf";
     private static final String EXTRA_CONFIG_DIR = "ban_configs";
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("([a-z0-9-_]+)\\.conf");
     private static final TypeToken<CheckRule.Builder> RULE_BUILDER_TOKEN = TypeToken.of(CheckRule.Builder.class);
     private static final Comparator<String> RULE_NAME_COMPARATOR = Comparator.naturalOrder();
     private static final Comparator<CheckRule> COMPARATOR = Comparator
-            .comparing(CheckRule::getPriority)
-            .thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
+        .comparing(CheckRule::getPriority)
+        .thenComparing(CheckRule::getName, RULE_NAME_COMPARATOR);
 
-    private final Path configDir;
     private final Path mainPath;
     private final Path extraDir;
 
@@ -72,10 +87,14 @@ public class BanConfig {
     private Metrics metrics;
 
     @Inject
-    private ConfigFileManager fileManager;
+    private Injector injector;
 
     @Inject
-    private Injector injector;
+    private ObservableFileService fileService;
+
+    private ObservableConfigFile mainObservableFile;
+
+    private final Map<String, ObservableConfigFile> extraObservableFiles;
 
     private final LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
     private ImmutableSortedMap<String, CheckRule> checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
@@ -84,10 +103,10 @@ public class BanConfig {
     private final Set<String> allKnownIds = new LinkedHashSet<>();
 
     @Inject
-    private BanConfig(@ConfigDir(sharedRoot = false)Path configDir, EventManager eventManager, PluginContainer pluginContainer) {
-        this.configDir = configDir;
+    private BanConfig(@ConfigDir(sharedRoot = false) Path configDir, EventManager eventManager, PluginContainer pluginContainer) {
         this.mainPath = configDir.resolve(MAIN_CONFIG_PATH);
         this.extraDir = configDir.resolve(EXTRA_CONFIG_DIR).toAbsolutePath();
+        this.extraObservableFiles = Maps.newHashMap();
         this.cacheFromIdToCheckRules =
             Caffeine
                 .newBuilder()
@@ -102,7 +121,6 @@ public class BanConfig {
 
         eventManager.registerListeners(pluginContainer, this);
     }
-
 
     public List<CheckRule> getRulesWithIdFiltered(String id) {
         //noinspection ConstantConditions
@@ -138,9 +156,9 @@ public class BanConfig {
             }
 
             ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap
-                    .<CheckRuleIndex, CheckRule>builder()
-                    .orderKeysBy(Comparator.comparing(Object::toString))
-                    .orderValuesBy(COMPARATOR);
+                .<CheckRuleIndex, CheckRule>builder()
+                .orderKeysBy(Comparator.comparing(Object::toString))
+                .orderValuesBy(COMPARATOR);
 
             byItem.putAll(this.checkRulesByIndex);
 
@@ -158,14 +176,15 @@ public class BanConfig {
             }
             String group = matcher.group("group");
             if (group == null) {
-                fileManager.getRootLoader().forceSaving(mainPath);
+                mainObservableFile.save();
             } else {
-                AutoFileLoader loader = fileManager.getOrCreateDirLoader(extraDir);
-                Path configPath = extraDir.resolve(group + ".conf");
-                if (!loader.hasListener(configPath)) {
-                    addNewExtraPath(loader, configPath, group, false);
+                ObservableConfigFile observableConfigFile;
+                if (!extraObservableFiles.containsKey(group)) {
+                    observableConfigFile = addExtraObservable(group);
+                } else {
+                    observableConfigFile = extraObservableFiles.get(group);
                 }
-                loader.forceSaving(configPath);
+                observableConfigFile.save();
             }
             return CompletableFuture.completedFuture(Boolean.TRUE);
             // TODO: return CompletableFuture from forceSave
@@ -182,11 +201,11 @@ public class BanConfig {
                 rulesByName.remove(name);
                 ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> builder = ImmutableListMultimap.builder();
                 checkRulesByIndex.forEach(
-                        (s, rule1) -> {
-                            if (!rule1.getName().equals(name)) {
-                                builder.put(s, rule1);
-                            }
+                    (s, rule1) -> {
+                        if (!rule1.getName().equals(name)) {
+                            builder.put(s, rule1);
                         }
+                    }
                 );
                 this.checkRulesByIndex = builder.build();
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
@@ -198,20 +217,25 @@ public class BanConfig {
                 }
                 String group = matcher.group("group");
                 if (group == null) {
-                    fileManager.getRootLoader().forceSaving(mainPath);
+                    mainObservableFile.save();
                 } else {
                     String prefix = group + ".";
                     boolean anyLeft = checkRulesByName.keySet().stream().anyMatch(s -> s.startsWith(prefix));
-                    AutoFileLoader loader = fileManager.getOrCreateDirLoader(extraDir);
-                    Path configPath = extraDir.resolve(group + ".conf");
-                    if (anyLeft) {
-                        loader.forceSaving(configPath);
+
+                    ObservableConfigFile observableConfigFile;
+                    if (!extraObservableFiles.containsKey(group)) {
+                        observableConfigFile = addExtraObservable(group);
                     } else {
-                        loader.removeListener(configPath);
-                        Files.delete(configPath);
+                        observableConfigFile = extraObservableFiles.get(group);
+                    }
+
+                    if (anyLeft) {
+                        observableConfigFile.save();
+                    } else {
+                        observableConfigFile.close();
+                        Files.delete(observableConfigFile.getPath());
                     }
                 }
-
 
                 return CompletableFuture.completedFuture(Boolean.TRUE);
                 // TODO: return CompletableFuture from forceSave
@@ -223,12 +247,8 @@ public class BanConfig {
         }
     }
 
-
     private Set<CheckRuleIndex> getIndex(CheckRule rule) {
-        Set<String> ids = allKnownIds
-            .stream()
-            .filter(rule.idIndexFilter())
-            .collect(Collectors.toSet());
+        Set<String> ids = allKnownIds.stream().filter(rule.idIndexFilter()).collect(Collectors.toSet());
         if (ids.size() == 0) {
             CheckRuleIndex index = CheckRuleIndex.of(rule.getQueryNode());
             logger.warn("unable to find acceptable item for rule {} using {}.", rule.getName(), index);
@@ -240,8 +260,7 @@ public class BanConfig {
         }
     }
 
-    private void load(AutoFileLoader fileLoader, ConfigurationLoader<CommentedConfigurationNode> loader, String group) throws IOException {
-        ConfigurationNode node = loader.load();
+    private void load(Savable savable, ConfigurationNode node, String group) throws IOException {
         String prefix = group.isEmpty() ? "" : group + ".";
         Predicate<String> nameChecker = name -> group.isEmpty() ? name.indexOf('.') == -1 : name.startsWith(prefix);
         AtomicReference<Boolean> needSave = new AtomicReference<>(false);
@@ -251,17 +270,18 @@ public class BanConfig {
             version = CURRENT_VERSION;
             needSave.set(true);
         } else {
-            version = node
-                .getNode("epicbanitem-version")
-                .<Integer>getValue(
-                    Types::asInt,
-                    () -> {
-                        logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
-                        logger.warn("Try loading using current version {}.", CURRENT_VERSION);
-                        needSave.set(true);
-                        return CURRENT_VERSION;
-                    }
-                );
+            version =
+                node
+                    .getNode("epicbanitem-version")
+                    .<Integer>getValue(
+                        Types::asInt,
+                        () -> {
+                            logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
+                            logger.warn("Try loading using current version {}.", CURRENT_VERSION);
+                            needSave.set(true);
+                            return CURRENT_VERSION;
+                        }
+                    );
         }
 
         if (version != CURRENT_VERSION) {
@@ -273,7 +293,7 @@ public class BanConfig {
                 } else {
                     throw new UnsupportedOperationException("Update ban config from version " + version);
                 }
-                updater.doUpdate(configDir, path);
+                updater.doUpdate(path);
                 logger.warn("ban item config updated.");
                 return;
             } else {
@@ -288,19 +308,19 @@ public class BanConfig {
             .orderValuesBy(COMPARATOR);
 
         this.checkRulesByName.forEach(
-            (name, rule) -> {
-                if (!nameChecker.test(name)) {
-                    byName.put(name, rule);
+                (name, rule) -> {
+                    if (!nameChecker.test(name)) {
+                        byName.put(name, rule);
+                    }
                 }
-            }
-        );
+            );
         this.checkRulesByIndex.forEach(
-            (index, rule) -> {
-                if (!nameChecker.test(rule.getName())) {
-                    byItem.put(index, rule);
+                (index, rule) -> {
+                    if (!nameChecker.test(rule.getName())) {
+                        byItem.put(index, rule);
+                    }
                 }
-            }
-        );
+            );
 
         Map<Object, ? extends ConfigurationNode> checkRules = node.getNode("epicbanitem").getChildrenMap();
         for (Map.Entry<Object, ? extends ConfigurationNode> entry : checkRules.entrySet()) {
@@ -318,7 +338,7 @@ public class BanConfig {
         this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
         this.cacheFromIdToCheckRules.invalidateAll();
         if (needSave.get()) {
-            fileLoader.forceSaving(path);
+            savable.save();
         }
     }
 
@@ -332,27 +352,25 @@ public class BanConfig {
             .orderValuesBy(COMPARATOR);
 
         this.checkRulesByName.forEach(
-            (name, rule) -> {
-                if (!nameChecker.test(name)) {
-                    byName.put(name, rule);
+                (name, rule) -> {
+                    if (!nameChecker.test(name)) {
+                        byName.put(name, rule);
+                    }
                 }
-            }
-        );
+            );
         this.checkRulesByIndex.forEach(
-            (index, rule) -> {
-                if (!nameChecker.test(rule.getName())) {
-                    byItem.put(index, rule);
+                (index, rule) -> {
+                    if (!nameChecker.test(rule.getName())) {
+                        byItem.put(index, rule);
+                    }
                 }
-            }
-        );
+            );
         this.checkRulesByIndex = byItem.build();
         this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
         this.cacheFromIdToCheckRules.invalidateAll();
     }
 
-
-    private void save(ConfigurationLoader<CommentedConfigurationNode> loader, String group) throws IOException {
-        ConfigurationNode node = loader.createEmptyNode();
+    private void save(ConfigurationNode node, String group) throws IOException {
         String prefix = group.isEmpty() ? "" : group + ".";
         Function<String, Optional<String>> getConfigName = name -> {
             if (group.isEmpty()) {
@@ -372,63 +390,81 @@ public class BanConfig {
                 }
             }
         }
-        loader.save(node);
-    }
-
-    private void addNewExtraPath(AutoFileLoader fileLoader, Path path, String group, boolean loading) {
-        HoconConfigurationLoader loader = HoconConfigurationLoader.builder().setPath(path).build();
-        fileLoader.addListener(path, () -> load(fileLoader, loader, group), () -> delete(group), () -> save(loader, group), loading);
     }
 
     @Listener
-    public void onPreInit(GamePreInitializationEvent event) {
+    public void onPreInit(GamePreInitializationEvent event) throws IOException {
         TypeSerializers.getDefaultSerializers().registerType(RULE_BUILDER_TOKEN, injector.getInstance(CheckRule.BuilderSerializer.class));
+
+        this.mainObservableFile =
+            ObservableConfigFile
+                .builder()
+                .path(mainPath)
+                .updateConsumer(node -> this.load(mainObservableFile, node, ""))
+                .saveConsumer(node -> this.save(node, ""))
+                .build();
+        fileService.register(mainObservableFile);
+
+        Function<Path, Optional<String>> getGroupName = path -> {
+            Matcher matcher = FILE_NAME_PATTERN.matcher(path.getFileName().toString());
+            if (matcher.matches()) {
+                return Optional.ofNullable(matcher.group(1));
+            } else {
+                return Optional.empty();
+            }
+        };
+
+        for (Path path : Files.list(extraDir).collect(Collectors.toList())) {
+            Optional<String> optionalGroup = getGroupName.apply(path);
+            if (optionalGroup.isPresent()) {
+                addExtraObservable(optionalGroup.get());
+            } else {
+                logger.warn("Find unknown file {} in config dir, it will not be loaded.", path);
+            }
+        }
+
+        fileService.register(
+            ObservableDirectory
+                .builder()
+                .path(extraDir)
+                .createConsumer(
+                    path -> {
+                        Path fileName = path.getFileName();
+                        Optional<String> optionalGroup = getGroupName.apply(fileName);
+                        if (optionalGroup.isPresent()) {
+                            addExtraObservable(optionalGroup.get());
+                        } else {
+                            if (fileName.endsWith("conf")) {
+                                logger.warn("Find unknown file {} in config dir, it will not be loaded.", fileName);
+                            }
+                        }
+                    }
+                )
+                .build()
+        );
+    }
+
+    private ObservableConfigFile addExtraObservable(String group) throws IOException {
+        ObservableConfigFile observableConfigFile;
+        observableConfigFile =
+            ObservableConfigFile
+                .builder()
+                .path(extraDir.resolve(group + ".conf"))
+                .updateConsumer(node -> this.load(extraObservableFiles.get(group), node, group))
+                .saveConsumer(node -> this.save(node, group))
+                .deleteConsumer(node -> delete(group))
+                .build();
+        extraObservableFiles.put(group, observableConfigFile);
+        fileService.register(observableConfigFile);
+        return observableConfigFile;
     }
 
     @Listener
     public void onPostInit(GamePostInitializationEvent event) {
-        for (ItemType itemType: Sponge.getRegistry().getAllOf(ItemType.class)) {
+        for (ItemType itemType : Sponge.getRegistry().getAllOf(ItemType.class)) {
             ItemStack itemStack = ItemStack.builder().itemType(itemType).build();
             String id = NbtTagDataUtil.getId(NbtTagDataUtil.toNbt(itemStack));
             allKnownIds.add(id);
-        }
-
-        HoconConfigurationLoader configurationLoader = HoconConfigurationLoader.builder().setPath(mainPath).build();
-        AutoFileLoader rootLoader = fileManager.getRootLoader();
-        rootLoader.addListener(mainPath, () -> load(rootLoader, configurationLoader, ""), () -> load(rootLoader, configurationLoader, ""), () -> save(configurationLoader, ""));
-        if (Files.notExists(mainPath)) {
-            rootLoader.forceSaving(mainPath);
-        }
-        try {
-            AutoFileLoader extraDirLoader = fileManager.getOrCreateDirLoader(extraDir);
-            Function<Path, Optional<String>> getGroupName = path -> {
-                Matcher matcher = FILE_NAME_PATTERN.matcher(path.getFileName().toString());
-                if (matcher.matches()) {
-                    return Optional.ofNullable(matcher.group(1));
-                } else {
-                    return Optional.empty();
-                }
-            };
-            Files.list(extraDir).forEach(path -> {
-                Optional<String> optionalS = getGroupName.apply(path);
-                if (optionalS.isPresent()) {
-                    addNewExtraPath(extraDirLoader, path, optionalS.get(), true);
-                } else {
-                    logger.warn("Find unknown file {} in config dir, it will not be loaded.", path);
-                }
-            });
-            extraDirLoader.addFallbackListener((path, kind) -> {
-                if (kind != ENTRY_DELETE) {
-                    Optional<String> optionalS = getGroupName.apply(path);
-                    if (optionalS.isPresent()) {
-                        addNewExtraPath(extraDirLoader, path, optionalS.get(), true);
-                    } else {
-                        logger.warn("Find unknown file {} in config dir, it will not be loaded.", path);
-                    }
-                }
-            });
-        } catch (IOException e) {
-            logger.error("Failed to load form dir " + extraDir, e);
         }
     }
 

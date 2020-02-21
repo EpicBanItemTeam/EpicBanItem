@@ -154,10 +154,12 @@ epicbanitem.checkrule.triggers = Special rules for triggers: {triggers}
 #error
 epicbanitem.error.failDeserialize = Failed to parse and deserialize as string
 epicbanitem.error.missingMessage = [Missing language key: {message_key}]
+epicbanitem.info.cannotBeLoaded = {name} can't be loaded
 
 #info
 epicbanitem.info.defaultBanMessage = You cannot {trigger} this {item_pre} for rule(s): {rules}
 epicbanitem.info.defaultUpdateMessage = Your {item_pre} have been updated to {item_post} for rule(s): {rules}
+epicbanitem.info.reload = {name} is reloaded
 
 #triggers
 epicbanitem.triggers.use = Use
