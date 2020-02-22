@@ -19,7 +19,7 @@ public class ObservableLocaleFile implements ObservableFile {
         this.updateConsumer = builder.updateConsumer;
         this.path = builder.path;
         if (Files.notExists(path)) {
-            Files.createDirectories(path);
+            Files.createDirectories(path.getParent());
             Files.createFile(path);
         }
 
@@ -47,7 +47,6 @@ public class ObservableLocaleFile implements ObservableFile {
             this.updateConsumer.accept(reader);
         }
     }
-
 
     @Override
     public void close() throws IOException {
