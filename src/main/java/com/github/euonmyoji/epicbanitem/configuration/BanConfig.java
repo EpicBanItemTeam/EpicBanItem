@@ -5,7 +5,6 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
 import com.github.euonmyoji.epicbanitem.configuration.update.BanConfigV1Updater;
-import com.github.euonmyoji.epicbanitem.configuration.update.IConfigUpdater;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.file.ObservableDirectory;
 import com.github.euonmyoji.epicbanitem.util.file.ObservableFileService;
@@ -36,7 +35,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -78,6 +76,7 @@ public class BanConfig {
 
     private final Path mainPath;
     private final Path extraDir;
+    private final Path configDir;
 
     @Inject
     private Logger logger;
@@ -105,6 +104,7 @@ public class BanConfig {
     private BanConfig(@ConfigDir(sharedRoot = false) Path configDir, EventManager eventManager, PluginContainer pluginContainer) {
         this.mainPath = configDir.resolve(MAIN_CONFIG_PATH);
         this.extraDir = configDir.resolve(EXTRA_CONFIG_DIR).toAbsolutePath();
+        this.configDir = configDir;
         this.extraObservableFiles = Maps.newHashMap();
         this.cacheFromIdToCheckRules =
             Caffeine
@@ -259,15 +259,13 @@ public class BanConfig {
         }
     }
 
-    private void load(ObservableConfigFile file, ConfigurationNode node, String group) throws IOException {
+    private void load(ConfigurationNode node, String group) throws IOException {
         String prefix = group.isEmpty() ? "" : group + ".";
         Predicate<String> nameChecker = name -> group.isEmpty() ? name.indexOf('.') == -1 : name.startsWith(prefix);
-        AtomicReference<Boolean> needSave = new AtomicReference<>(false);
         Path path = group.isEmpty() ? mainPath : extraDir.resolve(group + ".conf");
         int version;
         if (node.getChildrenMap().isEmpty()) {
             version = CURRENT_VERSION;
-            needSave.set(true);
         } else {
             version =
                 node
@@ -277,27 +275,9 @@ public class BanConfig {
                         () -> {
                             logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
                             logger.warn("Try loading using current version {}.", CURRENT_VERSION);
-                            needSave.set(true);
                             return CURRENT_VERSION;
                         }
                     );
-        }
-
-        if (version != CURRENT_VERSION) {
-            if (version < CURRENT_VERSION) {
-                logger.warn("Find old version of config, try updating. {} -> {}", version, CURRENT_VERSION);
-                IConfigUpdater updater;
-                if (version == 1) {
-                    updater = injector.getInstance(BanConfigV1Updater.class);
-                } else {
-                    throw new UnsupportedOperationException("Update ban config from version " + version);
-                }
-                updater.doUpdate(path);
-                logger.warn("ban item config updated.");
-                return;
-            } else {
-                //todo: what to do?
-            }
         }
 
         SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
@@ -336,9 +316,6 @@ public class BanConfig {
         this.checkRulesByIndex = byItem.build();
         this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
         this.cacheFromIdToCheckRules.invalidateAll();
-        if (needSave.get()) {
-            file.save();
-        }
     }
 
     private void delete(String group) {
@@ -391,17 +368,29 @@ public class BanConfig {
         }
     }
 
+    private void updateV1() throws IOException {
+        Path path = configDir.resolve("banconfig.conf");
+        if (Files.exists(path)) {
+            ObservableConfigFile.builder().path(path).updateConsumer(node -> injector.getInstance(BanConfigV1Updater.class).doUpdate(path)).build();
+        }
+    }
+
     @Listener
     public void onPreInit(GamePreInitializationEvent event) throws IOException {
         TypeSerializers.getDefaultSerializers().registerType(RULE_BUILDER_TOKEN, injector.getInstance(CheckRule.BuilderSerializer.class));
-
+        if (Files.notExists(extraDir)) {
+            Files.createDirectories(extraDir);
+        }
         this.mainObservableFile =
             ObservableConfigFile
                 .builder()
                 .path(mainPath)
-                .updateConsumer(node -> this.load(mainObservableFile, node, ""))
+                .updateConsumer(node -> this.load(node, ""))
                 .saveConsumer(node -> this.save(node, ""))
                 .build();
+
+        updateV1();
+
         fileService.register(mainObservableFile);
 
         Function<Path, Optional<String>> getGroupName = path -> {
@@ -449,7 +438,7 @@ public class BanConfig {
             ObservableConfigFile
                 .builder()
                 .path(extraDir.resolve(group + ".conf"))
-                .updateConsumer(node -> this.load(extraObservableFiles.get(group), node, group))
+                .updateConsumer(node -> this.load(node, group))
                 .saveConsumer(node -> this.save(node, group))
                 .deleteConsumer(node -> delete(group))
                 .build();
