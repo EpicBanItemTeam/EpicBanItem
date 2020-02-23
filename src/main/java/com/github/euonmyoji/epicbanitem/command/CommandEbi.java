@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.CommandMapService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.List;

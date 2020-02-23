@@ -1,6 +1,5 @@
-package com.github.euonmyoji.epicbanitem;
+package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.command.ICommand;
 import com.google.common.collect.Maps;
 import com.google.inject.Singleton;
 import java.util.List;

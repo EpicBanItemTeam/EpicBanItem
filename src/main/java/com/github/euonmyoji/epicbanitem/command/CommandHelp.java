@@ -1,6 +1,5 @@
 package com.github.euonmyoji.epicbanitem.command;
 
-import com.github.euonmyoji.epicbanitem.CommandMapService;
 import com.github.euonmyoji.epicbanitem.locale.LocaleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
