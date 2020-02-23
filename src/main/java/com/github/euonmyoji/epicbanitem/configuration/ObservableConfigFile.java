@@ -64,6 +64,7 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
             return;
         }
         if (Objects.nonNull(this.saveConsumer)) {
+            this.node = configurationLoader.createEmptyNode();
             this.saveConsumer.accept(node);
             this.configurationLoader.save(node);
         }
@@ -71,21 +72,21 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
 
     public Path backup() throws IOException {
         Path backupDir = configDir.resolve("backup");
-        Path path = backupDir.resolve(configDir.relativize(this.path));
-        Path dir = path.getParent();
+        Path aPath = backupDir.resolve(configDir.relativize(this.path));
+        Path dir = aPath.getParent();
         Files.createDirectories(dir);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddhhmm_"));
-        String fileName = timestamp + path.getFileName();
+        String fileName = timestamp + aPath.getFileName();
         int i = 0;
         do {
             Path backupPath = dir.resolve(fileName);
             if (!Files.exists(backupPath)) {
-                Files.copy(path, backupPath);
+                Files.copy(this.path, backupPath);
                 return backupPath;
             }
             fileName = timestamp + getPath().getFileName() + "_" + i++;
         } while (i < 10);
-        throw new IOException("cannot create backup for " + path);
+        throw new IOException("cannot create backup for " + this.path);
     }
 
     @Override

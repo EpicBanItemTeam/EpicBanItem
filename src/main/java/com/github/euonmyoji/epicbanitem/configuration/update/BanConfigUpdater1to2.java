@@ -1,12 +1,11 @@
 package com.github.euonmyoji.epicbanitem.configuration.update;
 
+import com.github.euonmyoji.epicbanitem.EpicBanItem;
 import com.github.euonmyoji.epicbanitem.util.TextUtil;
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.SimpleConfigurationNode;
 import ninja.leaping.configurate.Types;
-import org.slf4j.Logger;
 import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.Updater;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -22,15 +21,8 @@ import java.util.regex.Pattern;
 
 @NonnullByDefault
 @Singleton
-public class BanConfigUpder1to2 implements Updater<ConfigurationNode> {
+public class BanConfigUpdater1to2 implements Updater<ConfigurationNode> {
     private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9-_]+");
-
-    private Logger logger;
-
-    @Inject
-    private BanConfigUpder1to2(Logger logger) {
-        this.logger = logger;
-    }
 
     @Override
     public int getInputVersion() {
@@ -68,7 +60,7 @@ public class BanConfigUpder1to2 implements Updater<ConfigurationNode> {
                     nameNode.setValue(newName);
 
                     String msg = "Find duplicate or illegal name, renamed \"{}\" in {} to \"{}\"";
-                    logger.warn(msg, name, index, newName);
+                    EpicBanItem.getLogger().warn(msg, name, index, newName);
                 }
                 // add to rules
                 CheckRuleData data = readV1Node(checkRuleNode);

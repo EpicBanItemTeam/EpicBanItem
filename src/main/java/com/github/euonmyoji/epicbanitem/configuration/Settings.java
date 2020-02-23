@@ -16,7 +16,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
 import org.spongepowered.api.event.item.inventory.CraftItemEvent;
@@ -70,7 +70,7 @@ public class Settings {
     private Settings(EventManager eventManager, PluginContainer pluginContainer, Logger logger) {
         this.logger = logger;
         eventClass = getClassForCraftingResultRedirectionEvent();
-        eventManager.registerListener(pluginContainer, GamePreInitializationEvent.class, this::onPreInit);
+        eventManager.registerListener(pluginContainer, GamePostInitializationEvent.class, this::onPostInit);
     }
 
     @Nullable
@@ -159,11 +159,11 @@ public class Settings {
         return this.eventClass == null ? event instanceof CraftItemEvent.Preview : this.eventClass.isInstance(event);
     }
 
-    private void onPreInit(GamePreInitializationEvent event) throws IOException {
+    private void onPostInit(GamePostInitializationEvent event) throws IOException {
         ObservableConfigFile configFile = ObservableConfigFile.builder().path(configDir.resolve("settings.conf")).configDir(configDir).saveConsumer(this::save).updateConsumer(this::load).build();
+        fileService.register(configFile);
         configFile.load();
         configFile.save();
-        fileService.register(configFile);
     }
 
     @Listener

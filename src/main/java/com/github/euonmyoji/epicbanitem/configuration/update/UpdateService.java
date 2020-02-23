@@ -25,10 +25,11 @@ public class UpdateService {
     @Inject
     private UpdateService(Injector injector) {
         this.injector = injector;
+        addUpdaters();
     }
 
     public void addUpdaters() {
-        addUpdater(BAN_CONF, injector.getInstance(BanConfigUpder1to2.class));
+        addUpdater(BAN_CONF, injector.getInstance(BanConfigUpdater1to2.class));
     }
 
     public <T> void addUpdater(FileType<T> type, Updater<T> updater) {

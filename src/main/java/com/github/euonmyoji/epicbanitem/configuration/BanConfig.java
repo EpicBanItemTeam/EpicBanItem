@@ -277,20 +277,22 @@ public class BanConfig {
                     );
         }
 
+        ObservableConfigFile observableConfigFile;
+        if (group.isEmpty()) {
+            observableConfigFile = mainObservableFile;
+        } else {
+            observableConfigFile = extraObservableFiles.get(group);
+        }
+        if (observableConfigFile == null) {
+            throw new IllegalStateException("unable to find fit observableConfigFile on load.");
+        }
         if (version < CURRENT_VERSION) {
-            ObservableConfigFile observableConfigFile;
-            if (group.isEmpty()) {
-                observableConfigFile = mainObservableFile;
-            } else {
-                observableConfigFile = extraObservableFiles.get(group);
-            }
-            if (observableConfigFile == null) {
-                throw new IllegalStateException("unable to find fit observableConfigFile on load.");
-            }
             observableConfigFile.backup();
             node = updateService.update(UpdateService.BAN_CONF, node, version, CURRENT_VERSION);
+            needSave.set(true);
         } else if (version > CURRENT_VERSION) {
             logger.warn("Find ban config {} with greater version {} than current {}, this file may not be load rightly", mainObservableFile.getPath(), version, CURRENT_VERSION);
+            needSave.set(true);
         }
 
         SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
@@ -329,6 +331,9 @@ public class BanConfig {
         this.checkRulesByIndex = byItem.build();
         this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
         this.cacheFromIdToCheckRules.invalidateAll();
+        if (needSave.get()) {
+            observableConfigFile.save();
+        }
     }
 
     private void delete(String group) {
@@ -421,10 +426,10 @@ public class BanConfig {
                 .saveConsumer(node -> this.save(node, ""))
                 .configDir(configDir)
                 .build();
+        fileService.register(mainObservableFile);
         this.mainObservableFile.load();
         this.mainObservableFile.save();
 
-        fileService.register(mainObservableFile);
 
         Function<Path, Optional<String>> getGroupName = path -> {
             Matcher matcher = FILE_NAME_PATTERN.matcher(path.getFileName().toString());
