@@ -52,7 +52,7 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
             if (Objects.nonNull(this.updateConsumer)) {
                 this.updateConsumer.accept(node);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             EpicBanItem.getLogger().warn("Failed to load config file {}, a backup is created at {}", path, backup);
             throw e;
         }

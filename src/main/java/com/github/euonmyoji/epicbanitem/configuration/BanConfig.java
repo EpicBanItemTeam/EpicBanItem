@@ -287,7 +287,8 @@ public class BanConfig {
             throw new IllegalStateException("unable to find fit observableConfigFile on load.");
         }
         if (version < CURRENT_VERSION) {
-            observableConfigFile.backup();
+            Path backup = observableConfigFile.backup();
+            logger.warn("Find a version {} config, trying update it to {}. A copy is created at {}", version, CURRENT_VERSION, backup);
             node = updateService.update(UpdateService.BAN_CONF, node, version, CURRENT_VERSION);
             needSave.set(true);
         } else if (version > CURRENT_VERSION) {

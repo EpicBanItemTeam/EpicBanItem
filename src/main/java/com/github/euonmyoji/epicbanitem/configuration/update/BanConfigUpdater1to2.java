@@ -72,7 +72,7 @@ public class BanConfigUpdater1to2 implements Updater<ConfigurationNode> {
         ConfigurationNode result = SimpleConfigurationNode.root(node.getOptions());
         result.getNode("epicbanitem-version").setValue(getOutputVersion());
         for (CheckRuleData checkRule : dataMap.values()) {
-            ConfigurationNode ruleNode = node.getNode("epicbanitem", checkRule.name);
+            ConfigurationNode ruleNode = result.getNode("epicbanitem", checkRule.name);
             writeV2Node(ruleNode, checkRule);
         }
 
