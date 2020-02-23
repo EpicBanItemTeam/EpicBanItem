@@ -55,7 +55,12 @@ public class ObservableFileRegistry implements ObservableFileService, Closeable 
                         try {
                             if (registeredFiles.containsKey(pathString)) {
                                 registeredFiles.get(pathString).next(watchEvent.kind(), path);
-                                timestamps.put(pathString, path.toFile().lastModified());
+                                //TODO: this is a temp fix for config save
+                                //  the ConfigLoader will write to a temp file, then copy(overwrite) the target file
+                                //  and I get 2 event of watching path on my windows.  delete & create
+                                if (watchEvent.kind() != ENTRY_DELETE) {
+                                    timestamps.put(pathString, path.toFile().lastModified());
+                                }
                             }
                             String parentPathString = path.getParent().toString();
                             if (registeredFiles.containsKey(parentPathString)) {
