@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.euonmyoji.epicbanitem.check.CheckRule;
 import com.github.euonmyoji.epicbanitem.check.CheckRuleIndex;
-import com.github.euonmyoji.epicbanitem.configuration.update.BanConfigV1Updater;
+import com.github.euonmyoji.epicbanitem.configuration.update.UpdateService;
 import com.github.euonmyoji.epicbanitem.util.NbtTagDataUtil;
 import com.github.euonmyoji.epicbanitem.util.file.ObservableDirectory;
 import com.github.euonmyoji.epicbanitem.util.file.ObservableFileService;
@@ -19,28 +19,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -51,12 +29,24 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
-import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("UnstableApiUsage")
 @NonnullByDefault
@@ -86,6 +76,9 @@ public class BanConfig {
 
     @Inject
     private Injector injector;
+
+    @Inject
+    private UpdateService updateService;
 
     @Inject
     private ObservableFileService fileService;
@@ -179,7 +172,7 @@ public class BanConfig {
             } else {
                 ObservableConfigFile observableConfigFile;
                 if (!extraObservableFiles.containsKey(group)) {
-                    observableConfigFile = addExtraObservable(group);
+                    observableConfigFile = addExtraObservable(group, false);
                 } else {
                     observableConfigFile = extraObservableFiles.get(group);
                 }
@@ -223,7 +216,8 @@ public class BanConfig {
 
                     ObservableConfigFile observableConfigFile;
                     if (!extraObservableFiles.containsKey(group)) {
-                        observableConfigFile = addExtraObservable(group);
+                        //or throw an exception here?
+                        observableConfigFile = addExtraObservable(group, false);
                     } else {
                         observableConfigFile = extraObservableFiles.get(group);
                     }
@@ -263,9 +257,11 @@ public class BanConfig {
         String prefix = group.isEmpty() ? "" : group + ".";
         Predicate<String> nameChecker = name -> group.isEmpty() ? name.indexOf('.') == -1 : name.startsWith(prefix);
         Path path = group.isEmpty() ? mainPath : extraDir.resolve(group + ".conf");
+        AtomicBoolean needSave = new AtomicBoolean(false);
         int version;
         if (node.getChildrenMap().isEmpty()) {
             version = CURRENT_VERSION;
+            needSave.set(true);
         } else {
             version =
                 node
@@ -275,9 +271,26 @@ public class BanConfig {
                         () -> {
                             logger.warn("Ban Config at {} is missing epicbanitem-version option.", path);
                             logger.warn("Try loading using current version {}.", CURRENT_VERSION);
+                            needSave.set(true);
                             return CURRENT_VERSION;
                         }
                     );
+        }
+
+        if (version < CURRENT_VERSION) {
+            ObservableConfigFile observableConfigFile;
+            if (group.isEmpty()) {
+                observableConfigFile = mainObservableFile;
+            } else {
+                observableConfigFile = extraObservableFiles.get(group);
+            }
+            if (observableConfigFile == null) {
+                throw new IllegalStateException("unable to find fit observableConfigFile on load.");
+            }
+            observableConfigFile.backup();
+            node = updateService.update(UpdateService.BAN_CONF, node, version, CURRENT_VERSION);
+        } else if (version > CURRENT_VERSION) {
+            logger.warn("Find ban config {} with greater version {} than current {}, this file may not be load rightly", mainObservableFile.getPath(), version, CURRENT_VERSION);
         }
 
         SortedMap<String, CheckRule> byName = new TreeMap<>(RULE_NAME_COMPARATOR);
@@ -368,15 +381,34 @@ public class BanConfig {
         }
     }
 
-    private void updateV1() throws IOException {
-        Path path = configDir.resolve("banconfig.conf");
-        if (Files.exists(path)) {
-            ObservableConfigFile.builder().path(path).updateConsumer(node -> injector.getInstance(BanConfigV1Updater.class).doUpdate(path)).build();
+    private ObservableConfigFile addExtraObservable(String group, boolean load) throws IOException {
+        ObservableConfigFile observableConfigFile;
+        observableConfigFile =
+            ObservableConfigFile
+                .builder()
+                .path(extraDir.resolve(group + ".conf"))
+                .updateConsumer(node -> this.load(node, group))
+                .saveConsumer(node -> this.save(node, group))
+                .deleteConsumer(node -> delete(group))
+                .configDir(configDir)
+                .build();
+        extraObservableFiles.put(group, observableConfigFile);
+        fileService.register(observableConfigFile);
+        if (load) {
+            observableConfigFile.load();
+            observableConfigFile.save();
         }
+        return observableConfigFile;
     }
 
     @Listener
-    public void onPreInit(GamePreInitializationEvent event) throws IOException {
+    public void onPostInit(GamePostInitializationEvent event) throws IOException {
+        for (ItemType itemType : Sponge.getRegistry().getAllOf(ItemType.class)) {
+            ItemStack itemStack = ItemStack.builder().itemType(itemType).build();
+            String id = NbtTagDataUtil.getId(NbtTagDataUtil.toNbt(itemStack));
+            allKnownIds.add(id);
+        }
+        //load at post init for id scan & trigger registry
         TypeSerializers.getDefaultSerializers().registerType(RULE_BUILDER_TOKEN, injector.getInstance(CheckRule.BuilderSerializer.class));
         if (Files.notExists(extraDir)) {
             Files.createDirectories(extraDir);
@@ -387,9 +419,10 @@ public class BanConfig {
                 .path(mainPath)
                 .updateConsumer(node -> this.load(node, ""))
                 .saveConsumer(node -> this.save(node, ""))
+                .configDir(configDir)
                 .build();
-
-        updateV1();
+        this.mainObservableFile.load();
+        this.mainObservableFile.save();
 
         fileService.register(mainObservableFile);
 
@@ -405,7 +438,7 @@ public class BanConfig {
         for (Path path : Files.list(extraDir).collect(Collectors.toList())) {
             Optional<String> optionalGroup = getGroupName.apply(path);
             if (optionalGroup.isPresent()) {
-                addExtraObservable(optionalGroup.get());
+                addExtraObservable(optionalGroup.get(), true);
             } else {
                 logger.warn("Find unknown file {} in config dir, it will not be loaded.", path);
             }
@@ -420,7 +453,7 @@ public class BanConfig {
                         Path fileName = path.getFileName();
                         Optional<String> optionalGroup = getGroupName.apply(fileName);
                         if (optionalGroup.isPresent()) {
-                            addExtraObservable(optionalGroup.get());
+                            addExtraObservable(optionalGroup.get(), true);
                         } else {
                             if (fileName.endsWith("conf")) {
                                 logger.warn("Find unknown file {} in config dir, it will not be loaded.", fileName);
@@ -430,30 +463,6 @@ public class BanConfig {
                 )
                 .build()
         );
-    }
-
-    private ObservableConfigFile addExtraObservable(String group) throws IOException {
-        ObservableConfigFile observableConfigFile;
-        observableConfigFile =
-            ObservableConfigFile
-                .builder()
-                .path(extraDir.resolve(group + ".conf"))
-                .updateConsumer(node -> this.load(node, group))
-                .saveConsumer(node -> this.save(node, group))
-                .deleteConsumer(node -> delete(group))
-                .build();
-        extraObservableFiles.put(group, observableConfigFile);
-        fileService.register(observableConfigFile);
-        return observableConfigFile;
-    }
-
-    @Listener
-    public void onPostInit(GamePostInitializationEvent event) {
-        for (ItemType itemType : Sponge.getRegistry().getAllOf(ItemType.class)) {
-            ItemStack itemStack = ItemStack.builder().itemType(itemType).build();
-            String id = NbtTagDataUtil.getId(NbtTagDataUtil.toNbt(itemStack));
-            allKnownIds.add(id);
-        }
     }
 
     @Listener

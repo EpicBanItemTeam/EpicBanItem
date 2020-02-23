@@ -9,12 +9,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import javax.annotation.Nullable;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
@@ -30,6 +24,13 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.storage.WorldProperties;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -159,9 +160,10 @@ public class Settings {
     }
 
     private void onPreInit(GamePreInitializationEvent event) throws IOException {
-        fileService.register(
-            ObservableConfigFile.builder().path(configDir.resolve("settings.conf")).saveConsumer(this::save).updateConsumer(this::load).build()
-        );
+        ObservableConfigFile configFile = ObservableConfigFile.builder().path(configDir.resolve("settings.conf")).configDir(configDir).saveConsumer(this::save).updateConsumer(this::load).build();
+        configFile.load();
+        configFile.save();
+        fileService.register(configFile);
     }
 
     @Listener
