@@ -24,8 +24,8 @@ import java.util.Objects;
     name = EpicBanItem.NAME,
     version = EpicBanItem.VERSION,
     dependencies = @Dependency(id = Platform.API_ID, version = "7.1.0"),
-    authors = {"yinyangshi", "GiNYAi", "ustc-zzzz"},
-    description = "A banitem with nbt plugin in sponge"
+    authors = {"yinyangshi", "GiNYAi", "ustc-zzzz", "SettingDust"},
+    description = "The sponge plugin for item restriction by checking nbt tags"
 )
 public class EpicBanItem {
 
