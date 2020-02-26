@@ -36,7 +36,7 @@ public class NbtTagRenderer {
         List<Object> list = NbtTypeHelper.getAsList(view);
         List<Text> texts = Lists.newArrayList();
         boolean isTarget = Objects.isNull(result);
-        Text indentText = Text.of(TextColors.DARK_GRAY, Strings.repeat(" │", Math.max(indent / 2 - 1, 0)), Strings.repeat(" ", indent > 1 ? 1 : 0));
+        Text indentText = Text.of(TextColors.DARK_GRAY, TextStyles.BOLD, Strings.repeat(" │", Math.max(indent / 2 - 1, 0)), Strings.repeat(" ", indent > 1 ? 1 : 0));
         Map<String, QueryResult> childResult = isTarget ? Collections.emptyMap() : result.getChildren();
 
         if (Objects.nonNull(map)) {

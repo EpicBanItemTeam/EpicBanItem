@@ -15,9 +15,12 @@ import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.LiteralText;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.translation.Translation;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.BlockChangeFlags;
@@ -61,6 +64,8 @@ public class CommandUpdate extends AbstractCommand {
         String updateRule = args.<String>getOne("update-rule").orElseThrow(NoSuchFieldError::new);
         String queryRule = CommandQuery.histories.get(id, key -> "{}");
         try {
+            Text titleText;
+            Translation name;
             DataContainer nbt;
             QueryResult queryResult;
             UpdateResult updateResult;
@@ -78,6 +83,8 @@ public class CommandUpdate extends AbstractCommand {
                 b.restore(true, BlockChangeFlags.NONE);
                 // TODO: should it really be none?
 
+                name = b.getState().getType().getTranslation();
+                titleText = Text.of(name);
             } else {
                 Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
                 Tuple<HandType, ItemStack> i = optional.orElseThrow(() -> new CommandException(getMessage("noItem")));
@@ -88,13 +95,25 @@ public class CommandUpdate extends AbstractCommand {
                 updateResult.apply(nbt);
                 i = Tuple.of(i.getFirst(), NbtTagDataUtil.toItemStack(nbt, i.getSecond().getQuantity()));
                 CommandCreate.setItemInHand(src, i);
+
+                name = i.getSecond().getTranslation();
+                titleText = Text.builder(name).onHover(TextActions.showItem(i.getSecond().createSnapshot())).build();
             }
 
             LiteralText text = Text.of(updateResult.toString());
-            Text.Builder prefix = getMessage("succeed").toBuilder().onHover(TextActions.showText(text));
-            prefix.append(Text.join(TextUtil.serializeNbtToString(nbt, queryResult)));
-            src.sendMessage(prefix.build());
-
+            Text.Builder prefix = Text
+                    .builder()
+                    .append(getMessage("succeed"))
+                    .append(Text.of(name))
+                    .onHover(TextActions.showText(text))
+                    .append(Text.NEW_LINE);
+            PaginationList
+                    .builder()
+                    .title(titleText)
+                    .header(prefix.build())
+                    .padding(Text.of(TextColors.GREEN, "-"))
+                    .contents(TextUtil.serializeNbtToString(nbt, queryResult))
+                    .sendTo(src);
             return CommandResult.success();
         } catch (Exception e) {
             logger.error(getMessage("error").toPlain(), e);
