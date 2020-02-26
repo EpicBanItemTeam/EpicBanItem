@@ -1,18 +1,18 @@
 # EpicBanItem
 
-A banitem with nbt plugin in sponge.
+The sponge plugin for item restriction by checking nbt tags.
 
-* Getting started guide: <https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/tutorial>
-* Ore distribution platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
-* Plugin documentation: <https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/>
-* bStats: <https://bstats.org/plugin/sponge/EpicBanItem>
+* Plugin documentation: <https://docs.ebi.team/#/en/>
+* Getting started guide: <https://docs.ebi.team/#/en/tutorial>
+* Ore platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
+* bStats metrics of plugin: <https://bstats.org/plugin/sponge/EpicBanItem>
 
-一个基于 NBT 的物品禁用插件。
+通过检查物品 NBT 标签等方式限制物品的 Sponge 插件。
 
-* 入门教程：<https://euonmyoji.github.io/EpicBanItem---Sponge/#/zh/tutorial>
-* Ore 发布平台：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
-* 插件文档：<https://euonmyoji.github.io/EpicBanItem---Sponge/#/zh/>
-* bStats：<https://bstats.org/plugin/sponge/EpicBanItem>
+* 插件文档：<https://docs.ebi.team/#/zh/>
+* 入门教程：<https://docs.ebi.team/#/zh/tutorial>
+* Ore：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
+* 插件的 bStats 数据：<https://bstats.org/plugin/sponge/EpicBanItem>
 
 ![EpicBanItem.png](https://forums-cdn.spongepowered.org/uploads/default/original/3X/d/f/df777d2f56331853a78fafc6876c59a412a2353d.png)
 
