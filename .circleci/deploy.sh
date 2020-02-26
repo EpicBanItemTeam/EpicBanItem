@@ -1,7 +1,7 @@
 #!/bin/bash
 
 print_changelog_text() {
-    full_changelog_url="https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/changelog"
+    full_changelog_url="https://docs.ebi.team/#/en/changelog"
     echo "The full changelog is available on <$full_changelog_url>."; echo
     cat CHANGELOG.md | while read -r line; do
         if [[ $line == \#\#* ]]; then context=$line; fi

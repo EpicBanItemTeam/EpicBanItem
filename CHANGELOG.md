@@ -13,7 +13,7 @@
 ## v0.3.1
 
 * Add air filter for checking blocks.
-* Fix BlockUtil non-existence issue ([#13](https://github.com/euOnmyoji/EpicBanItem---Sponge/issues/13)).
+* Fix BlockUtil non-existence issue ([#13](https://github.com/EpicBanItemTeam/EpicBanItem/issues/13)).
 
 ## v0.3.0
 
@@ -24,7 +24,7 @@
 ## v0.2.5
 
 * Add a new trigger named for equip for checking armor equipments.
-* Fix that the indexes in banitem.conf recognizes item ids incorrectly ([#10](https://github.com/euOnmyoji/EpicBanItem---Sponge/issues/10)).
+* Fix that the indexes in banitem.conf recognizes item ids incorrectly ([#10](https://github.com/EpicBanItemTeam/EpicBanItem/issues/10)).
 
 ## v0.2.4
 
@@ -34,12 +34,12 @@
 
 ## v0.2.3
 
-* Fix that virtual update nodes did not load properly ([#5](https://github.com/euOnmyoji/EpicBanItem---Sponge/issues/5)).
+* Fix that virtual update nodes did not load properly ([#5](https://github.com/EpicBanItemTeam/EpicBanItem/issues/5)).
 
 ## v0.2.2
 
 * Add information of the data itself when it cannot be deserialized to items and an error is thrown.
-* Add a config option that disable detailed output of item-to-block mapping ([#6](https://github.com/euOnmyoji/EpicBanItem---Sponge/issues/6)).
+* Add a config option that disable detailed output of item-to-block mapping ([#6](https://github.com/EpicBanItemTeam/EpicBanItem/issues/6)).
 
 ## v0.2.1
 
