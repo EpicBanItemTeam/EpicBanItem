@@ -1,14 +1,17 @@
 # EpicBanItem
 
-A banitem with nbt plugin in sponge.
+The sponge plugin for item restriction by checking nbt tags.
 
-* Getting started guide: <https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/tutorial>
-* Ore distribution platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
-* Plugin documentation: <https://euonmyoji.github.io/EpicBanItem---Sponge/#/en/>
-* bStats: <https://bstats.org/plugin/sponge/EpicBanItem>
-* Discord community: <https://discord.gg/TftabgG>
+* Plugin documentation: <https://docs.ebi.team/#/en/>
+* Getting started guide: <https://docs.ebi.team/#/en/tutorial>
+* Ore platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
+* bStats metrics of plugin: <https://bstats.org/plugin/sponge/EpicBanItem>
 
-![EpicBanItem.png](https://forums-cdn.spongepowered.org/uploads/default/original/3X/d/f/df777d2f56331853a78fafc6876c59a412a2353d.png)
+![EpicBanItem1](https://forums-cdn.spongepowered.org/uploads/default/original/3X/c/d/cdda679f41f9665b90a7f7703c01e88dec3e30a9.png)
+
+![EpicBanItem2](https://forums-cdn.spongepowered.org/uploads/default/original/3X/b/7/b7b3cd35681af738ddc510624e92738460e633fc.png)
+
+![EpicBanItem3](https://forums-cdn.spongepowered.org/uploads/default/original/3X/3/b/3be48a12c964ec6f418f333d14a1dc2dcd2e0bd8.png)
 
 Main developer:
 
@@ -18,6 +21,7 @@ Assist developers:
 
 * GiNYAi ([@ginyai](https://github.com/ginyai))
 * ustc_zzzz ([@ustc-zzzz](https://github.com/ustc-zzzz))
+* SettingDust ([@SettingDust](https://github.com/SettingDust))
 
 EpicBanItem is now based on Minecraft 1.12.2 and SpongeAPI 7.1.0.
 

@@ -1,14 +1,17 @@
 # EpicBanItem
 
-一个基于 NBT 的物品禁用插件。
+通过检查物品 NBT 标签等方式限制物品的 Sponge 插件。
 
-* 入门教程：<https://euonmyoji.github.io/EpicBanItem---Sponge/#/zh/tutorial>
-* Ore 发布平台：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
-* 插件文档：<https://euonmyoji.github.io/EpicBanItem---Sponge/#/zh/>
-* bStats：<https://bstats.org/plugin/sponge/EpicBanItem>
-* Discord 社区：<https://discord.gg/TftabgG>
+* 插件文档：<https://docs.ebi.team/#/zh/>
+* 入门教程：<https://docs.ebi.team/#/zh/tutorial>
+* Ore：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
+* 插件的 bStats 数据：<https://bstats.org/plugin/sponge/EpicBanItem>
 
-![EpicBanItem.png](https://forums-cdn.spongepowered.org/uploads/default/original/3X/d/f/df777d2f56331853a78fafc6876c59a412a2353d.png)
+![EpicBanItem1](https://forums-cdn.spongepowered.org/uploads/default/original/3X/c/d/cdda679f41f9665b90a7f7703c01e88dec3e30a9.png)
+
+![EpicBanItem2](https://forums-cdn.spongepowered.org/uploads/default/original/3X/b/7/b7b3cd35681af738ddc510624e92738460e633fc.png)
+
+![EpicBanItem3](https://forums-cdn.spongepowered.org/uploads/default/original/3X/3/b/3be48a12c964ec6f418f333d14a1dc2dcd2e0bd8.png)
 
 主要开发者：
 
@@ -18,6 +21,7 @@
 
 * GiNYAi（[@ginyai](https://github.com/ginyai)）
 * ustc_zzzz（[@ustc-zzzz](https://github.com/ustc-zzzz)）
+* SettingDust（[@SettingDust](https://github.com/SettingDust)）
 
 EpicBanItem 目前适用于 Minecraft 1.12.2 和 SpongeAPI 7.1.0。
 
