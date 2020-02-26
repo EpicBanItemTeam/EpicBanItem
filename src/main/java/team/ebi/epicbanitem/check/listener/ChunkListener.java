@@ -29,7 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 public class ChunkListener {

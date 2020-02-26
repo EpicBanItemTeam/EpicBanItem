@@ -6,6 +6,9 @@ import org.spongepowered.api.text.Text;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class SimpleLine implements TextLine {
     private List<UiTextElement> texts;
 

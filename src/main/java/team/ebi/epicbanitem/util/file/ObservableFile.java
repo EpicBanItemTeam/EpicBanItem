@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public interface ObservableFile extends Closeable {
 
     Path getPath();

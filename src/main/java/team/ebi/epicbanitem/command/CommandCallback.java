@@ -31,6 +31,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @Singleton
 @NonnullByDefault
 public class CommandCallback extends AbstractCommand {

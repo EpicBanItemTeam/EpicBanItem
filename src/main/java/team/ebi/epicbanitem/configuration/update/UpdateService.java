@@ -13,6 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @Singleton
 public class UpdateService {
     public static FileType<ConfigurationNode> BAN_CONF = new FileType<>("BAN_CONF", TypeToken.of(ConfigurationNode.class));

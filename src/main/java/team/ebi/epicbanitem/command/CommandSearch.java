@@ -14,7 +14,7 @@ import static org.spongepowered.api.command.args.GenericArguments.seq;
 /**
  * ebi search corner1 corner2 numPerTick checkRule
  * ebi search corner1 corner2 numPerTick [checkRule|checkRule::query|queryByString] (checkRule::update|updateByString)
- * @author yinyangshi
+ * @author The EpicBanItem Team
  */
 public class CommandSearch extends AbstractCommand {
 

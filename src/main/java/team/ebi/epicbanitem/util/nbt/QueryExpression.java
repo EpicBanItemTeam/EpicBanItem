@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 public class QueryExpression implements DataPredicate {
     private static final Map<String, Function<ConfigurationNode, DataPredicate>> OPERATORS;

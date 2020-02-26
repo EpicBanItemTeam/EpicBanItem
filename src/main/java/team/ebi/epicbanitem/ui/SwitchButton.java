@@ -13,6 +13,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @NonnullByDefault
 public class SwitchButton<T> extends Button {
     private int index;

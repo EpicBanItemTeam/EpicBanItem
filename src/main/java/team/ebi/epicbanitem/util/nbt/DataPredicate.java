@@ -7,7 +7,7 @@ import org.spongepowered.api.util.Tristate;
 import java.util.Optional;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @FunctionalInterface
 public interface DataPredicate {

@@ -7,6 +7,9 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.util.Objects;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class ObservableDirectory implements ObservableFile, Closeable {
     private final Path path;
     private final FileConsumer<Path> createConsumer;

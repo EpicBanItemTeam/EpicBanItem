@@ -28,6 +28,9 @@ import team.ebi.epicbanitem.util.TextUtil;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @Singleton
 @NonnullByDefault
 public class CommandCheckAll extends AbstractCommand {

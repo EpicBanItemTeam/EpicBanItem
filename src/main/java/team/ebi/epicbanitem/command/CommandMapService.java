@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @Singleton
 public class CommandMapService {
     private Map<List<String>, CommandCallable> childrenMap = Maps.newHashMap();

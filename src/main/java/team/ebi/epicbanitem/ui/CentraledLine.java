@@ -8,6 +8,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class CentraledLine implements TextLine {
     private int width;
     private List<UiTextElement> elements;

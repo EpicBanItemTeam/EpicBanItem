@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 public class NbtTagRenderer {
     public static final NbtTagRenderer EMPTY_RENDERER = new NbtTagRenderer(null);

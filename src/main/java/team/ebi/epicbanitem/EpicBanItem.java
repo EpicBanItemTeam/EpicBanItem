@@ -17,7 +17,7 @@ import team.ebi.epicbanitem.locale.LocaleService;
 import java.util.Objects;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Plugin(
     id = EpicBanItem.PLUGIN_ID,

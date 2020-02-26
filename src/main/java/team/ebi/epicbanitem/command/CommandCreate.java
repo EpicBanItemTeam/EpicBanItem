@@ -43,7 +43,7 @@ import java.util.function.Predicate;
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault

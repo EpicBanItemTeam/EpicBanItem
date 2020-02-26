@@ -11,7 +11,7 @@ import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.command.arg.EpicBanItemArgs;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault

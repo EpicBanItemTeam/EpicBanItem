@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class VariableHeightLines {
     private List<TextLine> lines;
 

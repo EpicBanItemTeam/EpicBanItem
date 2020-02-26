@@ -5,6 +5,9 @@ import org.spongepowered.api.text.Text;
 
 import java.util.function.Function;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class TranslateLine implements TextLine {
     private UiTextElement element;
     private Function<Text, Text> treans;

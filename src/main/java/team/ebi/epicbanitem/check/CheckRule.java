@@ -44,7 +44,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @NonnullByDefault
 @SuppressWarnings({ "WeakerAccess" })

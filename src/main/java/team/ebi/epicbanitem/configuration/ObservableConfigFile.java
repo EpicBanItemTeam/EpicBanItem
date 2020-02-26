@@ -18,6 +18,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class ObservableConfigFile implements ObservableFile, Closeable {
     private final FileConsumer<ConfigurationNode> deleteConsumer;
     private final FileConsumer<ConfigurationNode> updateConsumer;

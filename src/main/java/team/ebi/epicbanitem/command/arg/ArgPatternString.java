@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @NonnullByDefault
 public class ArgPatternString extends CommandElement {
     private Pattern pattern;
