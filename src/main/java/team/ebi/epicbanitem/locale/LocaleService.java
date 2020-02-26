@@ -107,6 +107,7 @@ public class LocaleService {
     }
 
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public final Optional<Text> getText(String path, Tuple<String, ?>... tuples) {
         return getText(path, Arrays.stream(tuples).collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond)));
     }

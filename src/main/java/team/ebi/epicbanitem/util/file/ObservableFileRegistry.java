@@ -35,6 +35,7 @@ public class ObservableFileRegistry implements ObservableFileService, Closeable 
         Files.createDirectories(this.directory);
     }
 
+    @SuppressWarnings("unchecked")
     void tick(Task task) {
         WatchKey watchKey = this.watchService.poll();
         if (Objects.nonNull(watchKey)) {

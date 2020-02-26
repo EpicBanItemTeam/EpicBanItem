@@ -39,8 +39,8 @@ public class UpdateService {
         updaterMap.computeIfAbsent(type, t -> new ArrayList<>()).add(updater);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T update(FileType<T> type, T o, int fromVersion, int toVersion) {
-        //noinspection unchecked
         List<Updater<T>> updaters = (List<Updater<T>>)(Object)(updaterMap.getOrDefault(type, Collections.emptyList()));
         List<Updater<T>> list = new ArrayList<>();
         int version = fromVersion;
