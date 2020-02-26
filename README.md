@@ -14,7 +14,11 @@ The sponge plugin for item restriction by checking nbt tags.
 * Ore：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
 * 插件的 bStats 数据：<https://bstats.org/plugin/sponge/EpicBanItem>
 
-![EpicBanItem.png](https://forums-cdn.spongepowered.org/uploads/default/original/3X/d/f/df777d2f56331853a78fafc6876c59a412a2353d.png)
+![EpicBanItem1](https://forums-cdn.spongepowered.org/uploads/default/original/3X/c/d/cdda679f41f9665b90a7f7703c01e88dec3e30a9.png)
+
+![EpicBanItem2](https://forums-cdn.spongepowered.org/uploads/default/original/3X/b/7/b7b3cd35681af738ddc510624e92738460e633fc.png)
+
+![EpicBanItem3](https://forums-cdn.spongepowered.org/uploads/default/original/3X/3/b/3be48a12c964ec6f418f333d14a1dc2dcd2e0bd8.png)
 
 ## English
 
