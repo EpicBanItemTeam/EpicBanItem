@@ -1,0 +1,12 @@
+
+repositories {
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()
+    compile 'org.apache.httpcomponents:httpmime:4.5.11'
+    compile 'com.google.code.gson:gson:2.8.0';
+}

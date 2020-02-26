@@ -1,3 +1,5 @@
+import team.ebi.gradle.TaskOreDeploy
+
 plugins {
     id "com.github.johnrengelman.shadow" version "2.0.4"
     id "ninja.miserable.blossom" version "1.0.1"
@@ -44,6 +46,20 @@ shadowJar {
     build.dependsOn += it
 
     configurations = [] // no dependency now
+}
+
+println("Key:" + System.getProperty("ore.key"))
+
+task oreDeploy(type: TaskOreDeploy) {
+    pluginId = project.ext.id
+    apiKey = System.getProperty("ore.key")
+    setPluginInfo(
+            recommended: true,
+            createForumPost: true,
+//            description: "v0.4.0",
+            tags: [Channel: "PreRelease"]
+    )
+    jarTask = "shadowJar"
 }
 
 blossom {
