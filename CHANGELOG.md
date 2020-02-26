@@ -1,5 +1,13 @@
 # EpicBanItem Changelog
 
+## v0.4.0
+
+* Make locale file reloadable
+* Chance ban config format
+* Use game registry for trigger registry
+* Adjust output of query & update command.Fix #8
+* Add new trigger `join`
+
 ## v0.3.3
 
 * Fix that regular expression on `$not` operator cannot work normally.
