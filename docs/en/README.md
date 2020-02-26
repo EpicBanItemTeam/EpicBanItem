@@ -3,8 +3,8 @@
 The sponge plugin for item restriction by checking nbt tags.
 
 * Discord community: <https://discord.gg/TftabgG>
-* Plugin documentation: <https://docs.ebi.team/#/en/>
-* Getting started guide: <https://docs.ebi.team/#/en/tutorial>
+* Plugin documentation: <https://docs.ebi.team/en/>
+* Getting started guide: <https://docs.ebi.team/en/tutorial>
 * Ore platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
 * bStats metrics of the plugin: <https://bstats.org/plugin/sponge/EpicBanItem>
 

@@ -3,8 +3,8 @@
 通过检查物品 NBT 标签等方式限制物品的 Sponge 插件。
 
 * Discord：<https://discord.gg/TftabgG>
-* 插件文档：<https://docs.ebi.team/#/zh/>
-* 入门教程：<https://docs.ebi.team/#/zh/tutorial>
+* 插件使用文档：<https://docs.ebi.team/zh/>
+* 插件入门教程：<https://docs.ebi.team/zh/tutorial>
 * Ore：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
 * 插件的 bStats 数据：<https://bstats.org/plugin/sponge/EpicBanItem>
 

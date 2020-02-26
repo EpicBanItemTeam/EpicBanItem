@@ -3,9 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <title>EpicBanItem Documentation</title>
-  <meta http-equiv="refresh" content="0;url=./#/en/">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="description" content="The documentation of EpicBanItem">
   <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/docsify/lib/themes/vue.css">
+  <script>
+    window['$docsify'] = {
+      name: 'EpicBanItem',
+      routerMode: 'history',
+      loadSidebar: 'SUMMARY',
+      notFoundPage: 'index.html',
+      externalLinkTarget: '_self',
+      repo: 'https://github.com/EpicBanItemTeam/EpicBanItem',
+      alias: {
+        '/en/(.*)': '/docs/en/$1',
+        '/zh/(.*)': '/docs/zh/$1',
+        '/.*/changelog': 'https://raw.githubusercontent.com/EpicBanItemTeam/EpicBanItem/master/CHANGELOG.md'
+      }
+    }
+  </script>
 </head>
+<body>
+  <nav>
+    <a onclick="(function(l){var p=l.pathname.split('/');p[1]='en';l.replace(p.join('/'))})(window.location)">English</a>
+    <a onclick="(function(l){var p=l.pathname.split('/');p[1]='zh';l.replace(p.join('/'))})(window.location)">简体中文</a>
+  </nav>
+  <main id="app"></main>
+  <script src="https://unpkg.com/docsify/lib/docsify.min.js"></script>
+</body>
 </html>
