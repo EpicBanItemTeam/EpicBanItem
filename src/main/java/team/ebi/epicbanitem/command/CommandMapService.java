@@ -9,7 +9,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.function.BiConsumer;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * @author The EpicBanItem Team
@@ -21,6 +22,7 @@ public class CommandMapService {
 
     public void registerCommand(ICommand command) {
         ImmutableList<String> names = ImmutableList.copyOf(command.getNameList());
+        checkArgument(!childrenMap.containsKey(names), "name list is duplicate");
         names.forEach(name -> flatMap.putIfAbsent(name, command.getCallable()));
         childrenMap.put(names, command.getCallable());
     }
