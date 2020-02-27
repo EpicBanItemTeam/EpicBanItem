@@ -3,16 +3,15 @@ package team.ebi.epicbanitem.util.file;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.spongepowered.api.event.EventManager;
-import org.spongepowered.api.event.game.state.GameStoppingEvent;
-import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.scheduler.Task;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.game.state.GameStoppingEvent;
+import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.scheduler.Task;
 
 /**
  * @author The EpicBanItem Team
@@ -20,15 +19,10 @@ import java.util.Map;
 @Singleton
 public class ObservableFileServiceImpl implements ObservableFileService, Closeable {
     private final Map<String, ObservableFileRegistry> observableDirectories;
-    private final EventManager eventManager;
-    private final PluginContainer pluginContainer;
     private final Task task;
 
     @Inject
     public ObservableFileServiceImpl(PluginContainer pluginContainer, EventManager eventManager) {
-        this.pluginContainer = pluginContainer;
-        this.eventManager = eventManager;
-
         this.observableDirectories = Maps.newHashMap();
 
         this.task =

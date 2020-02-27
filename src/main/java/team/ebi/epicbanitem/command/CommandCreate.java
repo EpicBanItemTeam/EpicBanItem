@@ -149,6 +149,7 @@ class CommandCreate extends AbstractCommand {
                 List<ConfigurationNode> nodeList = rayHit
                     .getExtent()
                     .getTileEntity(rayHit.getBlockX(), rayHit.getBlockY(), rayHit.getBlockZ())
+                    .filter(Carrier.class::isInstance)
                     .map(Carrier.class::cast)
                     .map(Carrier::getInventory)
                     .filter(inventory -> inventory.totalItems() > 0)
