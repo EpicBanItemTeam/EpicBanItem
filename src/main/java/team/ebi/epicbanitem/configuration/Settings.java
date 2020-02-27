@@ -179,7 +179,7 @@ public class Settings {
         NbtTagDataUtil.printToLogger(logger::debug, this.printItemToBlockMapping());
         logger.debug("Change the value of 'print-item-to-block-mapping' to enable or disable detailed output.");
         if (checkUpdate) {
-            CompletableFuture.runAsync(()->injector.getInstance(UpdateChecker.class).checkUpdate());
+            CompletableFuture.runAsync(injector.getInstance(UpdateChecker.class)::checkUpdate);
         }
     }
 }

@@ -13,6 +13,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @Singleton
 public class UpdateChecker {
     private static String ORE_API = "https://ore.spongepowered.org/api/v2/";
