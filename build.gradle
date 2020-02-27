@@ -48,8 +48,6 @@ shadowJar {
     configurations = [] // no dependency now
 }
 
-println("Key:" + System.getProperty("ore.key"))
-
 task oreDeploy(type: TaskOreDeploy) {
     pluginId = project.ext.id
     apiKey = System.getProperty("ore.key")
