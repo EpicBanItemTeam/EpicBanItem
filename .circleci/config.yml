@@ -34,7 +34,7 @@ jobs:
           path: ~/EpicBanItem
       - attach_workspace:
           at: ~/EpicBanItem
-      - run: .circleci/deploy.sh
+      - run: ./gradlew oreDeploy -Dore.key=$API_V2_KEY
 workflows:
   version: 2
   build:

@@ -3,7 +3,7 @@ package team.ebi.epicbanitem.util.nbt;
 import org.spongepowered.api.data.DataView;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @FunctionalInterface
 public interface DataTransformer {

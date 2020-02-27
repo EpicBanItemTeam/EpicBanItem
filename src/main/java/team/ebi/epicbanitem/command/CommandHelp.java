@@ -17,7 +17,7 @@ import team.ebi.epicbanitem.locale.LocaleService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault

@@ -7,7 +7,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.check.Triggers;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @NonnullByDefault
 @CatalogedBy(Triggers.class)

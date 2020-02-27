@@ -16,6 +16,9 @@ import java.util.Objects;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class ObservableFileRegistry implements ObservableFileService, Closeable {
     private final Map<String, ObservableFile> registeredFiles;
     private final Map<String, Long> timestamps;
@@ -32,6 +35,7 @@ public class ObservableFileRegistry implements ObservableFileService, Closeable 
         Files.createDirectories(this.directory);
     }
 
+    @SuppressWarnings("unchecked")
     void tick(Task task) {
         WatchKey watchKey = this.watchService.poll();
         if (Objects.nonNull(watchKey)) {

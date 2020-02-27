@@ -8,6 +8,9 @@ import team.ebi.epicbanitem.command.CommandCallback;
 
 import java.util.function.Supplier;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @NonnullByDefault
 public abstract class Button implements UiTextElement {
     protected Supplier<Text.Builder> display;

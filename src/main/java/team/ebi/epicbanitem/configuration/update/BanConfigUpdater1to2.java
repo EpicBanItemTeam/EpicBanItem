@@ -19,6 +19,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @NonnullByDefault
 @Singleton
 public class BanConfigUpdater1to2 implements Updater<ConfigurationNode> {

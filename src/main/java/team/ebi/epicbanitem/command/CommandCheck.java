@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 public class CommandCheck extends AbstractCommand {

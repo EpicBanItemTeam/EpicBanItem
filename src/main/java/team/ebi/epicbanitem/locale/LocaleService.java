@@ -33,7 +33,7 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @SuppressWarnings("SpellCheckingInspection")
 @Singleton
@@ -107,6 +107,7 @@ public class LocaleService {
     }
 
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public final Optional<Text> getText(String path, Tuple<String, ?>... tuples) {
         return getText(path, Arrays.stream(tuples).collect(Collectors.toMap(Tuple::getFirst, Tuple::getSecond)));
     }

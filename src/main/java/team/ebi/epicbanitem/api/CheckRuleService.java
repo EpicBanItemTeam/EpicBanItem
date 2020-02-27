@@ -16,7 +16,7 @@ import team.ebi.epicbanitem.check.CheckRuleServiceImpl;
 import javax.annotation.Nullable;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @NonnullByDefault
 @ImplementedBy(CheckRuleServiceImpl.class)

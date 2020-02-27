@@ -53,7 +53,7 @@ import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.TextUtil;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault

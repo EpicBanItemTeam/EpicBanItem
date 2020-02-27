@@ -14,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @Singleton
 public class ObservableFileServiceImpl implements ObservableFileService, Closeable {
     private final Map<String, ObservableFileRegistry> observableDirectories;

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author EBI
+ * @author The EpicBanItem Team
  */
 @Singleton
 public class CommandEbi extends AbstractCommand {

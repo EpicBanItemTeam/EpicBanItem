@@ -40,7 +40,7 @@ import org.spongepowered.api.world.storage.WorldProperties;
 import team.ebi.epicbanitem.EpicBanItem;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @SuppressWarnings({"DuplicatedCode", "UnstableApiUsage"})
 public class NbtTagDataUtil {

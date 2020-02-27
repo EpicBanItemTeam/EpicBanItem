@@ -7,6 +7,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.util.file.ObservableFile;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +18,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class ObservableConfigFile implements ObservableFile, Closeable {
     private final FileConsumer<ConfigurationNode> deleteConsumer;
     private final FileConsumer<ConfigurationNode> updateConsumer;
@@ -53,10 +57,14 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
                 this.updateConsumer.accept(node);
             }
         } catch (Exception e) {
-            EpicBanItem.getLogger().warn("Failed to load config file {}, a backup is created at {}", path, backup);
+            if (backup != null) {
+                EpicBanItem.getLogger().warn("Failed to load config file {}, a backup is created at {}", path, backup);
+            }
             throw e;
         }
-        Files.delete(backup);
+        if (backup != null) {
+            Files.delete(backup);
+        }
     }
 
     public void save() throws IOException {
@@ -70,7 +78,11 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
         }
     }
 
+    @Nullable
     public Path backup() throws IOException {
+        if (!Files.exists(this.path)) {
+            return null;
+        }
         Path backupDir = configDir.resolve("backup");
         Path aPath = backupDir.resolve(configDir.relativize(this.path));
         Path dir = aPath.getParent();

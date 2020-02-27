@@ -18,6 +18,7 @@ import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
@@ -35,7 +36,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault
@@ -75,16 +76,19 @@ public class CommandQuery extends AbstractCommand {
         try {
             DataContainer nbt;
             Translation name;
+            Text titleText;
             if (lookAtBlock) {
                 Optional<BlockSnapshot> optional = CommandCreate.getBlockLookAt(src);
                 BlockSnapshot b = optional.orElseThrow(() -> new CommandException(getMessage("noBlock")));
                 nbt = NbtTagDataUtil.toNbt(b);
                 name = b.getState().getType().getTranslation();
+                titleText = Text.of(name);
             } else {
                 Optional<Tuple<HandType, ItemStack>> optional = CommandCreate.getItemInHand(src);
                 Tuple<HandType, ItemStack> i = optional.orElseThrow(() -> new CommandException(getMessage("noItem")));
                 nbt = NbtTagDataUtil.toNbt(i.getSecond());
                 name = i.getSecond().getTranslation();
+                titleText = Text.builder(name).onHover(TextActions.showItem(i.getSecond().createSnapshot())).build();
             }
             QueryExpression query = new QueryExpression(TextUtil.serializeStringToConfigNode(rule));
             DataQuery idQuery = DataQuery.of("id");
@@ -98,14 +102,12 @@ public class CommandQuery extends AbstractCommand {
                     .append(Text.of(name))
                     .onHover(TextActions.showText(text))
                     .append(Text.NEW_LINE);
-                Sponge
-                    .getServiceManager()
-                    .provideUnchecked(PaginationService.class)
+                PaginationList
                     .builder()
-                    .title(prefix.build())
+                    .title(titleText)
+                    .header(prefix.build())
                     .padding(Text.of(TextColors.GREEN, "-"))
                     .contents(TextUtil.serializeNbtToString(nbt, result.get()))
-                    .linesPerPage(18)
                     .sendTo(src);
             } else {
                 Text text = Text.of("id -> " + tristate);

@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault

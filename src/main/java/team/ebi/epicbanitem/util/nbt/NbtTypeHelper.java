@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @NonnullByDefault
 final class NbtTypeHelper {

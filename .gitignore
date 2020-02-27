@@ -21,6 +21,10 @@
 !build.gradle
 !settings.gradle
 !gradle.properties
+!buildSrc/
+buildSrc/*
+!buildSrc/build.gradle
+!buildSrc/src
 
 # Circle CI
 !.circleci/

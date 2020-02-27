@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class AbstractCommand implements ICommand, CommandExecutor {

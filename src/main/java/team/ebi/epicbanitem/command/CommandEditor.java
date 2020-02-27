@@ -39,7 +39,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault

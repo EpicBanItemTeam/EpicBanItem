@@ -13,6 +13,9 @@ import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class InputRequestElement<T> implements UiTextElement {
     private Supplier<Text.Builder> display;
     private Supplier<?> suggestion;

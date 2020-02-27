@@ -4,6 +4,9 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextRepresentable;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class FixedTextElement implements UiTextElement, TextLine {
     private TextRepresentable text;
 

@@ -11,6 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent.Kind;
 
+/**
+ * @author The EpicBanItem Team
+ */
 public class ObservableLocaleFile implements ObservableFile {
     private final FileConsumer<Reader> updateConsumer;
     private final Path path;

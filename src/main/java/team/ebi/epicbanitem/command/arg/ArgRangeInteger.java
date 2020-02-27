@@ -14,6 +14,9 @@ import team.ebi.epicbanitem.EpicBanItem;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * @author The EpicBanItem Team
+ */
 @NonnullByDefault
 public class ArgRangeInteger extends CommandElement {
 
