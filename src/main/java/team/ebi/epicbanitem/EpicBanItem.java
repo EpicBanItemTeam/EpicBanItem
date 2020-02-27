@@ -32,6 +32,7 @@ public class EpicBanItem {
     public static final String PLUGIN_ID = "epicbanitem";
     public static final String NAME = "EpicBanItem";
     public static final String VERSION = "@version@";
+    public static final String ORE = "https://ore.spongepowered.org/EpicBanItem/EpicBanItem";
 
     private static EpicBanItem instance;
 

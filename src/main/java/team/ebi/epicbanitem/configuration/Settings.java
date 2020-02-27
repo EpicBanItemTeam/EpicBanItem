@@ -3,6 +3,7 @@ package team.ebi.epicbanitem.configuration;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.slf4j.Logger;
@@ -10,7 +11,6 @@ import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.EventManager;
-import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
@@ -23,6 +23,7 @@ import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
+import team.ebi.epicbanitem.util.UpdateChecker;
 import team.ebi.epicbanitem.util.file.ObservableFileService;
 
 import javax.annotation.Nullable;
@@ -31,6 +32,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author The EpicBanItem Team
@@ -53,6 +55,7 @@ public class Settings {
 
     private boolean listenLoadingChunk = false;
     private boolean printItemToBlockMapping = true;
+    private boolean checkUpdate = true;
 
     private Map<String, Boolean> enabledWorlds = Maps.newLinkedHashMap();
     private Map<CheckRuleTrigger, Boolean> enabledTriggers = Maps.newLinkedHashMap();
@@ -67,10 +70,14 @@ public class Settings {
     private ObservableFileService fileService;
 
     @Inject
+    private Injector injector;
+
+    @Inject
     private Settings(EventManager eventManager, PluginContainer pluginContainer, Logger logger) {
         this.logger = logger;
         eventClass = getClassForCraftingResultRedirectionEvent();
         eventManager.registerListener(pluginContainer, GamePostInitializationEvent.class, this::onPostInit);
+        eventManager.registerListener(pluginContainer, GameStartedServerEvent.class, this::onStarted);
     }
 
     @Nullable
@@ -103,6 +110,7 @@ public class Settings {
         this.resetToDefault();
 
         this.printItemToBlockMapping = node.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).getBoolean(true);
+        this.checkUpdate = node.getNode("epicbantiem", "check-update").getBoolean(true);
 
         ConfigurationNode defaultWorlds = node.getNode("epicbanitem", DEFAULT_WORLD);
         defaultWorlds.getChildrenMap().forEach((k, v) -> this.enabledWorlds.put(k.toString(), v.getBoolean()));
@@ -132,6 +140,7 @@ public class Settings {
         node.getNode("epicbanitem-version").setValue(CURRENT_VERSION);
 
         node.getNode("epicbanitem", PRINT_ITEM_TO_BLOCK_MAPPING).setValue(this.printItemToBlockMapping);
+        node.getNode("epicbanitem", "check-update").setValue(this.checkUpdate);
 
         this.enabledWorlds.forEach((k, v) -> node.getNode("epicbanitem", DEFAULT_WORLD, k).setValue(v));
 
@@ -166,9 +175,11 @@ public class Settings {
         configFile.save();
     }
 
-    @Listener
-    public void onStarted(GameStartedServerEvent event) {
+    private void onStarted(GameStartedServerEvent event) {
         NbtTagDataUtil.printToLogger(logger::debug, this.printItemToBlockMapping());
         logger.debug("Change the value of 'print-item-to-block-mapping' to enable or disable detailed output.");
+        if (checkUpdate) {
+            CompletableFuture.runAsync(()->injector.getInstance(UpdateChecker.class).checkUpdate());
+        }
     }
 }
