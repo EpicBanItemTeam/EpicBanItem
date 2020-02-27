@@ -70,10 +70,13 @@ epicbanitem.command.create.existed = 规则名{rule_name}已经被使用了.
 epicbanitem.command.create.conflict = 以下参数在一条命令里只能使用零或一个：“--no-capture”, “--simple-capture”, “--all-capture (--all-match)”
 epicbanitem.command.create.override = {key} 将会被手中物品覆盖。如欲不覆盖，请加“--no-capture”参数重试
 epicbanitem.command.create.empty = id 不存在，同时手中物品为空，这会导致匹配物品时性能下降。如欲不指定 id，请加“--no-capture”参数重试
+epicbanitem.command.create.emptyBlock = 目标容器为空
+epicbanitem.command.create.playerOnly = 只有玩家可以使用这个命令
 epicbanitem.command.create.flags.noCapture = 如果你不希望依赖手中物品的 id，请使用这个参数
 epicbanitem.command.create.flags.simpleCapture = 如果你希望匹配手中物品除 NBT 标签外所有细节，请使用这个参数
 epicbanitem.command.create.flags.allCapture = 如果你希望匹配手中物品的所有细节，请使用这个参数
 epicbanitem.command.create.flags.allMatch = 如果你希望匹配手中物品的所有细节，请使用这个参数
+epicbanitem.command.create.flags.blockInv = 根据指向容器内物品创建规则，支持capture类参数
 epicbanitem.command.create.args.ruleName = 新创建的规则名,规则名由小写英文字母,阿拉伯数字,以及"-"和"_"组成
 epicbanitem.command.create.args.queryRule = 要匹配的规则,默认为空（{}）
 
