@@ -46,13 +46,13 @@ public class CommandEbi extends AbstractCommand {
     private CommandList commandList;
 
     @Inject
-    private CommandCallback commandCallback;
+    private CommandShow commandShow;
 
     @Inject
     private CommandQuery commandQuery;
 
     @Inject
-    private CommandShow commandShow;
+    private CommandUpdate commandUpdate;
 
     @Inject
     private CommandCheck commandCheck;
@@ -64,9 +64,6 @@ public class CommandEbi extends AbstractCommand {
     private CommandCreate commandCreate;
 
     @Inject
-    private CommandUpdate commandUpdate;
-
-    @Inject
     private CommandRemove commandRemove;
 
     @Inject
@@ -74,6 +71,9 @@ public class CommandEbi extends AbstractCommand {
 
     @Inject
     private CommandEditor commandEditor;
+
+    @Inject
+    private CommandCallback commandCallback;
 
     @Inject
     public CommandEbi(EventManager eventManager, PluginContainer pluginContainer) {
@@ -152,16 +152,16 @@ public class CommandEbi extends AbstractCommand {
     public void onInit(GameInitializationEvent event) {
         service.registerCommand(commandHelp);
         service.registerCommand(commandList);
-        service.registerCommand(commandCallback);
-        service.registerCommand(commandQuery);
         service.registerCommand(commandShow);
+        service.registerCommand(commandQuery);
+        service.registerCommand(commandUpdate);
         service.registerCommand(commandCheck);
         service.registerCommand(commandCheckAll);
         service.registerCommand(commandCreate);
-        service.registerCommand(commandUpdate);
         service.registerCommand(commandRemove);
         service.registerCommand(commandEdit);
         service.registerCommand(commandEditor);
+        service.registerCommand(commandCallback);
 
         commandSpec =
             CommandSpec
