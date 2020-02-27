@@ -70,10 +70,13 @@ epicbanitem.command.create.existed = The name {rule_name} is used.
 epicbanitem.command.create.conflict = Only zero or one of those flags can be added in one command: "--no-capture", "--simple-capture", "--all-capture (--all-match)".
 epicbanitem.command.create.override = The {key} will be overridden by the item in hand. Please add "--no-capture" flag if you want to capture nothing from an item.
 epicbanitem.command.create.empty = The id is not available while there is nothing in hand, which will bring performance issue when used. Please add "--no-capture" flag if it is intended
+epicbanitem.command.create.emptyBlock = Target inventory is empty
+epicbanitem.command.create.playerOnly = Only players can use this command
 epicbanitem.command.create.flags.noCapture = Use this parameter if you do not want to rely on the id of the item in hand
 epicbanitem.command.create.flags.simpleCapture = Use this parameter if you want to include all the details except the NBT tag of the item in hand
 epicbanitem.command.create.flags.allCapture = Use this parameter if you want to include all the details of the item in hand
 epicbanitem.command.create.flags.allMatch = Use this parameter if you want to include all the details of the item in hand
+epicbanitem.command.create.flags.blockInv = Create from target block inventory. Can use with capture flags
 epicbanitem.command.create.args.ruleName = The name of the rule to be created, you can use a-z ,0-9 ,'-' & '_'
 epicbanitem.command.create.args.queryRule = The rule for querying, and the default value is empty ({})
 

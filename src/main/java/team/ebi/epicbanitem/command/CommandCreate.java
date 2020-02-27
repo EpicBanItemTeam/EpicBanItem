@@ -1,9 +1,27 @@
 package team.ebi.epicbanitem.command;
 
+import static org.spongepowered.api.command.args.GenericArguments.flags;
+import static org.spongepowered.api.command.args.GenericArguments.optional;
+import static org.spongepowered.api.command.args.GenericArguments.remainingRawJoinedStrings;
+import static org.spongepowered.api.command.args.GenericArguments.seq;
+import static org.spongepowered.api.util.blockray.BlockRay.continueAfterFilter;
+import static org.spongepowered.api.util.blockray.BlockRay.onlyAirFilter;
+
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.SimpleConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
@@ -19,6 +37,7 @@ import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.ArmorEquipable;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
@@ -32,15 +51,6 @@ import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.command.arg.EpicBanItemArgs;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.TextUtil;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-
-import static org.spongepowered.api.command.args.GenericArguments.*;
 
 /**
  * @author yinyangshi GiNYAi ustc_zzzz
@@ -57,7 +67,7 @@ class CommandCreate extends AbstractCommand {
 
     static Optional<BlockSnapshot> getBlockLookAt(CommandSource src) {
         if (src instanceof Entity) {
-            Predicate<BlockRayHit<World>> filter = BlockRay.continueAfterFilter(BlockRay.onlyAirFilter(), 1);
+            Predicate<BlockRayHit<World>> filter = continueAfterFilter(BlockRay.onlyAirFilter(), 1);
             BlockRay.BlockRayBuilder<World> blockRayBuilder = BlockRay.from((Entity) src).stopFilter(filter);
             return blockRayBuilder.distanceLimit(5).build().end().map(h -> h.getLocation().createSnapshot());
         }
@@ -87,6 +97,7 @@ class CommandCreate extends AbstractCommand {
         return seq(
             EpicBanItemArgs.patternString(Text.of("rule-name"), CheckRule.NAME_PATTERN),
             flags()
+                .flag("-block-inv")
                 .flag("-no-capture")
                 .flag("-simple-capture")
                 .flag("-all-capture")
@@ -116,32 +127,56 @@ class CommandCreate extends AbstractCommand {
             if (service.getCheckRuleByName(name).isPresent()) {
                 throw new CommandException(getMessage("existed", Tuple.of("rule_name", name)));
             }
-            Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
+
             try {
                 capture = Iterables.getOnlyElement(captureMethods, capture);
             } catch (IllegalArgumentException e) {
                 throw new CommandException(getMessage("conflict"));
             }
-            ConfigurationNode queryNode = TextUtil.serializeStringToConfigNode(query);
-            DataView nbt = handItem.map(e -> NbtTagDataUtil.toNbt(e.getSecond())).orElse(DataContainer.createNew());
-            for (Map.Entry<DataQuery, Object> entry : nbt.getValues(false).entrySet()) {
-                //noinspection ConstantConditions interesting idea
-                if (!capture.test(entry)) {
-                    nbt.remove(entry.getKey());
+
+            final Predicate<Map.Entry<DataQuery, Object>> finalCapture = capture.negate();
+
+            ConfigurationNode queryNode = SimpleConfigurationNode.root();
+
+            if (args.hasAny("block-inv")) {
+                if (!(src instanceof Player)) {
+                    throw new CommandException(getMessage("playerOnly"));
                 }
-            }
-            ConfigurationNode nbtNode = DataTranslators.CONFIGURATION_NODE.translate(nbt);
-            for (Map.Entry<Object, ? extends ConfigurationNode> entry : nbtNode.getChildrenMap().entrySet()) {
-                Object key = entry.getKey();
-                ConfigurationNode node = queryNode.getNode(key);
-                if (node.isVirtual()) {
-                    node.setValue(entry.getValue());
-                } else {
-                    throw new CommandException(getMessage("override", Tuple.of("key", key.toString())));
+
+                Player player = (Player) src;
+                BlockRay<World> blockRay = BlockRay.from(player).distanceLimit(5).stopFilter(continueAfterFilter(onlyAirFilter(), 1)).build();
+                BlockRayHit<World> rayHit = blockRay.end().orElseThrow(() -> new CommandException(getMessage("emptyBlock")));
+                List<ConfigurationNode> nodeList = rayHit
+                    .getExtent()
+                    .getTileEntity(rayHit.getBlockX(), rayHit.getBlockY(), rayHit.getBlockZ())
+                    .map(Carrier.class::cast)
+                    .map(Carrier::getInventory)
+                    .filter(inventory -> inventory.totalItems() > 0)
+                    .map(NbtTagDataUtil::toNbt)
+                    .map(Collection::stream)
+                    .map(stream -> stream.map(dataContainer -> translateNBTToNode(dataContainer, finalCapture)).collect(Collectors.toList()))
+                    .orElseThrow(() -> new CommandException(getMessage("emptyBlock")));
+                if (nodeList.isEmpty()) {
+                    throw new CommandException(getMessage("emptyBlock"));
                 }
-            }
-            if (queryNode.getNode("id").isVirtual() && !args.hasAny("no-capture")) {
-                throw new CommandException(getMessage("empty"));
+                queryNode.getNode("$or").setValue(nodeList);
+            } else {
+                Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
+                queryNode = TextUtil.serializeStringToConfigNode(query);
+                DataView nbt = handItem.map(e -> NbtTagDataUtil.toNbt(e.getSecond())).orElse(DataContainer.createNew());
+                ConfigurationNode nbtNode = translateNBTToNode(nbt, finalCapture);
+                for (Map.Entry<Object, ? extends ConfigurationNode> entry : nbtNode.getChildrenMap().entrySet()) {
+                    Object key = entry.getKey();
+                    ConfigurationNode node = queryNode.getNode(key);
+                    if (node.isVirtual()) {
+                        node.setValue(entry.getValue());
+                    } else {
+                        throw new CommandException(getMessage("override", Tuple.of("key", key.toString())));
+                    }
+                }
+                if (queryNode.getNode("id").isVirtual() && !args.hasAny("no-capture")) {
+                    throw new CommandException(getMessage("empty"));
+                }
             }
             if (src instanceof Player) {
                 CommandEditor.add((Player) src, name, queryNode, true);
@@ -161,5 +196,10 @@ class CommandCreate extends AbstractCommand {
         } catch (Exception e) {
             throw handleException(src, getMessage("failed"), e);
         }
+    }
+
+    public ConfigurationNode translateNBTToNode(DataView nbt, Predicate<Map.Entry<DataQuery, Object>> capture) {
+        nbt.getValues(false).entrySet().stream().filter(capture).map(Entry::getKey).forEach(nbt::remove);
+        return DataTranslators.CONFIGURATION_NODE.translate(nbt);
     }
 }
