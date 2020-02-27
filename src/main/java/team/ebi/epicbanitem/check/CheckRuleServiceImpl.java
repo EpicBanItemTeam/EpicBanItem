@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.UnaryOperator;
 
 /**
  * @author The EpicBanItem Team
@@ -132,9 +131,7 @@ public class CheckRuleServiceImpl implements CheckRuleService {
         return banConfig
             .getRulesWithIdFiltered(id)
             .stream()
-            .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
-            .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result)))
-            .apply(origin);
+            .reduce(origin, (result, rule) -> rule.check(result, world, trigger, subject), (a, b) -> {throw new IllegalStateException();});
     }
 
     @Listener
