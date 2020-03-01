@@ -229,6 +229,7 @@ public class BanConfig {
                         observableConfigFile.save();
                     } else {
                         observableConfigFile.close();
+                        extraObservableFiles.remove(group);
                         Files.delete(observableConfigFile.getPath());
                     }
                 }
