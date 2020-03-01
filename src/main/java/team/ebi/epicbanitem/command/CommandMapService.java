@@ -1,39 +1,37 @@
 package team.ebi.epicbanitem.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.inject.Singleton;
 import org.spongepowered.api.command.CommandCallable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.SortedMap;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * @author The EpicBanItem Team
  */
 @Singleton
 public class CommandMapService {
-    private Map<List<String>, CommandCallable> childrenMap = Maps.newHashMap();
-    private Map<String, CommandCallable> flatMap;
+    private final Map<List<String>, CommandCallable> childrenMap = Maps.newLinkedHashMap();
+    private final SortedMap<String, CommandCallable> flatMap = Maps.newTreeMap();
 
-    public CommandMapService registerCommand(ICommand command) {
-        childrenMap.put(command.getNameList(), command.getCallable());
-        return this;
+    public void registerCommand(ICommand command) {
+        ImmutableList<String> names = ImmutableList.copyOf(command.getNameList());
+        checkArgument(!childrenMap.containsKey(names), "name list is duplicate");
+        names.forEach(name -> flatMap.putIfAbsent(name, command.getCallable()));
+        childrenMap.put(names, command.getCallable());
     }
 
     public Map<List<String>, CommandCallable> getChildrenMap() {
-        return childrenMap;
+        return Collections.unmodifiableMap(childrenMap);
     }
 
-    public void forEach(BiConsumer<? super List<String>, ? super CommandCallable> action) {
-        childrenMap.forEach(action);
-    }
-
-    public Map<String, CommandCallable> getFlatMap() {
-        if (flatMap == null) {
-            flatMap = Maps.newHashMap();
-            childrenMap.forEach((commands, commandCallable) -> commands.forEach(command -> flatMap.put(command, commandCallable)));
-        }
-        return flatMap;
+    public SortedMap<String, CommandCallable> getFlatMap() {
+        return Collections.unmodifiableSortedMap(flatMap);
     }
 }

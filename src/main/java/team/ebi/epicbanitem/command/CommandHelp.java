@@ -11,9 +11,13 @@ import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.locale.LocaleService;
 
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -34,8 +38,9 @@ public class CommandHelp extends AbstractCommand {
 
     @Override
     public CommandElement getArgument() {
+        SortedMap<String, CommandCallable> flatMap = service.getFlatMap();
         return GenericArguments.optional(
-            GenericArguments.choices(Text.of("sub-command"), () -> service.getFlatMap().keySet(), key -> service.getFlatMap().get(key), false)
+            GenericArguments.choices(Text.of("sub-command"), flatMap::keySet, flatMap::get, false)
         );
     }
 
@@ -49,30 +54,26 @@ public class CommandHelp extends AbstractCommand {
                 src.sendMessage(subCommand.getHelp(src).orElse(getMessage("noHelp")));
             }
         } else {
-            Text.Builder builder = Text.builder();
-            AtomicBoolean first = new AtomicBoolean(true);
-            service
-                .getChildrenMap()
-                .entrySet()
-                .stream()
-                .filter(entry -> entry.getValue().testPermission(src))
-                .forEach(
-                    entry -> {
-                        if (first.get()) {
-                            first.set(false);
-                        } else {
-                            builder.append(Text.NEW_LINE);
-                        }
-                        builder.append(
-                            Text.of(TextColors.GRAY, "/" + CommandEbi.COMMAND_PREFIX + " " + entry.getKey().get(0) + " "),
-                            entry.getValue().getUsage(src),
-                            Text.NEW_LINE,
-                            entry.getValue().getShortDescription(src).orElse(Text.of("no description"))
-                        );
-                    }
-                );
-
-            Text text = builder.build();
+            Text.Builder textBuilder = Text.builder()
+                    .append(Text.of("EpicBanItem Help"))
+                    .append(Text.NEW_LINE)
+                    .append(localeService.getText("epicbanitem.command.editor.header").orElse(Text.NEW_LINE));
+            for (Map.Entry<List<String>, CommandCallable> entry : service.getChildrenMap().entrySet()) {
+                textBuilder
+                        .append(Text.NEW_LINE)
+                        .append(Text
+                                .builder("/" + CommandEbi.COMMAND_PREFIX + " " + entry.getKey().get(0) + " ")
+                                .color(TextColors.LIGHT_PURPLE)
+                                .build())
+                        .append(entry.getValue().getUsage(src)
+                                .toBuilder()
+                                .color(TextColors.AQUA)
+                                .build());
+                textBuilder
+                        .append(Text.NEW_LINE)
+                        .append(entry.getValue().getShortDescription(src).orElse(Text.of("no description")));
+            }
+            Text text = textBuilder.build();
             if (text.isEmpty()) {
                 src.sendMessage(localeService.getTextWithFallback("epicbanitem.command.help.empty"));
             } else {

@@ -2,15 +2,17 @@
 
 The sponge plugin for item restriction by checking nbt tags.
 
-* Plugin documentation: <https://docs.ebi.team/#/en/>
-* Getting started guide: <https://docs.ebi.team/#/en/tutorial>
+* Discord community: <https://discord.gg/TftabgG>
+* Plugin documentation: <https://docs.ebi.team/en/>
+* Getting started guide: <https://docs.ebi.team/en/tutorial>
 * Ore platform: <https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
-* bStats metrics of plugin: <https://bstats.org/plugin/sponge/EpicBanItem>
+* bStats metrics of the plugin: <https://bstats.org/plugin/sponge/EpicBanItem>
 
 通过检查物品 NBT 标签等方式限制物品的 Sponge 插件。
 
-* 插件文档：<https://docs.ebi.team/#/zh/>
-* 入门教程：<https://docs.ebi.team/#/zh/tutorial>
+* Discord：<https://discord.gg/TftabgG>
+* 插件使用文档：<https://docs.ebi.team/zh/>
+* 插件入门教程：<https://docs.ebi.team/zh/tutorial>
 * Ore：<https://ore.spongepowered.org/EpicBanItem/EpicBanItem>
 * 插件的 bStats 数据：<https://bstats.org/plugin/sponge/EpicBanItem>
 
@@ -30,7 +32,7 @@ Assist developers:
 
 * GiNYAi ([@ginyai](https://github.com/ginyai))
 * ustc_zzzz ([@ustc-zzzz](https://github.com/ustc-zzzz))
-* SettingDust([@SettingDust](https://github.com/SettingDust))
+* SettingDust ([@SettingDust](https://github.com/SettingDust))
 
 EpicBanItem is now based on Minecraft 1.12.2 and SpongeAPI 7.1.0.
 
@@ -52,7 +54,7 @@ EpicBanItem is entirely [licensed under GPL-3.0](LICENSE) and includes `bstats-m
 
 * GiNYAi（[@ginyai](https://github.com/ginyai)）
 * ustc_zzzz（[@ustc-zzzz](https://github.com/ustc-zzzz)）
-* SettingDust([@SettingDust](https://github.com/SettingDust))
+* SettingDust（[@SettingDust](https://github.com/SettingDust)）
 
 EpicBanItem 目前适用于 Minecraft 1.12.2 和 SpongeAPI 7.1.0。
 

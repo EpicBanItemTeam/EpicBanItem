@@ -48,7 +48,7 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
 
     public void load() throws IOException {
         if (closed) {
-            return;
+            throw new IOException("File closed.");
         }
         Path backup = backup();
         try {
@@ -69,7 +69,7 @@ public class ObservableConfigFile implements ObservableFile, Closeable {
 
     public void save() throws IOException {
         if (closed) {
-            return;
+            throw new IOException("File closed.");
         }
         if (Objects.nonNull(this.saveConsumer)) {
             this.node = configurationLoader.createEmptyNode();
