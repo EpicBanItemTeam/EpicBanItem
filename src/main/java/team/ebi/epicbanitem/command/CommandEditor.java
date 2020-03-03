@@ -164,8 +164,8 @@ public class CommandEditor extends AbstractCommand {
 
         private TextLine ruleName() {
             return new TranslateLine(
-                new InputRequestElement<>(
-                    () -> addHoverMessage(Text.builder(ruleBuilder.getName()).color(TextColors.BLUE), getMessage("click")),
+                new InputRequestElement<CheckRuleLocation>(
+                    () -> addHoverMessage(Text.builder(ruleBuilder.getName().map(CheckRuleLocation::toString).orElse("")).color(TextColors.BLUE), getMessage("click")),
                     ruleBuilder::getName,
                     updateAndResend(ruleBuilder::name),
                     EpicBanItemArgs.patternString(Text.of("name"), CheckRuleLocation.NAME_PATTERN)

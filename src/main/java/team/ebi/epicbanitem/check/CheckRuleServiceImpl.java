@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.check;
 
+import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
@@ -130,9 +131,8 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     private CheckResult check(CheckResult origin, String id, World world, CheckRuleTrigger trigger, @Nullable Subject subject) {
-        return banConfig
-            .getRulesWithIdFiltered(id)
-            .stream()
+        //noinspection UnstableApiUsage
+        return Streams.stream(banConfig.getRulesWithIdFiltered(id))
             .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
             .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result)))
             .apply(origin);
