@@ -1,6 +1,5 @@
 package team.ebi.epicbanitem.check.listener;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -253,20 +252,6 @@ public class InventoryListener {
         Stream<Transaction<ItemStackSnapshot>> cursorTransactionStream = Stream.of(event.getCursorTransaction());
         if (this.checkInventory(player, trigger, Stream.concat(cursorTransactionStream, slotTransactionStream))) {
             event.setCancelled(true);
-        }
-    }
-
-    @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onTransfer(
-        ChangeInventoryEvent.Transfer event,
-        @Getter("getSourceInventory") Inventory sourceInventory,
-        @Getter("getTargetInventory") Inventory targetInventory,
-        @Getter("getTransactions") List<SlotTransaction> transactions
-    ) {
-        Inventory rootSourceInventory = sourceInventory.root();
-        Inventory rootTargetInventory = targetInventory.root();
-        if (!Objects.equal(rootSourceInventory, rootTargetInventory)) {
-            checkInventory((Player) event.getSource(), Triggers.TRANSFER, transactions.stream());
         }
     }
 
