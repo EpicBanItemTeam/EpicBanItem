@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.check.listener;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -33,6 +34,7 @@ import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
 import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
+import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.event.item.inventory.TargetInventoryEvent;
 import org.spongepowered.api.item.inventory.Container;
@@ -80,8 +82,8 @@ public class InventoryListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onThrown(ClickInventoryEvent.Drop event, @First Player player) {
-        for (SlotTransaction tran : event.getTransactions()) {
+    public void onThrown(ClickInventoryEvent.Drop event, @First Player player, @Getter("getTransactions") List<SlotTransaction> transactions) {
+        for (SlotTransaction tran : transactions) {
             ItemStackSnapshot item = tran.getOriginal();
             CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
             if (result.isBanned()) {
@@ -104,8 +106,65 @@ public class InventoryListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onDropped(DropItemEvent.Pre event, @First Entity entity) {
-        List<ItemStackSnapshot> droppedItems = event.getDroppedItems();
+    public void onThrown(
+        ClickInventoryEvent.Drop.Outside event,
+        @First Player player,
+        @Getter("getCursorTransaction") Transaction<ItemStackSnapshot> transaction
+    ) {
+        ItemStackSnapshot item = transaction.getOriginal();
+        CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
+        if (result.isBanned()) {
+            event.setCancelled(true);
+            Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+            optionalFinalItem.ifPresent(finalItem -> transaction.setCustom(finalItem.createSnapshot()));
+            Text originItemName = TextUtil.getDisplayName(item.createStack());
+            Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(item.createStack()));
+            TextUtil
+                .prepareMessage(Triggers.THROW, originItemName, finalItemName, ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
+                .forEach(player::sendMessage);
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onCloseThrown(
+        InteractInventoryEvent.Close event,
+        @First Player player,
+        @Getter("getCursorTransaction") Transaction<ItemStackSnapshot> transaction
+    ) {
+        ItemStackSnapshot item = transaction.getOriginal();
+        CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
+        if (result.isBanned()) {
+            Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+            ItemStack itemStack = item.createStack();
+            ItemStack newItem = optionalFinalItem.orElse(itemStack);
+            player.getInventory().offer(newItem);
+            Text originItemName = TextUtil.getDisplayName(itemStack);
+            Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(itemStack));
+            TextUtil
+                .prepareMessage(Triggers.THROW, originItemName, finalItemName, ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
+                .forEach(player::sendMessage);
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onCloseThrown(DropItemEvent.Close event, @Getter("getEntities") List<Entity> entities) {
+        Player player = (Player) event.getSource();
+        entities.removeIf(
+            entity -> {
+                if (entity instanceof Item) {
+                    ItemStackSnapshot item = ((Item) entity).item().get();
+                    CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
+                    if (result.isBanned()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        );
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onDropped(DropItemEvent.Pre event, @First Entity entity, @Getter("getDroppedItems") List<ItemStackSnapshot> droppedItems) {
         Player player = entity instanceof Player ? (Player) entity : null;
         for (int i = droppedItems.size() - 1; i >= 0; --i) {
             ItemStackSnapshot item = droppedItems.get(i);
@@ -194,6 +253,20 @@ public class InventoryListener {
         Stream<Transaction<ItemStackSnapshot>> cursorTransactionStream = Stream.of(event.getCursorTransaction());
         if (this.checkInventory(player, trigger, Stream.concat(cursorTransactionStream, slotTransactionStream))) {
             event.setCancelled(true);
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onTransfer(
+        ChangeInventoryEvent.Transfer event,
+        @Getter("getSourceInventory") Inventory sourceInventory,
+        @Getter("getTargetInventory") Inventory targetInventory,
+        @Getter("getTransactions") List<SlotTransaction> transactions
+    ) {
+        Inventory rootSourceInventory = sourceInventory.root();
+        Inventory rootTargetInventory = targetInventory.root();
+        if (!Objects.equal(rootSourceInventory, rootTargetInventory)) {
+            checkInventory((Player) event.getSource(), Triggers.TRANSFER, transactions.stream());
         }
     }
 
