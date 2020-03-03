@@ -39,7 +39,7 @@ public class CommandRemove extends AbstractCommand {
             .thenAccept(
                 succeed -> {
                     if (succeed) {
-                        src.sendMessage(getMessage("succeed", Tuple.of("rule", checkRule.getName())));
+                        src.sendMessage(getMessage("succeed", Tuple.of("rule", checkRule.getName().toString())));
                     }
                 }
             );

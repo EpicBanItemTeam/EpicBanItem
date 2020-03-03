@@ -54,8 +54,9 @@ public class CheckRule implements TextRepresentable {
         return new CheckRule.Builder();
     }
 
+    @Deprecated
     public static Builder builder(String name) {
-        return new Builder().name(name);
+        return new Builder().name(CheckRuleLocation.of(name));
     }
 
     public static Builder builder(CheckRule checkRule) {
@@ -144,8 +145,8 @@ public class CheckRule implements TextRepresentable {
         this.customMessageString = customMessageString;
     }
 
-    public static boolean checkName(@Nullable String s) {
-        return s != null && CheckRuleLocation.NAME_PATTERN.matcher(s).matches();
+    public static Comparator<CheckRule> getDefaultComparator() {
+        return Comparator.comparing(CheckRule::getPriority).thenComparing(CheckRule::getName);
     }
 
     public static ConfigurationNode getDefaultQueryNode() {
@@ -164,8 +165,8 @@ public class CheckRule implements TextRepresentable {
         }
     }
 
-    public String getName() {
-        return name.toString(); // TODO
+    public CheckRuleLocation getName() {
+        return name;
     }
 
     public int getPriority() {
@@ -295,7 +296,7 @@ public class CheckRule implements TextRepresentable {
     @Override
     public Text toText() {
         //TODO: custom display name?
-        return Text.builder(getName()).build();
+        return Text.builder(getName().toString()).build();
     }
 
     @Singleton
@@ -396,11 +397,6 @@ public class CheckRule implements TextRepresentable {
 
         public Builder name(CheckRuleLocation name) {
             this.name = name;
-            return this;
-        }
-
-        public Builder name(String name) {
-            this.name = CheckRuleLocation.of(name);
             return this;
         }
 

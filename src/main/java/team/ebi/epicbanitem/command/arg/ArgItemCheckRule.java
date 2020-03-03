@@ -12,6 +12,7 @@ import org.spongepowered.api.util.StartsWithPredicate;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.api.CheckRuleIndex;
 import team.ebi.epicbanitem.check.CheckRuleService;
@@ -35,16 +36,15 @@ class ArgItemCheckRule extends CommandElement {
     public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
         ItemType itemType = context.<ItemType>getOne("item-type").orElseThrow(NoSuchFieldError::new);
         CheckRuleIndex index = CheckRuleIndex.of(itemType);
-        String argString = args.next();
+        String uncheckedArgString = args.next();
         CheckRuleService service = Sponge.getServiceManager().provideUnchecked(CheckRuleService.class);
-        Optional<CheckRule> optionalCheckRule = service.getCheckRuleByNameAndIndex(index, argString);
-        if (optionalCheckRule.isPresent()) {
-            context.putArg(getKey(), optionalCheckRule.get());
-        } else {
-            throw args.createError(
-                EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.args.itemCheckRule.notFound", Tuple.of("name", argString), Tuple.of("item", itemType.getId()))
-            );
-        }
+        Optional<CheckRule> optionalCheckRule = Optional.of(uncheckedArgString)
+                .filter(argString -> CheckRuleLocation.NAME_PATTERN.matcher(argString).matches())
+                .flatMap(argString -> service.getCheckRuleByNameAndIndex(index, CheckRuleLocation.of(argString)));
+        context.putArg(getKey(), optionalCheckRule.orElseThrow(() -> args.createError(
+                EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.args.itemCheckRule.notFound",
+                        Tuple.of("name", uncheckedArgString), Tuple.of("item", itemType.getId()))
+        )));
     }
 
     @Override
@@ -62,6 +62,7 @@ class ArgItemCheckRule extends CommandElement {
             .getCheckRulesByIndex(index)
             .stream()
             .map(CheckRule::getName)
+            .map(CheckRuleLocation::toString)
             .filter(new StartsWithPredicate(prefix))
             .collect(Collectors.toList());
     }

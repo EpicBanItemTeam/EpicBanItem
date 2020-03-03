@@ -20,6 +20,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 import team.ebi.epicbanitem.api.CheckResult;
 import team.ebi.epicbanitem.api.CheckRuleIndex;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.configuration.BanConfig;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
@@ -116,17 +117,17 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     @Override
-    public Set<String> getNames() {
+    public Set<CheckRuleLocation> getNames() {
         return banConfig.getRuleNames();
     }
 
     @Override
-    public Optional<CheckRule> getCheckRuleByName(String name) {
+    public Optional<CheckRule> getCheckRuleByName(CheckRuleLocation name) {
         return banConfig.getRule(name);
     }
 
     @Override
-    public Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name) {
+    public Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, CheckRuleLocation name) {
         return banConfig.getRules(index).stream().filter(c -> c.getName().equals(name)).findFirst();
     }
 

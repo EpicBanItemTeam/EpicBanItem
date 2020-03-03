@@ -13,6 +13,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 import team.ebi.epicbanitem.api.CheckResult;
 import team.ebi.epicbanitem.api.CheckRuleIndex;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 
@@ -36,7 +37,7 @@ public interface CheckRuleService extends team.ebi.epicbanitem.api.CheckRuleServ
      *
      * @return 适用的规则
      */
-    Set<String> getNames();
+    Set<CheckRuleLocation> getNames();
 
     /**
      * 返回会被检查的物品类型
@@ -58,7 +59,7 @@ public interface CheckRuleService extends team.ebi.epicbanitem.api.CheckRuleServ
      * @param name 规则名
      * @return 检查规则
      */
-    Optional<CheckRule> getCheckRuleByName(String name);
+    Optional<CheckRule> getCheckRuleByName(CheckRuleLocation name);
 
     /**
      * 返回一个物品适用的规则 or empty
@@ -75,7 +76,7 @@ public interface CheckRuleService extends team.ebi.epicbanitem.api.CheckRuleServ
      * @param name  规则名
      * @return 检查规则
      */
-    Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name);
+    Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, CheckRuleLocation name);
 
     /**
      * Add a rule to the service and save it in the default config.

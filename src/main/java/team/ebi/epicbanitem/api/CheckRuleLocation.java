@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,14 @@ public final class CheckRuleLocation implements Comparable<CheckRuleLocation> {
         Preconditions.checkArgument(areRuleNameTheSame, "rule name should match " + NAME_PATTERN_STRING);
 
         return location;
+    }
+
+    public String getLocationName() {
+        return this.name;
+    }
+
+    public Optional<String> getLocationGroup() {
+        return this.group.isEmpty() ? Optional.empty() : Optional.of(this.group);
     }
 
     @Override

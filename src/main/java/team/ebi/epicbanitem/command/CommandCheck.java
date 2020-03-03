@@ -15,6 +15,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
@@ -31,7 +32,7 @@ import java.util.Optional;
  */
 @Singleton
 public class CommandCheck extends AbstractCommand {
-    private static Map<String, CheckRule> checkRuleContext = new LinkedHashMap<>();
+    private static final Map<CheckRuleLocation, CheckRule> checkRuleContext = new LinkedHashMap<>();
 
     @Inject
     private CheckRuleService service;

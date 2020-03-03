@@ -114,7 +114,7 @@ class CommandCreate extends AbstractCommand {
         String query = args.<String>getOne("query-rule").orElse("{}");
         Predicate<Map.Entry<DataQuery, Object>> capture = e -> "id".equals(e.getKey().toString());
         try {
-            if (service.getCheckRuleByName(name).isPresent()) {
+            if (service.getCheckRuleByName(CheckRuleLocation.of(name)).isPresent()) {
                 throw new CommandException(getMessage("existed", Tuple.of("rule_name", name)));
             }
             Optional<Tuple<HandType, ItemStack>> handItem = getItemInHand(src);
