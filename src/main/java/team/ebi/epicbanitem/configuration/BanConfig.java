@@ -91,7 +91,6 @@ public class BanConfig {
 
     private final Map<String, ObservableConfigFile> extraObservableFiles;
 
-    private final LoadingCache<String, ImmutableList<CheckRule>> cacheFromIdToCheckRules;
     private ImmutableSortedMap<String, CheckRule> checkRulesByName = ImmutableSortedMap.<String, CheckRule>orderedBy(RULE_NAME_COMPARATOR).build();
     private ImmutableListMultimap<CheckRuleIndex, CheckRule> checkRulesByIndex = ImmutableListMultimap.of();
 
@@ -103,24 +102,12 @@ public class BanConfig {
         this.extraDir = configDir.resolve(EXTRA_CONFIG_DIR).toAbsolutePath();
         this.configDir = configDir;
         this.extraObservableFiles = Maps.newHashMap();
-        this.cacheFromIdToCheckRules =
-            Caffeine
-                .newBuilder()
-                .build(
-                    k -> {
-                        CheckRuleIndex i = CheckRuleIndex.of(), j = CheckRuleIndex.of(k);
-                        Iterable<? extends List<CheckRule>> rules = Arrays.asList(getRules(i), getRules(j));
-                        Stream<CheckRule> stream = Streams.stream(Iterables.mergeSorted(rules, COMPARATOR));
-                        return stream.filter(r -> r.idIndexFilter().test(k)).collect(ImmutableList.toImmutableList());
-                    }
-                );
-
         eventManager.registerListeners(pluginContainer, this);
     }
 
-    public List<CheckRule> getRulesWithIdFiltered(String id) {
-        //noinspection ConstantConditions
-        return cacheFromIdToCheckRules.get(id);
+    public Iterable<? extends CheckRule> getRulesWithIdFiltered(String id) {
+        CheckRuleIndex wildcard = CheckRuleIndex.of(), withId = CheckRuleIndex.of(id);
+        return Iterables.mergeSorted(Arrays.asList(getRules(wildcard), getRules(withId)), COMPARATOR);
     }
 
     public List<CheckRule> getRules(CheckRuleIndex index) {
@@ -163,7 +150,6 @@ public class BanConfig {
 
             this.checkRulesByIndex = byItem.build();
             this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
-            this.cacheFromIdToCheckRules.invalidateAll();
 
             String name = newRule.getName();
             Matcher matcher = CheckRuleLocation.NAME_PATTERN.matcher(name);
@@ -205,7 +191,6 @@ public class BanConfig {
                 );
                 this.checkRulesByIndex = builder.build();
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
-                this.cacheFromIdToCheckRules.invalidateAll();
 
                 Matcher matcher = CheckRuleLocation.NAME_PATTERN.matcher(name);
                 if (!matcher.matches()) {
@@ -336,7 +321,6 @@ public class BanConfig {
         }
         this.checkRulesByIndex = byItem.build();
         this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
-        this.cacheFromIdToCheckRules.invalidateAll();
         if (needSave.get()) {
             observableConfigFile.save();
         }
@@ -367,7 +351,6 @@ public class BanConfig {
             );
         this.checkRulesByIndex = byItem.build();
         this.checkRulesByName = ImmutableSortedMap.copyOfSorted(byName);
-        this.cacheFromIdToCheckRules.invalidateAll();
     }
 
     private void save(ConfigurationNode node, String group) throws IOException {
