@@ -1,9 +1,11 @@
 package team.ebi.epicbanitem.check.listener;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -31,6 +33,7 @@ import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.filter.type.Include;
 import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
 import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
+import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent.Transfer;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
@@ -60,7 +63,7 @@ import team.ebi.epicbanitem.util.TextUtil;
 /**
  * @author The EpicBanItem Team
  */
-@SuppressWarnings("DuplicatedCode")
+@SuppressWarnings({ "DuplicatedCode", "UnstableApiUsage" })
 @Singleton
 // TODO: 2020/2/21 Logger I18N
 public class InventoryListener {
@@ -198,6 +201,86 @@ public class InventoryListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
+    @Exclude({ ClickInventoryEvent.Drop.class, ClickInventoryEvent.Creative.class, ClickInventoryEvent.Recipe.class })
+    public void onTransferClick(ClickInventoryEvent event, @Getter("getTargetInventory") Container container, @First Player player) {
+        if (Streams.stream(container.iterator()).count() < 2) {
+            return;
+        }
+
+        List<SlotTransaction> transactions = event.getTransactions();
+
+        Optional<Inventory> targetInventory = transactions
+            .stream()
+            .filter(slotTransaction -> !slotTransaction.getFinal().isEmpty())
+            .map(SlotTransaction::getSlot)
+            .map(Slot::transform)
+            .map(Inventory::parent)
+            .findAny();
+        Inventory sourceInventory = transactions
+            .stream()
+            .filter(slotTransaction -> !slotTransaction.getOriginal().isEmpty())
+            .map(SlotTransaction::getSlot)
+            .map(Slot::transform)
+            .map(Inventory::parent)
+            .findAny()
+            .orElse(
+                Streams
+                    // get the second(down) inventory
+                    .stream(Streams.stream(container.iterator()).skip(1).findFirst().get().slots().iterator())
+                    .map(Slot.class::cast)
+                    .map(Slot::transform)
+                    .map(Inventory::parent)
+                    .findFirst()
+                    .get()
+            );
+
+        if (targetInventory.isPresent() && !Objects.equals(targetInventory.get(), sourceInventory)) {
+            CheckRuleTrigger trigger = Triggers.TRANSFER;
+            Stream<Transaction<ItemStackSnapshot>> cursorTransactionStream = Stream.of(event.getCursorTransaction());
+            if (this.checkInventory(player, trigger, Stream.concat(cursorTransactionStream, transactions.stream()))) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onTransfer(Transfer event, @Getter("getTransactions") List<SlotTransaction> transactions) {
+        CheckRuleTrigger trigger = Triggers.TRANSFER;
+        for (SlotTransaction tran : transactions) {
+            ItemStackSnapshot item = tran.getOriginal();
+            CheckResult result = service.check(item, ((Locatable) event.getSource()).getWorld(), trigger, null);
+            if (result.isBanned()) {
+                Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+                if (optionalFinalItem.isPresent()) {
+                    tran.setCustom(optionalFinalItem.get().createSnapshot());
+                } else {
+                    event.setCancelled(true);
+                }
+                event
+                    .getContext()
+                    .get(EventContextKeys.OWNER)
+                    .filter(Player.class::isInstance)
+                    .map(Player.class::cast)
+                    .ifPresent(
+                        player -> {
+                            Text originItemName = TextUtil.getDisplayName(item.createStack());
+                            Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(item.createStack()));
+                            TextUtil
+                                .prepareMessage(
+                                    trigger,
+                                    originItemName,
+                                    finalItemName,
+                                    ((CheckResult.Banned) result).getBanRules(),
+                                    result.isUpdateNeeded()
+                                )
+                                .forEach(player::sendMessage);
+                        }
+                    );
+            }
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
     public void onPickedUp(ChangeInventoryEvent.Pickup.Pre event, @First Player player) {
         Item itemEntity = event.getTargetEntity();
         ItemStackSnapshot item = itemEntity.getItemData().item().get();
@@ -318,5 +401,17 @@ public class InventoryListener {
                 return false;
             }
         );
+    }
+
+    private <T> Optional<T> getCorrectEntity(Entity entity, Class<T> clazz) {
+        Optional<T> entityOptional;
+
+        if (clazz.isInstance(entity)) {
+            entityOptional = Optional.of(clazz.cast(entity));
+        } else {
+            entityOptional = entity.getCreator().flatMap(Sponge.getServer()::getPlayer).map(clazz::cast);
+        }
+
+        return entityOptional;
     }
 }
