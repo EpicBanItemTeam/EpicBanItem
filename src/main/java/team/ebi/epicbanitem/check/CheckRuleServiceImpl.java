@@ -18,6 +18,7 @@ import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 import team.ebi.epicbanitem.api.CheckResult;
+import team.ebi.epicbanitem.api.CheckRuleIndex;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.configuration.BanConfig;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;

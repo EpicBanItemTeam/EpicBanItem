@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.check;
+package team.ebi.epicbanitem.api;
 
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;

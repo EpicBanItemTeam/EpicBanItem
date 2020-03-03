@@ -29,7 +29,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
-import team.ebi.epicbanitem.check.CheckRuleIndex;
+import team.ebi.epicbanitem.api.CheckRuleIndex;
 import team.ebi.epicbanitem.configuration.update.UpdateService;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.file.ObservableDirectory;

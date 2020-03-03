@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.api;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -10,6 +11,7 @@ import java.util.regex.Pattern;
 /**
  * @author The EpicBanItem Team
  */
+@NonnullByDefault
 public final class CheckRuleLocation implements Comparable<CheckRuleLocation> {
     private static final String NAME_PATTERN_STRING = "(?:(?<group>[a-z0-9-_]+)\\.)?(?<name>[a-z0-9-_]+)";
 
