@@ -27,6 +27,7 @@ import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.command.arg.EpicBanItemArgs;
@@ -85,7 +86,7 @@ class CommandCreate extends AbstractCommand {
     @Override
     public CommandElement getArgument() {
         return seq(
-            EpicBanItemArgs.patternString(Text.of("rule-name"), CheckRule.NAME_PATTERN),
+            EpicBanItemArgs.patternString(Text.of("rule-name"), CheckRuleLocation.NAME_PATTERN),
             flags()
                 .flag("-no-capture")
                 .flag("-simple-capture")

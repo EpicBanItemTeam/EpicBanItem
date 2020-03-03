@@ -22,6 +22,7 @@ import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.storage.WorldProperties;
 import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;
@@ -167,7 +168,7 @@ public class CommandEditor extends AbstractCommand {
                     () -> addHoverMessage(Text.builder(ruleBuilder.getName()).color(TextColors.BLUE), getMessage("click")),
                     ruleBuilder::getName,
                     updateAndResend(ruleBuilder::name),
-                    EpicBanItemArgs.patternString(Text.of("name"), CheckRule.NAME_PATTERN)
+                    EpicBanItemArgs.patternString(Text.of("name"), CheckRuleLocation.NAME_PATTERN)
                 ),
                 t -> getMessage("name", "name", t)
             );

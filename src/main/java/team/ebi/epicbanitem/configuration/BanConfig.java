@@ -27,6 +27,7 @@ import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleIndex;
 import team.ebi.epicbanitem.configuration.update.UpdateService;
@@ -165,7 +166,7 @@ public class BanConfig {
             this.cacheFromIdToCheckRules.invalidateAll();
 
             String name = newRule.getName();
-            Matcher matcher = CheckRule.NAME_PATTERN.matcher(name);
+            Matcher matcher = CheckRuleLocation.NAME_PATTERN.matcher(name);
             if (!matcher.matches()) {
                 throw new IllegalStateException("Illegal rule name " + name);
             }
@@ -206,7 +207,7 @@ public class BanConfig {
                 this.checkRulesByName = ImmutableSortedMap.copyOfSorted(rulesByName);
                 this.cacheFromIdToCheckRules.invalidateAll();
 
-                Matcher matcher = CheckRule.NAME_PATTERN.matcher(name);
+                Matcher matcher = CheckRuleLocation.NAME_PATTERN.matcher(name);
                 if (!matcher.matches()) {
                     throw new IllegalStateException("Illegal rule name " + name);
                 }
