@@ -95,7 +95,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     public static final class Impl implements CheckRuleTrigger {
         private final String name;
 
-        private Impl(String name) {
+        public Impl(String name) { // TODO: api
             this.name = name;
         }
 
