@@ -219,7 +219,6 @@ public class InventoryListener {
             .filter(slotTransaction -> !slotTransaction.getFinal().isEmpty())
             .filter(slotTransaction -> slotTransaction.getOriginal().getQuantity() < slotTransaction.getFinal().getQuantity())
             .map(SlotTransaction::getSlot)
-            .map(Slot.class::cast)
             .map(Slot::transform)
             .map(Inventory::parent)
             .findFirst();
@@ -243,9 +242,7 @@ public class InventoryListener {
                     .get()
             );
         if (targetInventory.isPresent() && !Objects.equals(targetInventory.get(), sourceInventory)) {
-            CheckRuleTrigger trigger = Triggers.STORE;
-            Stream<Transaction<ItemStackSnapshot>> cursorTransactionStream = Stream.of(event.getCursorTransaction());
-            if (this.checkInventory(player, trigger, Stream.concat(cursorTransactionStream, transactions.stream()))) {
+            if (this.checkInventory(player, Triggers.STORE, transactions.stream())) {
                 event.setCancelled(true);
             }
         }
