@@ -227,7 +227,6 @@ public class InventoryListener {
             .filter(slotTransaction -> !slotTransaction.getOriginal().isEmpty())
             .filter(slotTransaction -> slotTransaction.getOriginal().getQuantity() > slotTransaction.getFinal().getQuantity())
             .map(SlotTransaction::getSlot)
-            .map(Slot.class::cast)
             .map(Slot::transform)
             .map(Inventory::parent)
             .findFirst()
