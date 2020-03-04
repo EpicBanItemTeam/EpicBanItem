@@ -73,16 +73,16 @@ public class CommandEditor extends AbstractCommand {
         super("editor");
     }
 
-    public static void add(Player player, String name, boolean sendMessage) {
-        Editor editor = new Editor(player.getUniqueId(), name);
+    public static void add(Player player, CheckRuleLocation location, boolean sendMessage) {
+        Editor editor = new Editor(player.getUniqueId(), location);
         editorMap.put(player.getUniqueId(), editor);
         if (sendMessage) {
             editor.resend();
         }
     }
 
-    public static void add(Player player, String name, ConfigurationNode queryNode, boolean sendMessage) {
-        Editor editor = new Editor(player.getUniqueId(), name);
+    public static void add(Player player, CheckRuleLocation location, ConfigurationNode queryNode, boolean sendMessage) {
+        Editor editor = new Editor(player.getUniqueId(), location);
         editor.ruleBuilder.queryNode(queryNode);
         editor.ruleBuilder.updateNode(CheckRule.getDefaultUpdateNode());
         editorMap.put(player.getUniqueId(), editor);
@@ -130,9 +130,9 @@ public class CommandEditor extends AbstractCommand {
 
         private ChatView chatView;
 
-        private Editor(UUID owner, String name) {
+        private Editor(UUID owner, CheckRuleLocation location) {
             this.owner = owner;
-            this.ruleBuilder = CheckRule.builder(name);
+            this.ruleBuilder = CheckRule.builder(location);
             chatView = createView();
         }
 

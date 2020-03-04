@@ -125,7 +125,8 @@ class CommandCreate extends AbstractCommand {
         String query = args.<String>getOne("query-rule").orElse("{}");
         Predicate<Map.Entry<DataQuery, Object>> capture = e -> "id".equals(e.getKey().toString());
         try {
-            if (service.getCheckRuleByName(CheckRuleLocation.of(name)).isPresent()) {
+            CheckRuleLocation location = CheckRuleLocation.of(name);
+            if (service.getCheckRuleByName(location).isPresent()) {
                 throw new CommandException(getMessage("existed", Tuple.of("rule_name", name)));
             }
 
@@ -180,10 +181,10 @@ class CommandCreate extends AbstractCommand {
                 }
             }
             if (src instanceof Player) {
-                CommandEditor.add((Player) src, name, queryNode, true);
+                CommandEditor.add((Player) src, location, queryNode, true);
             } else {
                 service
-                    .appendRule(CheckRule.builder(name).queryNode(queryNode).build())
+                    .appendRule(CheckRule.builder(location).queryNode(queryNode).build())
                     .thenRun(
                         () -> {
                             Text succeedMessage = getMessage("succeed", Tuple.of("rule_name", name));

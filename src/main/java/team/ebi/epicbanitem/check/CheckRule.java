@@ -54,9 +54,8 @@ public class CheckRule implements TextRepresentable {
         return new CheckRule.Builder();
     }
 
-    @Deprecated
-    public static Builder builder(String name) {
-        return new Builder().name(CheckRuleLocation.of(name));
+    public static Builder builder(CheckRuleLocation location) {
+        return new Builder().name(location);
     }
 
     public static Builder builder(CheckRule checkRule) {
