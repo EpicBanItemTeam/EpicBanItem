@@ -40,7 +40,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     public static final CheckRuleTrigger BREAK = new Impl("break");
     public static final CheckRuleTrigger INTERACT = new Impl("interact");
     public static final CheckRuleTrigger JOIN = new Impl("join");
-    public static final CheckRuleTrigger TRANSFER = new Impl("transfer");
+    public static final CheckRuleTrigger STORE = new Impl("store");
 
     private static final SortedMap<String, CheckRuleTrigger> triggers = new TreeMap<>();
 
@@ -78,7 +78,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
     @Override
     public void registerDefaults() {
-        Stream.of(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT, JOIN, TRANSFER).forEach(this::registerAdditionalCatalog);
+        Stream.of(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT, JOIN, STORE).forEach(this::registerAdditionalCatalog);
     }
 
     @Override

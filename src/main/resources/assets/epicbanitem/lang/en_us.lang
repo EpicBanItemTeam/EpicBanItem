@@ -176,4 +176,4 @@ epicbanitem.triggers.break = Break
 epicbanitem.triggers.interact = Interact
 epicbanitem.triggers.equip = Equip
 epicbanitem.triggers.join = Join
-epicbanitem.triggers.transfer = Transfer
+epicbanitem.triggers.store = Store
