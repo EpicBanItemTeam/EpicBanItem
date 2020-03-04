@@ -19,7 +19,6 @@ import team.ebi.epicbanitem.check.CheckRuleService;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author The EpicBanItem Team

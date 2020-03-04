@@ -11,14 +11,12 @@ import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.locale.LocaleService;
 
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author The EpicBanItem Team

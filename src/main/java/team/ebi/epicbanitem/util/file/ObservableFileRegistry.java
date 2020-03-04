@@ -14,7 +14,9 @@ import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.Objects;
 
-import static java.nio.file.StandardWatchEventKinds.*;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 /**
  * @author The EpicBanItem Team
