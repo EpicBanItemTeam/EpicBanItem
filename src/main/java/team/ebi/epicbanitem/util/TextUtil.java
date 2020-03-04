@@ -1,5 +1,7 @@
 package team.ebi.epicbanitem.util;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonWriter;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -35,10 +37,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -230,8 +231,8 @@ public class TextUtil {
         return item.get(Keys.DISPLAY_NAME).orElse(Text.of(item.getTranslation()));
     }
 
-    private static final Map<String, TextTemplate> customInfoMessageCache = new ConcurrentHashMap<>();
     private static final Set<String> INFO_TOKENS = ImmutableSet.of("rules", "trigger", "item_pre", "item_post");
+    private static final LoadingCache<String, TextTemplate> customInfoMessageCache = Caffeine.newBuilder().build(s -> parseTextTemplate(s, INFO_TOKENS));
 
     public static Collection<Text> prepareMessage(
         CheckRuleTrigger trigger,
@@ -241,19 +242,16 @@ public class TextUtil {
         boolean updated
     ) {
         LinkedHashMap<String, Tuple<TextTemplate, List<Text>>> map = new LinkedHashMap<>();
-        List<Text> undefined = new ArrayList<>();
+        List<Text> undefinedTextList = new ArrayList<>();
+        Function<String, Tuple<TextTemplate, List<Text>>> createFunction = s -> {
+            TextTemplate textTemplate = Objects.requireNonNull(customInfoMessageCache.get(s));
+            return new Tuple<>(textTemplate, new ArrayList<>());
+        };
         for (Tuple<Text, Optional<String>> rule : banRules) {
-            if (rule.getSecond().isPresent()) {
-                map
-                    .computeIfAbsent(
-                        rule.getSecond().get(),
-                        s -> new Tuple<>(customInfoMessageCache.computeIfAbsent(s, s1 -> parseTextTemplate(s1, INFO_TOKENS)), new ArrayList<>())
-                    )
-                    .getSecond()
-                    .add(rule.getFirst());
-            } else {
-                undefined.add(rule.getFirst());
-            }
+            rule.getSecond()
+                .map(template -> map.computeIfAbsent(template, createFunction).getSecond())
+                .orElse(undefinedTextList)
+                .add(rule.getFirst());
         }
         Function<List<Text>, List<Tuple<String, ?>>> toParams = checkRules ->
             Arrays.asList(
@@ -263,13 +261,13 @@ public class TextUtil {
                 Tuple.of("item_post", itemPost)
             );
         List<Text> result = new ArrayList<>();
-        if (!undefined.isEmpty()) {
+        if (!undefinedTextList.isEmpty()) {
             result.add(
                 EpicBanItem
                     .getLocaleService()
                     .getTextWithFallback(
                         updated ? "epicbanitem.info.defaultUpdateMessage" : "epicbanitem.info.defaultBanMessage",
-                        toParams.apply(undefined)
+                        toParams.apply(undefinedTextList)
                     )
             );
         }

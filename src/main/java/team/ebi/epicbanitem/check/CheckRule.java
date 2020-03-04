@@ -23,6 +23,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.CheckResult;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.command.CommandCheck;
 import team.ebi.epicbanitem.util.TextUtil;
@@ -41,7 +42,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * @author The EpicBanItem Team
@@ -49,14 +49,14 @@ import java.util.regex.Pattern;
 @NonnullByDefault
 @SuppressWarnings({ "WeakerAccess" })
 public class CheckRule implements TextRepresentable {
-    public static final Pattern NAME_PATTERN = Pattern.compile("(?:(?<group>[a-z0-9-_]+)\\.)?(?<name>[a-z0-9-_]+)");
 
     public static Builder builder() {
         return new CheckRule.Builder();
     }
 
+    @Deprecated
     public static Builder builder(String name) {
-        return new Builder().name(name);
+        return new Builder().name(CheckRuleLocation.of(name));
     }
 
     public static Builder builder(CheckRule checkRule) {
@@ -64,9 +64,9 @@ public class CheckRule implements TextRepresentable {
     }
 
     /**
-     * the name which should match {@link #NAME_PATTERN}
+     * the name which should match {@link CheckRuleLocation#NAME_PATTERN}
      */
-    private final String name;
+    private final CheckRuleLocation name;
     /**
      * the legacy name
      */
@@ -119,7 +119,7 @@ public class CheckRule implements TextRepresentable {
     private final String customMessageString;
 
     private CheckRule(
-        String ruleName,
+        CheckRuleLocation ruleName,
         ConfigurationNode queryNode,
         @Nullable ConfigurationNode updateNode,
         String legacyName,
@@ -132,7 +132,6 @@ public class CheckRule implements TextRepresentable {
     ) {
         this.worldDefaultSetting = worldDefaultSetting;
         this.triggerDefaultSetting = triggerDefaultSetting;
-        Preconditions.checkArgument(checkName(ruleName), "Rule name should match " + NAME_PATTERN.toString());
         this.name = ruleName;
         this.legacyName = legacyName;
         this.queryNode = queryNode.copy();
@@ -146,8 +145,8 @@ public class CheckRule implements TextRepresentable {
         this.customMessageString = customMessageString;
     }
 
-    public static boolean checkName(@Nullable String s) {
-        return s != null && NAME_PATTERN.matcher(s).matches();
+    public static Comparator<CheckRule> getDefaultComparator() {
+        return Comparator.comparing(CheckRule::getPriority).thenComparing(CheckRule::getName);
     }
 
     public static ConfigurationNode getDefaultQueryNode() {
@@ -166,7 +165,7 @@ public class CheckRule implements TextRepresentable {
         }
     }
 
-    public String getName() {
+    public CheckRuleLocation getName() {
         return name;
     }
 
@@ -297,7 +296,7 @@ public class CheckRule implements TextRepresentable {
     @Override
     public Text toText() {
         //TODO: custom display name?
-        return Text.builder(getName()).build();
+        return Text.builder(getName().toString()).build();
     }
 
     @Singleton
@@ -362,7 +361,8 @@ public class CheckRule implements TextRepresentable {
 
     @SuppressWarnings("UnusedReturnValue for builder")
     public static final class Builder {
-        private String name = "";
+        @Nullable
+        private CheckRuleLocation name = null;
         private String legacyName = "";
         private int priority = 5;
         private Tristate worldDefaultSetting = Tristate.UNDEFINED;
@@ -395,8 +395,7 @@ public class CheckRule implements TextRepresentable {
             this.customMessageString = checkRule.customMessageString;
         }
 
-        public Builder name(String name) {
-            Preconditions.checkArgument(checkName(name), "Rule name should match " + NAME_PATTERN.toString());
+        public Builder name(CheckRuleLocation name) {
             this.name = name;
             return this;
         }
@@ -448,8 +447,8 @@ public class CheckRule implements TextRepresentable {
             return this;
         }
 
-        public String getName() {
-            return name;
+        public Optional<CheckRuleLocation> getName() {
+            return Optional.ofNullable(name);
         }
 
         public int getPriority() {
@@ -487,11 +486,8 @@ public class CheckRule implements TextRepresentable {
         }
 
         public CheckRule build() {
-            if (name.isEmpty()) {
-                throw new IllegalArgumentException("rule name not set.");
-            }
             return new CheckRule(
-                name,
+                Preconditions.checkNotNull(name, "name should not be null"),
                 queryNode,
                 updateNode,
                 legacyName,

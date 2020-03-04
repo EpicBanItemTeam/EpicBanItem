@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.check;
 
+import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 import team.ebi.epicbanitem.api.CheckResult;
+import team.ebi.epicbanitem.api.CheckRuleIndex;
+import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.configuration.BanConfig;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
@@ -113,25 +116,26 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     @Override
-    public Set<String> getNames() {
+    public Set<CheckRuleLocation> getNames() {
         return banConfig.getRuleNames();
     }
 
     @Override
-    public Optional<CheckRule> getCheckRuleByName(String name) {
+    public Optional<CheckRule> getCheckRuleByName(CheckRuleLocation name) {
         return banConfig.getRule(name);
     }
 
     @Override
-    public Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, String name) {
+    public Optional<CheckRule> getCheckRuleByNameAndIndex(CheckRuleIndex index, CheckRuleLocation name) {
         return banConfig.getRules(index).stream().filter(c -> c.getName().equals(name)).findFirst();
     }
 
     private CheckResult check(CheckResult origin, String id, World world, CheckRuleTrigger trigger, @Nullable Subject subject) {
-        return banConfig
-            .getRulesWithIdFiltered(id)
-            .stream()
-            .reduce(origin, (result, rule) -> rule.check(result, world, trigger, subject), (a, b) -> {throw new IllegalStateException();});
+        //noinspection UnstableApiUsage
+        return Streams.stream(banConfig.getRulesWithIdFiltered(id))
+            .<UnaryOperator<CheckResult>>map(rule -> result -> rule.check(result, world, trigger, subject))
+            .reduce(UnaryOperator.identity(), (f1, f2) -> result -> f2.apply(f1.apply(result)))
+            .apply(origin);
     }
 
     @Listener
