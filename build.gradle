@@ -65,8 +65,9 @@ blossom {
 }
 
 signing {
-    sign jar, shadowJar
-    required = System.hasProperty("signing.password")
+    sign jar, shadowJar each {
+        it.enabled project.findProperty("signing.password") as boolean
+    }
 }
 
 tasks.withType(JavaCompile) {
