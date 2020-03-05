@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem;
 
 import com.google.inject.Inject;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.plugin.Dependency;
@@ -8,13 +9,12 @@ import org.spongepowered.api.plugin.Plugin;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.check.listener.ChunkListener;
 import team.ebi.epicbanitem.check.listener.InventoryListener;
+import team.ebi.epicbanitem.check.listener.ThrowListener;
 import team.ebi.epicbanitem.check.listener.WorldListener;
 import team.ebi.epicbanitem.command.CommandEbi;
 import team.ebi.epicbanitem.configuration.BanConfig;
 import team.ebi.epicbanitem.configuration.Settings;
 import team.ebi.epicbanitem.locale.LocaleService;
-
-import java.util.Objects;
 
 /**
  * @author The EpicBanItem Team
@@ -49,6 +49,7 @@ public class EpicBanItem {
         BanConfig banConfig,
         ChunkListener chunkListener,
         InventoryListener inventoryListener,
+        ThrowListener throwListener,
         WorldListener worldListener,
         CommandEbi commandEbi,
         Triggers triggers
