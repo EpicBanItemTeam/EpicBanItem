@@ -39,11 +39,13 @@ public interface CheckRuleService {
         INSTANCE;
 
         private final team.ebi.epicbanitem.api.CheckRuleService proxy;
+        private final Class<team.ebi.epicbanitem.api.CheckRuleTrigger> cls;
 
         Proxy() {
             PluginContainer plugin = Sponge.getPluginManager().getPlugin("epicbanitem").orElseThrow(IllegalStateException::new);
             this.proxy = Sponge.getServiceManager().provideUnchecked(team.ebi.epicbanitem.api.CheckRuleService.class);
             Sponge.getServiceManager().setProvider(plugin, CheckRuleService.class, this);
+            this.cls = team.ebi.epicbanitem.api.CheckRuleTrigger.class;
         }
 
         @Override
@@ -75,12 +77,12 @@ public interface CheckRuleService {
 
         private team.ebi.epicbanitem.api.CheckRuleTrigger registerTrigger(String name) {
             Triggers.Impl impl = new Triggers.Impl(name);
-            Sponge.getRegistry().register(team.ebi.epicbanitem.api.CheckRuleTrigger.class, impl);
+            Sponge.getRegistry().register(cls, impl);
             return impl;
         }
 
         private Optional<team.ebi.epicbanitem.api.CheckRuleTrigger> getTrigger(String name) {
-            return Sponge.getRegistry().getType(team.ebi.epicbanitem.api.CheckRuleTrigger.class, name);
+            return Sponge.getRegistry().getType(cls, "epicbanitem:" + name);
         }
     }
 }
