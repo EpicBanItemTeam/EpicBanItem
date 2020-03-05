@@ -176,3 +176,4 @@ epicbanitem.triggers.break = 破坏
 epicbanitem.triggers.interact = 交互
 epicbanitem.triggers.equip = 装备
 epicbanitem.triggers.join = 进入
+epicbanitem.triggers.store = 储藏

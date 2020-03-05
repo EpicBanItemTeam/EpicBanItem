@@ -1,9 +1,11 @@
 package team.ebi.epicbanitem.check.listener;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -17,11 +19,13 @@ import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
@@ -31,6 +35,7 @@ import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.filter.type.Include;
 import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
 import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
+import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent.Transfer;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
@@ -60,7 +65,7 @@ import team.ebi.epicbanitem.util.TextUtil;
 /**
  * @author The EpicBanItem Team
  */
-@SuppressWarnings("DuplicatedCode")
+@SuppressWarnings({ "DuplicatedCode", "UnstableApiUsage" })
 @Singleton
 // TODO: 2020/2/21 Logger I18N
 public class InventoryListener {
@@ -194,6 +199,92 @@ public class InventoryListener {
         Stream<Transaction<ItemStackSnapshot>> cursorTransactionStream = Stream.of(event.getCursorTransaction());
         if (this.checkInventory(player, trigger, Stream.concat(cursorTransactionStream, slotTransactionStream))) {
             event.setCancelled(true);
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    @Exclude({ ClickInventoryEvent.Drop.class, ClickInventoryEvent.Creative.class, ClickInventoryEvent.Recipe.class })
+    public void onTransferClick(
+        ClickInventoryEvent event,
+        @Getter("getTargetInventory") Container container,
+        @First Player player,
+        @Getter("getTransactions") List<SlotTransaction> transactions
+    ) {
+        if (Streams.stream(container.iterator()).count() < 2) {
+            return;
+        }
+
+        Optional<Inventory> targetInventory = transactions
+            .stream()
+            .filter(slotTransaction -> !slotTransaction.getFinal().isEmpty())
+            .filter(slotTransaction -> slotTransaction.getOriginal().getQuantity() < slotTransaction.getFinal().getQuantity())
+            .map(SlotTransaction::getSlot)
+            .map(Slot::transform)
+            .map(Inventory::parent)
+            .findFirst();
+        Inventory sourceInventory = transactions
+            .stream()
+            .filter(slotTransaction -> !slotTransaction.getOriginal().isEmpty())
+            .filter(slotTransaction -> slotTransaction.getOriginal().getQuantity() > slotTransaction.getFinal().getQuantity())
+            .map(SlotTransaction::getSlot)
+            .map(Slot::transform)
+            .map(Inventory::parent)
+            .findFirst()
+            .orElse(
+                Streams
+                    // get the second(down) inventory
+                    .stream(Streams.stream(container.iterator()).skip(1).findFirst().get().slots().iterator())
+                    .map(Slot.class::cast)
+                    .map(Slot::transform)
+                    .map(Inventory::parent)
+                    .findFirst()
+                    .get()
+            );
+        if (targetInventory.isPresent() && !Objects.equals(targetInventory.get(), sourceInventory)) {
+            if (this.checkInventory(player, Triggers.STORE, transactions.stream())) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onTransfer(
+        Transfer event,
+        @Getter("getTransactions") List<SlotTransaction> transactions,
+        @Getter("getSource") Locatable locatable,
+        @Getter("getContext") EventContext context
+    ) {
+        CheckRuleTrigger trigger = Triggers.STORE;
+        Optional<User> userOptional = context.get(EventContextKeys.OWNER);
+        for (SlotTransaction tran : transactions) {
+            ItemStackSnapshot item = tran.getOriginal();
+            CheckResult result = service.check(item, locatable.getWorld(), trigger, userOptional.orElse(null));
+            if (result.isBanned()) {
+                Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+                if (optionalFinalItem.isPresent()) {
+                    tran.setCustom(optionalFinalItem.get().createSnapshot());
+                } else {
+                    event.setCancelled(true);
+                }
+
+                userOptional
+                    .flatMap(User::getPlayer)
+                    .ifPresent(
+                        player -> {
+                            Text originItemName = TextUtil.getDisplayName(item.createStack());
+                            Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(item.createStack()));
+                            TextUtil
+                                .prepareMessage(
+                                    trigger,
+                                    originItemName,
+                                    finalItemName,
+                                    ((CheckResult.Banned) result).getBanRules(),
+                                    result.isUpdateNeeded()
+                                )
+                                .forEach(player::sendMessage);
+                        }
+                    );
+            }
         }
     }
 

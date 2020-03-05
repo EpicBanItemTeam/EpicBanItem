@@ -3,6 +3,14 @@ package team.ebi.epicbanitem.check;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.EventManager;
@@ -14,15 +22,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
-
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author The EpicBanItem Team
@@ -41,6 +40,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     public static final CheckRuleTrigger BREAK = new Impl("break");
     public static final CheckRuleTrigger INTERACT = new Impl("interact");
     public static final CheckRuleTrigger JOIN = new Impl("join");
+    public static final CheckRuleTrigger STORE = new Impl("store");
 
     private static final SortedMap<String, CheckRuleTrigger> triggers = new TreeMap<>();
 
@@ -78,7 +78,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
     @Override
     public void registerDefaults() {
-        Stream.of(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT, JOIN).forEach(this::registerAdditionalCatalog);
+        Stream.of(USE, EQUIP, CRAFT, PICKUP, CLICK, THROW, DROP, PLACE, BREAK, INTERACT, JOIN, STORE).forEach(this::registerAdditionalCatalog);
     }
 
     @Override
