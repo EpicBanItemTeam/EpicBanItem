@@ -38,6 +38,7 @@ import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
 import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent.Transfer;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
+import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.event.item.inventory.TargetInventoryEvent;
 import org.spongepowered.api.item.inventory.Container;
@@ -85,27 +86,78 @@ public class InventoryListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onThrown(ClickInventoryEvent.Drop event, @First Player player) {
-        for (SlotTransaction tran : event.getTransactions()) {
-            ItemStackSnapshot item = tran.getOriginal();
-            CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
-            if (result.isBanned()) {
-                event.setCancelled(true);
-                Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
-                optionalFinalItem.ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
-                Text originItemName = TextUtil.getDisplayName(item.createStack());
-                Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(item.createStack()));
-                TextUtil
-                    .prepareMessage(
-                        Triggers.THROW,
-                        originItemName,
-                        finalItemName,
-                        ((CheckResult.Banned) result).getBanRules(),
-                        result.isUpdateNeeded()
-                    )
-                    .forEach(player::sendMessage);
-            }
+    public void onThrown(
+        ClickInventoryEvent.Drop event,
+        @First Player player,
+        @Getter("getCursorTransaction") Transaction<ItemStackSnapshot> cursorTransaction,
+        @Getter("getTransactions") List<SlotTransaction> transactions
+    ) {
+        Stream
+            .concat(Stream.of(cursorTransaction), transactions.stream())
+            .forEach(
+                transaction -> {
+                    ItemStackSnapshot item = transaction.getOriginal();
+                    CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
+                    if (result.isBanned()) {
+                        event.setCancelled(true);
+                        Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+                        optionalFinalItem.ifPresent(finalItem -> transaction.setCustom(finalItem.createSnapshot()));
+                        Text originItemName = TextUtil.getDisplayName(item.createStack());
+                        Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(item.createStack()));
+                        TextUtil
+                            .prepareMessage(
+                                Triggers.THROW,
+                                originItemName,
+                                finalItemName,
+                                ((CheckResult.Banned) result).getBanRules(),
+                                result.isUpdateNeeded()
+                            )
+                            .forEach(player::sendMessage);
+                    }
+                }
+            );
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onCloseThrown(
+        InteractInventoryEvent.Close event,
+        @First Player player,
+        @Getter("getCursorTransaction") Transaction<ItemStackSnapshot> transaction
+    ) {
+        ItemStackSnapshot item = transaction.getOriginal();
+        CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
+        if (result.isBanned()) {
+            Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+            ItemStack itemStack = item.createStack();
+            ItemStack newItem = optionalFinalItem.orElse(itemStack);
+            Text originItemName = TextUtil.getDisplayName(itemStack);
+            Text finalItemName = TextUtil.getDisplayName(newItem);
+            player.getInventory().offer(newItem);
+            TextUtil
+                .prepareMessage(Triggers.THROW, originItemName, finalItemName, ((CheckResult.Banned) result).getBanRules(), result.isUpdateNeeded())
+                .forEach(player::sendMessage);
         }
+    }
+
+    @Listener(order = Order.FIRST, beforeModifications = true)
+    public void onCloseThrown(DropItemEvent.Close event, @Getter("getEntities") List<Entity> entities, @Getter("getSource") Player player) {
+        entities.removeIf(
+            entity -> {
+                if (entity instanceof Item) {
+                    ItemStackSnapshot item = ((Item) entity).item().get();
+                    CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
+                    if (result.isBanned()) {
+                        Optional<ItemStack> optionalItemStack = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
+                        if (optionalItemStack.isPresent()) {
+                            entity.offer(Keys.REPRESENTED_ITEM, optionalItemStack.get().createSnapshot());
+                        } else {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        );
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)

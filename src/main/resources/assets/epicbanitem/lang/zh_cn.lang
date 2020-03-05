@@ -160,8 +160,8 @@ epicbanitem.error.missingMessage = 【缺失文本节点：{message_key}】
 epicbanitem.info.cannotBeLoaded = {name}无法被加载
 
 #info
-epicbanitem.info.defaultBanMessage = 由于规则{rules},你无法{trigger}这个{item_pre}
-epicbanitem.info.defaultUpdateMessage = 由于规则{rules},你的{item_pre}更新为{item_post}
+epicbanitem.info.defaultBanMessage = 由于规则{rules},{item_pre}无法{trigger}
+epicbanitem.info.defaultUpdateMessage = 由于规则{rules},{item_pre}更新为{item_post}
 epicbanitem.info.reload = {name}已重载
 
 #triggers
