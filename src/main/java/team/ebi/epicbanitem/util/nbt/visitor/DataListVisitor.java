@@ -1,4 +1,4 @@
-package com.github.euonmyoji.epicbanitem.util.nbt.visitor;
+package team.ebi.epicbanitem.util.nbt.visitor;
 
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 

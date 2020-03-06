@@ -1,8 +1,8 @@
-package com.github.euonmyoji.epicbanitem.util.nbt;
+package team.ebi.epicbanitem.util.nbt;
 
-import com.github.euonmyoji.epicbanitem.util.nbt.visitor.DataCompoundVisitor;
-import com.github.euonmyoji.epicbanitem.util.nbt.visitor.DataListVisitor;
-import com.github.euonmyoji.epicbanitem.util.nbt.visitor.DataVisitor;
+import team.ebi.epicbanitem.util.nbt.visitor.DataCompoundVisitor;
+import team.ebi.epicbanitem.util.nbt.visitor.DataListVisitor;
+import team.ebi.epicbanitem.util.nbt.visitor.DataVisitor;
 import com.google.common.base.Strings;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColor;

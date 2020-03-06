@@ -1,9 +1,7 @@
 package team.ebi.epicbanitem.util;
 
-import com.github.euonmyoji.epicbanitem.EpicBanItem;
-import com.github.euonmyoji.epicbanitem.util.nbt.NbtTagRenderVisitor;
-import com.github.euonmyoji.epicbanitem.util.nbt.QueryResult;
-import com.github.euonmyoji.epicbanitem.util.nbt.visitor.SpongeDataContainerReader;
+import team.ebi.epicbanitem.util.nbt.NbtTagRenderVisitor;
+import team.ebi.epicbanitem.util.nbt.visitor.SpongeDataContainerReader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
@@ -25,7 +23,6 @@ import org.spongepowered.api.text.translation.Translatable;
 import org.spongepowered.api.util.Tuple;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
-import team.ebi.epicbanitem.util.nbt.NbtTagRenderer;
 import team.ebi.epicbanitem.util.nbt.QueryResult;
 
 import java.io.BufferedReader;
