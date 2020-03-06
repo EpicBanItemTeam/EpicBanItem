@@ -9,7 +9,6 @@ import org.spongepowered.api.plugin.Plugin;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.check.listener.ChunkListener;
 import team.ebi.epicbanitem.check.listener.InventoryListener;
-import team.ebi.epicbanitem.check.listener.ThrowListener;
 import team.ebi.epicbanitem.check.listener.WorldListener;
 import team.ebi.epicbanitem.command.CommandEbi;
 import team.ebi.epicbanitem.configuration.BanConfig;
@@ -49,7 +48,6 @@ public class EpicBanItem {
         BanConfig banConfig,
         ChunkListener chunkListener,
         InventoryListener inventoryListener,
-        ThrowListener throwListener,
         WorldListener worldListener,
         CommandEbi commandEbi,
         Triggers triggers

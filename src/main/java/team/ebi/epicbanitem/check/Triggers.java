@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.Collection;
-import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -23,6 +23,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
+import team.ebi.epicbanitem.check.listener.DropListener;
+import team.ebi.epicbanitem.check.listener.ThrowListener;
 
 /**
  * @author The EpicBanItem Team
@@ -30,6 +32,7 @@ import team.ebi.epicbanitem.api.CheckRuleTrigger;
 @Singleton
 @NonnullByDefault
 public final class Triggers implements AdditionalCatalogRegistryModule<CheckRuleTrigger> {
+
     public static final CheckRuleTrigger USE = new Impl("use");
     public static final CheckRuleTrigger EQUIP = new Impl("equip");
     public static final CheckRuleTrigger CRAFT = new Impl("craft");
@@ -46,7 +49,10 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     private static final SortedMap<String, CheckRuleTrigger> triggers = new TreeMap<>();
 
     @Inject
-    public Triggers(EventManager eventManager, PluginContainer pluginContainer) {
+    public Triggers(EventManager eventManager, PluginContainer pluginContainer, ThrowListener throwListener, DropListener dropListener) {
+        Objects.requireNonNull(throwListener);
+        Objects.requireNonNull(dropListener);
+
         eventManager.registerListeners(pluginContainer, this);
     }
 
@@ -94,6 +100,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
     @NonnullByDefault
     public static final class Impl implements CheckRuleTrigger {
+
         private final String name;
 
         public Impl(String name) { // TODO: api
@@ -117,9 +124,10 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
         @Override
         public Text toText() {
-            return EpicBanItem.getLocaleService()
-                    .getText("epicbanitem.triggers." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name))
-                    .orElse(Text.of(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name)));
+            return EpicBanItem
+                .getLocaleService()
+                .getText("epicbanitem.triggers." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name))
+                .orElse(Text.of(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name)));
         }
 
         @Override
