@@ -6,9 +6,10 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
-import team.ebi.epicbanitem.check.Triggers;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -76,13 +77,46 @@ public interface CheckRuleService {
         }
 
         private team.ebi.epicbanitem.api.CheckRuleTrigger registerTrigger(String name) {
-            Triggers.Impl impl = new Triggers.Impl(name);
+            TriggerImpl impl = new TriggerImpl(name, "epicbanitem:" + name);
             Sponge.getRegistry().register(cls, impl);
             return impl;
         }
 
         private Optional<team.ebi.epicbanitem.api.CheckRuleTrigger> getTrigger(String name) {
             return Sponge.getRegistry().getType(cls, "epicbanitem:" + name);
+        }
+
+        private static class TriggerImpl implements team.ebi.epicbanitem.api.CheckRuleTrigger {
+
+            private String name;
+            private String id;
+
+            private TriggerImpl(String name, String id) {
+                this.name = name;
+                this.id = id;
+            }
+
+            @Override
+            public String toString() {
+                return name;
+            }
+
+            @Override
+            public String getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public Text toText() {
+                return Text.builder(name)
+                    .onHover(TextActions.showText(Text.of("")))
+                    .build();
+            }
         }
     }
 }

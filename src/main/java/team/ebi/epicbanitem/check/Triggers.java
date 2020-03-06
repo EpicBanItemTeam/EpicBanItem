@@ -105,16 +105,6 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
         }
 
         @Override
-        public int hashCode() {
-            return this.name.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object that) {
-            return this == that || that instanceof CheckRuleTrigger && this.name.equals(that.toString());
-        }
-
-        @Override
         public String toString() {
             return this.name;
         }
@@ -124,8 +114,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
             String key = "epicbanitem.triggers." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name);
             LocaleService localeService = EpicBanItem.getLocaleService();
             return localeService
-                .getText(key)
-                .orElse(Text.of(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name)))
+                .getTextWithFallback(key)
                 .toBuilder()
                 .onHover(TextActions.showText(localeService.getTextWithFallback(key + ".description")))
                 .build();
