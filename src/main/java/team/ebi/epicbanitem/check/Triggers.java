@@ -4,14 +4,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.EventManager;
@@ -20,9 +12,19 @@ import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.registry.AdditionalCatalogRegistryModule;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
+import team.ebi.epicbanitem.locale.LocaleService;
+
+import java.util.Collection;
+import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author The EpicBanItem Team
@@ -95,9 +97,11 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     @NonnullByDefault
     public static final class Impl implements CheckRuleTrigger {
         private final String name;
+        private final String id;
 
-        public Impl(String name) { // TODO: api
+        private Impl(String name) {
             this.name = name;
+            this.id = EpicBanItem.PLUGIN_ID + ":" + name;
         }
 
         @Override
@@ -117,14 +121,19 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
         @Override
         public Text toText() {
-            return EpicBanItem.getLocaleService()
-                    .getText("epicbanitem.triggers." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name))
-                    .orElse(Text.of(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name)));
+            String key = "epicbanitem.triggers." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name);
+            LocaleService localeService = EpicBanItem.getLocaleService();
+            return localeService
+                .getText(key)
+                .orElse(Text.of(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name)))
+                .toBuilder()
+                .onHover(TextActions.showText(localeService.getTextWithFallback(key + ".description")))
+                .build();
         }
 
         @Override
         public String getId() {
-            return EpicBanItem.PLUGIN_ID + ":" + name;
+            return id;
         }
 
         @Override
