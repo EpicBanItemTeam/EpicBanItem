@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.check;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -95,7 +96,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     public static final class Impl implements CheckRuleTrigger {
         private final String name;
 
-        private Impl(String name) {
+        public Impl(String name) { // TODO: api
             this.name = name;
         }
 
@@ -116,12 +117,14 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
         @Override
         public Text toText() {
-            return EpicBanItem.getLocaleService().getTextWithFallback("epicbanitem.triggers." + toString().toLowerCase(Locale.ROOT));
+            return EpicBanItem.getLocaleService()
+                    .getText("epicbanitem.triggers." + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name))
+                    .orElse(Text.of(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name)));
         }
 
         @Override
         public String getId() {
-            return EpicBanItem.PLUGIN_ID + ":" + name.toLowerCase(Locale.ROOT);
+            return EpicBanItem.PLUGIN_ID + ":" + name;
         }
 
         @Override
