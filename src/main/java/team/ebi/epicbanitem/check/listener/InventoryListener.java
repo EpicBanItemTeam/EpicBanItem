@@ -85,30 +85,6 @@ public class InventoryListener {
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onThrown(ClickInventoryEvent.Drop event, @First Player player) {
-        for (SlotTransaction tran : event.getTransactions()) {
-            ItemStackSnapshot item = tran.getOriginal();
-            CheckResult result = service.check(item, player.getWorld(), Triggers.THROW, player);
-            if (result.isBanned()) {
-                event.setCancelled(true);
-                Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
-                optionalFinalItem.ifPresent(finalItem -> tran.setCustom(finalItem.createSnapshot()));
-                Text originItemName = TextUtil.getDisplayName(item.createStack());
-                Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(item.createStack()));
-                TextUtil
-                    .prepareMessage(
-                        Triggers.THROW,
-                        originItemName,
-                        finalItemName,
-                        ((CheckResult.Banned) result).getBanRules(),
-                        result.isUpdateNeeded()
-                    )
-                    .forEach(player::sendMessage);
-            }
-        }
-    }
-
-    @Listener(order = Order.FIRST, beforeModifications = true)
     public void onDropped(DropItemEvent.Pre event, @First Entity entity) {
         List<ItemStackSnapshot> droppedItems = event.getDroppedItems();
         Player player = entity instanceof Player ? (Player) entity : null;
