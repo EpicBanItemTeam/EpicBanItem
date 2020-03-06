@@ -3,7 +3,7 @@ package team.ebi.epicbanitem.util.nbt.visitor;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
- * @author yinyangshi GiNYAi ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @NonnullByDefault
 public interface DataVisitor {

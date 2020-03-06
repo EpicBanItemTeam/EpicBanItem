@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author ustc_zzzz
+ * @author The EpicBanItem Team
  */
 @NonnullByDefault
 public class NbtTagRenderVisitor extends DataCompoundVisitor.Impl {
