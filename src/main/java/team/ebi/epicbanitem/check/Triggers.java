@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -23,8 +22,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
-import team.ebi.epicbanitem.check.listener.DropListener;
-import team.ebi.epicbanitem.check.listener.ThrowListener;
 
 /**
  * @author The EpicBanItem Team
@@ -49,10 +46,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
     private static final SortedMap<String, CheckRuleTrigger> triggers = new TreeMap<>();
 
     @Inject
-    public Triggers(EventManager eventManager, PluginContainer pluginContainer, ThrowListener throwListener, DropListener dropListener) {
-        Objects.requireNonNull(throwListener);
-        Objects.requireNonNull(dropListener);
-
+    public Triggers(EventManager eventManager, PluginContainer pluginContainer) {
         eventManager.registerListeners(pluginContainer, this);
     }
 

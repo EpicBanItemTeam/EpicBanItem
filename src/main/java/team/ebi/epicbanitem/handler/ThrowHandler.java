@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.check.listener;
+package team.ebi.epicbanitem.handler;
 
 import static team.ebi.epicbanitem.util.NbtTagDataUtil.toItemStack;
 
@@ -35,12 +35,12 @@ import team.ebi.epicbanitem.util.TextUtil;
  */
 
 @Singleton
-public class ThrowListener {
+public class ThrowHandler {
     @Inject
     private CheckRuleService service;
 
     @Inject
-    public ThrowListener(PluginContainer pluginContainer, EventManager eventManager) {
+    public ThrowHandler(PluginContainer pluginContainer, EventManager eventManager) {
         eventManager.registerListeners(pluginContainer, this);
     }
 

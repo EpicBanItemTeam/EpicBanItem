@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.check.listener;
+package team.ebi.epicbanitem.handler;
 
 import static team.ebi.epicbanitem.util.NbtTagDataUtil.toItemStack;
 
@@ -32,12 +32,12 @@ import team.ebi.epicbanitem.util.TextUtil;
  */
 
 @Singleton
-public class DropListener {
+public class DropHandler {
     @Inject
     private CheckRuleService service;
 
     @Inject
-    public DropListener(PluginContainer pluginContainer, EventManager eventManager) {
+    public DropHandler(PluginContainer pluginContainer, EventManager eventManager) {
         eventManager.registerListeners(pluginContainer, this);
     }
 
