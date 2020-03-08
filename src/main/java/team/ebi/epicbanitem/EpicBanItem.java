@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
-import team.ebi.epicbanitem.check.CheckModule;
+import team.ebi.epicbanitem.check.CheckRuleModule;
 import team.ebi.epicbanitem.command.CommandEbi;
 import team.ebi.epicbanitem.configuration.BanConfig;
 import team.ebi.epicbanitem.configuration.Settings;
@@ -43,7 +43,7 @@ public class EpicBanItem {
         LocaleService localeService,
         BanConfig banConfig,
         CommandEbi commandEbi,
-        CheckModule checkModule
+        CheckRuleModule checkRuleModule
     ) {
         instance = this;
 
@@ -54,7 +54,7 @@ public class EpicBanItem {
         Objects.requireNonNull(localeService);
         Objects.requireNonNull(banConfig);
         Objects.requireNonNull(commandEbi);
-        Objects.requireNonNull(checkModule);
+        Objects.requireNonNull(checkRuleModule);
     }
 
     public static Logger getLogger() {
