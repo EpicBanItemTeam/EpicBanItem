@@ -1,8 +1,9 @@
-package team.ebi.epicbanitem.check.listener;
+package team.ebi.epicbanitem.handler;
 
 import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.Optional;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Transform;
@@ -26,8 +27,6 @@ import team.ebi.epicbanitem.api.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.TextUtil;
-
-import java.util.Optional;
 
 /**
  * @author The EpicBanItem Team

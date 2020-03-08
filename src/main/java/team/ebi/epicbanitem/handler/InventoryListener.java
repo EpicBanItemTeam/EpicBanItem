@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.check.listener;
+package team.ebi.epicbanitem.handler;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
@@ -16,7 +16,6 @@ import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandType;
-import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
@@ -37,7 +36,6 @@ import org.spongepowered.api.event.item.inventory.AffectItemStackEvent;
 import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
 import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent.Transfer;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
-import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.event.item.inventory.TargetInventoryEvent;
 import org.spongepowered.api.item.inventory.Container;
@@ -82,34 +80,6 @@ public class InventoryListener {
 
     private static ItemStack getItem(DataContainer view, int quantity) {
         return NbtTagDataUtil.toItemStack(view, quantity);
-    }
-
-    @Listener(order = Order.FIRST, beforeModifications = true)
-    public void onDropped(DropItemEvent.Pre event, @First Entity entity) {
-        List<ItemStackSnapshot> droppedItems = event.getDroppedItems();
-        Player player = entity instanceof Player ? (Player) entity : null;
-        for (int i = droppedItems.size() - 1; i >= 0; --i) {
-            ItemStackSnapshot item = droppedItems.get(i);
-            CheckResult result = service.check(item, entity.getWorld(), Triggers.DROP, player);
-            if (result.isBanned()) {
-                int immutableIndex = i;
-                Optional<ItemStack> optionalFinalItem = result.getFinalView().map(view -> getItem(view, item.getQuantity()));
-                optionalFinalItem.ifPresent(finalItem -> droppedItems.set(immutableIndex, finalItem.createSnapshot()));
-                if (player != null) {
-                    Text originItemName = TextUtil.getDisplayName(item.createStack());
-                    Text finalItemName = TextUtil.getDisplayName(optionalFinalItem.orElse(item.createStack()));
-                    TextUtil
-                        .prepareMessage(
-                            Triggers.DROP,
-                            originItemName,
-                            finalItemName,
-                            ((CheckResult.Banned) result).getBanRules(),
-                            result.isUpdateNeeded()
-                        )
-                        .forEach(player::sendMessage);
-                }
-            }
-        }
     }
 
     @Listener(order = Order.FIRST, beforeModifications = true)

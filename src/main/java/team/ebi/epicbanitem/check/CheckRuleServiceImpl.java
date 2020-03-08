@@ -3,6 +3,13 @@ package team.ebi.epicbanitem.check;
 import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -24,14 +31,6 @@ import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.configuration.BanConfig;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author The EpicBanItem Team
@@ -131,8 +130,15 @@ public class CheckRuleServiceImpl implements CheckRuleService {
     }
 
     private CheckResult check(CheckResult origin, String id, World world, CheckRuleTrigger trigger, @Nullable Subject subject) {
-        return Streams.stream(banConfig.getRulesWithIdFiltered(id))
-            .reduce(origin, (result, rule) -> rule.check(result, world, trigger, subject), (a, b) -> {throw new IllegalStateException();});
+        return Streams
+            .stream(banConfig.getRulesWithIdFiltered(id))
+            .reduce(
+                origin,
+                (result, rule) -> rule.check(result, world, trigger, subject),
+                (a, b) -> {
+                    throw new IllegalStateException();
+                }
+            );
     }
 
     @Listener
