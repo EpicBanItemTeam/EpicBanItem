@@ -2,6 +2,11 @@ package team.ebi.epicbanitem.command;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -11,6 +16,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.api.CheckRuleIndex;
@@ -18,12 +24,6 @@ import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.command.arg.EpicBanItemArgs;
 import team.ebi.epicbanitem.util.TextUtil;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * @author The EpicBanItem Team
@@ -33,6 +33,9 @@ import java.util.stream.Stream;
 class CommandList extends AbstractCommand {
     @Inject
     private CheckRuleService service;
+
+    @Inject
+    private CommandEdit commandEdit;
 
     CommandList() {
         super("list", "l");
@@ -57,9 +60,14 @@ class CommandList extends AbstractCommand {
         indexStream.forEach(i -> toShow.put(i.toString(), service.getCheckRulesByIndex(i)));
         for (Map.Entry<String, List<CheckRule>> entry : toShow.entrySet()) {
             for (CheckRule checkRule : entry.getValue()) {
+                Text ruleName = getMessage("firstHalfLine", Tuple.of("item_type", entry.getKey()), Tuple.of("check_rule", checkRule.toText()))
+                    .toBuilder()
+                    .onHover(TextActions.showText(getMessage("clickToEdit")))
+                    .onClick(TextActions.runCommand(commandEdit.getCommandString() + checkRule.getName().toString()))
+                    .build();
                 lines.add(
                     Text.of(
-                        TextUtil.adjustLength(getMessage("firstHalfLine", Tuple.of("item_type", entry.getKey()), Tuple.of("check_rule", checkRule.toText())), 20),
+                        TextUtil.adjustLength(ruleName, 20),
                         getMessage("secondHalfLine", Tuple.of("item_type", entry.getKey()), Tuple.of("check_rule", checkRule.toText()))
                     )
                 );
