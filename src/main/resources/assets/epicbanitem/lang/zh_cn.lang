@@ -145,6 +145,7 @@ epicbanitem.command.callback.args.args = 命令的参数 <key> [<args..>]
 
 epicbanitem.command.help.description = 显示帮助信息
 epicbanitem.command.help.extendedDescription = 显示帮助信息
+epicbanitem.command.help.clickToDetail = 点击显示详细帮助
 epicbanitem.command.help.noHelp = 无帮助信息
 epicbanitem.command.help.args.subCommand = 帮助信息目标
 epicbanitem.command.help.empty = 你没有权限执行任何epicbanitem的其他命令
