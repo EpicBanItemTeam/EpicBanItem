@@ -2,6 +2,11 @@ package team.ebi.epicbanitem.command;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -20,12 +25,6 @@ import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;
-
-import javax.annotation.Nonnull;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author The EpicBanItem Team
@@ -72,11 +71,8 @@ public class CommandCheck extends AbstractCommand {
                 service.check(itemStack, world, trigger, null);
             }
         }
-        Text.Builder info = Text.builder();
-        for (Iterator<CheckRule> it = checkRuleContext.values().iterator(); it.hasNext(); it.remove()) {
-            info.append(it.next().toText(), Text.NEW_LINE);
-        }
-        src.sendMessage(info.toText());
+        Text info = Text.joinWith(Text.NEW_LINE, checkRuleContext.values().stream().map(CheckRule::toText).collect(Collectors.toList()));
+        src.sendMessage(info);
         return CommandResult.success();
     }
 }
