@@ -35,6 +35,7 @@ epicbanitem.command.list.extendedDescription = List all the items to be banned
 epicbanitem.command.list.noRule = No rules
 epicbanitem.command.list.firstHalfLine = {check_rule}
 epicbanitem.command.list.secondHalfLine = &7 {item_type}
+epicbanitem.command.list.clickToEdit = Click to edit
 epicbanitem.command.list.title = List of rules
 epicbanitem.command.list.padding = &7-
 epicbanitem.command.list.args.itemType = The item to be queried hand. Enter hand to query the items in hand, and leave blank to list all the items
@@ -144,6 +145,7 @@ epicbanitem.command.callback.args.args = Args of this command like : <key> [<arg
 
 epicbanitem.command.help.description = Display help information
 epicbanitem.command.help.extendedDescription = Display help information
+epicbanitem.command.help.clickToDetail = Click to show detail
 epicbanitem.command.help.noHelp = No help information
 epicbanitem.command.help.args.subCommand = Help information target
 epicbanitem.command.help.empty = You don't have any permission of epicbanitem command

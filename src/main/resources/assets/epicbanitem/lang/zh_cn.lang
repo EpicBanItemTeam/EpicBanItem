@@ -35,6 +35,7 @@ epicbanitem.command.list.extendedDescription = 列出被封禁的物品
 epicbanitem.command.list.noRule = 无规则
 epicbanitem.command.list.firstHalfLine = {check_rule}
 epicbanitem.command.list.secondHalfLine = &7 {item_type}
+epicbanitem.command.list.clickToEdit = 点击编辑规则
 epicbanitem.command.list.title = 规则列表
 epicbanitem.command.list.padding = &7-
 epicbanitem.command.list.args.itemType = 要查询的物品。输入 hand 则查询主手中的物品，留空则列出所有物品
@@ -144,6 +145,7 @@ epicbanitem.command.callback.args.args = 命令的参数 <key> [<args..>]
 
 epicbanitem.command.help.description = 显示帮助信息
 epicbanitem.command.help.extendedDescription = 显示帮助信息
+epicbanitem.command.help.clickToDetail = 点击显示详细帮助
 epicbanitem.command.help.noHelp = 无帮助信息
 epicbanitem.command.help.args.subCommand = 帮助信息目标
 epicbanitem.command.help.empty = 你没有权限执行任何epicbanitem的其他命令
