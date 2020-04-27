@@ -1,5 +1,13 @@
 # EpicBanItem Changelog
 
+## v0.4.1
+
+* Add UpdateChecker
+* Improve display
+* Fix async file tick
+* Fix drop behavior
+* Fix that api backward compatibility is broken
+
 ## v0.4.0
 
 * Make locale file reloadable
