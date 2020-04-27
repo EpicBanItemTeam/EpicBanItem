@@ -20,21 +20,15 @@ import java.util.Map;
 @Singleton
 public class ObservableFileServiceImpl implements ObservableFileService, Closeable {
     private final Map<String, ObservableFileRegistry> observableDirectories;
-    private final EventManager eventManager;
-    private final PluginContainer pluginContainer;
     private final Task task;
 
     @Inject
     public ObservableFileServiceImpl(PluginContainer pluginContainer, EventManager eventManager) {
-        this.pluginContainer = pluginContainer;
-        this.eventManager = eventManager;
-
         this.observableDirectories = Maps.newHashMap();
 
         this.task =
             Task
                 .builder()
-                .async()
                 .execute(task -> observableDirectories.values().forEach(observableFileRegistry -> observableFileRegistry.tick(task)))
                 .intervalTicks(1)
                 .submit(pluginContainer);

@@ -35,6 +35,7 @@ epicbanitem.command.list.extendedDescription = 列出被封禁的物品
 epicbanitem.command.list.noRule = 无规则
 epicbanitem.command.list.firstHalfLine = {check_rule}
 epicbanitem.command.list.secondHalfLine = &7 {item_type}
+epicbanitem.command.list.clickToEdit = 点击编辑规则
 epicbanitem.command.list.title = 规则列表
 epicbanitem.command.list.padding = &7-
 epicbanitem.command.list.args.itemType = 要查询的物品。输入 hand 则查询主手中的物品，留空则列出所有物品
@@ -127,13 +128,13 @@ epicbanitem.command.editor.mode.false.description = &c所有未设置的项默�
 epicbanitem.command.editor.mode.undefined = &7默认模式
 epicbanitem.command.editor.mode.undefined.description = &c所有未设置的使用全局默认值
 epicbanitem.command.editor.illegalPriority = 优先度应该为0-9
-epicbanitem.command.editor.customQuery = 当前使用的Query规则
-epicbanitem.command.editor.historyQuery = 原本使用的Query规则
-epicbanitem.command.editor.originQuery = 原本使用的Query规则
-epicbanitem.command.editor.customUpdate = 当前使用的Update规则
-epicbanitem.command.editor.defaultUpdate = 默认的Updatge规则,将物品替换为空气
-epicbanitem.command.editor.emptyUpdate = 空的Update规则,此时将只阻止事件,而不更新物品
-epicbanitem.command.editor.originUpdate = 原本使用的Updatge规则
+epicbanitem.command.editor.customQuery = 当前使用的查询规则
+epicbanitem.command.editor.historyQuery = 原本使用的查询规则
+epicbanitem.command.editor.originQuery = 原本使用的查询规则
+epicbanitem.command.editor.customUpdate = 当前使用的更新规则
+epicbanitem.command.editor.defaultUpdate = 默认的更新规则,将物品替换为空气
+epicbanitem.command.editor.emptyUpdate = 空的更新规则,此时将只阻止事件,而不更新物品
+epicbanitem.command.editor.originUpdate = 原本使用的更新规则
 
 epicbanitem.command.callback.description = 你不应该主动使用这个命令
 epicbanitem.command.callback.extendedDescription = 我不知道要如何解释
@@ -144,6 +145,7 @@ epicbanitem.command.callback.args.args = 命令的参数 <key> [<args..>]
 
 epicbanitem.command.help.description = 显示帮助信息
 epicbanitem.command.help.extendedDescription = 显示帮助信息
+epicbanitem.command.help.clickToDetail = 点击显示详细帮助
 epicbanitem.command.help.noHelp = 无帮助信息
 epicbanitem.command.help.args.subCommand = 帮助信息目标
 epicbanitem.command.help.empty = 你没有权限执行任何epicbanitem的其他命令
@@ -160,8 +162,8 @@ epicbanitem.error.missingMessage = 【缺失文本节点：{message_key}】
 epicbanitem.info.cannotBeLoaded = {name}无法被加载
 
 #info
-epicbanitem.info.defaultBanMessage = 由于规则{rules},你无法{trigger}这个{item_pre}
-epicbanitem.info.defaultUpdateMessage = 由于规则{rules},你的{item_pre}更新为{item_post}
+epicbanitem.info.defaultBanMessage = 由于规则{rules},{item_pre}无法{trigger}
+epicbanitem.info.defaultUpdateMessage = 由于规则{rules},{item_pre}更新为{item_post}
 epicbanitem.info.reload = {name}已重载
 
 #triggers

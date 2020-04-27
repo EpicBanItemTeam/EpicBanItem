@@ -1,8 +1,11 @@
-package team.ebi.epicbanitem.check.listener;
+package team.ebi.epicbanitem.handler;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -23,10 +26,6 @@ import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.TextUtil;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author The EpicBanItem Team

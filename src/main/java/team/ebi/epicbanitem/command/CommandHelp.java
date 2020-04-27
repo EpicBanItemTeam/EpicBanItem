@@ -1,7 +1,11 @@
 package team.ebi.epicbanitem.command;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -9,14 +13,13 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.service.pagination.PaginationList.Builder;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.locale.LocaleService;
-
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
 
 /**
  * @author The EpicBanItem Team
@@ -37,9 +40,7 @@ public class CommandHelp extends AbstractCommand {
     @Override
     public CommandElement getArgument() {
         SortedMap<String, CommandCallable> flatMap = service.getFlatMap();
-        return GenericArguments.optional(
-            GenericArguments.choices(Text.of("sub-command"), flatMap::keySet, flatMap::get, false)
-        );
+        return GenericArguments.optional(GenericArguments.choices(Text.of("sub-command"), flatMap::keySet, flatMap::get, false));
     }
 
     @Override
@@ -52,30 +53,28 @@ public class CommandHelp extends AbstractCommand {
                 src.sendMessage(subCommand.getHelp(src).orElse(getMessage("noHelp")));
             }
         } else {
-            Text.Builder textBuilder = Text.builder()
-                    .append(Text.of("EpicBanItem Help"))
-                    .append(Text.NEW_LINE)
-                    .append(localeService.getText("epicbanitem.command.editor.header").orElse(Text.NEW_LINE));
+            List<Text> helpTexts = Lists.newArrayList();
             for (Map.Entry<List<String>, CommandCallable> entry : service.getChildrenMap().entrySet()) {
+                Text.Builder textBuilder = Text.builder();
                 textBuilder
-                        .append(Text.NEW_LINE)
-                        .append(Text
-                                .builder("/" + CommandEbi.COMMAND_PREFIX + " " + entry.getKey().get(0) + " ")
-                                .color(TextColors.LIGHT_PURPLE)
-                                .build())
-                        .append(entry.getValue().getUsage(src)
-                                .toBuilder()
-                                .color(TextColors.AQUA)
-                                .build());
-                textBuilder
-                        .append(Text.NEW_LINE)
-                        .append(entry.getValue().getShortDescription(src).orElse(Text.of("no description")));
+                    .append(
+                        Text
+                            .builder("/" + CommandEbi.COMMAND_PREFIX + " " + entry.getKey().get(0) + " ")
+                            .onHover(TextActions.showText(getMessage("clickToDetail")))
+                            .onClick(TextActions.runCommand(this.getCommandString() + entry.getKey().get(0)))
+                            .color(TextColors.LIGHT_PURPLE)
+                            .build()
+                    )
+                    .append(entry.getValue().getUsage(src).toBuilder().color(TextColors.AQUA).build());
+                textBuilder.append(Text.NEW_LINE).append(entry.getValue().getShortDescription(src).orElse(Text.of("no description")));
+                helpTexts.add(textBuilder.build());
             }
-            Text text = textBuilder.build();
-            if (text.isEmpty()) {
+            if (helpTexts.isEmpty()) {
                 src.sendMessage(localeService.getTextWithFallback("epicbanitem.command.help.empty"));
             } else {
-                src.sendMessage(text);
+                Builder builder = PaginationList.builder();
+                localeService.getText("epicbanitem.command.ebi.description").ifPresent(builder::title);
+                builder.padding(Text.of(TextColors.GREEN, "-")).contents(helpTexts).sendTo(src);
             }
         }
         return CommandResult.success();
