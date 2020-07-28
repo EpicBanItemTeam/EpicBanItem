@@ -41,7 +41,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
  * @author The EpicBanItem Team
@@ -67,6 +71,8 @@ public class TextUtil {
                 .build();
     */
     private static final ConfigurationLoader<CommentedConfigurationNode> LOADER = getLoader();
+
+    private static Pattern END_COLOR_PATTER = Pattern.compile("(&[0-9a-fk-or])+$", CASE_INSENSITIVE);
 
     /**
      * @param origin origin string support FormatText
@@ -106,11 +112,33 @@ public class TextUtil {
                 objects.add(parseFormatText("{" + subString));
             }
         }
+        Text text = null;
+        for (Object o: objects) {
+            if (o instanceof Text) {
+                text = getLastElement((Text) o);
+            } else if (o instanceof TextTemplate.Arg.Builder) {
+                if (text != null) {
+                    ((TextTemplate.Arg.Builder) o).format(text.getFormat());
+                }
+            }
+        }
         return TextTemplate.of(objects.toArray());
     }
 
     public static Text parseFormatText(String in) {
-        return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
+        Matcher matcher = END_COLOR_PATTER.matcher(in);
+        if (matcher.find()) {
+            Text text = TextSerializers.FORMATTING_CODE.deserialize(matcher.replaceAll(""));
+            Text text1 = TextSerializers.FORMATTING_CODE.deserializeUnchecked(in + " ");
+            return text.toBuilder().append(Text.builder().format(getLastElement(text1).getFormat()).build()).build();
+        } else {
+            return TextSerializers.FORMATTING_CODE.deserializeUnchecked(in);
+        }
+    }
+
+    private static Text getLastElement(Text text) {
+        List<Text> children = text.getChildren();
+        return children.isEmpty() ? text : children.get(children.size() - 1);
     }
 
     public static Text adjustLength(Text text, int length) {

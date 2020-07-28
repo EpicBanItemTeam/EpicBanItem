@@ -65,7 +65,7 @@ epicbanitem.command.update.args.updateRule = The rule to be applied (please refe
 
 epicbanitem.command.create.description = Create a new rule
 epicbanitem.command.create.extendedDescription = Create a new rule
-epicbanitem.command.create.succeed = Successfully added the rule: &a {rule_name}
+epicbanitem.command.create.succeed = Successfully added the rule: &a{rule_name}
 epicbanitem.command.create.failed = An error was thrown when trying to add a rule:
 epicbanitem.command.create.existed = The name {rule_name} is used.
 epicbanitem.command.create.conflict = Only zero or one of those flags can be added in one command: "--no-capture", "--simple-capture", "--all-capture (--all-match)".

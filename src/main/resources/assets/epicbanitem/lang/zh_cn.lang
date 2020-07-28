@@ -34,7 +34,7 @@ epicbanitem.command.list.description = 列出被封禁的物品
 epicbanitem.command.list.extendedDescription = 列出被封禁的物品
 epicbanitem.command.list.noRule = 无规则
 epicbanitem.command.list.firstHalfLine = {check_rule}
-epicbanitem.command.list.secondHalfLine = &7 {item_type}
+epicbanitem.command.list.secondHalfLine = &7{item_type}
 epicbanitem.command.list.clickToEdit = 点击编辑规则
 epicbanitem.command.list.title = 规则列表
 epicbanitem.command.list.padding = &7-
@@ -65,7 +65,7 @@ epicbanitem.command.update.args.updateRule = 用来应用的规则,阅读 wiki �
 
 epicbanitem.command.create.description = 创建一个新的规则
 epicbanitem.command.create.extendedDescription = 创建一个新的规则
-epicbanitem.command.create.succeed = 成功添加规则：&a {rule_name}
+epicbanitem.command.create.succeed = 成功添加规则：&a{rule_name}
 epicbanitem.command.create.failed = 创建规则失败
 epicbanitem.command.create.existed = 规则名{rule_name}已经被使用了.
 epicbanitem.command.create.conflict = 以下参数在一条命令里只能使用零或一个：“--no-capture”, “--simple-capture”, “--all-capture (--all-match)”
