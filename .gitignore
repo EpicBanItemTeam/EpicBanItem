@@ -18,8 +18,8 @@
 !gradle/
 !gradlew
 !gradlew.bat
-!build.gradle
-!settings.gradle
+!build.gradle.kts
+!settings.gradle.kts
 !gradle.properties
 !buildSrc/
 buildSrc/*
