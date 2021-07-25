@@ -1,9 +1,7 @@
 import team.ebi.gradle.TaskOreDeploy
 
 plugins {
-    id "com.github.johnrengelman.shadow" version "2.0.4"
-    id "ninja.miserable.blossom" version "1.0.1"
-    id "signing"
+    id "net.kyori.blossom" version "1.3.0"
     id "java"
     id "idea"
 }
@@ -25,7 +23,6 @@ defaultTasks "clean", "build"
 sourceCompatibility = 1.8
 
 repositories {
-    mavenCentral()
     maven {
         name = "sponge"
         url = "https://repo.spongepowered.org/maven"
@@ -34,18 +31,6 @@ repositories {
 
 dependencies {
     implementation "org.spongepowered:spongeapi:$spongeVersion"
-}
-
-jar {
-    classifier = "pure"
-}
-
-shadowJar {
-    classifier = null
-
-    build.dependsOn += it
-
-    configurations = [] // no dependency now
 }
 
 task oreDeploy(type: TaskOreDeploy) {
@@ -62,12 +47,6 @@ task oreDeploy(type: TaskOreDeploy) {
 
 blossom {
     replaceToken '@version@', pluginVersion()
-}
-
-signing {
-    sign jar, shadowJar each {
-        it.enabled project.findProperty("signing.password") as boolean
-    }
 }
 
 tasks.withType(JavaCompile) {
