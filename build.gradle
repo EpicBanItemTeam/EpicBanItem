@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.spongepowered:spongeapi:$spongeVersion"
+    implementation "org.spongepowered:spongeapi:$spongeVersion"
 }
 
 jar {
