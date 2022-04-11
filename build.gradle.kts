@@ -1,9 +1,9 @@
 import org.spongepowered.gradle.plugin.config.PluginLoaders
-import org.spongepowered.plugin.metadata.PluginDependency
+import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
     `java-library`
-    id("org.spongepowered.gradle.plugin") version "1.1.1"
+    id("org.spongepowered.gradle.plugin") version "2.0.1"
 }
 
 group = "team.ebi"
@@ -15,10 +15,14 @@ repositories {
 
 sponge {
     apiVersion("8.0.0")
+    license("GPL-3.0")
+    loader {
+        name(PluginLoaders.JAVA_PLAIN)
+        version("1.0")
+    }
     plugin("epicbanitem") {
-        loader(PluginLoaders.JAVA_PLAIN)
-        displayName("EpicBanItem")
-        mainClass("team.ebi.epicbanitem.EpicBanItem")
+        displayName("Epic Ban Item")
+        entrypoint("team.ebi.epicbanitem.Entrypoint")
         description("Restrict items with nbt tags")
         links {
             homepage("https://docs.ebi.team")
