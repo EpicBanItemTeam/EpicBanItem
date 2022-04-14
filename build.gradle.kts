@@ -22,7 +22,7 @@ sponge {
     }
     plugin("epicbanitem") {
         displayName("Epic Ban Item")
-        entrypoint("team.ebi.epicbanitem.Entrypoint")
+        entrypoint("team.ebi.epicbanitem.EpicBanItem")
         description("Restrict items with nbt tags")
         links {
             homepage("https://docs.ebi.team")
