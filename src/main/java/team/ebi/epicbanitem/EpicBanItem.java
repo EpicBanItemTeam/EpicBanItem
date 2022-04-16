@@ -2,70 +2,23 @@ package team.ebi.epicbanitem;
 
 import com.google.inject.Inject;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.spongepowered.api.Platform;
-import org.spongepowered.api.plugin.Dependency;
-import org.spongepowered.api.plugin.Plugin;
-import team.ebi.epicbanitem.check.CheckRuleModule;
-import team.ebi.epicbanitem.command.CommandEbi;
-import team.ebi.epicbanitem.configuration.BanConfig;
-import team.ebi.epicbanitem.configuration.Settings;
-import team.ebi.epicbanitem.locale.LocaleService;
+import org.spongepowered.api.ResourceKey;
+import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 /**
  * @author The EpicBanItem Team
  */
-@Plugin(
-    id = EpicBanItem.PLUGIN_ID,
-    name = EpicBanItem.NAME,
-    version = EpicBanItem.VERSION,
-    dependencies = @Dependency(id = Platform.API_ID, version = "7.1.0"),
-    authors = { "yinyangshi", "GiNYAi", "ustc-zzzz", "SettingDust" },
-    description = "The sponge plugin for item restriction by checking nbt tags"
-)
+@Plugin(EpicBanItem.NAMESPACE)
 public class EpicBanItem {
-    public static final String PLUGIN_ID = "epicbanitem";
-    public static final String NAME = "EpicBanItem";
-    public static final String VERSION = "@version@";
-    public static final String ORE = "https://ore.spongepowered.org/EpicBanItem/EpicBanItem";
+  public static final String NAMESPACE = "epicbanitem";
+  public static final ResourceKey ROOT_KEY = EpicBanItem.key("root");
 
-    private static EpicBanItem instance;
+  public static ResourceKey key(String value) {
+    return ResourceKey.of(NAMESPACE, value);
+  }
 
-    @Inject
-    private Logger logger;
-
-    private final LocaleService localeService;
-    private final Settings settings;
-
-    @Inject
-    public EpicBanItem(
-        Settings settings,
-        LocaleService localeService,
-        BanConfig banConfig,
-        CommandEbi commandEbi,
-        CheckRuleModule checkRuleModule
-    ) {
-        instance = this;
-
-        this.localeService = localeService;
-        this.settings = settings;
-
-        Objects.requireNonNull(settings);
-        Objects.requireNonNull(localeService);
-        Objects.requireNonNull(banConfig);
-        Objects.requireNonNull(commandEbi);
-        Objects.requireNonNull(checkRuleModule);
-    }
-
-    public static Logger getLogger() {
-        return instance.logger;
-    }
-
-    public static LocaleService getLocaleService() {
-        return instance.localeService;
-    }
-
-    public static Settings getSettings() {
-        return instance.settings;
-    }
+  @Inject
+  public EpicBanItem(EBIRegistries registries) {
+    Objects.requireNonNull(registries);
+  }
 }
