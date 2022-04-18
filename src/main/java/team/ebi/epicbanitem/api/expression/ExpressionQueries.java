@@ -25,4 +25,15 @@ public class ExpressionQueries {
 
   public static final DataQuery EXISTS = DataQuery.of(ExpressionKeys.EXISTS);
   public static final DataQuery REGEX = DataQuery.of(ExpressionKeys.REGEX);
+
+  // Update
+  public static final DataQuery SET = DataQuery.of(ExpressionKeys.SET);
+  public static final DataQuery UNSET = DataQuery.of(ExpressionKeys.UNSET);
+  public static final DataQuery RENAME = DataQuery.of(ExpressionKeys.RENAME);
+
+  public static final DataQuery POP = DataQuery.of(ExpressionKeys.POP);
+  public static final DataQuery PULL = DataQuery.of(ExpressionKeys.PULL);
+
+  public static final DataQuery INC = DataQuery.of(ExpressionKeys.INC);
+  public static final DataQuery MUL = DataQuery.of(ExpressionKeys.MUL);
 }

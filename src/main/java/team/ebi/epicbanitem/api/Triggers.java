@@ -1,6 +1,6 @@
 package team.ebi.epicbanitem.api;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
@@ -9,7 +9,7 @@ import org.spongepowered.api.registry.Registry;
 import org.spongepowered.api.registry.RegistryKey;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.util.SimpleTrigger;
+import team.ebi.epicbanitem.trigger.SimpleTrigger;
 
 public class Triggers {
   public static final DefaultedRegistryReference<Trigger> USE = key(EpicBanItem.key("use"));
@@ -31,22 +31,20 @@ public class Triggers {
   public static final DefaultedRegistryReference<Trigger> JOIN = key(EpicBanItem.key("join"));
 
   public static Map<ResourceKey, Trigger> DEFAULT_REGISTRIES =
-      new HashMap<ResourceKey, Trigger>() {
-        {
-          put(EpicBanItem.key("use"), new SimpleTrigger("use"));
-          put(EpicBanItem.key("equip"), new SimpleTrigger("equip"));
-          put(EpicBanItem.key("craft"), new SimpleTrigger("craft"));
-          put(EpicBanItem.key("pickup"), new SimpleTrigger("pickup"));
-          put(EpicBanItem.key("click"), new SimpleTrigger("click"));
-          put(EpicBanItem.key("throw"), new SimpleTrigger("throw"));
-          put(EpicBanItem.key("drop"), new SimpleTrigger("drop"));
-          put(EpicBanItem.key("place"), new SimpleTrigger("place"));
-          put(EpicBanItem.key("break"), new SimpleTrigger("break"));
-          put(EpicBanItem.key("interact"), new SimpleTrigger("interact"));
-          put(EpicBanItem.key("join"), new SimpleTrigger("join"));
-          put(EpicBanItem.key("store"), new SimpleTrigger("store"));
-        }
-      };
+      ImmutableMap.<ResourceKey, Trigger>builder()
+          .put(EpicBanItem.key("use"), new SimpleTrigger("use"))
+          .put(EpicBanItem.key("equip"), new SimpleTrigger("equip"))
+          .put(EpicBanItem.key("craft"), new SimpleTrigger("craft"))
+          .put(EpicBanItem.key("pickup"), new SimpleTrigger("pickup"))
+          .put(EpicBanItem.key("click"), new SimpleTrigger("click"))
+          .put(EpicBanItem.key("throw"), new SimpleTrigger("throw"))
+          .put(EpicBanItem.key("drop"), new SimpleTrigger("drop"))
+          .put(EpicBanItem.key("place"), new SimpleTrigger("place"))
+          .put(EpicBanItem.key("break"), new SimpleTrigger("break"))
+          .put(EpicBanItem.key("interact"), new SimpleTrigger("interact"))
+          .put(EpicBanItem.key("join"), new SimpleTrigger("join"))
+          .put(EpicBanItem.key("store"), new SimpleTrigger("store"))
+          .build();
 
   public static Registry<Trigger> registry() {
     return Sponge.server().registry(EBIRegistries.TRIGGER);

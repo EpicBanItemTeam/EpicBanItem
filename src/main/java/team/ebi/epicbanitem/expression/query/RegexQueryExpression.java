@@ -6,7 +6,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.Regex;
 
 public class RegexQueryExpression implements QueryExpression {
@@ -21,7 +21,7 @@ public class RegexQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    return TestResult.from(data.getString(query).filter(this.pattern.asPredicate()).isPresent());
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    return QueryResult.from(data.getString(query).filter(this.pattern.asPredicate()).isPresent());
   }
 }

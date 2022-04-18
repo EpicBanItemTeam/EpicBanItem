@@ -15,20 +15,27 @@ import team.ebi.epicbanitem.api.Trigger;
 import team.ebi.epicbanitem.api.Triggers;
 import team.ebi.epicbanitem.api.expression.QueryExpressionFunction;
 import team.ebi.epicbanitem.api.expression.QueryExpressions;
+import team.ebi.epicbanitem.api.expression.UpdateExpressionFunction;
+import team.ebi.epicbanitem.api.expression.UpdateExpressions;
 
 @Singleton
 public class EBIRegistries {
   public static RegistryType<Trigger> TRIGGER;
-  public static RegistryType<QueryExpressionFunction> PREDICATE_EXPRESSION;
+  public static RegistryType<QueryExpressionFunction> QUERY_EXPRESSION;
+  public static RegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION;
 
   public static void registerRegistries(final RegisterRegistryEvent event) {
     TRIGGER = event.register(EpicBanItem.key("trigger"), false, () -> Triggers.DEFAULT_REGISTRIES);
 
-    PREDICATE_EXPRESSION =
+    QUERY_EXPRESSION =
         event.register(
-            EpicBanItem.key("predicate_expression"),
+            EpicBanItem.key("query_expression"), false, () -> QueryExpressions.DEFAULT_REGISTRIES);
+
+    UPDATE_EXPRESSION =
+        event.register(
+            EpicBanItem.key("update_expression"),
             false,
-            () -> QueryExpressions.DEFAULT_REGISTRIES);
+            () -> UpdateExpressions.DEFAULT_REGISTRIES);
   }
 
   @Inject
@@ -45,7 +52,11 @@ public class EBIRegistries {
                 new TypeToken<RegisterRegistryValueEvent.EngineScoped<Server>>() {})
             .plugin(pluginContainer)
             .order(Order.POST)
-            .listener(event -> QueryExpressions.EXPRESSIONS = QueryExpressions.toMap())
+            .listener(
+                event -> {
+                  QueryExpressions.EXPRESSIONS = QueryExpressions.toMap();
+                  UpdateExpressions.EXPRESSIONS = UpdateExpressions.toMap();
+                })
             .build());
   }
 }

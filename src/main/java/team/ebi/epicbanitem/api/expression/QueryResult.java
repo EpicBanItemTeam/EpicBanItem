@@ -1,0 +1,54 @@
+package team.ebi.epicbanitem.api.expression;
+
+import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+import java.util.Optional;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import team.ebi.epicbanitem.expression.SimpleQueryResult;
+
+public interface QueryResult {
+  static Optional<QueryResult> failed() {
+    return Optional.empty();
+  }
+
+  static QueryResult success(Map<String, QueryResult> children) {
+    return new SimpleQueryResult(Type.DEFAULT, children);
+  }
+
+  static QueryResult array(Map<String, QueryResult> children) {
+    return new SimpleQueryResult(Type.ARRAY, children);
+  }
+
+  static QueryResult success() {
+    return new SimpleQueryResult();
+  }
+
+  static Optional<QueryResult> from(boolean b) {
+    return b ? Optional.of(success()) : failed();
+  }
+
+  static Optional<QueryResult> from(boolean b, Map<String, QueryResult> children) {
+    return b ? Optional.of(success(children)) : failed();
+  }
+
+  static Optional<QueryResult> fromArray(boolean b, Map<String, QueryResult> children) {
+    return b ? Optional.of(array(children)) : failed();
+  }
+
+  ImmutableMap<String, QueryResult> children();
+
+  @Contract("_ -> new")
+  QueryResult merge(@NotNull QueryResult target);
+
+  QueryResult.Type type();
+
+  enum Type {
+    DEFAULT,
+    ARRAY;
+
+    public Type merge(Type type) {
+      return this == DEFAULT && type == DEFAULT ? DEFAULT : ARRAY;
+    }
+  }
+}
