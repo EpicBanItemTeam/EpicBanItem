@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.DataPreconditions;
 
 public class SizeQueryExpression implements QueryExpression {
@@ -18,8 +18,8 @@ public class SizeQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
     int size = data.getList(query).map(List::size).orElse(-1);
-    return TestResult.from(size >= 0 && size == this.size);
+    return QueryResult.from(size >= 0 && size == this.size);
   }
 }

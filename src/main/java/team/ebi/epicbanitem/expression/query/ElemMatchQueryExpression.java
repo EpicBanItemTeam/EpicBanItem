@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
 
 public class ElemMatchQueryExpression implements QueryExpression {
@@ -21,21 +21,21 @@ public class ElemMatchQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
     Optional<List<DataView>> viewsOpt = data.getViewList(query);
-    if (!viewsOpt.isPresent() || viewsOpt.get().isEmpty()) return TestResult.failed();
+    if (!viewsOpt.isPresent() || viewsOpt.get().isEmpty()) return QueryResult.failed();
     List<DataView> views = viewsOpt.get();
-    ImmutableMap.Builder<String, TestResult> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
     boolean matched = false;
     for (int i = 0; i < views.size(); i++) {
       DataView view = views.get(i);
       String key = Integer.toString(i);
-      Optional<TestResult> result = this.expression.test(DataQuery.of(), view);
+      Optional<QueryResult> result = this.expression.query(DataQuery.of(), view);
       if (result.isPresent()) {
         builder.put(key, result.get());
         matched = true;
       }
     }
-    return TestResult.fromArray(matched, builder.build());
+    return QueryResult.fromArray(matched, builder.build());
   }
 }

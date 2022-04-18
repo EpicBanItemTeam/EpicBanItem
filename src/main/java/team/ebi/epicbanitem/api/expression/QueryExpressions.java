@@ -105,7 +105,7 @@ public class QueryExpressions {
           .build();
 
   public static Registry<QueryExpressionFunction> registry() {
-    return Sponge.server().registry(EBIRegistries.PREDICATE_EXPRESSION);
+    return Sponge.server().registry(EBIRegistries.QUERY_EXPRESSION);
   }
 
   /**
@@ -124,7 +124,7 @@ public class QueryExpressions {
 
   private static DefaultedRegistryReference<QueryExpressionFunction> key(
       final ResourceKey location) {
-    return RegistryKey.of(EBIRegistries.PREDICATE_EXPRESSION, location)
+    return RegistryKey.of(EBIRegistries.QUERY_EXPRESSION, location)
         .asDefaultedReference(Sponge::server);
   }
 }

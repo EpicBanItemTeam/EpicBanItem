@@ -9,7 +9,7 @@ import java.util.Set;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.query.ExtraQueryQueryExpression;
 
 public class CommonQueryExpression implements QueryExpression {
@@ -17,6 +17,14 @@ public class CommonQueryExpression implements QueryExpression {
 
   public CommonQueryExpression(DataView view) {
     this.expressions = Sets.newHashSet();
+    if (view.keys(false).isEmpty()) {
+      Optional<DataView> currentView = view.getView(DataQuery.of());
+      if (!currentView.isPresent()) return;
+      Optional<String> stringValue = currentView.get().getString(DataQuery.of());
+      if (!stringValue.isPresent()) return;
+      this.expressions.add(new StringQueryExpression(currentView.get()));
+      return;
+    }
     for (DataQuery query : view.keys(false)) {
       String key = query.last().toString();
       //noinspection OptionalGetWithoutIsPresent
@@ -45,14 +53,14 @@ public class CommonQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    TestResult result = TestResult.success();
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    QueryResult result = QueryResult.success();
     for (QueryExpression expression : this.expressions) {
-      Optional<TestResult> currentResult = expression.test(query, data);
+      Optional<QueryResult> currentResult = expression.query(query, data);
       if (currentResult.isPresent()) {
         result = currentResult.get().merge(result);
       } else {
-        return TestResult.failed();
+        return QueryResult.failed();
       }
     }
     return Optional.of(result);

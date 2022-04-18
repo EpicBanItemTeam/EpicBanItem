@@ -5,7 +5,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.DataPreconditions;
 
 public class ExistsQueryExpression implements QueryExpression {
@@ -27,7 +27,7 @@ public class ExistsQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    return TestResult.from(data.contains(query) == expect);
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    return QueryResult.from(data.contains(query) == expect);
   }
 }

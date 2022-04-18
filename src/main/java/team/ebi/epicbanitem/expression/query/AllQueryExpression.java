@@ -10,7 +10,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
 import team.ebi.epicbanitem.expression.StringQueryExpression;
 
@@ -46,23 +46,23 @@ public class AllQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
     Optional<List<DataView>> views = data.getViewList(DataQuery.of());
     if (views.isPresent() && !views.get().isEmpty()) {
-      ImmutableMap.Builder<String, TestResult> builder = ImmutableMap.builder();
+      ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
       for (int i = 0; i < views.get().size(); i++) {
         String key = Integer.toString(i);
         DataQuery subQuery = query.then(key);
         expressions.stream()
-            .map(it -> it.test(subQuery, data))
+            .map(it -> it.query(subQuery, data))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .findAny()
             .ifPresent(it -> builder.put(key, it));
       }
-      ImmutableMap<String, TestResult> map = builder.build();
-      if (!map.isEmpty()) return Optional.of(TestResult.array(map));
+      ImmutableMap<String, QueryResult> map = builder.build();
+      if (!map.isEmpty()) return Optional.of(QueryResult.array(map));
     }
-    return TestResult.failed();
+    return QueryResult.failed();
   }
 }

@@ -12,5 +12,5 @@ public interface QueryExpression {
    * @param data predicate
    * @return The test result
    */
-  Optional<TestResult> test(DataQuery query, DataView data);
+  Optional<QueryResult> query(DataQuery query, DataView data);
 }

@@ -4,7 +4,7 @@ import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 
 public class EqQueryExpression implements QueryExpression {
   private final DataView value;
@@ -14,7 +14,7 @@ public class EqQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    return TestResult.from(value.equals(data.getView(query).orElse(null)));
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    return QueryResult.from(value.equals(data.getView(query).orElse(null)));
   }
 }

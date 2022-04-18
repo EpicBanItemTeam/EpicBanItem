@@ -5,7 +5,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 
 public class NorQueryExpression implements QueryExpression {
   private final QueryExpression expression;
@@ -17,7 +17,7 @@ public class NorQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    return TestResult.from(!expression.test(query, data).isPresent());
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    return QueryResult.from(!expression.query(query, data).isPresent());
   }
 }

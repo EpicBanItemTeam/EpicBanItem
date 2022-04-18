@@ -7,7 +7,7 @@ import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 
 public class RootQueryExpression implements QueryExpression, DataSerializable {
   private final QueryExpression expression;
@@ -31,7 +31,7 @@ public class RootQueryExpression implements QueryExpression, DataSerializable {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    return this.expression.test(query, data);
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    return this.expression.query(query, data);
   }
 }

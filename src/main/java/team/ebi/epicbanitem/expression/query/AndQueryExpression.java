@@ -8,7 +8,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
 
 public class AndQueryExpression implements QueryExpression {
@@ -24,12 +24,12 @@ public class AndQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    TestResult result = TestResult.success();
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    QueryResult result = QueryResult.success();
     for (QueryExpression expression : this.expressions) {
-      Optional<TestResult> currentResult = expression.test(query, data);
+      Optional<QueryResult> currentResult = expression.query(query, data);
       if (currentResult.isPresent()) result = result.merge(currentResult.get());
-      else return TestResult.failed();
+      else return QueryResult.failed();
     }
     return Optional.of(result);
   }

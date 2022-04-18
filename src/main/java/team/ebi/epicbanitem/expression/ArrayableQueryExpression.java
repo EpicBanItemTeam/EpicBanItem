@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
-import team.ebi.epicbanitem.api.expression.TestResult;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.query.ElemMatchQueryExpression;
 
 /** Use for wrap the expressions that can test for value and array */
@@ -21,8 +21,8 @@ public class ArrayableQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<TestResult> test(DataQuery query, DataView data) {
-    Optional<TestResult> result = this.expression.test(query, data);
-    return result.isPresent() ? result : this.elemMatchExpression.get().test(query, data);
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    Optional<QueryResult> result = this.expression.query(query, data);
+    return result.isPresent() ? result : this.elemMatchExpression.get().query(query, data);
   }
 }
