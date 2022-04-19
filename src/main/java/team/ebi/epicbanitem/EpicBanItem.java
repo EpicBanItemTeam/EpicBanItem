@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import java.util.Objects;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
@@ -18,7 +19,8 @@ public class EpicBanItem {
   }
 
   @Inject
-  public EpicBanItem(EBIRegistries registries) {
-    Objects.requireNonNull(registries);
+  public EpicBanItem(Injector injector) {
+    injector.createChildInjector();
+    Objects.requireNonNull(injector.getInstance(EBIRegistries.class));
   }
 }
