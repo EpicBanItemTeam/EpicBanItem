@@ -10,6 +10,7 @@ import org.spongepowered.api.registry.RegistryKey;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.ObjectUpdateExpression;
+import team.ebi.epicbanitem.expression.RootUpdateExpression;
 import team.ebi.epicbanitem.expression.update.IncUpdateExpression;
 import team.ebi.epicbanitem.expression.update.MulUpdateExpression;
 import team.ebi.epicbanitem.expression.update.PopUpdateExpression;
@@ -85,5 +86,10 @@ public class UpdateExpressions {
       final ResourceKey location) {
     return RegistryKey.of(EBIRegistries.UPDATE_EXPRESSION, location)
         .asDefaultedReference(Sponge::server);
+  }
+
+  static {
+    Sponge.dataManager()
+        .registerBuilder(RootUpdateExpression.class, new RootUpdateExpression.Builder());
   }
 }

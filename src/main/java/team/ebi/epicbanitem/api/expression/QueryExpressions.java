@@ -10,6 +10,7 @@ import org.spongepowered.api.registry.RegistryKey;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.ArrayableQueryExpression;
+import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.query.AllQueryExpression;
 import team.ebi.epicbanitem.expression.query.AndQueryExpression;
 import team.ebi.epicbanitem.expression.query.ElemMatchQueryExpression;
@@ -126,5 +127,10 @@ public class QueryExpressions {
       final ResourceKey location) {
     return RegistryKey.of(EBIRegistries.QUERY_EXPRESSION, location)
         .asDefaultedReference(Sponge::server);
+  }
+
+  static {
+    Sponge.dataManager()
+        .registerBuilder(RootQueryExpression.class, new RootQueryExpression.Builder());
   }
 }

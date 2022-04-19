@@ -1,6 +1,6 @@
 package team.ebi.epicbanitem.expression;
 
-import static team.ebi.epicbanitem.api.expression.ExpressionKeys.ROOT_EXPRESSIONS;
+import static team.ebi.epicbanitem.api.expression.ExpressionKeys.ROOT_QUERY_EXPRESSIONS;
 import static team.ebi.epicbanitem.api.expression.QueryExpressions.EXPRESSIONS;
 
 import com.google.common.collect.Sets;
@@ -29,7 +29,7 @@ public class CommonQueryExpression implements QueryExpression {
       String key = query.last().toString();
       //noinspection OptionalGetWithoutIsPresent
       DataView currentView = view.getView(query).get();
-      if (ROOT_EXPRESSIONS.contains(key)) {
+      if (ROOT_QUERY_EXPRESSIONS.contains(key)) {
         this.expressions.add(EXPRESSIONS.get(key).apply(currentView));
         continue;
       }
