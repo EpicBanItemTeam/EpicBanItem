@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.expression;
 
+import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ public class MathUpdateExpression implements UpdateExpression {
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          String.format("Set %s to container failed", query)));
+                          MessageFormat.format("Set {} to container failed", query)));
       Optional<Object> sourceOptional = view.get(DataQuery.of());
       Number sourceNumber = (Number) sourceOptional.orElse(0);
       container.set(query, this.operator.apply(argNumber, sourceNumber));

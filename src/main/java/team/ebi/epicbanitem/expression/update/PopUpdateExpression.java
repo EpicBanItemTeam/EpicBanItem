@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.expression.update;
 
 import com.google.common.collect.ImmutableMap;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public class PopUpdateExpression implements UpdateExpression {
                 .orElseThrow(
                     () ->
                         new InvalidDataException(
-                            String.format("$pop has invalid input: %s", input.orElse(null)))));
+                            MessageFormat.format("$pop has invalid input: {}", input.orElse(null)))));
   }
 
   @Override
@@ -47,13 +48,13 @@ public class PopUpdateExpression implements UpdateExpression {
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          String.format("$pop failed, %s is invalid", query)));
+                          MessageFormat.format("$pop failed, {} is invalid", query)));
       List<DataView> views =
           view.getViewList(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          String.format("$pop failed, %s isn't an array", query)));
+                          MessageFormat.format("$pop failed, {} isn't an array", query)));
       switch (value) {
         case FIRST:
           views.remove(0);

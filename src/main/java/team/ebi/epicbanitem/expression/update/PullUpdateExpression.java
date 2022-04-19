@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.expression.update;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +41,14 @@ public class PullUpdateExpression implements UpdateExpression {
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          String.format("$pull failed, %s is invalid", query)));
+                          MessageFormat.format("$pull failed, {} is invalid", query)));
       List<DataView> views =
           view
               .getViewList(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          String.format("$pull failed, %s isn't an array", query)))
+                          MessageFormat.format("$pull failed, {} isn't an array", query)))
               .stream()
               .filter(it -> this.expression.query(DataQuery.of(), it).isPresent())
               .collect(Collectors.toList());

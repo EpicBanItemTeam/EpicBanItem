@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.expression;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import java.text.MessageFormat;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -22,7 +23,8 @@ public class ObjectUpdateExpression implements UpdateExpression {
       DataView view =
           value
               .getView(query)
-              .orElseThrow(() -> new InvalidDataException(String.format("Can't find %s", query)));
+              .orElseThrow(
+                  () -> new InvalidDataException(MessageFormat.format("Can't find {}", query)));
       String key = query.last().toString();
       builder.add(expressionProvider.apply(DataContainer.createNew().set(DataQuery.of(key), view)));
     }

@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.util;
 
+import java.text.MessageFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -11,9 +12,9 @@ public final class DataPreconditions {
     }
   }
 
-  public static void checkData(boolean expression, @Nullable Object errorMessage) {
+  public static void checkData(boolean expression, String errorMessage) {
     if (!expression) {
-      throw new InvalidDataException(String.valueOf(errorMessage));
+      throw new InvalidDataException(errorMessage);
     }
   }
 
@@ -22,7 +23,8 @@ public final class DataPreconditions {
       @NotNull String errorMessageTemplate,
       @Nullable Object... errorMessageArgs) {
     if (!expression) {
-      throw new IllegalArgumentException(String.format(errorMessageTemplate, errorMessageArgs));
+      throw new IllegalArgumentException(
+          MessageFormat.format(errorMessageTemplate, errorMessageArgs));
     }
   }
 }

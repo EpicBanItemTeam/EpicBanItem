@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.util;
 
+import java.text.MessageFormat;
 import java.util.regex.Pattern;
 
 public final class Regex {
@@ -19,7 +20,8 @@ public final class Regex {
     } else if (strings.length == 3) {
       this.regex = strings[1];
       this.flags = strings[2];
-    } else throw new IllegalArgumentException(String.format("input string isn't a regex: %s", s));
+    } else
+      throw new IllegalArgumentException(MessageFormat.format("input string isn't a regex: {}", s));
   }
 
   public Pattern pattern() {

@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.expression.update;
 
+import java.text.MessageFormat;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
@@ -27,7 +28,7 @@ public class UnsetUpdateExpression implements UpdateExpression {
       container.remove(query);
       if (container.contains(query))
         throw new UnsupportedOperationException(
-            String.format("Remove %s from container failed", query));
+            MessageFormat.format("Remove {} from container failed", query));
       updateOperation = updateOperation.merge(UpdateOperation.remove(query));
     }
     return updateOperation;

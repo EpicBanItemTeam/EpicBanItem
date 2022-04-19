@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.expression.update;
 
+import java.text.MessageFormat;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
@@ -33,7 +34,7 @@ public class SetUpdateExpression implements UpdateExpression {
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          String.format("Set %s to container failed", query)));
+                          MessageFormat.format("Set {} to container failed", query)));
       updateOperation = updateOperation.merge(UpdateOperation.replace(view));
     }
 
