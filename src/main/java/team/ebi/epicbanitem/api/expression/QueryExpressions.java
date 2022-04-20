@@ -106,7 +106,7 @@ public class QueryExpressions {
           .build();
 
   public static Registry<QueryExpressionFunction> registry() {
-    return Sponge.server().registry(EBIRegistries.QUERY_EXPRESSION);
+    return EBIRegistries.QUERY_EXPRESSION.get();
   }
 
   /**

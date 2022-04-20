@@ -65,7 +65,7 @@ public class UpdateExpressions {
           .build();
 
   public static Registry<UpdateExpressionFunction> registry() {
-    return Sponge.server().registry(EBIRegistries.UPDATE_EXPRESSION);
+    return EBIRegistries.UPDATE_EXPRESSION.get();
   }
 
   /**
