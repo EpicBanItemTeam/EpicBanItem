@@ -12,7 +12,6 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 @Plugin(EpicBanItem.NAMESPACE)
 public class EpicBanItem {
   public static final String NAMESPACE = "epicbanitem";
-  public static final ResourceKey ROOT_KEY = EpicBanItem.key("root");
 
   public static ResourceKey key(String value) {
     return ResourceKey.of(NAMESPACE, value);

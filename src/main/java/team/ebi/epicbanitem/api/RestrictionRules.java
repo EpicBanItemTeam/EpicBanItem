@@ -1,7 +1,6 @@
 package team.ebi.epicbanitem.api;
 
-import com.google.common.collect.Maps;
-import java.util.Map;
+import com.google.inject.Singleton;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
@@ -10,11 +9,8 @@ import org.spongepowered.api.registry.RegistryKey;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 
+@Singleton
 public class RestrictionRules {
-
-  /** Load from configuration file */
-  public static final Map<ResourceKey, RestrictionRule> DEFAULT_REGISTRIES = Maps.newHashMap();
-
   public static Registry<RestrictionRule> registry() {
     return EBIRegistries.RESTRICTION_RULE.get();
   }

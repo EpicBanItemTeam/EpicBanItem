@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.DataContainer;
-import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.data.persistence.Queries;
@@ -25,7 +24,7 @@ import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 
-public class RestrictionRuleImpl implements RestrictionRule, DataSerializable {
+public class RestrictionRuleImpl implements RestrictionRule {
 
   private final int priority;
   private boolean defaultWorldState;
