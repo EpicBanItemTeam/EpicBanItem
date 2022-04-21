@@ -9,6 +9,7 @@ import java.util.UUID;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataSerializable;
@@ -35,6 +36,7 @@ public class RestrictionRuleImpl implements RestrictionRule, DataSerializable {
   private final Map<Trigger, Boolean> triggerStates = Maps.newHashMap();
   private QueryExpression queryExpression;
   private UpdateExpression updateExpression;
+  private final ResourceKey predicate;
 
   public RestrictionRuleImpl(DataView data) {
     this.priority = data.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
@@ -50,6 +52,8 @@ public class RestrictionRuleImpl implements RestrictionRule, DataSerializable {
                 () ->
                     new InvalidDataException(
                         MessageFormat.format("Invalid update expression for rule {}", key())));
+    this.predicate =
+        data.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(ResourceKey.of("*", "*"));
   }
 
   public Key key() {
@@ -132,6 +136,11 @@ public class RestrictionRuleImpl implements RestrictionRule, DataSerializable {
   }
 
   @Override
+  public ResourceKey predicate() {
+    return this.predicate;
+  }
+
+  @Override
   public @NotNull Component asComponent() {
     return Component.translatable("rules." + key());
   }
@@ -148,7 +157,8 @@ public class RestrictionRuleImpl implements RestrictionRule, DataSerializable {
         .createView(RestrictionRuleQueries.RULE)
         .set(RestrictionRuleQueries.PRIORITY, priority)
         .set(RestrictionRuleQueries.QUERY, queryExpression)
-        .set(RestrictionRuleQueries.UPDATE, updateExpression);
+        .set(RestrictionRuleQueries.UPDATE, updateExpression)
+        .set(RestrictionRuleQueries.PREDICATE, predicate);
     return container.set(Queries.CONTENT_VERSION, contentVersion());
   }
 

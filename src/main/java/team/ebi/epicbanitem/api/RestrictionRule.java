@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.UUID;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.registry.DefaultedRegistryValue;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
@@ -42,4 +43,14 @@ public interface RestrictionRule extends DefaultedRegistryValue, ComponentLike {
   void queryExpression(QueryExpression expression);
 
   void updateExpression(UpdateExpression expression);
+
+  /**
+   *
+   * <li>"minecraft:*" will try to match rule on all minecraft objects
+   * <li>"*:*" will try to match rule on all objects
+   * <li>"minecraft:dirt" will only try to match rule when target is dirt
+   *
+   * @return The id filter for performance.
+   */
+  ResourceKey predicate();
 }
