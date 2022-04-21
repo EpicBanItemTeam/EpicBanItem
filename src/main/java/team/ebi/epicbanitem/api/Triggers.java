@@ -32,18 +32,18 @@ public class Triggers {
 
   public static Map<ResourceKey, Trigger> DEFAULT_REGISTRIES =
       ImmutableMap.<ResourceKey, Trigger>builder()
-          .put(EpicBanItem.key("use"), new SimpleTrigger("use"))
-          .put(EpicBanItem.key("equip"), new SimpleTrigger("equip"))
-          .put(EpicBanItem.key("craft"), new SimpleTrigger("craft"))
-          .put(EpicBanItem.key("pickup"), new SimpleTrigger("pickup"))
-          .put(EpicBanItem.key("click"), new SimpleTrigger("click"))
-          .put(EpicBanItem.key("throw"), new SimpleTrigger("throw"))
-          .put(EpicBanItem.key("drop"), new SimpleTrigger("drop"))
-          .put(EpicBanItem.key("place"), new SimpleTrigger("place"))
-          .put(EpicBanItem.key("break"), new SimpleTrigger("break"))
-          .put(EpicBanItem.key("interact"), new SimpleTrigger("interact"))
-          .put(EpicBanItem.key("join"), new SimpleTrigger("join"))
-          .put(EpicBanItem.key("store"), new SimpleTrigger("store"))
+          .put(EpicBanItem.key("use"), new SimpleTrigger())
+          .put(EpicBanItem.key("equip"), new SimpleTrigger())
+          .put(EpicBanItem.key("craft"), new SimpleTrigger())
+          .put(EpicBanItem.key("pickup"), new SimpleTrigger())
+          .put(EpicBanItem.key("click"), new SimpleTrigger())
+          .put(EpicBanItem.key("throw"), new SimpleTrigger())
+          .put(EpicBanItem.key("drop"), new SimpleTrigger())
+          .put(EpicBanItem.key("place"), new SimpleTrigger())
+          .put(EpicBanItem.key("break"), new SimpleTrigger())
+          .put(EpicBanItem.key("interact"), new SimpleTrigger())
+          .put(EpicBanItem.key("join"), new SimpleTrigger())
+          .put(EpicBanItem.key("store"), new SimpleTrigger())
           .build();
 
   public static Registry<Trigger> registry() {
