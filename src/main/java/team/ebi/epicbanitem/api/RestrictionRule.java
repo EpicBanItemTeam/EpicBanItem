@@ -53,4 +53,6 @@ public interface RestrictionRule extends DefaultedRegistryValue, ComponentLike {
    * @return The id filter for performance.
    */
   ResourceKey predicate();
+
+  void predicate(ResourceKey key);
 }

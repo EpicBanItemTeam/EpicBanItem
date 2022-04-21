@@ -36,7 +36,7 @@ public class RestrictionRuleImpl implements RestrictionRule, DataSerializable {
   private final Map<Trigger, Boolean> triggerStates = Maps.newHashMap();
   private QueryExpression queryExpression;
   private UpdateExpression updateExpression;
-  private final ResourceKey predicate;
+  private ResourceKey predicate;
 
   public RestrictionRuleImpl(DataView data) {
     this.priority = data.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
@@ -138,6 +138,11 @@ public class RestrictionRuleImpl implements RestrictionRule, DataSerializable {
   @Override
   public ResourceKey predicate() {
     return this.predicate;
+  }
+
+  @Override
+  public void predicate(ResourceKey key) {
+    this.predicate = key;
   }
 
   @Override
