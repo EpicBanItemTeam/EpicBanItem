@@ -8,11 +8,14 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.lifecycle.ProvideServiceEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryValueEvent;
 import org.spongepowered.api.registry.DefaultedRegistryType;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.api.RestrictionRule;
+import team.ebi.epicbanitem.api.RestrictionRuleService;
+import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.Trigger;
 import team.ebi.epicbanitem.api.Triggers;
 import team.ebi.epicbanitem.api.expression.QueryExpressionFunction;
@@ -20,6 +23,7 @@ import team.ebi.epicbanitem.api.expression.QueryExpressions;
 import team.ebi.epicbanitem.api.expression.UpdateExpressionFunction;
 import team.ebi.epicbanitem.api.expression.UpdateExpressions;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
+import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
 @Singleton
 public class EBIRegistries {
@@ -28,6 +32,8 @@ public class EBIRegistries {
   public static DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION;
 
   public static DefaultedRegistryType<RestrictionRule> RESTRICTION_RULE;
+
+  @Inject private RulePredicateServiceImpl rulePredicateService;
 
   @Inject
   public EBIRegistries(
@@ -63,6 +69,21 @@ public class EBIRegistries {
 
     RESTRICTION_RULE =
         event.register(EpicBanItem.key("restriction_rule"), true).asDefaultedType(Sponge::server);
+  }
+
+  @Listener
+  public void provideRestrictionRuleService(
+      ProvideServiceEvent.EngineScoped<RestrictionRuleService> event) {
+    if (!(event.engine() instanceof Server)) return;
+    // TODO
+
+  }
+
+  @Listener
+  public void provideRulePredicateService(
+      ProvideServiceEvent.EngineScoped<RulePredicateService> event) {
+    if (!(event.engine() instanceof Server)) return;
+    event.suggest(() -> rulePredicateService);
   }
 
   @Listener(order = Order.POST)

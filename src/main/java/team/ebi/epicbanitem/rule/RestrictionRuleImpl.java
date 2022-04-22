@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
@@ -18,6 +20,7 @@ import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleQueries;
+import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.Trigger;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
@@ -52,7 +55,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
                     new InvalidDataException(
                         MessageFormat.format("Invalid update expression for rule {}", key())));
     this.predicate =
-        data.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(ResourceKey.of("*", "*"));
+        data.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
   }
 
   public Key key() {
@@ -164,6 +167,44 @@ public class RestrictionRuleImpl implements RestrictionRule {
         .set(RestrictionRuleQueries.UPDATE, updateExpression)
         .set(RestrictionRuleQueries.PREDICATE, predicate);
     return container.set(Queries.CONTENT_VERSION, contentVersion());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    RestrictionRuleImpl that = (RestrictionRuleImpl) o;
+
+    return new EqualsBuilder()
+        .append(priority, that.priority)
+        .append(defaultWorldState, that.defaultWorldState)
+        .append(defaultTriggerState, that.defaultTriggerState)
+        .append(worldStates, that.worldStates)
+        .append(triggerStates, that.triggerStates)
+        .append(queryExpression, that.queryExpression)
+        .append(updateExpression, that.updateExpression)
+        .append(predicate, that.predicate)
+        .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+        .append(priority)
+        .append(defaultWorldState)
+        .append(defaultTriggerState)
+        .append(worldStates)
+        .append(triggerStates)
+        .append(queryExpression)
+        .append(updateExpression)
+        .append(predicate)
+        .toHashCode();
   }
 
   public static final class Builder extends AbstractDataBuilder<RestrictionRuleImpl> {

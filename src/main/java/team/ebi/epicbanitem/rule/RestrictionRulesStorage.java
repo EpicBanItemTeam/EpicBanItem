@@ -37,12 +37,16 @@ public class RestrictionRulesStorage {
       throws IOException {
     eventManager.registerListeners(plugin, this);
     this.rulesDir = configDir.resolve("rules");
-    this.rulesFromFiles().forEach(RestrictionRules.registry()::register);
+    this.load();
   }
 
   @Listener
   public void onRefreshGame(RefreshGameEvent event) throws IOException {
-    this.rulesFromFiles().forEach(RestrictionRules.registry()::register);
+    this.load();
+  }
+
+  private void load() throws IOException {
+    this.rulesFromFiles().forEach(RestrictionRules::register);
   }
 
   public void save() {
