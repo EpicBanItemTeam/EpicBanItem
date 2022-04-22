@@ -1,34 +1,43 @@
 package team.ebi.epicbanitem.api;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Singleton;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.registry.DefaultedRegistryReference;
-import org.spongepowered.api.registry.Registry;
-import org.spongepowered.api.registry.RegistryEntry;
-import org.spongepowered.api.registry.RegistryKey;
-import team.ebi.epicbanitem.EBIRegistries;
+import org.spongepowered.api.util.Tuple;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 
 @Singleton
 public class RestrictionRules {
-  public static Optional<RegistryEntry<RestrictionRule>> register(
+  private static Map<ResourceKey, RestrictionRule> map = Maps.newHashMap();
+
+  public static Optional<Tuple<ResourceKey, RestrictionRule>> register(
       ResourceKey key, RestrictionRule rule) {
     Sponge.server()
         .serviceProvider()
         .provide(RulePredicateService.class)
         .ifPresent(service -> service.register(rule));
-    return registry().register(key, rule);
+    RestrictionRule putted = map.put(key, rule);
+    if (putted == null) return Optional.empty();
+    else return Optional.of(Tuple.of(key, putted));
   }
 
-  public static Registry<RestrictionRule> registry() {
-    return EBIRegistries.RESTRICTION_RULE.get();
+  public static Map<ResourceKey, RestrictionRule> all() {
+    return map;
   }
 
-  private static DefaultedRegistryReference<RestrictionRule> key(final ResourceKey location) {
-    return RegistryKey.of(EBIRegistries.RESTRICTION_RULE, location)
-        .asDefaultedReference(Sponge::server);
+  public static RestrictionRule remove(ResourceKey key) {
+    return map.remove(key);
+  }
+
+  public static Optional<ResourceKey> of(RestrictionRule rule) {
+    return map.entrySet().stream()
+        .filter(it -> it.getValue().equals(rule))
+        .map(Entry::getKey)
+        .findFirst();
   }
 
   static {

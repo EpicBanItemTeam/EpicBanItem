@@ -3,6 +3,7 @@ package team.ebi.epicbanitem.rule;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,21 +50,31 @@ public class RestrictionRulesStorage {
     this.rulesFromFiles().forEach(RestrictionRules::register);
   }
 
+  public void remove(ResourceKey key) {
+    RestrictionRules.remove(key);
+    try {
+      Files.delete(rulesDir.resolve(key.value() + ".conf"));
+    } catch (IOException e) {
+      if (!(e instanceof FileNotFoundException)) throw new RuntimeException(e);
+    }
+  }
+
+  public void save(ResourceKey key) {
+    this.save(key, RestrictionRules.all().get(key));
+  }
+
+  public void save(ResourceKey key, RestrictionRule rule) {
+    try {
+      HoconConfigurationLoader loader =
+          HoconConfigurationLoader.builder().path(rulesDir.resolve(key.value() + ".conf")).build();
+      loader.save(loader.createNode().set(rule.toContainer()));
+    } catch (ConfigurateException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public void save() {
-    RestrictionRules.registry()
-        .streamEntries()
-        .forEach(
-            entry -> {
-              try {
-                HoconConfigurationLoader loader =
-                    HoconConfigurationLoader.builder()
-                        .path(rulesDir.resolve(entry.key().value()))
-                        .build();
-                loader.save(loader.createNode().set(entry.value().toContainer()));
-              } catch (ConfigurateException e) {
-                throw new RuntimeException(e);
-              }
-            });
+    RestrictionRules.all().forEach(this::save);
   }
 
   private ImmutableMap<ResourceKey, RestrictionRule> rulesFromFiles() throws IOException {

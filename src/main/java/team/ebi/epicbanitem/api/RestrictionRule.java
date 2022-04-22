@@ -5,12 +5,12 @@ import java.util.UUID;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
+import org.spongepowered.api.ResourceKeyed;
 import org.spongepowered.api.data.persistence.DataSerializable;
-import org.spongepowered.api.registry.DefaultedRegistryValue;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 
-public interface RestrictionRule extends DefaultedRegistryValue, ComponentLike, DataSerializable {
+public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSerializable {
   /**
    * @return The priority of current rule (ASC, lower first). <br>
    *     Default: 10

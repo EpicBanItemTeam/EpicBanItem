@@ -6,7 +6,6 @@ import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -17,9 +16,9 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.data.persistence.Queries;
-import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleQueries;
+import team.ebi.epicbanitem.api.RestrictionRules;
 import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.Trigger;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
@@ -58,8 +57,10 @@ public class RestrictionRuleImpl implements RestrictionRule {
         data.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
   }
 
-  public Key key() {
-    return key(EBIRegistries.RESTRICTION_RULE);
+  @Override
+  public @NotNull ResourceKey key() {
+    return RestrictionRules.of(this)
+        .orElseThrow(() -> new IllegalArgumentException("Rule have to registered to get key"));
   }
 
   @Override

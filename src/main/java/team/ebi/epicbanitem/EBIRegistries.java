@@ -13,7 +13,6 @@ import org.spongepowered.api.event.lifecycle.RegisterRegistryEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryValueEvent;
 import org.spongepowered.api.registry.DefaultedRegistryType;
 import org.spongepowered.plugin.PluginContainer;
-import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.Trigger;
@@ -30,8 +29,6 @@ public class EBIRegistries {
   public static DefaultedRegistryType<Trigger> TRIGGER;
   public static DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION;
   public static DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION;
-
-  public static DefaultedRegistryType<RestrictionRule> RESTRICTION_RULE;
 
   @Inject private RulePredicateServiceImpl rulePredicateService;
 
@@ -66,9 +63,6 @@ public class EBIRegistries {
                 false,
                 () -> UpdateExpressions.DEFAULT_REGISTRIES)
             .asDefaultedType(Sponge::server);
-
-    RESTRICTION_RULE =
-        event.register(EpicBanItem.key("restriction_rule"), true).asDefaultedType(Sponge::server);
   }
 
   @Listener
