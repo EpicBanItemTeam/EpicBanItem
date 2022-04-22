@@ -47,7 +47,14 @@ public class RestrictionRulesStorage {
   }
 
   private void load() throws IOException {
-    this.rulesFromFiles().forEach(RestrictionRules::register);
+    this.rulesFromFiles()
+        .forEach(
+            (key, rule) ->
+                RestrictionRules.register(key, rule)
+                    .orElseThrow(
+                        () ->
+                            new IllegalStateException(
+                                MessageFormat.format("Rule {} can't parse", key.value()))));
   }
 
   public void remove(ResourceKey key) {

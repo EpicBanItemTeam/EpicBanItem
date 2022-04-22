@@ -12,14 +12,15 @@ import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 
 @Singleton
 public class RestrictionRules {
-  private static Map<ResourceKey, RestrictionRule> map = Maps.newHashMap();
+  private static final Map<ResourceKey, RestrictionRule> map = Maps.newHashMap();
 
   public static Optional<Tuple<ResourceKey, RestrictionRule>> register(
       ResourceKey key, RestrictionRule rule) {
     Sponge.server()
         .serviceProvider()
         .provide(RulePredicateService.class)
-        .ifPresent(service -> service.register(rule));
+        .orElseThrow(() -> new IllegalStateException("RulePredicateService have to be provided"))
+        .register(rule);
     RestrictionRule putted = map.put(key, rule);
     if (putted == null) return Optional.empty();
     else return Optional.of(Tuple.of(key, putted));
