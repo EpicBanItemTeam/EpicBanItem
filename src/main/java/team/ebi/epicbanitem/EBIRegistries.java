@@ -21,6 +21,7 @@ import team.ebi.epicbanitem.api.expression.QueryExpressionFunction;
 import team.ebi.epicbanitem.api.expression.QueryExpressions;
 import team.ebi.epicbanitem.api.expression.UpdateExpressionFunction;
 import team.ebi.epicbanitem.api.expression.UpdateExpressions;
+import team.ebi.epicbanitem.rule.RestrictionRuleServiceImpl;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
 import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
@@ -45,7 +46,10 @@ public class EBIRegistries {
   public void onRegisterRegistry(RegisterRegistryEvent.EngineScoped<Server> event) {
     TRIGGER =
         event
-            .register(EpicBanItem.key("restriction_trigger"), false, () -> RestrictionTriggers.DEFAULT_REGISTRIES)
+            .register(
+                EpicBanItem.key("restriction_trigger"),
+                false,
+                () -> RestrictionTriggers.DEFAULT_REGISTRIES)
             .asDefaultedType(Sponge::server);
 
     QUERY_EXPRESSION =
@@ -69,8 +73,7 @@ public class EBIRegistries {
   public void provideRestrictionRuleService(
       ProvideServiceEvent.EngineScoped<RestrictionRuleService> event) {
     if (!(event.engine() instanceof Server)) return;
-    // TODO
-
+    event.suggest(RestrictionRuleServiceImpl::new);
   }
 
   @Listener
