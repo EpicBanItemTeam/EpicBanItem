@@ -4,11 +4,11 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import team.ebi.epicbanitem.EBIRegistries;
-import team.ebi.epicbanitem.api.Trigger;
+import team.ebi.epicbanitem.api.RestrictionTrigger;
 
-public class SimpleTrigger implements Trigger {
+public class SimpleRestrictionTrigger implements RestrictionTrigger {
 
-  public SimpleTrigger() {}
+  public SimpleRestrictionTrigger() {}
 
   @Override
   public @NotNull Component asComponent() {
@@ -20,7 +20,8 @@ public class SimpleTrigger implements Trigger {
     return Component.translatable("trigger." + key() + ".description");
   }
 
-  public ResourceKey key() {
+  @Override
+  public @NotNull ResourceKey key() {
     return key(EBIRegistries.TRIGGER);
   }
 }

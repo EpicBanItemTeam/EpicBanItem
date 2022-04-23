@@ -2,7 +2,9 @@ package team.ebi.epicbanitem.api;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.UUID;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.ResourceKeyed;
@@ -31,11 +33,11 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
 
   ImmutableMap<UUID, Boolean> worldStates();
 
-  boolean triggerState(Trigger trigger);
+  boolean triggerState(RestrictionTrigger trigger);
 
-  boolean triggerState(@NotNull Trigger trigger, boolean value);
+  boolean triggerState(@NotNull RestrictionTrigger trigger, boolean value);
 
-  ImmutableMap<Trigger, Boolean> triggersState();
+  ImmutableMap<RestrictionTrigger, Boolean> triggersState();
 
   QueryExpression queryExpression();
 
@@ -56,4 +58,10 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
   ResourceKey predicate();
 
   void predicate(ResourceKey key);
+
+  TranslatableComponent message();
+
+  @Override
+  @NotNull
+  Component asComponent();
 }

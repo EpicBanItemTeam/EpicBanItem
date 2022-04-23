@@ -17,6 +17,10 @@ public class EpicBanItem {
     return ResourceKey.of(NAMESPACE, value);
   }
 
+  public static String permission(String permission) {
+    return NAMESPACE + "." + permission;
+  }
+
   @Inject
   public EpicBanItem(Injector injector) {
     injector.createChildInjector();

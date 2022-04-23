@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +20,8 @@ import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleQueries;
 import team.ebi.epicbanitem.api.RestrictionRules;
+import team.ebi.epicbanitem.api.RestrictionTrigger;
 import team.ebi.epicbanitem.api.RulePredicateService;
-import team.ebi.epicbanitem.api.Trigger;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
@@ -34,7 +35,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
   private final Map<UUID, Boolean> worldStates = Maps.newHashMap();
 
-  private final Map<Trigger, Boolean> triggerStates = Maps.newHashMap();
+  private final Map<RestrictionTrigger, Boolean> triggerStates = Maps.newHashMap();
   private QueryExpression queryExpression;
   private UpdateExpression updateExpression;
   private ResourceKey predicate;
@@ -104,17 +105,17 @@ public class RestrictionRuleImpl implements RestrictionRule {
   }
 
   @Override
-  public boolean triggerState(Trigger trigger) {
+  public boolean triggerState(RestrictionTrigger trigger) {
     return this.triggerStates.getOrDefault(trigger, defaultTriggerState);
   }
 
   @Override
-  public boolean triggerState(@NotNull Trigger trigger, boolean value) {
+  public boolean triggerState(@NotNull RestrictionTrigger trigger, boolean value) {
     return Boolean.TRUE.equals(this.triggerStates.put(trigger, value));
   }
 
   @Override
-  public ImmutableMap<Trigger, Boolean> triggersState() {
+  public ImmutableMap<RestrictionTrigger, Boolean> triggersState() {
     return ImmutableMap.copyOf(this.triggerStates);
   }
 
@@ -146,6 +147,11 @@ public class RestrictionRuleImpl implements RestrictionRule {
   @Override
   public void predicate(ResourceKey key) {
     this.predicate = key;
+  }
+
+  @Override
+  public TranslatableComponent message() {
+    return Component.translatable("rules." + key() + ".message");
   }
 
   @Override

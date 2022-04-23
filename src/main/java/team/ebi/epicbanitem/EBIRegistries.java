@@ -14,9 +14,9 @@ import org.spongepowered.api.event.lifecycle.RegisterRegistryValueEvent;
 import org.spongepowered.api.registry.DefaultedRegistryType;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.api.RestrictionRuleService;
+import team.ebi.epicbanitem.api.RestrictionTrigger;
+import team.ebi.epicbanitem.api.RestrictionTriggers;
 import team.ebi.epicbanitem.api.RulePredicateService;
-import team.ebi.epicbanitem.api.Trigger;
-import team.ebi.epicbanitem.api.Triggers;
 import team.ebi.epicbanitem.api.expression.QueryExpressionFunction;
 import team.ebi.epicbanitem.api.expression.QueryExpressions;
 import team.ebi.epicbanitem.api.expression.UpdateExpressionFunction;
@@ -26,7 +26,7 @@ import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
 @Singleton
 public class EBIRegistries {
-  public static DefaultedRegistryType<Trigger> TRIGGER;
+  public static DefaultedRegistryType<RestrictionTrigger> TRIGGER;
   public static DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION;
   public static DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION;
 
@@ -45,7 +45,7 @@ public class EBIRegistries {
   public void onRegisterRegistry(RegisterRegistryEvent.EngineScoped<Server> event) {
     TRIGGER =
         event
-            .register(EpicBanItem.key("trigger"), false, () -> Triggers.DEFAULT_REGISTRIES)
+            .register(EpicBanItem.key("restriction_trigger"), false, () -> RestrictionTriggers.DEFAULT_REGISTRIES)
             .asDefaultedType(Sponge::server);
 
     QUERY_EXPRESSION =
