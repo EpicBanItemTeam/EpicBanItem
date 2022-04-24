@@ -16,7 +16,7 @@ public class SimpleRestrictionTrigger implements RestrictionTrigger {
   }
 
   @Override
-  public Component descriptionComponent() {
+  public Component description() {
     return Component.translatable("trigger." + key() + ".description");
   }
 

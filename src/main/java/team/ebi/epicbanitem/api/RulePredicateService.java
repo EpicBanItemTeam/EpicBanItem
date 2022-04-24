@@ -2,14 +2,20 @@ package team.ebi.epicbanitem.api;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Optional;
 import org.spongepowered.api.ResourceKey;
 
 public interface RulePredicateService {
   ResourceKey WILDCARD = ResourceKey.of("*", "*");
 
+  /**
+   * @param id {@link ResourceKey} of object
+   * @return Rules that match the predicates
+   */
   default ImmutableSet<RestrictionRule> rules(ResourceKey id) {
     return predicates(id).stream()
-        .map(this::get)
+        .map(this::rule)
         .flatMap(Collection::stream)
         .collect(ImmutableSet.toImmutableSet());
   }
@@ -29,10 +35,15 @@ public interface RulePredicateService {
 
   ImmutableSet<ResourceKey> predicates();
 
-  ImmutableSet<RestrictionRule> get(ResourceKey predicate);
+  ImmutableSet<RestrictionRule> rule(ResourceKey predicate);
+
+  default Optional<RestrictionRule> ruleWithPriority(ResourceKey predicate) {
+    return rule(predicate).stream().min(Comparator.comparingInt(RestrictionRule::priority));
+  }
 
   /**
    * Register a predicate
+   *
    * @param rule rule with predicate
    * @return registered predicate for rule
    */

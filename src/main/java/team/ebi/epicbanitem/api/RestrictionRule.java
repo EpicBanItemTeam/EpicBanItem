@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.ResourceKeyed;
 import org.spongepowered.api.data.persistence.DataSerializable;
@@ -18,6 +19,10 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
    *     Default: 10
    */
   int priority();
+
+  boolean needCancel();
+
+  void needCancel(boolean value);
 
   boolean defaultWorldState();
 
@@ -41,11 +46,12 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
 
   QueryExpression queryExpression();
 
+  @Nullable
   UpdateExpression updateExpression();
 
   void queryExpression(QueryExpression expression);
 
-  void updateExpression(UpdateExpression expression);
+  void updateExpression(@Nullable UpdateExpression expression);
 
   /**
    *

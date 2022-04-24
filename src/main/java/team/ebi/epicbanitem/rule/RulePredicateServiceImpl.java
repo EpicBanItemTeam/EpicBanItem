@@ -20,7 +20,7 @@ public class RulePredicateServiceImpl implements RulePredicateService {
   }
 
   @Override
-  public ImmutableSet<RestrictionRule> get(ResourceKey predicate) {
+  public ImmutableSet<RestrictionRule> rule(ResourceKey predicate) {
     return ImmutableSet.copyOf(this.predicates.get(predicate));
   }
 

@@ -13,23 +13,34 @@ import team.ebi.epicbanitem.trigger.SimpleRestrictionTrigger;
 import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
 
 public class RestrictionTriggers {
-  public static final DefaultedRegistryReference<RestrictionTrigger> USE = key(EpicBanItem.key("use"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> USE =
+      key(EpicBanItem.key("use"));
   public static final DefaultedRegistryReference<RestrictionTrigger> INTERACT =
       key(EpicBanItem.key("interact"));
 
-  public static final DefaultedRegistryReference<RestrictionTrigger> EQUIP = key(EpicBanItem.key("equip"));
-  public static final DefaultedRegistryReference<RestrictionTrigger> CRAFT = key(EpicBanItem.key("craft"));
-  public static final DefaultedRegistryReference<RestrictionTrigger> STORE = key(EpicBanItem.key("store"));
-  public static final DefaultedRegistryReference<RestrictionTrigger> CLICK = key(EpicBanItem.key("click"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> EQUIP =
+      key(EpicBanItem.key("equip"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> CRAFT =
+      key(EpicBanItem.key("craft"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> STORE =
+      key(EpicBanItem.key("store"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> CLICK =
+      key(EpicBanItem.key("click"));
 
-  public static final DefaultedRegistryReference<RestrictionTrigger> PICKUP = key(EpicBanItem.key("pickup"));
-  public static final DefaultedRegistryReference<RestrictionTrigger> THROW = key(EpicBanItem.key("throw"));
-  public static final DefaultedRegistryReference<RestrictionTrigger> DROP = key(EpicBanItem.key("drop"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> PICKUP =
+      key(EpicBanItem.key("pickup"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> THROW =
+      key(EpicBanItem.key("throw"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> DROP =
+      key(EpicBanItem.key("drop"));
 
-  public static final DefaultedRegistryReference<RestrictionTrigger> PLACE = key(EpicBanItem.key("place"));
-  public static final DefaultedRegistryReference<RestrictionTrigger> BREAK = key(EpicBanItem.key("break"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> PLACE =
+      key(EpicBanItem.key("place"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> BREAK =
+      key(EpicBanItem.key("break"));
 
-  public static final DefaultedRegistryReference<RestrictionTrigger> JOIN = key(EpicBanItem.key("join"));
+  public static final DefaultedRegistryReference<RestrictionTrigger> JOIN =
+      key(EpicBanItem.key("join"));
 
   public static Map<ResourceKey, RestrictionTrigger> DEFAULT_REGISTRIES =
       ImmutableMap.<ResourceKey, RestrictionTrigger>builder()

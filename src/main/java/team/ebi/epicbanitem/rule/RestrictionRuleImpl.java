@@ -11,6 +11,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -37,8 +38,9 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
   private final Map<RestrictionTrigger, Boolean> triggerStates = Maps.newHashMap();
   private QueryExpression queryExpression;
-  private UpdateExpression updateExpression;
+  private @Nullable UpdateExpression updateExpression;
   private ResourceKey predicate;
+  private boolean needCancel;
 
   public RestrictionRuleImpl(DataView data) {
     this.priority = data.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
@@ -49,13 +51,10 @@ public class RestrictionRuleImpl implements RestrictionRule {
                     new InvalidDataException(
                         MessageFormat.format("Invalid query expression for rule {}", key())));
     this.updateExpression =
-        data.getSerializable(RestrictionRuleQueries.QUERY, RootUpdateExpression.class)
-            .orElseThrow(
-                () ->
-                    new InvalidDataException(
-                        MessageFormat.format("Invalid update expression for rule {}", key())));
+        data.getSerializable(RestrictionRuleQueries.QUERY, RootUpdateExpression.class).orElse(null);
     this.predicate =
         data.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
+    this.needCancel = data.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
   }
 
   @Override
@@ -67,6 +66,16 @@ public class RestrictionRuleImpl implements RestrictionRule {
   @Override
   public int priority() {
     return this.priority;
+  }
+
+  @Override
+  public boolean needCancel() {
+    return this.needCancel;
+  }
+
+  @Override
+  public void needCancel(boolean value) {
+    this.needCancel = value;
   }
 
   @Override
@@ -172,7 +181,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
         .set(RestrictionRuleQueries.PRIORITY, priority)
         .set(RestrictionRuleQueries.QUERY, queryExpression)
         .set(RestrictionRuleQueries.UPDATE, updateExpression)
-        .set(RestrictionRuleQueries.PREDICATE, predicate);
+        .set(RestrictionRuleQueries.PREDICATE, predicate)
+        .set(RestrictionRuleQueries.NEED_CANCEL, needCancel);
     return container.set(Queries.CONTENT_VERSION, contentVersion());
   }
 

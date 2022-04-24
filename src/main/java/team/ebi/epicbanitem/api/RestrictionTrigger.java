@@ -12,5 +12,5 @@ import team.ebi.epicbanitem.EpicBanItem;
 public interface RestrictionTrigger extends DefaultedRegistryValue, ResourceKeyed, ComponentLike {
   String CONTEXT_KEY = EpicBanItem.NAMESPACE + "-trigger";
 
-  Component descriptionComponent();
+  Component description();
 }

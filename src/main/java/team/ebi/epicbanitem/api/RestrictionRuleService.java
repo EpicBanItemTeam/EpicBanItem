@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.event.EventContext;
@@ -17,6 +18,10 @@ import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 
 public interface RestrictionRuleService {
+
+  default Optional<UpdateOperation> restrict() {
+    return restrict(Sponge.server().causeStackManager().currentContext());
+  }
 
   default Optional<UpdateOperation> restrict(EventContext context) {
     return restrict(context, context.require(EBIEventContextKeys.RESTRICTED_OBJECT).toContainer());
@@ -44,6 +49,7 @@ public interface RestrictionRuleService {
       @Nullable Subject subject) {
     if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) return Optional.empty();
     Optional<QueryResult> queryResult = rule.queryExpression().query(DataQuery.of(), view);
-    return queryResult.map(result -> rule.updateExpression().update(result, view));
+    return queryResult.flatMap(
+        result -> Optional.ofNullable(rule.updateExpression()).map(it -> it.update(result, view)));
   }
 }
