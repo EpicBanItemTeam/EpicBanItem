@@ -5,6 +5,7 @@ import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.ResourceKey;
@@ -65,7 +66,24 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
 
   void predicate(ResourceKey key);
 
-  TranslatableComponent message();
+  /**
+   * @return Translatable component with args:
+   * 0: rule
+   * 1: trigger
+   * 2: origin object name
+   * 3: final object name
+   */
+  @Contract(pure = true)
+  TranslatableComponent updatedMessage();
+
+  /**
+   * @return Translatable component with args:
+   * 0: rule
+   * 1: trigger
+   * 2: origin object name
+   */
+  @Contract(pure = true)
+  TranslatableComponent canceledMessage();
 
   @Override
   @NotNull

@@ -159,8 +159,13 @@ public class RestrictionRuleImpl implements RestrictionRule {
   }
 
   @Override
-  public TranslatableComponent message() {
-    return Component.translatable("rules." + key() + ".message");
+  public TranslatableComponent updatedMessage() {
+    return Component.translatable("rules." + key() + ".updated");
+  }
+
+  @Override
+  public TranslatableComponent canceledMessage() {
+    return Component.translatable("rules." + key() + ".canceled");
   }
 
   @Override

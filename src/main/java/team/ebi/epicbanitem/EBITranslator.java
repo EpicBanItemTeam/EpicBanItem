@@ -54,7 +54,7 @@ public class EBITranslator implements TranslationRegistry {
     }
   }
 
-  public Component render(Component component, Locale locale) {
+  public Component render(@NotNull Component component, Locale locale) {
     return renderer.render(component, locale);
   }
 

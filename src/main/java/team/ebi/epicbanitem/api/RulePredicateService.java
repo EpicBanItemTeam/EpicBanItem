@@ -1,9 +1,9 @@
 package team.ebi.epicbanitem.api;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Optional;
 import org.spongepowered.api.ResourceKey;
 
 public interface RulePredicateService {
@@ -37,8 +37,11 @@ public interface RulePredicateService {
 
   ImmutableSet<RestrictionRule> rule(ResourceKey predicate);
 
-  default Optional<RestrictionRule> ruleWithPriority(ResourceKey predicate) {
-    return rule(predicate).stream().min(Comparator.comparingInt(RestrictionRule::priority));
+  default ImmutableSortedSet<RestrictionRule> rulesWithPriority(ResourceKey predicate) {
+    return rule(predicate).stream()
+        .collect(
+            ImmutableSortedSet.toImmutableSortedSet(
+                Comparator.comparingInt(RestrictionRule::priority)));
   }
 
   /**

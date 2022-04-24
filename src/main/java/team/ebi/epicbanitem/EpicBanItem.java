@@ -1,8 +1,8 @@
 package team.ebi.epicbanitem;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
@@ -21,9 +21,16 @@ public class EpicBanItem {
     return NAMESPACE + "." + permission;
   }
 
+  private static EBITranslator translator = null;
+
   @Inject
-  public EpicBanItem(Injector injector) {
-    injector.createChildInjector();
-    Objects.requireNonNull(injector.getInstance(EBIRegistries.class));
+  public EpicBanItem(EBIRegistries registries, EBITranslator translator) {
+    Objects.requireNonNull(registries);
+    EpicBanItem.translator = translator;
+  }
+
+  @NotNull
+  public static EBITranslator translator() {
+    return Objects.requireNonNull(translator);
   }
 }
