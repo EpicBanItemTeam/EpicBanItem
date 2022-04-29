@@ -10,7 +10,6 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.expression.query.ExtraQueryQueryExpression;
 
 public class CommonQueryExpression implements QueryExpression {
   private final Set<QueryExpression> expressions;
@@ -22,7 +21,7 @@ public class CommonQueryExpression implements QueryExpression {
       if (!currentView.isPresent()) return;
       Optional<String> stringValue = currentView.get().getString(DataQuery.of());
       if (!stringValue.isPresent()) return;
-      this.expressions.add(new StringQueryExpression(currentView.get()));
+      this.expressions.add(new StringQueryExpression(stringValue.get()));
       return;
     }
     for (DataQuery query : view.keys(false)) {
@@ -36,7 +35,7 @@ public class CommonQueryExpression implements QueryExpression {
       Optional<String> stringValue = view.getString(query);
       // {"foo.bar": "back"}, {"foo.bar": "/.*/"}
       if (stringValue.isPresent()) {
-        this.expressions.add(new StringQueryExpression(currentView));
+        this.expressions.add(new StringQueryExpression(stringValue.get()));
         continue;
       }
       // "foo.bar": { $exp: "foo" }
@@ -53,7 +52,7 @@ public class CommonQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     QueryResult result = QueryResult.success();
     for (QueryExpression expression : this.expressions) {
       Optional<QueryResult> currentResult = expression.query(query, data);

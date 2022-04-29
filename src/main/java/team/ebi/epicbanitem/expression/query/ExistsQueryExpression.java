@@ -28,7 +28,8 @@ public class ExistsQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
-    return QueryResult.from(data.contains(query) == expect);
+  public Optional<QueryResult> query(DataQuery query, Object data) {
+    return QueryResult.from(
+        data instanceof DataView && ((DataView) data).contains(query) == expect);
   }
 }

@@ -4,9 +4,13 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.persistence.DataQuery;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
 import org.spongepowered.api.registry.Registry;
 import org.spongepowered.api.registry.RegistryKey;
+import org.spongepowered.api.registry.RegistryScope;
+import org.spongepowered.api.registry.RegistryScopes;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.ArrayableQueryExpression;
@@ -29,6 +33,7 @@ import team.ebi.epicbanitem.expression.query.OrQueryExpression;
 import team.ebi.epicbanitem.expression.query.RegexQueryExpression;
 import team.ebi.epicbanitem.expression.query.SizeQueryExpression;
 
+@RegistryScopes(scopes = RegistryScope.ENGINE)
 public class QueryExpressions {
   public static final DefaultedRegistryReference<QueryExpressionFunction> OR =
       key(EpicBanItem.key(ExpressionKeys.OR));
@@ -102,7 +107,12 @@ public class QueryExpressions {
           .put(EpicBanItem.key(ExpressionKeys.ELEM_MATCH), ElemMatchQueryExpression::new)
           // Other
           .put(EpicBanItem.key(ExpressionKeys.EXISTS), ExistsQueryExpression::new)
-          .put(EpicBanItem.key(ExpressionKeys.REGEX), RegexQueryExpression::new)
+          .put(
+              EpicBanItem.key(ExpressionKeys.REGEX),
+              view ->
+                  new RegexQueryExpression(
+                      view.getString(DataQuery.of())
+                          .orElseThrow(() -> new InvalidDataException("$regex should be string"))))
           .build();
 
   public static Registry<QueryExpressionFunction> registry() {

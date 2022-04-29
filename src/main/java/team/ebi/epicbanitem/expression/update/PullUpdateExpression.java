@@ -42,17 +42,21 @@ public class PullUpdateExpression implements UpdateExpression {
                   () ->
                       new UnsupportedOperationException(
                           MessageFormat.format("$pull failed, {} is invalid", query)));
-      List<DataView> views =
+      List<?> values =
           view
-              .getViewList(query)
+              .getList(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
                           MessageFormat.format("$pull failed, {} isn't an array", query)))
               .stream()
-              .filter(it -> this.expression.query(DataQuery.of(), it).isPresent())
+              .filter(
+                  it ->
+                      this.expression
+                          .query(DataQuery.of(), it)
+                          .isPresent())
               .collect(Collectors.toList());
-      view.set(DataQuery.of(), views);
+      view.set(DataQuery.of(), values);
       operation = operation.merge(UpdateOperation.replace(view));
     }
 

@@ -7,6 +7,8 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
 import org.spongepowered.api.registry.Registry;
 import org.spongepowered.api.registry.RegistryKey;
+import org.spongepowered.api.registry.RegistryScope;
+import org.spongepowered.api.registry.RegistryScopes;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.ObjectUpdateExpression;
@@ -19,6 +21,7 @@ import team.ebi.epicbanitem.expression.update.RenameUpdateExpression;
 import team.ebi.epicbanitem.expression.update.SetUpdateExpression;
 import team.ebi.epicbanitem.expression.update.UnsetUpdateExpression;
 
+@RegistryScopes(scopes = RegistryScope.ENGINE)
 public class UpdateExpressions {
   public static final DefaultedRegistryReference<UpdateExpressionFunction> SET =
       key(EpicBanItem.key(ExpressionKeys.SET));

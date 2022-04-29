@@ -2,8 +2,6 @@ package team.ebi.epicbanitem.expression;
 
 import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
-import org.spongepowered.api.data.persistence.DataView;
-import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.query.EqQueryExpression;
@@ -14,16 +12,15 @@ public class StringQueryExpression implements QueryExpression {
 
   private final QueryExpression expression;
 
-  public StringQueryExpression(DataView data) {
-    String value = data.getString(DataQuery.of()).orElseThrow(InvalidDataException::new);
+  public StringQueryExpression(String value) {
     this.expression =
         Regex.isRegex(value)
-            ? new RegexQueryExpression(data)
-            : new ArrayableQueryExpression(new EqQueryExpression(data));
+            ? new RegexQueryExpression(value)
+            : new ArrayableQueryExpression(new EqQueryExpression(value));
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     return expression.query(query, data);
   }
 }

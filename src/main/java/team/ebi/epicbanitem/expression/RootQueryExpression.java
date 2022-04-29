@@ -33,7 +33,7 @@ public class RootQueryExpression implements QueryExpression, DataSerializable {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     return this.expression.query(query, data);
   }
 

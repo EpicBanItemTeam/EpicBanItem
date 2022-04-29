@@ -24,7 +24,7 @@ public class AndQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     QueryResult result = QueryResult.success();
     for (QueryExpression expression : this.expressions) {
       Optional<QueryResult> currentResult = expression.query(query, data);

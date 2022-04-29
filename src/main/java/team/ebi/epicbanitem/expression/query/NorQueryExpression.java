@@ -17,7 +17,7 @@ public class NorQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     return QueryResult.from(!expression.query(query, data).isPresent());
   }
 }

@@ -19,12 +19,11 @@ public class OrQueryExpression implements QueryExpression {
     List<DataView> views =
         data.getViewList(DataQuery.of())
             .orElseThrow(() -> new InvalidDataException("$or should be a array"));
-    this.expressions =
-        views.stream().map(CommonQueryExpression::new).collect(Collectors.toSet());
+    this.expressions = views.stream().map(CommonQueryExpression::new).collect(Collectors.toSet());
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     return expressions.stream()
         .map(it -> it.query(query, data))
         .filter(Optional::isPresent)

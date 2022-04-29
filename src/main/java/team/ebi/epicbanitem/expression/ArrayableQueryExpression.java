@@ -4,7 +4,6 @@ import com.google.common.base.Suppliers;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.spongepowered.api.data.persistence.DataQuery;
-import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.query.ElemMatchQueryExpression;
@@ -21,7 +20,7 @@ public class ArrayableQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     Optional<QueryResult> result = this.expression.query(query, data);
     return result.isPresent() ? result : this.elemMatchExpression.get().query(query, data);
   }

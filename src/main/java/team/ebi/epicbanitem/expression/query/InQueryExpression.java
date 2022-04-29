@@ -20,11 +20,16 @@ public class InQueryExpression implements QueryExpression {
         data.getViewList(DataQuery.of())
             .orElseThrow(() -> new InvalidDataException("$in should be a array"));
     this.expressions =
-        views.stream().map(StringQueryExpression::new).collect(Collectors.toSet());
+        views.stream()
+            .map(it -> it.getString(DataQuery.of()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(StringQueryExpression::new)
+            .collect(Collectors.toSet());
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, DataView data) {
+  public Optional<QueryResult> query(DataQuery query, Object data) {
     return expressions.stream()
         .map(it -> it.query(query, data))
         .filter(Optional::isPresent)
