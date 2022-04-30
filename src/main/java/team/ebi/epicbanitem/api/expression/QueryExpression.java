@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.api.expression;
 
 import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
+import org.spongepowered.api.data.persistence.DataView;
 
 @FunctionalInterface
 public interface QueryExpression {
@@ -11,9 +12,9 @@ public interface QueryExpression {
    * @param data predicate
    * @return The test result
    */
-  Optional<QueryResult> query(DataQuery query, Object data);
+  Optional<QueryResult> query(DataQuery query, DataView data);
 
-  default Optional<QueryResult> query(Object data) {
+  default Optional<QueryResult> query(DataView data) {
     return query(DataQuery.of(), data);
   }
 }

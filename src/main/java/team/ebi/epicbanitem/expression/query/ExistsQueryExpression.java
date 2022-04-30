@@ -8,6 +8,7 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.DataPreconditions;
+import team.ebi.epicbanitem.util.DataViewUtils;
 
 public class ExistsQueryExpression implements QueryExpression {
   private static final String exception =
@@ -28,8 +29,7 @@ public class ExistsQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, Object data) {
-    return QueryResult.from(
-        data instanceof DataView && ((DataView) data).contains(query) == expect);
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    return QueryResult.from(DataViewUtils.get(data, query).isPresent() == expect);
   }
 }

@@ -19,12 +19,11 @@ public class AndQueryExpression implements QueryExpression {
     List<DataView> views =
         data.getViewList(DataQuery.of())
             .orElseThrow(() -> new InvalidDataException("$and should be a array"));
-    this.expressions =
-        views.stream().map(CommonQueryExpression::new).collect(Collectors.toSet());
+    this.expressions = views.stream().map(CommonQueryExpression::new).collect(Collectors.toSet());
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, Object data) {
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
     QueryResult result = QueryResult.success();
     for (QueryExpression expression : this.expressions) {
       Optional<QueryResult> currentResult = expression.query(query, data);

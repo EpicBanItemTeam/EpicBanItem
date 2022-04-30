@@ -18,13 +18,8 @@ public class SizeQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, Object data) {
-    int size;
-    if (data instanceof DataView) {
-      size = ((DataView) data).getList(query).map(List::size).orElse(-1);
-    } else {
-      size = ((List<?>) data).size();
-    }
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    int size = data.getList(query).map(List::size).orElse(-1);
     return QueryResult.from(size >= 0 && size == this.size);
   }
 }

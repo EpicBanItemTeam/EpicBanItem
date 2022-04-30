@@ -21,19 +21,15 @@ public class ElemMatchQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, Object data) {
-    Optional<List<?>> list =
-        data instanceof DataView
-            ? ((DataView) data).getList(DataQuery.of())
-            : Optional.ofNullable((List<?>) data);
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    Optional<List<?>> list = data.getList(DataQuery.of());
     if (!list.isPresent() || list.get().isEmpty()) return QueryResult.failed();
     List<?> values = list.get();
     ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
     boolean matched = false;
     for (int i = 0; i < values.size(); i++) {
-      Object value = values.get(i);
       String key = Integer.toString(i);
-      Optional<QueryResult> result = this.expression.query(DataQuery.of(), value);
+      Optional<QueryResult> result = this.expression.query(query.then(key), data);
       if (result.isPresent()) {
         builder.put(key, result.get());
         matched = true;

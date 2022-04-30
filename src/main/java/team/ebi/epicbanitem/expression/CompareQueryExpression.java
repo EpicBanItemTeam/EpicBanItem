@@ -26,18 +26,11 @@ public class CompareQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, Object data) {
-    boolean result;
-    if (data instanceof DataView) {
-      result =
-          ((DataView) data)
-              .get(query)
-              .filter(IS_NUMBER)
-              .map(it -> this.predicate.test(value, ((Number) it).doubleValue()))
-              .orElse(false);
-    } else {
-      result = data instanceof Number && predicate.test(((Number) data).doubleValue(), value);
-    }
-    return QueryResult.from(result);
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    return QueryResult.from(
+        data.get(query)
+            .filter(IS_NUMBER)
+            .map(it -> this.predicate.test(value, ((Number) it).doubleValue()))
+            .orElse(false));
   }
 }

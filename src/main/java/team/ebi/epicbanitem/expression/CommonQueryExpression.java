@@ -52,7 +52,7 @@ public class CommonQueryExpression implements QueryExpression {
   }
 
   @Override
-  public Optional<QueryResult> query(DataQuery query, Object data) {
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
     QueryResult result = QueryResult.success();
     for (QueryExpression expression : this.expressions) {
       Optional<QueryResult> currentResult = expression.query(query, data);

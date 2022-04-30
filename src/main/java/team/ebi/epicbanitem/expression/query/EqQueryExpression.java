@@ -4,8 +4,10 @@ import java.util.Objects;
 import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
+import team.ebi.epicbanitem.util.DataViewUtils;
 
 public class EqQueryExpression implements QueryExpression {
   private final Object value;
@@ -14,9 +16,14 @@ public class EqQueryExpression implements QueryExpression {
     this.value = data;
   }
 
+  public EqQueryExpression(DataView data) {
+    this.value =
+        data.get(DataQuery.of()).orElseThrow(() -> new InvalidDataException("$eq need a value"));
+  }
+
   @Override
-  public Optional<QueryResult> query(DataQuery query, Object data) {
-    Object value = data instanceof DataView ? ((DataView) data).get(query).orElse(null) : data;
+  public Optional<QueryResult> query(DataQuery query, DataView data) {
+    Object value = DataViewUtils.get(data, query).orElse(null);
     return QueryResult.from(Objects.equals(this.value, value));
   }
 }
