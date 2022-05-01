@@ -25,6 +25,7 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.ServiceProvider;
 import org.spongepowered.api.world.server.ServerWorld;
 import team.ebi.epicbanitem.EBIEventContextKeys;
+import team.ebi.epicbanitem.EBITranslator;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.AbstractRestrictionTrigger;
 import team.ebi.epicbanitem.api.RestrictionRule;
@@ -65,6 +66,7 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
         .addContext(EBIEventContextKeys.RESTRICTED_OBJECT, item)
         .addContext(EventContextKeys.SUBJECT, user);
     List<Component> components = Lists.newArrayList();
+    EBITranslator translator = EpicBanItem.translator();
     for (RestrictionRule rule : rules) {
       causeStackManager.addContext(EBIEventContextKeys.RESTRICTION_RULE, rule);
       if (rule.needCancel()) {
