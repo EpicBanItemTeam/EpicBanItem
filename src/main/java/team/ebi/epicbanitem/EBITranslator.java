@@ -15,8 +15,11 @@ import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.translation.TranslationRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.resource.Resource;
 import org.spongepowered.api.resource.ResourcePath;
 import org.spongepowered.api.resource.pack.Pack;
@@ -30,12 +33,19 @@ public class EBITranslator implements TranslationRegistry {
 
   private final TranslationRegistry registry;
   private final TranslatableComponentRenderer<Locale> renderer;
+  private final PluginContainer plugin;
 
   @Inject
   public EBITranslator(PluginContainer plugin, EventManager eventManager) {
     this.registry = TranslationRegistry.create(EpicBanItem.key("translator"));
     this.renderer = TranslatableComponentRenderer.usingTranslationSource(this);
+    this.plugin = plugin;
     // TODO Custom messages file & reload
+    eventManager.registerListeners(plugin, this);
+  }
+
+  @Listener
+  public void onStartedEngine(StartedEngineEvent<Server> event) {
     try (Pack pack = Sponge.server().packRepository().pack(plugin)) {
       PackContents contents = pack.contents();
       Collection<ResourcePath> paths =
