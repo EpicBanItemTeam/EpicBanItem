@@ -25,16 +25,16 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.ServiceProvider;
 import org.spongepowered.api.world.server.ServerWorld;
 import team.ebi.epicbanitem.EBIEventContextKeys;
+import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.AbstractRestrictionTrigger;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleService;
-import team.ebi.epicbanitem.api.RestrictionTriggers;
 import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 
 public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
   public UseRestrictionTrigger() {
-    super(RestrictionTriggers.USE);
+    super(EpicBanItem.key("use"));
   }
 
   @Listener

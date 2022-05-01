@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.registry.RegistryKey;
 import team.ebi.epicbanitem.EBITranslator;
 import team.ebi.epicbanitem.EpicBanItem;
 
@@ -13,8 +12,8 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
 
   private final ResourceKey key;
 
-  public AbstractRestrictionTrigger(RegistryKey<RestrictionTrigger> key) {
-    this.key = key.location();
+  public AbstractRestrictionTrigger(ResourceKey key) {
+    this.key = key;
     Sponge.eventManager()
         .registerListeners(
             Sponge.pluginManager()

@@ -1,11 +1,8 @@
 package team.ebi.epicbanitem.api.expression;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.persistence.DataQuery;
-import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
 import org.spongepowered.api.registry.Registry;
 import org.spongepowered.api.registry.RegistryKey;
@@ -13,25 +10,7 @@ import org.spongepowered.api.registry.RegistryScope;
 import org.spongepowered.api.registry.RegistryScopes;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.expression.ArrayableQueryExpression;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
-import team.ebi.epicbanitem.expression.query.AllQueryExpression;
-import team.ebi.epicbanitem.expression.query.AndQueryExpression;
-import team.ebi.epicbanitem.expression.query.ElemMatchQueryExpression;
-import team.ebi.epicbanitem.expression.query.EqQueryExpression;
-import team.ebi.epicbanitem.expression.query.ExistsQueryExpression;
-import team.ebi.epicbanitem.expression.query.GtQueryExpression;
-import team.ebi.epicbanitem.expression.query.GteQueryExpression;
-import team.ebi.epicbanitem.expression.query.InQueryExpression;
-import team.ebi.epicbanitem.expression.query.LtQueryExpression;
-import team.ebi.epicbanitem.expression.query.LteQueryExpression;
-import team.ebi.epicbanitem.expression.query.NeQueryExpression;
-import team.ebi.epicbanitem.expression.query.NinQueryExpression;
-import team.ebi.epicbanitem.expression.query.NorQueryExpression;
-import team.ebi.epicbanitem.expression.query.NotQueryExpression;
-import team.ebi.epicbanitem.expression.query.OrQueryExpression;
-import team.ebi.epicbanitem.expression.query.RegexQueryExpression;
-import team.ebi.epicbanitem.expression.query.SizeQueryExpression;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
 public class QueryExpressions {
@@ -71,49 +50,6 @@ public class QueryExpressions {
       key(EpicBanItem.key(ExpressionKeys.REGEX));
 
   public static ImmutableMap<String, QueryExpressionFunction> EXPRESSIONS;
-
-  public static Map<ResourceKey, QueryExpressionFunction> DEFAULT_REGISTRIES =
-      ImmutableMap.<ResourceKey, QueryExpressionFunction>builder()
-          // Logical
-          .put(EpicBanItem.key(ExpressionKeys.OR), OrQueryExpression::new)
-          .put(EpicBanItem.key(ExpressionKeys.NOR), NorQueryExpression::new)
-          .put(EpicBanItem.key(ExpressionKeys.AND), AndQueryExpression::new)
-          .put(EpicBanItem.key(ExpressionKeys.NOT), NotQueryExpression::new)
-          // Compare
-          .put(
-              EpicBanItem.key(ExpressionKeys.EQ),
-              (view) -> new ArrayableQueryExpression(new EqQueryExpression(view)))
-          .put(
-              EpicBanItem.key(ExpressionKeys.NE),
-              (view) -> new ArrayableQueryExpression(new NeQueryExpression(view)))
-          .put(
-              EpicBanItem.key(ExpressionKeys.GT),
-              (view) -> new ArrayableQueryExpression(new GtQueryExpression(view)))
-          .put(
-              EpicBanItem.key(ExpressionKeys.LT),
-              (view) -> new ArrayableQueryExpression(new LtQueryExpression(view)))
-          .put(
-              EpicBanItem.key(ExpressionKeys.GTE),
-              (view) -> new ArrayableQueryExpression(new GteQueryExpression(view)))
-          .put(
-              EpicBanItem.key(ExpressionKeys.LTE),
-              (view) -> new ArrayableQueryExpression(new LteQueryExpression(view)))
-          // In
-          .put(EpicBanItem.key(ExpressionKeys.IN), InQueryExpression::new)
-          .put(EpicBanItem.key(ExpressionKeys.NIN), NinQueryExpression::new)
-          // Array
-          .put(EpicBanItem.key(ExpressionKeys.SIZE), SizeQueryExpression::new)
-          .put(EpicBanItem.key(ExpressionKeys.ALL), AllQueryExpression::new)
-          .put(EpicBanItem.key(ExpressionKeys.ELEM_MATCH), ElemMatchQueryExpression::new)
-          // Other
-          .put(EpicBanItem.key(ExpressionKeys.EXISTS), ExistsQueryExpression::new)
-          .put(
-              EpicBanItem.key(ExpressionKeys.REGEX),
-              view ->
-                  new RegexQueryExpression(
-                      view.getString(DataQuery.of())
-                          .orElseThrow(() -> new InvalidDataException("$regex should be string"))))
-          .build();
 
   public static Registry<QueryExpressionFunction> registry() {
     return EBIRegistries.QUERY_EXPRESSION.get();

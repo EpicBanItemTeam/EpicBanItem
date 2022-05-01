@@ -1,7 +1,6 @@
 package team.ebi.epicbanitem.api.expression;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
@@ -11,15 +10,7 @@ import org.spongepowered.api.registry.RegistryScope;
 import org.spongepowered.api.registry.RegistryScopes;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.expression.ObjectUpdateExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
-import team.ebi.epicbanitem.expression.update.IncUpdateExpression;
-import team.ebi.epicbanitem.expression.update.MulUpdateExpression;
-import team.ebi.epicbanitem.expression.update.PopUpdateExpression;
-import team.ebi.epicbanitem.expression.update.PullUpdateExpression;
-import team.ebi.epicbanitem.expression.update.RenameUpdateExpression;
-import team.ebi.epicbanitem.expression.update.SetUpdateExpression;
-import team.ebi.epicbanitem.expression.update.UnsetUpdateExpression;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
 public class UpdateExpressions {
@@ -41,31 +32,6 @@ public class UpdateExpressions {
       key(EpicBanItem.key(ExpressionKeys.MUL));
 
   public static ImmutableMap<String, UpdateExpressionFunction> EXPRESSIONS;
-
-  public static Map<ResourceKey, UpdateExpressionFunction> DEFAULT_REGISTRIES =
-      ImmutableMap.<ResourceKey, UpdateExpressionFunction>builder()
-          .put(
-              EpicBanItem.key(ExpressionKeys.SET),
-              view -> new ObjectUpdateExpression(SetUpdateExpression::new, view))
-          .put(
-              EpicBanItem.key(ExpressionKeys.UNSET),
-              view -> new ObjectUpdateExpression(UnsetUpdateExpression::new, view))
-          .put(
-              EpicBanItem.key(ExpressionKeys.RENAME),
-              view -> new ObjectUpdateExpression(RenameUpdateExpression::new, view))
-          .put(
-              EpicBanItem.key(ExpressionKeys.POP),
-              view -> new ObjectUpdateExpression(PopUpdateExpression::new, view))
-          .put(
-              EpicBanItem.key(ExpressionKeys.PULL),
-              view -> new ObjectUpdateExpression(PullUpdateExpression::new, view))
-          .put(
-              EpicBanItem.key(ExpressionKeys.INC),
-              view -> new ObjectUpdateExpression(IncUpdateExpression::new, view))
-          .put(
-              EpicBanItem.key(ExpressionKeys.MUL),
-              view -> new ObjectUpdateExpression(MulUpdateExpression::new, view))
-          .build();
 
   public static Registry<UpdateExpressionFunction> registry() {
     return EBIRegistries.UPDATE_EXPRESSION.get();

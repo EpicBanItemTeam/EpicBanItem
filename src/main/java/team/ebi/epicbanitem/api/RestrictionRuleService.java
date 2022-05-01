@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.EventContextKeys;
@@ -48,7 +47,7 @@ public interface RestrictionRuleService {
       RestrictionTrigger trigger,
       @Nullable Subject subject) {
     if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) return Optional.empty();
-    Optional<QueryResult> queryResult = rule.queryExpression().query(DataQuery.of(), view);
+    Optional<QueryResult> queryResult = rule.queryExpression().query(view);
     return queryResult.flatMap(
         result -> Optional.ofNullable(rule.updateExpression()).map(it -> it.update(result, view)));
   }

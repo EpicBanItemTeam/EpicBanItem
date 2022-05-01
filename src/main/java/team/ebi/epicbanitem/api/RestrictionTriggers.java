@@ -1,7 +1,5 @@
 package team.ebi.epicbanitem.api;
 
-import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
@@ -11,8 +9,6 @@ import org.spongepowered.api.registry.RegistryScope;
 import org.spongepowered.api.registry.RegistryScopes;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.trigger.SimpleRestrictionTrigger;
-import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
 public class RestrictionTriggers {
@@ -44,22 +40,6 @@ public class RestrictionTriggers {
 
   public static final DefaultedRegistryReference<RestrictionTrigger> JOIN =
       key(EpicBanItem.key("join"));
-
-  public static Map<ResourceKey, RestrictionTrigger> DEFAULT_REGISTRIES =
-      ImmutableMap.<ResourceKey, RestrictionTrigger>builder()
-          .put(EpicBanItem.key("use"), new UseRestrictionTrigger())
-          .put(EpicBanItem.key("equip"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("craft"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("pickup"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("click"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("throw"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("drop"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("place"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("break"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("interact"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("join"), new SimpleRestrictionTrigger())
-          .put(EpicBanItem.key("store"), new SimpleRestrictionTrigger())
-          .build();
 
   public static Registry<RestrictionTrigger> registry() {
     return Sponge.server().registry(EBIRegistries.TRIGGER);
