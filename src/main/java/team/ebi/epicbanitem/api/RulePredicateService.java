@@ -7,7 +7,7 @@ import java.util.Comparator;
 import org.spongepowered.api.ResourceKey;
 
 public interface RulePredicateService {
-  ResourceKey WILDCARD = ResourceKey.of("*", "*");
+  ResourceKey WILDCARD = ResourceKey.of("_", "_");
 
   /**
    * @param id {@link ResourceKey} of object
@@ -28,8 +28,8 @@ public interface RulePredicateService {
     return ImmutableSet.<ResourceKey>builder()
         .add(WILDCARD)
         .add(key)
-        .add(ResourceKey.of(key.namespace(), "*"))
-        .add(ResourceKey.of("*", key.value()))
+        .add(ResourceKey.of(key.namespace(), "_"))
+        .add(ResourceKey.of("_", key.value()))
         .build();
   }
 
