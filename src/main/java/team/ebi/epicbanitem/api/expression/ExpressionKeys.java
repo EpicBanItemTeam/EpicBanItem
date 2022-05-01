@@ -24,7 +24,7 @@ public class ExpressionKeys {
 
   public static final String SIZE = "size";
   public static final String ALL = "all";
-  public static final String ELEM_MATCH = "elemMatch";
+  public static final String ELEM_MATCH = "elem_match";
 
   public static final String EXISTS = "exists";
   public static final String REGEX = "regex";
