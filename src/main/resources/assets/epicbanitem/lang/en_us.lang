@@ -44,8 +44,8 @@ epicbanitem.command.show.description = Display information of a particular rule
 epicbanitem.command.show.extendedDescription = Display information of a particular rule
 epicbanitem.command.show.args.checkRule = The rule whose information will be displayed
 
-epicbanitem.command.query.description = Use a specific rule to check the item in hand or the block you are faced with, then display related information such as the NBT
-epicbanitem.command.query.extendedDescription = Use a specific rule to check the item in hand or the block you are faced with, then display related information such as the NBT
+command.query.description = Use a specific rule to check the held item or target block
+command.query.description.extended = Use --block or -b flag to query target block
 epicbanitem.command.query.noItem = The item is not available. Maybe you are not a player or there is nothing in hand?
 epicbanitem.command.query.noBlock = The block is not available. Please make sure that you are faced with the block and close enough.
 epicbanitem.command.query.succeed = Successfully generated query result: 

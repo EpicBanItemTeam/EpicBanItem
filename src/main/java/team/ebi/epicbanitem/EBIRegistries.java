@@ -200,7 +200,18 @@ public class EBIRegistries {
 
   @Listener(order = Order.POST)
   public void onRegisterRegistryValue(RegisterRegistryValueEvent.EngineScoped<Server> event) {
-    QueryExpressions.EXPRESSIONS = QueryExpressions.toMap();
-    UpdateExpressions.EXPRESSIONS = UpdateExpressions.toMap();
+    QueryExpressions.EXPRESSIONS = toMap(QUERY_EXPRESSION);
+    UpdateExpressions.EXPRESSIONS = toMap(UPDATE_EXPRESSION);
+  }
+
+  private static <T> ImmutableMap<String, T> toMap(DefaultedRegistryType<T> registry) {
+    return registry
+        .get()
+        .streamEntries()
+        .reduce(
+            ImmutableMap.<String, T>builder(),
+            (builder, entry) -> builder.put(entry.key().value(), entry.value()),
+            (builder, other) -> other)
+        .build();
   }
 }

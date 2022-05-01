@@ -48,8 +48,9 @@ public final class EBICommands {
       Command.builder()
           .shortDescription(Component.translatable("command.query.description"))
           .extendedDescription(Component.translatable("command.query.description.extended"))
-          .permission(EpicBanItem.permission("command.query"))
-          .executionRequirements(MUTABLE_DATA_HOLDER)
+          .executionRequirements(
+              MUTABLE_DATA_HOLDER.and(
+                  cause -> cause.hasPermission(EpicBanItem.permission("command.query"))))
           .addFlag(
               // TODO 需要测试 flag 是否强制指向方块
               Flag.builder().aliases("block", "b").setRequirement(TARGET_BLOCK).build())
@@ -122,7 +123,7 @@ public final class EBICommands {
         EventListenerRegistration.builder(
                 new TypeToken<RegisterCommandEvent<Command.Parameterized>>() {})
             .plugin(plugin)
-            .listener(event -> event.register(plugin, ROOT, "epicbanitem", "ebi", "banitem", "bi"))
+            .listener(event -> event.register(plugin, ROOT, "epicbanitem", "ebi"))
             .order(Order.DEFAULT)
             .build());
   }

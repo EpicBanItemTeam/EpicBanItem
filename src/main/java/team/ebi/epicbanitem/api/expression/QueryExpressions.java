@@ -55,20 +55,6 @@ public class QueryExpressions {
     return EBIRegistries.QUERY_EXPRESSION.get();
   }
 
-  /**
-   * @return The map without duplicated expression key. For example, there is <code>foo:$or</code>
-   *     and <code>bar:$or</code>. The first should be accepted.
-   */
-  public static ImmutableMap<String, QueryExpressionFunction> toMap() {
-    return registry()
-        .streamEntries()
-        .reduce(
-            ImmutableMap.<String, QueryExpressionFunction>builder(),
-            (builder, entry) -> builder.put(entry.key().value(), entry.value()),
-            (builder, other) -> other)
-        .build();
-  }
-
   private static DefaultedRegistryReference<QueryExpressionFunction> key(
       final ResourceKey location) {
     return RegistryKey.of(EBIRegistries.QUERY_EXPRESSION, location)
