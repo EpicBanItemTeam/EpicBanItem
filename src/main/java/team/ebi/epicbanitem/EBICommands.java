@@ -1,6 +1,8 @@
 package team.ebi.epicbanitem;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+import io.leangen.geantyref.TypeToken;
 import java.util.Optional;
 import java.util.function.Predicate;
 import net.kyori.adventure.audience.Audience;
@@ -17,12 +19,17 @@ import org.spongepowered.api.data.DataHolder.Mutable;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataContainer;
+import org.spongepowered.api.event.EventListenerRegistration;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.service.pagination.PaginationList.Builder;
+import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
@@ -108,4 +115,15 @@ public final class EBICommands {
           .permission(EpicBanItem.permission("command.root"))
           .addChild(QUERY, "query", "q")
           .build();
+
+  @Inject
+  public EBICommands(PluginContainer plugin, EventManager eventManager) {
+    eventManager.registerListener(
+        EventListenerRegistration.builder(
+                new TypeToken<RegisterCommandEvent<Command.Parameterized>>() {})
+            .plugin(plugin)
+            .listener(event -> event.register(plugin, ROOT, "epicbanitem", "ebi", "banitem", "bi"))
+            .order(Order.DEFAULT)
+            .build());
+  }
 }
