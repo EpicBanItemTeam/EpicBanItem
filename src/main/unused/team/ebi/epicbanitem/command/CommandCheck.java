@@ -20,8 +20,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
-import team.ebi.epicbanitem.api.CheckRuleLocation;
-import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;

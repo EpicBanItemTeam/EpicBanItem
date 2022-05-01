@@ -27,8 +27,6 @@ import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.TextUtil;
-import team.ebi.epicbanitem.util.nbt.QueryExpression;
-import team.ebi.epicbanitem.util.nbt.QueryResult;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;

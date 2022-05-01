@@ -22,8 +22,6 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.text.channel.MessageReceiver;
 import org.spongepowered.api.world.World;
-import team.ebi.epicbanitem.api.CheckResult;
-import team.ebi.epicbanitem.api.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.TextUtil;

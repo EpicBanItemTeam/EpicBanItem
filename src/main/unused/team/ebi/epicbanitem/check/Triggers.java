@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -17,31 +18,29 @@ import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.registry.AdditionalCatalogRegistryModule;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.CheckRuleTrigger;
 
 /**
  * @author The EpicBanItem Team
  */
 @Singleton
 @NonnullByDefault
-public final class Triggers implements AdditionalCatalogRegistryModule<CheckRuleTrigger> {
+public final class Triggers implements Catalog<CheckRuleTrigger> {
 
-    public static final CheckRuleTrigger USE = new Impl("use");
-    public static final CheckRuleTrigger EQUIP = new Impl("equip");
-    public static final CheckRuleTrigger CRAFT = new Impl("craft");
-    public static final CheckRuleTrigger PICKUP = new Impl("pickup");
-    public static final CheckRuleTrigger CLICK = new Impl("click");
-    public static final CheckRuleTrigger THROW = new Impl("throw");
-    public static final CheckRuleTrigger DROP = new Impl("drop");
-    public static final CheckRuleTrigger PLACE = new Impl("place");
-    public static final CheckRuleTrigger BREAK = new Impl("break");
-    public static final CheckRuleTrigger INTERACT = new Impl("interact");
-    public static final CheckRuleTrigger JOIN = new Impl("join");
-    public static final CheckRuleTrigger STORE = new Impl("store");
+    public static final CheckRuleTrigger USE        = new Impl("use"     );
+    public static final CheckRuleTrigger EQUIP      = new Impl("equip"   );
+    public static final CheckRuleTrigger CRAFT      = new Impl("craft"   );
+    public static final CheckRuleTrigger PICKUP     = new Impl("pickup"  );
+    public static final CheckRuleTrigger CLICK      = new Impl("click"    );
+    public static final CheckRuleTrigger THROW      = new Impl("throw"    );
+    public static final CheckRuleTrigger DROP       = new Impl("drop"    );
+    public static final CheckRuleTrigger PLACE      = new Impl("place"   );
+    public static final CheckRuleTrigger BREAK      = new Impl("break"    );
+    public static final CheckRuleTrigger INTERACT   = new Impl("interact");
+    public static final CheckRuleTrigger JOIN       = new Impl("join"    );
+    public static final CheckRuleTrigger STORE      = new Impl("store"    );
 
     private static final SortedMap<String, CheckRuleTrigger> triggers = new TreeMap<>();
 
@@ -60,7 +59,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
                     CatalogType::getId,
                     Function.identity(),
                     (u, v) -> {
-                        throw new IllegalStateException(String.format("Duplicate key %s", u));
+                        throw new IllegalStateException(MessageFormat.format("Duplicate key {}", u));
                     },
                     TreeMap::new
                 )
@@ -126,7 +125,7 @@ public final class Triggers implements AdditionalCatalogRegistryModule<CheckRule
 
         @Override
         public String getId() {
-            return EpicBanItem.PLUGIN_ID + ":" + name;
+            return EpicBanItem.NAMESPACE + ":" + name;
         }
 
         @Override

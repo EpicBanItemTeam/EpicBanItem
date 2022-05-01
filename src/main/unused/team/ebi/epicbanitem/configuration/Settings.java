@@ -20,10 +20,8 @@ import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.storage.WorldProperties;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
-import team.ebi.epicbanitem.util.UpdateChecker;
 import team.ebi.epicbanitem.util.file.ObservableFileService;
 
 import javax.annotation.Nullable;
@@ -123,7 +121,7 @@ public class Settings {
                     String key = k.toString();
                     Optional<CheckRuleTrigger> optionalTrigger;
                     if (key.indexOf(':') == -1) {
-                        optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, EpicBanItem.PLUGIN_ID + ":" + key);
+                        optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, EpicBanItem.NAMESPACE + ":" + key);
                     } else {
                         optionalTrigger = Sponge.getRegistry().getType(CheckRuleTrigger.class, key);
                     }

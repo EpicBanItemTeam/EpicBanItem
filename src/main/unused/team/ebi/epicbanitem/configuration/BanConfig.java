@@ -23,8 +23,6 @@ import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
-import team.ebi.epicbanitem.api.CheckRuleIndex;
-import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.configuration.update.UpdateService;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
@@ -139,7 +137,7 @@ public class BanConfig {
                 return CompletableFuture.completedFuture(Boolean.FALSE);
             }
 
-            ImmutableListMultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap
+            ImmutableListMBultimap.Builder<CheckRuleIndex, CheckRule> byItem = ImmutableListMultimap
                 .<CheckRuleIndex, CheckRule>builder()
                 .orderKeysBy(Comparator.comparing(Object::toString))
                 .orderValuesBy(COMPARATOR);

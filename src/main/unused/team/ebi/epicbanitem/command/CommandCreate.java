@@ -46,7 +46,6 @@ import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.World;
-import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.command.arg.EpicBanItemArgs;

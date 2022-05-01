@@ -12,8 +12,6 @@ import org.spongepowered.api.util.StartsWithPredicate;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.CheckRuleIndex;
-import team.ebi.epicbanitem.api.CheckRuleLocation;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 

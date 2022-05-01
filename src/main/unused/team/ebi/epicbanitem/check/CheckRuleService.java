@@ -2,6 +2,13 @@ package team.ebi.epicbanitem.check;
 
 import com.google.common.collect.Streams;
 import com.google.inject.ImplementedBy;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -11,19 +18,7 @@ import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
-import team.ebi.epicbanitem.api.CheckResult;
-import team.ebi.epicbanitem.api.CheckRuleIndex;
-import team.ebi.epicbanitem.api.CheckRuleLocation;
-import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
-
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * @author The EpicBanItem Team

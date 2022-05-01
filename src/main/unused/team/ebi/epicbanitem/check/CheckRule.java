@@ -22,14 +22,8 @@ import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.World;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.CheckResult;
-import team.ebi.epicbanitem.api.CheckRuleLocation;
-import team.ebi.epicbanitem.api.CheckRuleTrigger;
 import team.ebi.epicbanitem.command.CommandCheck;
 import team.ebi.epicbanitem.util.TextUtil;
-import team.ebi.epicbanitem.util.nbt.QueryExpression;
-import team.ebi.epicbanitem.util.nbt.QueryResult;
-import team.ebi.epicbanitem.util.nbt.UpdateExpression;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

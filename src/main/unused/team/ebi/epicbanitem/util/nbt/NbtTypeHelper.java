@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.Types;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.util.annotation.NonnullByDefault;

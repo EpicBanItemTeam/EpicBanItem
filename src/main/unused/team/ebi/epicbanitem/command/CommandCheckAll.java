@@ -17,7 +17,6 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.plugin.meta.util.NonnullByDefault;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.CheckResult;
 import team.ebi.epicbanitem.check.CheckRule;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;

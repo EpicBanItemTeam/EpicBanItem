@@ -26,10 +26,6 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.BlockChangeFlags;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;
 import team.ebi.epicbanitem.util.TextUtil;
-import team.ebi.epicbanitem.util.nbt.QueryExpression;
-import team.ebi.epicbanitem.util.nbt.QueryResult;
-import team.ebi.epicbanitem.util.nbt.UpdateExpression;
-import team.ebi.epicbanitem.util.nbt.UpdateResult;
 
 import java.util.Optional;
 

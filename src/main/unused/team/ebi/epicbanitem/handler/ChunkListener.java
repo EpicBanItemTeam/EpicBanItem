@@ -21,7 +21,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
-import team.ebi.epicbanitem.api.CheckResult;
 import team.ebi.epicbanitem.check.CheckRuleService;
 import team.ebi.epicbanitem.check.Triggers;
 import team.ebi.epicbanitem.util.NbtTagDataUtil;

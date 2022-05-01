@@ -20,9 +20,6 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.text.translation.Translatable;
 import org.spongepowered.api.util.Tuple;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.CheckRuleTrigger;
-import team.ebi.epicbanitem.util.nbt.NbtTagRenderer;
-import team.ebi.epicbanitem.util.nbt.QueryResult;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
