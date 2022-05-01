@@ -1,8 +1,9 @@
 package team.ebi.epicbanitem.expression.update;
 
+import com.google.common.collect.ImmutableList;
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
@@ -42,21 +43,19 @@ public class PullUpdateExpression implements UpdateExpression {
                   () ->
                       new UnsupportedOperationException(
                           MessageFormat.format("$pull failed, {} is invalid", query)));
+
       List<?> values =
-          view
-              .getList(query)
+          view.getList(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          MessageFormat.format("$pull failed, {} isn't an array", query)))
-              .stream()
-              .filter(
-                  it ->
-                      this.expression
-                          .query(DataQuery.of(), it)
-                          .isPresent())
-              .collect(Collectors.toList());
-      view.set(DataQuery.of(), values);
+                          MessageFormat.format("$pull failed, {} isn't an array", query)));
+      ImmutableList.Builder<Object> newValues = ImmutableList.builder();
+      for (int i = 0; i < values.size(); i++) {
+        Optional<QueryResult> subResult = expression.query(query.then(String.valueOf(i)), data);
+        if (subResult.isPresent()) newValues.add(values.get(i));
+      }
+      view.set(query, newValues.build());
       operation = operation.merge(UpdateOperation.replace(view));
     }
 
