@@ -26,7 +26,7 @@ public class DataViewComponentRenderer {
   private static final Component RIGHT_CURLY_BRACKET = Component.text("}");
   private static final Component INDENT = Component.text(Strings.repeat(" ", 2));
 
-  public static ImmutableList<Component> render(DataView view, QueryResult result) {
+  public static ImmutableList<Component> render(DataView view, @Nullable QueryResult result) {
     return render(view, result, Style.style());
   }
 

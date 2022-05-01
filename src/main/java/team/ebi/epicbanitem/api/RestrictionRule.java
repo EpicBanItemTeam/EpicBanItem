@@ -68,19 +68,19 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
 
   /**
    * @return Translatable component with args:
-   * 0: rule
-   * 1: trigger
-   * 2: origin object name
-   * 3: final object name
+   *     <li>0: rule
+   *     <li>1: trigger
+   *     <li>2: origin object name
+   *     <li>3: final object name
    */
   @Contract(pure = true)
   TranslatableComponent updatedMessage();
 
   /**
    * @return Translatable component with args:
-   * 0: rule
-   * 1: trigger
-   * 2: origin object name
+   *     <li>0: rule
+   *     <li>1: trigger
+   *     <li>2: origin object name
    */
   @Contract(pure = true)
   TranslatableComponent canceledMessage();

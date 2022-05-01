@@ -1,7 +1,6 @@
 package team.ebi.epicbanitem.api;
 
 import com.google.common.collect.Maps;
-import com.google.inject.Singleton;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -10,7 +9,6 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.util.Tuple;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 
-@Singleton
 public class RestrictionRules {
   private static final Map<ResourceKey, RestrictionRule> map = Maps.newHashMap();
 

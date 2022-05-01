@@ -13,7 +13,7 @@ import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.server.ServerWorld;
 import team.ebi.epicbanitem.EBIEventContextKeys;
-import team.ebi.epicbanitem.EBIPermissions;
+import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 
@@ -37,7 +37,7 @@ public interface RestrictionRuleService {
 
   default boolean shouldBypass(Subject subject, RestrictionRule rule, RestrictionTrigger trigger) {
     return subject.hasPermission(
-        EBIPermissions.bypass(rule),
+        EpicBanItem.permission("bypass." + rule),
         Sets.newHashSet(new Context(RestrictionTrigger.CONTEXT_KEY, trigger.key().asString())));
   }
 
