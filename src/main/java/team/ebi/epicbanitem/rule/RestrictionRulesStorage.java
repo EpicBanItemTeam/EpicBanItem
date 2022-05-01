@@ -38,6 +38,7 @@ public class RestrictionRulesStorage {
       throws IOException {
     eventManager.registerListeners(plugin, this);
     this.rulesDir = configDir.resolve("rules");
+    if (Files.notExists(this.rulesDir)) Files.createDirectories(this.rulesDir);
     this.load();
   }
 
