@@ -17,8 +17,8 @@ public class ElemMatchQueryExpression implements QueryExpression {
     this.expression = expression;
   }
 
-  public ElemMatchQueryExpression(DataView view) {
-    this.expression = new CommonQueryExpression(view);
+  public ElemMatchQueryExpression(DataView view, DataQuery query) {
+    this.expression = new CommonQueryExpression(view, query);
   }
 
   @Override

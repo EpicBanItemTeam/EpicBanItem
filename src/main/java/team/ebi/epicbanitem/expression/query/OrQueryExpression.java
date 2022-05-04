@@ -15,11 +15,14 @@ public class OrQueryExpression implements QueryExpression {
 
   private final Set<QueryExpression> expressions;
 
-  public OrQueryExpression(DataView data) {
+  public OrQueryExpression(DataView data, DataQuery query) {
     List<DataView> views =
-        data.getViewList(DataQuery.of())
-            .orElseThrow(() -> new InvalidDataException("$or should be a array"));
-    this.expressions = views.stream().map(CommonQueryExpression::new).collect(Collectors.toSet());
+        data.getViewList(query)
+            .orElseThrow(() -> new InvalidDataException("$or should be objects array"));
+    this.expressions =
+        views.stream()
+            .map(it -> new CommonQueryExpression(data, it.currentPath()))
+            .collect(Collectors.toSet());
   }
 
   @Override

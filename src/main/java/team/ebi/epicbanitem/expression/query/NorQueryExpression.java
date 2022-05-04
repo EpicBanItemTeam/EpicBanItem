@@ -10,10 +10,10 @@ import team.ebi.epicbanitem.api.expression.QueryResult;
 public class NorQueryExpression implements QueryExpression {
   private final QueryExpression expression;
 
-  public NorQueryExpression(DataView data) {
-    data.getViewList(DataQuery.of())
-        .orElseThrow(() -> new InvalidDataException("$nor should be a array"));
-    this.expression = new OrQueryExpression(data);
+  public NorQueryExpression(DataView data, DataQuery query) {
+    data.getViewList(query)
+        .orElseThrow(() -> new InvalidDataException("$nor should be a array array"));
+    this.expression = new OrQueryExpression(data, query);
   }
 
   @Override

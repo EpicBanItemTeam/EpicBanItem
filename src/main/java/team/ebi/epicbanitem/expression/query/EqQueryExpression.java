@@ -13,17 +13,18 @@ public class EqQueryExpression implements QueryExpression {
   private final Object value;
 
   public EqQueryExpression(Object data) {
+    if (data instanceof Number) data = ((Number) data).doubleValue();
     this.value = data;
   }
 
-  public EqQueryExpression(DataView data) {
-    this.value =
-        data.get(DataQuery.of()).orElseThrow(() -> new InvalidDataException("$eq need a value"));
+  public EqQueryExpression(DataView data, DataQuery query) {
+    this.value = data.get(query).orElseThrow(() -> new InvalidDataException("$eq need a value"));
   }
 
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     Object value = DataViewUtils.get(data, query).orElse(null);
+    if (value instanceof Number) value = ((Number) value).doubleValue();
     return QueryResult.from(Objects.equals(this.value, value));
   }
 }

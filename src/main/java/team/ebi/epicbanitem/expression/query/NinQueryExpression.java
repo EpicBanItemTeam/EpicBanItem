@@ -10,10 +10,10 @@ import team.ebi.epicbanitem.api.expression.QueryResult;
 public class NinQueryExpression implements QueryExpression {
   private final QueryExpression expression;
 
-  public NinQueryExpression(DataView data) {
-    data.getViewList(DataQuery.of())
-        .orElseThrow(() -> new InvalidDataException("$nin should be a array"));
-    this.expression = new InQueryExpression(data);
+  public NinQueryExpression(DataView data, DataQuery query) {
+    data.getViewList(query)
+        .orElseThrow(() -> new InvalidDataException("$nin should be a objects array"));
+    this.expression = new InQueryExpression(data, query);
   }
 
   @Override

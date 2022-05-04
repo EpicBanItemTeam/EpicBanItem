@@ -38,9 +38,6 @@ public class ExpressionKeys {
   public static final String INC = "ind";
   public static final String MUL = "mul";
 
-  /** The expressions can at root level */
-  public static final Set<String> ROOT_QUERY_EXPRESSIONS = Sets.newHashSet(OR, NOR, AND);
-
   public static final Set<String> UPDATE_EXPRESSIONS =
       Sets.newHashSet(SET, UNSET, RENAME, POP, PULL, INC, MUL);
 

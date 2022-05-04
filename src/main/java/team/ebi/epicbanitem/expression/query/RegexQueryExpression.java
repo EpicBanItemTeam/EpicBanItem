@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.DataViewUtils;
@@ -15,6 +16,14 @@ public class RegexQueryExpression implements QueryExpression {
   public RegexQueryExpression(String value) {
     Regex regex = new Regex(value);
     this.pattern = regex.pattern();
+  }
+
+  public RegexQueryExpression(DataView view, DataQuery query) {
+    this(view.getString(query)
+        .orElseThrow(
+            () ->
+                new InvalidDataException(
+                    "$regex should be string")));
   }
 
   @Override

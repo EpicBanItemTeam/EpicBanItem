@@ -4,17 +4,17 @@ import java.util.List;
 import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.util.DataPreconditions;
 
 public class SizeQueryExpression implements QueryExpression {
   private final int size;
 
-  public SizeQueryExpression(DataView data) {
-    Optional<Integer> optional = data.getInt(DataQuery.of());
-    DataPreconditions.checkData(optional.isPresent(), "$size should be int. Current: null");
-    this.size = optional.get();
+  public SizeQueryExpression(DataView data, DataQuery query) {
+    this.size =
+        data.getInt(query)
+            .orElseThrow(() -> new InvalidDataException("$size should be int. Current: null"));
   }
 
   @Override

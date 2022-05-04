@@ -9,14 +9,14 @@ import team.ebi.epicbanitem.expression.query.EqQueryExpression;
 import team.ebi.epicbanitem.expression.query.RegexQueryExpression;
 import team.ebi.epicbanitem.util.Regex;
 
-public class StringQueryExpression implements QueryExpression {
+public class ValueQueryExpression implements QueryExpression {
 
   private final QueryExpression expression;
 
-  public StringQueryExpression(String value) {
+  public ValueQueryExpression(Object value) {
     this.expression =
-        Regex.isRegex(value)
-            ? new RegexQueryExpression(value)
+        value instanceof String && Regex.isRegex((String) value)
+            ? new RegexQueryExpression((String) value)
             : new ArrayableQueryExpression(new EqQueryExpression(value));
   }
 

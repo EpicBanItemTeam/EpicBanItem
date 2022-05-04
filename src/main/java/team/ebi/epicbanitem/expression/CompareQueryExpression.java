@@ -17,9 +17,9 @@ public class CompareQueryExpression implements QueryExpression {
 
   private static final Predicate<Object> IS_NUMBER = it -> it instanceof Number;
 
-  public CompareQueryExpression(DataView data, BiPredicate<Double, Double> predicate) {
+  public CompareQueryExpression(DataView data, DataQuery query,BiPredicate<Double, Double> predicate) {
     this.value =
-        data.get(DataQuery.of())
+        data.get(query)
             .filter(IS_NUMBER)
             .map(it -> ((Number) it).doubleValue())
             .orElseThrow(InvalidDataException::new);

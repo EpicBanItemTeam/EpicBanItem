@@ -13,8 +13,8 @@ public class NeQueryExpression implements QueryExpression {
     this.expression = new EqQueryExpression(data);
   }
 
-  public NeQueryExpression(DataView data) {
-    this.expression = new EqQueryExpression(data);
+  public NeQueryExpression(DataView data, DataQuery query) {
+    this.expression = new EqQueryExpression(data, query);
   }
 
   @Override

@@ -15,9 +15,9 @@ public class RootQueryExpression implements QueryExpression, DataSerializable {
   private final QueryExpression expression;
   private final DataView view;
 
-  public RootQueryExpression(DataView view) {
+  public RootQueryExpression(DataView view, DataQuery query) {
     this.view = view;
-    this.expression = new CommonQueryExpression(view);
+    this.expression = new CommonQueryExpression(view, query);
   }
 
   @Override
@@ -46,7 +46,7 @@ public class RootQueryExpression implements QueryExpression, DataSerializable {
     @Override
     protected Optional<RootQueryExpression> buildContent(DataView container)
         throws InvalidDataException {
-      return Optional.of(new RootQueryExpression(container));
+      return Optional.of(new RootQueryExpression(container, DataQuery.of()));
     }
   }
 }

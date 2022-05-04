@@ -12,7 +12,7 @@ import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
-import team.ebi.epicbanitem.expression.StringQueryExpression;
+import team.ebi.epicbanitem.expression.ValueQueryExpression;
 import team.ebi.epicbanitem.util.DataViewUtils;
 
 /**
@@ -26,10 +26,10 @@ import team.ebi.epicbanitem.util.DataViewUtils;
 public class AllQueryExpression implements QueryExpression {
   private final Set<QueryExpression> expressions;
 
-  public AllQueryExpression(DataView data) {
+  public AllQueryExpression(DataView data, DataQuery query) {
     List<DataView> views =
-        data.getViewList(DataQuery.of())
-            .orElseThrow(() -> new InvalidDataException("$all should be an array"));
+        data.getViewList(query)
+            .orElseThrow(() -> new InvalidDataException("$all should be objects array"));
     this.expressions =
         views.stream()
             .map(
@@ -37,9 +37,9 @@ public class AllQueryExpression implements QueryExpression {
                   Optional<DataView> elemMatchView = view.getView(ExpressionQueries.ELEM_MATCH);
                   if (elemMatchView.isPresent()) {
                     // [{ $elemMatch: {} }]
-                    return new CommonQueryExpression(elemMatchView.get());
+                    return new CommonQueryExpression(data, elemMatchView.get().currentPath());
                   } else {
-                    return new StringQueryExpression(
+                    return new ValueQueryExpression(
                         view.getString(DataQuery.of())
                             .orElseThrow(
                                 () ->

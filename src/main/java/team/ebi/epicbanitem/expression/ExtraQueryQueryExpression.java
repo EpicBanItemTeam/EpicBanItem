@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.expression;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -13,12 +14,15 @@ public class ExtraQueryQueryExpression implements QueryExpression {
   private final DataQuery query;
 
   public ExtraQueryQueryExpression(QueryExpression expression, DataQuery query) {
-    this.query = query;
-    this.expression = expression;
-  }
-
-  public ExtraQueryQueryExpression(DataView data, DataQuery query) {
-    this(new CommonQueryExpression(data), query);
+    List<DataQuery> queries = query.queryParts();
+    if (queries.size() > 1) {
+      this.query = queries.get(0);
+      this.expression =
+          new ArrayableQueryExpression(new ExtraQueryQueryExpression(expression, query.popFirst()));
+    } else {
+      this.expression = expression;
+      this.query = query;
+    }
   }
 
   @Override

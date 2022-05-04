@@ -15,9 +15,9 @@ public class ExistsQueryExpression implements QueryExpression {
       "$exists should be one of 0, 1, true or false. Current: {}";
   private final boolean expect;
 
-  public ExistsQueryExpression(DataView data) {
+  public ExistsQueryExpression(DataView data, DataQuery query) {
     Object value =
-        data.get(DataQuery.of())
+        data.get(query)
             .orElseThrow(() -> new InvalidDataException(MessageFormat.format(exception, "null")));
     if (value instanceof Integer) {
       int i = (int) value;

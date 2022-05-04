@@ -27,7 +27,9 @@ public class PullUpdateExpression implements UpdateExpression {
   }
 
   public PullUpdateExpression(DataView data) {
-    this(DataQuery.of('.', data.currentPath().toString()), new CommonQueryExpression(data));
+    this(
+        DataQuery.of('.', data.currentPath().toString()),
+        new CommonQueryExpression(data, DataQuery.of()));
   }
 
   @Override

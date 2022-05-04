@@ -10,8 +10,8 @@ import team.ebi.epicbanitem.expression.CommonQueryExpression;
 public class NotQueryExpression implements QueryExpression {
   private final QueryExpression expression;
 
-  public NotQueryExpression(DataView data) {
-    this.expression = new CommonQueryExpression(data);
+  public NotQueryExpression(DataView data, DataQuery query) {
+    this.expression = new CommonQueryExpression(data, query);
   }
 
   @Override
