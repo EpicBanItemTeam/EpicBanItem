@@ -1,12 +1,17 @@
 package team.ebi.epicbanitem;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import io.leangen.geantyref.TypeToken;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -18,7 +23,6 @@ import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.command.parameter.managed.Flag;
 import org.spongepowered.api.data.DataHolder.Mutable;
-import org.spongepowered.api.data.DataTransactionResult;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -48,6 +52,9 @@ public final class EBICommands {
   private static final Predicate<CommandCause> MUTABLE_DATA_HOLDER =
       cause -> cause.root() instanceof Mutable;
 
+  private static final Cache<UUID, QueryExpression> USED_EXPRESSION =
+      Caffeine.newBuilder().maximumSize(32).build();
+
   public static final Parameterized QUERY =
       Command.builder()
           .shortDescription(Component.translatable("command.query.description"))
@@ -66,17 +73,19 @@ public final class EBICommands {
               context -> {
                 boolean isBlock = context.hasFlag("block");
                 Object src = context.cause().root();
-                Mutable holder = (Mutable) src;
+                UUID uuid = ((Identified) src).identity().uuid();
                 // Argument > Last > Empty
                 QueryExpression expression =
                     context
                         .one(Parameter.key("query", QueryExpression.class))
                         .orElse(
-                            holder.getOrElse(
-                                EBIKeys.LAST_QUERY,
-                                new RootQueryExpression(
-                                    DataContainer.createNew(), DataQuery.of())));
-                DataTransactionResult transaction = holder.offer(EBIKeys.LAST_QUERY, expression);
+                            Objects.requireNonNull(
+                                USED_EXPRESSION.get(
+                                    uuid,
+                                    it ->
+                                        new RootQueryExpression(
+                                            DataContainer.createNew(), DataQuery.of()))));
+                USED_EXPRESSION.put(uuid, expression);
                 SerializableDataHolder targetObject =
                     Optional.of(isBlock)
                         .filter(Boolean::booleanValue)
@@ -108,7 +117,14 @@ public final class EBICommands {
                 PaginationList.Builder pagination =
                     Sponge.serviceProvider().paginationService().builder();
                 Component objectName =
-                    targetObject.get(Keys.DISPLAY_NAME).orElse(ItemTypes.AIR.get().asComponent());
+                    targetObject
+                        .get(Keys.DISPLAY_NAME)
+                        .orElseGet(
+                            () -> {
+                              if (targetObject instanceof BlockSnapshot)
+                                return ((BlockSnapshot) targetObject).state().type().asComponent();
+                              else return ItemTypes.AIR.get().asComponent();
+                            });
                 if (targetObject instanceof ItemStackSnapshot)
                   objectName = objectName.hoverEvent((ItemStackSnapshot) targetObject);
                 Component header =
