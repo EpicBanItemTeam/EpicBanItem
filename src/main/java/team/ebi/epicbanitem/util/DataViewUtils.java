@@ -7,6 +7,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
 public final class DataViewUtils {
+
   /**
    * Support to get value from array
    *
