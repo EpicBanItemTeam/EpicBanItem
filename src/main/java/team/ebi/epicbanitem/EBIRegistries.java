@@ -7,8 +7,6 @@ import java.util.Objects;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.persistence.DataQuery;
-import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -113,22 +111,28 @@ public class EBIRegistries {
                         // Compare
                         .put(
                             EpicBanItem.key(ExpressionKeys.EQ),
-                            (view) -> new ArrayableQueryExpression(new EqQueryExpression(view)))
+                            (view, query) ->
+                                new ArrayableQueryExpression(new EqQueryExpression(view, query)))
                         .put(
                             EpicBanItem.key(ExpressionKeys.NE),
-                            (view) -> new ArrayableQueryExpression(new NeQueryExpression(view)))
+                            (view, query) ->
+                                new ArrayableQueryExpression(new NeQueryExpression(view, query)))
                         .put(
                             EpicBanItem.key(ExpressionKeys.GT),
-                            (view) -> new ArrayableQueryExpression(new GtQueryExpression(view)))
+                            (view, query) ->
+                                new ArrayableQueryExpression(new GtQueryExpression(view, query)))
                         .put(
                             EpicBanItem.key(ExpressionKeys.LT),
-                            (view) -> new ArrayableQueryExpression(new LtQueryExpression(view)))
+                            (view, query) ->
+                                new ArrayableQueryExpression(new LtQueryExpression(view, query)))
                         .put(
                             EpicBanItem.key(ExpressionKeys.GTE),
-                            (view) -> new ArrayableQueryExpression(new GteQueryExpression(view)))
+                            (view, query) ->
+                                new ArrayableQueryExpression(new GteQueryExpression(view, query)))
                         .put(
                             EpicBanItem.key(ExpressionKeys.LTE),
-                            (view) -> new ArrayableQueryExpression(new LteQueryExpression(view)))
+                            (view, query) ->
+                                new ArrayableQueryExpression(new LteQueryExpression(view, query)))
                         // In
                         .put(EpicBanItem.key(ExpressionKeys.IN), InQueryExpression::new)
                         .put(EpicBanItem.key(ExpressionKeys.NIN), NinQueryExpression::new)
@@ -140,15 +144,7 @@ public class EBIRegistries {
                             ElemMatchQueryExpression::new)
                         // Other
                         .put(EpicBanItem.key(ExpressionKeys.EXISTS), ExistsQueryExpression::new)
-                        .put(
-                            EpicBanItem.key(ExpressionKeys.REGEX),
-                            view ->
-                                new RegexQueryExpression(
-                                    view.getString(DataQuery.of())
-                                        .orElseThrow(
-                                            () ->
-                                                new InvalidDataException(
-                                                    "$regex should be string"))))
+                        .put(EpicBanItem.key(ExpressionKeys.REGEX), RegexQueryExpression::new)
                         .build())
             .asDefaultedType(Sponge::server);
 
