@@ -63,13 +63,19 @@ public class DataViewComponentRenderer {
 
   private static Style style(Object value) {
     Style.Builder builder = Style.style();
+    String toCopy;
     if (value instanceof Boolean) {
       builder.color(NamedTextColor.LIGHT_PURPLE);
+      toCopy = "\"" + value + "\"";
     } else if (value instanceof String) {
       builder.color(NamedTextColor.GREEN);
+      toCopy = (String) value;
     } else {
       builder.color(NamedTextColor.AQUA);
+      toCopy = value.toString();
     }
+    builder.hoverEvent(Component.text(toCopy));
+    builder.clickEvent(ClickEvent.copyToClipboard(toCopy));
     return builder.build();
   }
 
@@ -126,7 +132,8 @@ public class DataViewComponentRenderer {
             o ->
                 components.add(
                     wrapValue(
-                        renderKey(key, currentExpandedQuery).style(builder -> builder.merge(style.build())),
+                        renderKey(key, currentExpandedQuery)
+                            .style(builder -> builder.merge(style.build())),
                         Component.text(o.toString()).style(style.merge(style(o))))));
     }
     return components.build();
