@@ -80,19 +80,18 @@ public class DataViewComponentRenderer {
         Objects.isNull(result) ? ImmutableMap.of() : result.children();
     for (int i = 0; i < list.size(); i++) {
       String key = Integer.toString(i);
-      DataQuery expandedQueryPath = expandedQuery.then(key);
       Object value = list.get(i);
       Style.Builder style = Style.style();
       if (children.get(key) != null) style.decorate(TextDecoration.BOLD);
       if (value instanceof DataView) {
         components.addAll(
             wrapObject(
-                renderKey(key, expandedQueryPath).style(style),
-                renderView((DataView) value, expandedQueryPath, children.get(key))));
+                renderKey(key, expandedQuery).style(builder -> builder.merge(style.build())),
+                renderView((DataView) value, expandedQuery, children.get(key))));
       } else {
         components.add(
             wrapValue(
-                renderKey(key, expandedQueryPath).style(style),
+                renderKey(key, expandedQuery).style(builder -> builder.merge(style.build())),
                 Component.text(value.toString()).style(style.merge(style(value)))));
       }
     }
@@ -104,7 +103,6 @@ public class DataViewComponentRenderer {
     ImmutableList.Builder<Component> components = ImmutableList.builder();
     ImmutableMap<String, QueryResult> children =
         result == null ? ImmutableMap.of() : result.children();
-    DataQuery path = view.currentPath();
     for (DataQuery query : view.keys(false)) {
       Optional<DataView> subView = view.getView(query);
       Optional<List<?>> list = view.getList(query);
@@ -116,19 +114,19 @@ public class DataViewComponentRenderer {
       if (subView.isPresent())
         components.addAll(
             wrapObject(
-                renderKey(key, currentExpandedQuery).style(style),
+                renderKey(key, currentExpandedQuery).style(builder -> builder.merge(style.build())),
                 renderView(subView.get(), currentExpandedQuery, children.get(key))));
       else if (list.isPresent())
         components.addAll(
             wrapList(
-                renderKey(key, currentExpandedQuery).style(style),
+                renderKey(key, currentExpandedQuery).style(builder -> builder.merge(style.build())),
                 renderList(list.get(), currentExpandedQuery, children.get(key))));
       else
         value.ifPresent(
             o ->
                 components.add(
                     wrapValue(
-                        renderKey(key, currentExpandedQuery).style(style),
+                        renderKey(key, currentExpandedQuery).style(builder -> builder.merge(style.build())),
                         Component.text(o.toString()).style(style.merge(style(o))))));
     }
     return components.build();
