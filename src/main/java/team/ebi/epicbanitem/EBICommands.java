@@ -46,6 +46,7 @@ import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.util.DataSerializableValueParser;
 import team.ebi.epicbanitem.util.DataViewComponentRenderer;
+import team.ebi.epicbanitem.util.DataViewUtils;
 
 public final class EBICommands {
 
@@ -111,7 +112,7 @@ public final class EBICommands {
                                 return new CommandException(
                                     Component.translatable("command.query.needBlock"));
                             });
-                DataView container = targetObject.toContainer();
+                DataView container = DataViewUtils.cleanup(targetObject.toContainer());
                 Optional<QueryResult> result = expression.query(container);
                 Audience audience = context.cause().audience();
                 PaginationList.Builder pagination =
