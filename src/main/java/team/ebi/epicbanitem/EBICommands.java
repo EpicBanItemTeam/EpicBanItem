@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.entity.BlockEntity;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandResult;
@@ -23,6 +23,7 @@ import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.event.EventListenerRegistration;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Order;
@@ -33,6 +34,11 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.service.pagination.PaginationList.Builder;
+import org.spongepowered.api.util.blockray.RayTrace;
+import org.spongepowered.api.util.blockray.RayTraceResult;
+import org.spongepowered.api.world.Locatable;
+import org.spongepowered.api.world.LocatableBlock;
+import org.spongepowered.api.world.Location;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
@@ -57,7 +63,7 @@ public final class EBICommands {
                   cause -> cause.hasPermission(EpicBanItem.permission("command.query"))))
           .addFlag(
               // TODO 需要测试 flag 是否强制指向方块
-              Flag.builder().aliases("block", "b").setRequirement(TARGET_BLOCK).build())
+              Flag.builder().aliases("block", "b").build())
           .addParameter(
               Parameter.builder(QueryExpression.class)
                   .key("query")
@@ -93,7 +99,22 @@ public final class EBICommands {
                             .map(ItemStack::createSnapshot);
                 }
                 heldItem = heldItem.filter(it -> !it.isEmpty());
-                Optional<BlockSnapshot> targetBlock = context.cause().targetBlock();
+                Optional<? extends BlockEntity> targetBlock = Optional.empty();
+                if (src instanceof Living) {
+                  Living living = (Living) src;
+                  Optional<RayTraceResult<LocatableBlock>> result =
+                      RayTrace.block()
+                          .select(RayTrace.nonAir())
+                          .limit(5)
+                          .sourceEyePosition(living)
+                          .direction(living)
+                          .execute();
+                  targetBlock =
+                      result
+                          .map(RayTraceResult::selectedObject)
+                          .map(Locatable::location)
+                          .flatMap(Location::blockEntity);
+                }
                 if (isBlock && !targetBlock.isPresent())
                   throw new CommandException(Component.translatable("command.query.needBlock"));
                 if (!isBlock && !heldItem.isPresent())
@@ -108,7 +129,7 @@ public final class EBICommands {
                         .get(Keys.DISPLAY_NAME)
                         .orElse(
                             isBlock
-                                ? targetBlock.get().state().type().asComponent()
+                                ? targetBlock.get().block().type().asComponent()
                                 : ItemTypes.AIR.get().asComponent());
                 if (!isBlock) objectName = objectName.hoverEvent(heldItem.get());
                 Component header =
