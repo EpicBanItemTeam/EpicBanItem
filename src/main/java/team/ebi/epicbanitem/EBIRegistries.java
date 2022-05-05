@@ -206,7 +206,7 @@ public class EBIRegistries {
         .streamEntries()
         .reduce(
             ImmutableMap.<String, T>builder(),
-            (builder, entry) -> builder.put(entry.key().value(), entry.value()),
+            (builder, entry) -> builder.put("$" + entry.key().value(), entry.value()),
             (builder, other) -> other)
         .build();
   }

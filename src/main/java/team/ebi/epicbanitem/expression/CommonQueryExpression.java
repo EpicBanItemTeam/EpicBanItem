@@ -45,10 +45,11 @@ public class CommonQueryExpression implements QueryExpression {
 
       // a.b: { $gt: 8, $lte: 12, $in: [5, 9, 10] }
       for (DataQuery subQuery : subView.get().keys(false)) {
-        if (EXPRESSIONS.containsKey(subQuery.toString())) {
+        String expressionKey = subQuery.toString();
+        if (EXPRESSIONS.containsKey(expressionKey)) {
           this.expressions.add(
               new ExtraQueryQueryExpression(
-                  EXPRESSIONS.get(subQuery.toString()).apply(view, query.then(key)),
+                  EXPRESSIONS.get(expressionKey).apply(view, query.then(key).then(expressionKey)),
                   DataQuery.of('.', key.toString())));
         }
       }
