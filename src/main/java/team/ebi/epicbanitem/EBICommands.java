@@ -12,13 +12,17 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.command.parameter.managed.Flag;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.DataHolder.Mutable;
+import org.spongepowered.api.data.DataTransactionResult;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataContainer;
+import org.spongepowered.api.data.persistence.DataQuery;
+import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.event.EventListenerRegistration;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Order;
@@ -58,6 +62,7 @@ public final class EBICommands {
               Parameter.builder(QueryExpression.class)
                   .key("query")
                   .addParser(new DataSerializableValueParser<>(RootQueryExpression.class))
+                  .optional()
                   .build())
           .executor(
               context -> {
@@ -71,34 +76,41 @@ public final class EBICommands {
                         .orElse(
                             holder.getOrElse(
                                 EBIKeys.LAST_QUERY,
-                                new RootQueryExpression(DataContainer.createNew())));
-                holder.offer(EBIKeys.LAST_QUERY, expression);
-                BlockSnapshot targetBlock = context.cause().targetBlock().get();
-                ItemStackSnapshot heldItem = ItemStackSnapshot.empty();
+                                new RootQueryExpression(
+                                    DataContainer.createNew(), DataQuery.of())));
+                DataTransactionResult transaction = holder.offer(EBIKeys.LAST_QUERY, expression);
+                Optional<ItemStackSnapshot> heldItem = Optional.empty();
                 if (src instanceof Equipable) {
                   Equipable equipable = (Equipable) src;
                   heldItem =
                       equipable
                           .equipped(EquipmentTypes.MAIN_HAND.get())
-                          .orElse(
-                              equipable
-                                  .equipped(EquipmentTypes.OFF_HAND.get())
-                                  .orElse(ItemStack.empty()))
-                          .createSnapshot();
+                          .map(ItemStack::createSnapshot);
+                  if (!heldItem.isPresent())
+                    heldItem =
+                        equipable
+                            .equipped(EquipmentTypes.OFF_HAND.get())
+                            .map(ItemStack::createSnapshot);
                 }
-                SerializableDataHolder serializable = isBlock ? targetBlock : heldItem;
-                DataContainer container = serializable.toContainer();
+                heldItem = heldItem.filter(it -> !it.isEmpty());
+                Optional<BlockSnapshot> targetBlock = context.cause().targetBlock();
+                if (isBlock && !targetBlock.isPresent())
+                  throw new CommandException(Component.translatable("command.query.needBlock"));
+                if (!isBlock && !heldItem.isPresent())
+                  throw new CommandException(Component.translatable("command.query.needItem"));
+                SerializableDataHolder serializable = isBlock ? targetBlock.get() : heldItem.get();
+                DataView container = serializable.toContainer();
                 Optional<QueryResult> result = expression.query(container);
-                Audience audience = src instanceof Audience ? (Audience) src : Sponge.server();
+                Audience audience = context.cause().audience();
                 Builder pagination = Sponge.serviceProvider().paginationService().builder();
                 Component objectName =
                     serializable
                         .get(Keys.DISPLAY_NAME)
                         .orElse(
                             isBlock
-                                ? targetBlock.state().type().asComponent()
+                                ? targetBlock.get().state().type().asComponent()
                                 : ItemTypes.AIR.get().asComponent());
-                if (!isBlock) objectName = objectName.hoverEvent(heldItem);
+                if (!isBlock) objectName = objectName.hoverEvent(heldItem.get());
                 Component header =
                     result.isPresent()
                         ? Component.translatable("command.query.success")
