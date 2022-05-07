@@ -32,7 +32,7 @@ public final class Regex {
   private int mergeFlags() {
     int curr = 0;
     for (int i = 0; i < flags.length(); i++) {
-      curr |= flags.charAt(i);
+      curr |= flagToInt(flags.charAt(i));
     }
     return curr;
   }
