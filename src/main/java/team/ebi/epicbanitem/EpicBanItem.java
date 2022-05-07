@@ -24,7 +24,7 @@ public class EpicBanItem {
   private static EBITranslator translator = null;
 
   @Inject
-  EpicBanItem(EBIRegistries registries, EBITranslator translator, EBICommands commands) {
+  EpicBanItem(EBIRegistries registries, EBITranslator translator, EBICommand commands) {
     Objects.requireNonNull(registries);
     Objects.requireNonNull(commands);
     EpicBanItem.translator = translator;
