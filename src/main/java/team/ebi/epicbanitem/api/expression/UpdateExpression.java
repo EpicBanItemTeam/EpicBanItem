@@ -1,14 +1,15 @@
 package team.ebi.epicbanitem.api.expression;
 
 import com.google.common.collect.ImmutableList;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.Tuple;
 import team.ebi.epicbanitem.api.expression.QueryResult.Type;
-import team.ebi.epicbanitem.util.DataPreconditions;
 
 @FunctionalInterface
 public interface UpdateExpression {
@@ -30,12 +31,17 @@ public interface UpdateExpression {
               stream.flatMap(
                   tuple -> {
                     ImmutableList<String> currentParts = tuple.first();
-                    Optional<QueryResult> currentResult = tuple.second();
-                    DataPreconditions.checkData(
-                        currentResult.isPresent() && currentResult.get().type() != Type.ARRAY,
-                        "Can't match \"$\" in %s, parent should be array",
-                        String.join(".", currentParts));
-                    return Stream.of(currentResult.get().children().entrySet().stream().findFirst())
+                    QueryResult currentResult =
+                        tuple
+                            .second()
+                            .filter(it -> it.type() == Type.ARRAY)
+                            .orElseThrow(
+                                () ->
+                                    new InvalidDataException(
+                                        MessageFormat.format(
+                                            "Can't match \"$\" in {}, parent should be array",
+                                            String.join(".", currentParts))));
+                    return Stream.of(currentResult.children().entrySet().stream().findFirst())
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .map(
@@ -53,12 +59,17 @@ public interface UpdateExpression {
               stream.flatMap(
                   tuple -> {
                     ImmutableList<String> currentParts = tuple.first();
-                    Optional<QueryResult> currentResult = tuple.second();
-                    DataPreconditions.checkData(
-                        currentResult.isPresent() && currentResult.get().type() != Type.ARRAY,
-                        "Can't match \"$[]\" in %s, parent should be array",
-                        String.join(".", currentParts));
-                    return currentResult.get().children().entrySet().stream()
+                    QueryResult currentResult =
+                        tuple
+                            .second()
+                            .filter(it -> it.type() == Type.ARRAY)
+                            .orElseThrow(
+                                () ->
+                                    new InvalidDataException(
+                                        MessageFormat.format(
+                                            "Can't match \"$[]\" in {}, parent should be array",
+                                            String.join(".", currentParts))));
+                    return currentResult.children().entrySet().stream()
                         .map(
                             it ->
                                 Tuple.of(

@@ -7,7 +7,6 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.util.DataPreconditions;
 import team.ebi.epicbanitem.util.DataViewUtils;
 
 public class ExistsQueryExpression implements QueryExpression {
@@ -22,7 +21,7 @@ public class ExistsQueryExpression implements QueryExpression {
     if (value instanceof Integer) {
       int i = (int) value;
       expect = i == 1;
-      DataPreconditions.checkData(i == 0 || i == 1, exception, i);
+      if (i != 0 && i != 1) throw new InvalidDataException(MessageFormat.format(exception, i));
     } else if (value instanceof Boolean) {
       expect = (boolean) value;
     } else throw new InvalidDataException(MessageFormat.format(exception, value));

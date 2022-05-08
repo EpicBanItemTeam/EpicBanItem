@@ -11,7 +11,6 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
-import team.ebi.epicbanitem.util.DataPreconditions;
 
 public class MathUpdateExpression implements UpdateExpression {
 
@@ -23,10 +22,11 @@ public class MathUpdateExpression implements UpdateExpression {
   public MathUpdateExpression(DataView data, BinaryOperator<Number> operator) {
     this.query = DataQuery.of('.', data.currentPath().toString());
     this.first = query.queryParts().get(0);
-    Object input =
-        data.get(DataQuery.of()).orElseThrow(() -> new InvalidDataException("Input can't get"));
-    DataPreconditions.checkData(input instanceof Number, "Input should be a number");
-    this.argNumber = (Number) input;
+    this.argNumber =
+        data.get(DataQuery.of())
+            .filter(it -> it instanceof Number)
+            .map(it -> (Number) it)
+            .orElseThrow(() -> new InvalidDataException("Input not a valid number"));
     this.operator = operator;
   }
 

@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.expression.update;
 
 import com.google.common.collect.ImmutableMap;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -12,7 +13,6 @@ import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 import team.ebi.epicbanitem.expression.RemoveUpdateOperation;
 import team.ebi.epicbanitem.expression.ReplaceUpdateOperation;
-import team.ebi.epicbanitem.util.DataPreconditions;
 
 public class RenameUpdateExpression implements UpdateExpression {
 
@@ -26,8 +26,9 @@ public class RenameUpdateExpression implements UpdateExpression {
             '.',
             data.getString(DataQuery.of())
                 .orElseThrow(() -> new InvalidDataException("$rename need value be string")));
-    DataPreconditions.checkData(
-        !source.equals(target), "$rename with the same source and target query: %s", target);
+    if (source.equals(target))
+      throw new InvalidDataException(
+          MessageFormat.format("$rename with the same source and target query: %s", target));
   }
 
   @Override
