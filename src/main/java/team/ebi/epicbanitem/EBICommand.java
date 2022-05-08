@@ -66,8 +66,8 @@ public final class EBICommand {
   public Command.Parameterized build() {
     final Command.Parameterized query =
         Command.builder()
-            .shortDescription(Component.translatable("command.query.description"))
-            .extendedDescription(Component.translatable("command.query.description.extended"))
+            .shortDescription(Component.translatable("epicbanitem.command.query.description"))
+            .extendedDescription(Component.translatable("epicbanitem.command.query.description.extended"))
             .permission(EpicBanItem.permission("command.query"))
             .addFlag(Flag.builder().aliases("block", "b").build())
             .addParameter(
@@ -89,7 +89,7 @@ public final class EBICommand {
   private @NotNull CommandResult query(final CommandContext context) throws CommandException {
     if (!(context.cause().root() instanceof Player))
       return CommandResult.error(
-          Component.translatable("command.error.needPlayer", NamedTextColor.RED));
+          Component.translatable("epicbanitem.command.error.needPlayer", NamedTextColor.RED));
     final Player player = (Player) context.cause().root();
     boolean isBlock = context.hasFlag("block");
     UUID uuid = player.identity().uuid();
@@ -117,9 +117,9 @@ public final class EBICommand {
             .orElseThrow(
                 () -> {
                   if (!isBlock)
-                    return new CommandException(Component.translatable("command.query.needItem"));
+                    return new CommandException(Component.translatable("epicbanitem.command.query.needItem"));
                   else
-                    return new CommandException(Component.translatable("command.query.needBlock"));
+                    return new CommandException(Component.translatable("epicbanitem.command.query.needBlock"));
                 });
     DataView container = DataViewUtils.cleanup(targetObject.toContainer());
     Optional<QueryResult> result = expression.query(container);
@@ -138,8 +138,8 @@ public final class EBICommand {
       objectName = objectName.hoverEvent((ItemStackSnapshot) targetObject);
     Component header =
         result.isPresent()
-            ? Component.translatable("command.query.success")
-            : Component.translatable("command.query.failed");
+            ? Component.translatable("epicbanitem.command.query.success")
+            : Component.translatable("epicbanitem.command.query.failed");
     ImmutableList<Component> components =
         DataViewComponentRenderer.render(container, result.orElse(null));
     pagination.title(objectName).header(header).contents(components).sendTo(audience);

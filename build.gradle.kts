@@ -3,7 +3,7 @@ import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
     `java-library`
-    id("org.spongepowered.gradle.plugin") version "2.0.1"
+    id("org.spongepowered.gradle.plugin") version "2.0.2"
 }
 
 group = "team.ebi"
@@ -14,7 +14,7 @@ repositories {
 }
 
 sponge {
-    apiVersion("8.0.0")
+    apiVersion("8.1.0-SNAPSHOT")
     license("GPL-3.0")
     loader {
         name(PluginLoaders.JAVA_PLAIN)

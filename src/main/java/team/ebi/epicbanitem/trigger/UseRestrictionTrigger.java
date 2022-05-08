@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.data.type.HandTypes;
@@ -25,7 +26,6 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.ServiceProvider;
 import org.spongepowered.api.world.server.ServerWorld;
 import team.ebi.epicbanitem.EBIEventContextKeys;
-import team.ebi.epicbanitem.EBITranslator;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.AbstractRestrictionTrigger;
 import team.ebi.epicbanitem.api.RestrictionRule;
@@ -55,7 +55,7 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
             ? EquipmentTypes.MAIN_HAND.get()
             : EquipmentTypes.OFF_HAND.get();
     Optional<Slot> slot = user.equipment().slot(equipment);
-    if (!slot.isPresent()) return;
+    if (slot.isEmpty()) return;
     ItemStack itemStack = slot.get().peek();
     ItemStackSnapshot item = itemStack.createSnapshot();
     ImmutableSortedSet<RestrictionRule> rules =
@@ -66,27 +66,25 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
         .addContext(EBIEventContextKeys.RESTRICTED_OBJECT, item)
         .addContext(EventContextKeys.SUBJECT, user);
     List<Component> components = Lists.newArrayList();
-    EBITranslator translator = EpicBanItem.translator();
     for (RestrictionRule rule : rules) {
       causeStackManager.addContext(EBIEventContextKeys.RESTRICTION_RULE, rule);
       if (rule.needCancel()) {
         event.setCancelled(true);
         TranslatableComponent component = rule.canceledMessage();
-        if (translator.contains(component.key()))
-          components.add(translator.render(component.args(rule, this, itemStack), user.locale()));
+        components.add(
+            GlobalTranslator.render(component.args(rule, this, itemStack), user.locale()));
       }
       Optional<UpdateOperation> operation = ruleService.restrict();
-      if (!operation.isPresent()) break;
+      if (operation.isEmpty()) break;
       Optional<ItemStackSnapshot> result =
           Sponge.dataManager()
               .deserialize(ItemStackSnapshot.class, operation.get().process(item.toContainer()));
-      if (!result.isPresent()) break;
+      if (result.isEmpty()) break;
       slot.get().offer(result.get().createStack());
       TranslatableComponent component = rule.updatedMessage();
-      if (translator.contains(component.key()))
-        components.add(
-            translator.render(
-                component.args(rule, this, itemStack, result.get().createStack()), user.locale()));
+      components.add(
+          GlobalTranslator.render(
+              component.args(rule, this, itemStack, result.get().createStack()), user.locale()));
     }
     for (Component component : components) user.sendMessage(component);
   }

@@ -160,17 +160,17 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
   @Override
   public TranslatableComponent updatedMessage() {
-    return Component.translatable("rules." + key() + ".updated");
+    return Component.translatable("epicbanitem.rules." + key() + ".updated");
   }
 
   @Override
   public TranslatableComponent canceledMessage() {
-    return Component.translatable("rules." + key() + ".canceled");
+    return Component.translatable("epicbanitem.rules." + key() + ".canceled");
   }
 
   @Override
   public @NotNull Component asComponent() {
-    return Component.translatable("rules." + key());
+    return Component.translatable("epicbanitem.rules." + key());
   }
 
   @Override
