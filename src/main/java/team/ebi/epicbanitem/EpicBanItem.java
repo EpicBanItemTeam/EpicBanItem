@@ -55,7 +55,7 @@ public class EpicBanItem {
               PackType.server(),
               EpicBanItem.NAMESPACE,
               "assets/messages",
-              1,
+              3,
               name -> name.endsWith("properties"));
       for (ResourcePath path : paths) {
         String name = path.name();
