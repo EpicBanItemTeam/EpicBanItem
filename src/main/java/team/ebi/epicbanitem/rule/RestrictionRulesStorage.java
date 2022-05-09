@@ -68,7 +68,7 @@ public class RestrictionRulesStorage {
   }
 
   public void save(ResourceKey key) {
-    this.save(key, RestrictionRules.all().get(key));
+    this.save(key, RestrictionRules.get(key));
   }
 
   public void save(ResourceKey key, RestrictionRule rule) {

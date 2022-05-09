@@ -6,18 +6,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import io.leangen.geantyref.TypeToken;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.Command.Parameterized;
+import org.spongepowered.api.command.CommandCompletion;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
@@ -42,6 +49,8 @@ import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.util.blockray.RayTrace;
 import org.spongepowered.plugin.PluginContainer;
+import team.ebi.epicbanitem.api.RestrictionRule;
+import team.ebi.epicbanitem.api.RestrictionRules;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
@@ -52,6 +61,53 @@ import team.ebi.epicbanitem.util.DataViewUtils;
 public final class EBICommand {
   private static final Cache<UUID, QueryExpression> USED_EXPRESSION =
       Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(10)).build();
+
+  private static final class Parameters {
+    public static final Parameter.Value.Builder<ResourceKey> RULE_KEY =
+        Parameter.resourceKey()
+            .completer(
+                (context, currentInput) ->
+                    RestrictionRules.keyStream()
+                        .map(
+                            it ->
+                                it.namespace().equals(EpicBanItem.NAMESPACE)
+                                    ? it.value()
+                                    : it.asString())
+                        .filter(it -> it.startsWith(currentInput))
+                        .map(CommandCompletion::of)
+                        .collect(Collectors.toList()));
+
+    public static final Parameter.Value.Builder<RestrictionRule> RULE =
+        Parameter.builder(RestrictionRule.class)
+            .addParser(
+                (key, reader, context) ->
+                    Optional.ofNullable(
+                        RestrictionRules.get(reader.parseResourceKey(EpicBanItem.NAMESPACE))))
+            .completer(
+                (context, currentInput) ->
+                    RestrictionRules.keyStream()
+                        .map(
+                            it ->
+                                it.namespace().equals(EpicBanItem.NAMESPACE)
+                                    ? it.value()
+                                    : it.asString())
+                        .filter(it -> it.startsWith(currentInput))
+                        .map(CommandCompletion::of)
+                        .collect(Collectors.toList()));
+
+    public static final Parameter.Value.Builder<QueryExpression> QUERY =
+        Parameter.builder(QueryExpression.class)
+            .addParser(new DataSerializableValueParser<>(RootQueryExpression.class))
+            .optional();
+
+    public static final class Keys {
+      public static final Parameter.Key<QueryExpression> QUERY =
+          Parameter.key("query", QueryExpression.class);
+
+      private static final Parameter.Key<ResourceKey> RULE_KEY =
+          Parameter.key("rule-key", ResourceKey.class);
+    }
+  }
 
   @Inject
   EBICommand(PluginContainer plugin, EventManager eventManager) {
@@ -67,36 +123,63 @@ public final class EBICommand {
     final Command.Parameterized query =
         Command.builder()
             .shortDescription(Component.translatable("epicbanitem.command.query.description"))
-            .extendedDescription(Component.translatable("epicbanitem.command.query.description.extended"))
+            .extendedDescription(
+                Component.translatable("epicbanitem.command.query.description.extended"))
             .permission(EpicBanItem.permission("command.query"))
             .addFlag(Flag.builder().aliases("block", "b").build())
-            .addParameter(
-                Parameter.builder(QueryExpression.class)
-                    .key("query")
-                    .addParser(new DataSerializableValueParser<>(RootQueryExpression.class))
-                    .optional()
-                    .build())
+            .addParameter(Parameters.QUERY.key(Parameters.Keys.QUERY).build())
             .executor(this::query)
+            .build();
+
+    final Command.Parameterized remove =
+        Command.builder()
+            .shortDescription(Component.translatable("epicbanitem.command.remove.description"))
+            .extendedDescription(
+                Component.translatable("epicbanitem.command.remove.description.extended"))
+            .permission(EpicBanItem.permission("command.remove"))
+            .addParameter(Parameters.RULE_KEY.key(Parameters.Keys.RULE_KEY).build())
+            .executor(this::remove)
             .build();
 
     return Command.builder()
         .shortDescription(Component.translatable("command.root.description"))
         .permission(EpicBanItem.permission("command.root"))
-        .addChild(query, "query", "q")
+        .addChild(query, "query")
+        .addChild(remove, "remove", "rm")
         .build();
+  }
+
+  private @NotNull CommandResult remove(final CommandContext context) {
+    ResourceKey key = context.requireOne(Parameters.Keys.RULE_KEY);
+    String stringKey = key.asString();
+    RestrictionRule rule = RestrictionRules.remove(key);
+    if (Objects.isNull(rule)) {
+      TextComponent.Builder builder = Component.text();
+      builder.append(Component.translatable("epicbanitem.command.remove.notExist"));
+      RestrictionRules.keyStream()
+          .map(ResourceKey::asString)
+          .min(Comparator.comparingInt(k -> StringUtils.getLevenshteinDistance(k, stringKey)))
+          .map(
+              it ->
+                  Component.translatable("epicbanitem.command.suggestRule")
+                      .args(Component.text(it).clickEvent(ClickEvent.copyToClipboard(it))))
+          .ifPresent(builder::append);
+      return CommandResult.error(builder.build());
+    }
+    return CommandResult.success();
   }
 
   private @NotNull CommandResult query(final CommandContext context) throws CommandException {
     if (!(context.cause().root() instanceof Player))
       return CommandResult.error(
-          Component.translatable("epicbanitem.command.error.needPlayer", NamedTextColor.RED));
+          Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED));
     final Player player = (Player) context.cause().root();
     boolean isBlock = context.hasFlag("block");
     UUID uuid = player.identity().uuid();
     // Argument > Last > Empty
     QueryExpression expression =
         context
-            .one(Parameter.key("query", QueryExpression.class))
+            .one(Parameters.Keys.QUERY)
             .orElse(
                 Objects.requireNonNull(
                     USED_EXPRESSION.get(
@@ -117,9 +200,11 @@ public final class EBICommand {
             .orElseThrow(
                 () -> {
                   if (!isBlock)
-                    return new CommandException(Component.translatable("epicbanitem.command.query.needItem"));
+                    return new CommandException(
+                        Component.translatable("epicbanitem.command.query.needItem"));
                   else
-                    return new CommandException(Component.translatable("epicbanitem.command.query.needBlock"));
+                    return new CommandException(
+                        Component.translatable("epicbanitem.command.query.needBlock"));
                 });
     DataView container = DataViewUtils.cleanup(targetObject.toContainer());
     Optional<QueryResult> result = expression.query(container);

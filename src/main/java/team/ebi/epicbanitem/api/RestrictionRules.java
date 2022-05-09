@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.util.Tuple;
@@ -28,8 +29,20 @@ public class RestrictionRules {
     return map;
   }
 
+  public static Stream<ResourceKey> keyStream() {
+    return map.keySet().stream();
+  }
+
   public static RestrictionRule remove(ResourceKey key) {
     return map.remove(key);
+  }
+
+  public static RestrictionRule get(ResourceKey key) {
+    return map.get(key);
+  }
+
+  public static RestrictionRule add(RestrictionRule rule) {
+    return map.put(rule.key(), rule);
   }
 
   public static Optional<ResourceKey> of(RestrictionRule rule) {
