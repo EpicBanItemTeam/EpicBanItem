@@ -1,8 +1,8 @@
 package team.ebi.epicbanitem.api;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.spongepowered.api.ResourceKey;
@@ -11,7 +11,7 @@ import org.spongepowered.api.util.Tuple;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 
 public class RestrictionRules {
-  private static final Map<ResourceKey, RestrictionRule> map = Maps.newHashMap();
+  private static final BiMap<ResourceKey, RestrictionRule> map = HashBiMap.create();
 
   public static Optional<Tuple<ResourceKey, RestrictionRule>> register(
       ResourceKey key, RestrictionRule rule) {
@@ -46,10 +46,7 @@ public class RestrictionRules {
   }
 
   public static Optional<ResourceKey> of(RestrictionRule rule) {
-    return map.entrySet().stream()
-        .filter(it -> it.getValue().equals(rule))
-        .map(Entry::getKey)
-        .findFirst();
+    return Optional.ofNullable(map.inverse().get(rule));
   }
 
   static {
