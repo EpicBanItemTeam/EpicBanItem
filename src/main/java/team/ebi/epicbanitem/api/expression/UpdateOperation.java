@@ -3,6 +3,7 @@ package team.ebi.epicbanitem.api.expression;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Objects;
+import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -10,7 +11,7 @@ import team.ebi.epicbanitem.expression.CommonUpdateOperation;
 import team.ebi.epicbanitem.expression.RemoveUpdateOperation;
 import team.ebi.epicbanitem.expression.ReplaceUpdateOperation;
 
-public interface UpdateOperation {
+public interface UpdateOperation extends Map<DataQuery, UpdateOperation>, ComponentLike {
 
   static UpdateOperation common() {
     return common(ImmutableMap.of());
@@ -24,8 +25,8 @@ public interface UpdateOperation {
     return new RemoveUpdateOperation(query);
   }
 
-  static UpdateOperation replace(DataView value) {
-    return new ReplaceUpdateOperation(value);
+  static UpdateOperation replace(DataQuery query, Object value) {
+    return new ReplaceUpdateOperation(query, value);
   }
 
   /**
@@ -36,9 +37,5 @@ public interface UpdateOperation {
 
   default UpdateOperation merge(@Nullable UpdateOperation another) {
     return Objects.isNull(another) ? this : another;
-  }
-
-  default ImmutableMap<DataQuery, UpdateOperation> children() {
-    return ImmutableMap.of();
   }
 }
