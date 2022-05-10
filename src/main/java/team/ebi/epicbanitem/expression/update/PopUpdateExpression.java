@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -19,12 +18,10 @@ import team.ebi.epicbanitem.api.expression.UpdateOperation;
 public class PopUpdateExpression implements UpdateExpression {
 
   private final DataQuery query;
-  private final DataQuery first;
   private final Position value;
 
   public PopUpdateExpression(DataView data) {
     this.query = DataQuery.of('.', data.currentPath().toString());
-    this.first = query.queryParts().get(0);
     Optional<Integer> input = data.getInt(DataQuery.of());
     this.value =
         Position.fromId(
@@ -33,38 +30,29 @@ public class PopUpdateExpression implements UpdateExpression {
                 .orElseThrow(
                     () ->
                         new InvalidDataException(
-                            MessageFormat.format("$pop has invalid input: {}", input.orElse(null)))));
+                            MessageFormat.format(
+                                "$pop has invalid input: {0}", input.orElse(null)))));
   }
 
   @Override
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
     UpdateOperation updateOperation = UpdateOperation.common();
-    DataContainer container = DataContainer.createNew();
-    data.getView(first).ifPresent(it -> container.set(first, it));
     for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
-      DataView view =
-          container
-              .getView(query)
+      List<?> list =
+          data.getList(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          MessageFormat.format("$pop failed, {} is invalid", query)));
-      List<DataView> views =
-          view.getViewList(query)
-              .orElseThrow(
-                  () ->
-                      new UnsupportedOperationException(
-                          MessageFormat.format("$pop failed, {} isn't an array", query)));
+                          MessageFormat.format("$pop failed, {0} is invalid array", query)));
       switch (value) {
         case FIRST:
-          views.remove(0);
+          list.remove(0);
           break;
         case LAST:
-          views.remove(views.size() - 1);
+          list.remove(list.size() - 1);
           break;
       }
-      view.set(DataQuery.of(), views);
-      updateOperation = updateOperation.merge(UpdateOperation.replace(view));
+      updateOperation = updateOperation.merge(UpdateOperation.replace(query, list));
     }
 
     return updateOperation;

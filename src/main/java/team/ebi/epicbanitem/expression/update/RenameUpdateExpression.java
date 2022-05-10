@@ -4,15 +4,12 @@ import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
-import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
-import team.ebi.epicbanitem.expression.RemoveUpdateOperation;
-import team.ebi.epicbanitem.expression.ReplaceUpdateOperation;
 
 public class RenameUpdateExpression implements UpdateExpression {
 
@@ -41,17 +38,14 @@ public class RenameUpdateExpression implements UpdateExpression {
     if (sourceQueries.size() > 1 || !sourceQueries.get(0).equals(source))
       throw new InvalidDataException("$rename source is dynamic array query");
 
-    Optional<DataView> view = data.getView(source);
-    DataContainer container = DataContainer.createNew();
+    Optional<Object> value = data.get(source);
     UpdateOperation operation = UpdateOperation.common();
-    if (view.isPresent()) {
-      container.set(target, view.get());
-      //noinspection OptionalGetWithoutIsPresent
+    if (value.isPresent()) {
       operation =
           UpdateOperation.common(
               ImmutableMap.of(
-                  source, new RemoveUpdateOperation(source),
-                  target, new ReplaceUpdateOperation(container.getView(target).get())));
+                  source, UpdateOperation.remove(source),
+                  target, UpdateOperation.replace(target, value.get())));
     }
     return operation;
   }

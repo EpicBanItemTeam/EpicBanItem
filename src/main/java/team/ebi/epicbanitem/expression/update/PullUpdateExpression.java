@@ -5,7 +5,6 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
@@ -17,12 +16,10 @@ import team.ebi.epicbanitem.expression.CommonQueryExpression;
 public class PullUpdateExpression implements UpdateExpression {
 
   private final DataQuery query;
-  private final DataQuery first;
   private final QueryExpression expression;
 
   public PullUpdateExpression(DataQuery query, QueryExpression expression) {
     this.query = query;
-    this.first = query.queryParts().get(0);
     this.expression = expression;
   }
 
@@ -35,32 +32,20 @@ public class PullUpdateExpression implements UpdateExpression {
   @Override
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
     UpdateOperation operation = UpdateOperation.common();
-    DataContainer container = DataContainer.createNew();
-    data.getView(first).ifPresent(it -> container.set(first, it));
     for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
-      DataView view =
-          container
-              .getView(query)
+      List<?> list =
+          data.getList(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          MessageFormat.format("$pull failed, {} is invalid", query)));
-
-      List<?> values =
-          view.getList(query)
-              .orElseThrow(
-                  () ->
-                      new UnsupportedOperationException(
-                          MessageFormat.format("$pull failed, {} isn't an array", query)));
-      ImmutableList.Builder<Object> newValues = ImmutableList.builder();
-      for (int i = 0; i < values.size(); i++) {
+                          MessageFormat.format("$pull failed, {0} is invalid", query)));
+      ImmutableList.Builder<Object> finalList = ImmutableList.builder();
+      for (int i = 0; i < list.size(); i++) {
         Optional<QueryResult> subResult = expression.query(query.then(String.valueOf(i)), data);
-        if (subResult.isPresent()) newValues.add(values.get(i));
+        if (subResult.isPresent()) finalList.add(list.get(i));
       }
-      view.set(query, newValues.build());
-      operation = operation.merge(UpdateOperation.replace(view));
+      operation = operation.merge(UpdateOperation.replace(query, finalList));
     }
-
     return operation;
   }
 }

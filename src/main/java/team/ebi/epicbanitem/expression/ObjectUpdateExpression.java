@@ -24,7 +24,7 @@ public class ObjectUpdateExpression implements UpdateExpression {
           value
               .getView(query)
               .orElseThrow(
-                  () -> new InvalidDataException(MessageFormat.format("Can't find {}", query)));
+                  () -> new InvalidDataException(MessageFormat.format("Can't find {0}", query)));
       String key = query.last().toString();
       builder.add(expressionProvider.apply(DataContainer.createNew().set(DataQuery.of(key), view)));
     }

@@ -18,7 +18,7 @@ public class CommonUpdateExpression implements UpdateExpression {
   public CommonUpdateExpression(DataView view) {
     this.expressions = Sets.newHashSet();
     for (DataQuery query : view.keys(false)) {
-      String key = query.last().toString();
+      String key = query.toString();
       //noinspection OptionalGetWithoutIsPresent
       DataView currentView = view.getView(query).get();
       if (UPDATE_EXPRESSIONS.contains(key)) {

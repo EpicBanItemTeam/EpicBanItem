@@ -1,7 +1,6 @@
 package team.ebi.epicbanitem.expression;
 
 import java.text.MessageFormat;
-import java.util.Optional;
 import java.util.function.BinaryOperator;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -34,19 +33,19 @@ public class MathUpdateExpression implements UpdateExpression {
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
     UpdateOperation updateOperation = UpdateOperation.common();
     DataContainer container = DataContainer.createNew();
-    data.getView(first).ifPresent(it -> container.set(first, it));
+    data.get(first).ifPresent(it -> container.set(first, it));
     for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
-      DataView view =
+      Object value =
           container
-              .getView(query)
+              .get(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          MessageFormat.format("Set {} to container failed", query)));
-      Optional<Object> sourceOptional = view.get(DataQuery.of());
-      Number sourceNumber = (Number) sourceOptional.orElse(0);
-      container.set(query, this.operator.apply(argNumber, sourceNumber));
-      updateOperation = updateOperation.merge(UpdateOperation.replace(view));
+                          MessageFormat.format("Set {0} to container failed", query)));
+      if (!(value instanceof Number)) continue;
+      Number source = (Number) value;
+      container.set(query, this.operator.apply(argNumber, source));
+      updateOperation = updateOperation.merge(UpdateOperation.replace(query, value));
     }
 
     return updateOperation;
