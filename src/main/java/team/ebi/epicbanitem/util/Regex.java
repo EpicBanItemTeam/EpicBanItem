@@ -21,7 +21,7 @@ public final class Regex {
       this.regex = strings[1];
       this.flags = strings[2];
     } else
-      throw new IllegalArgumentException(MessageFormat.format("input string isn't a regex: {}", s));
+      throw new IllegalArgumentException(MessageFormat.format("input string isn't a regex: {0}", s));
   }
 
   public Pattern pattern() {

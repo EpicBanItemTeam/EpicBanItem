@@ -49,7 +49,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
             .orElseThrow(
                 () ->
                     new InvalidDataException(
-                        MessageFormat.format("Invalid query expression for rule {}", key())));
+                        MessageFormat.format("Invalid query expression for rule {0}", key())));
     this.updateExpression =
         data.getSerializable(RestrictionRuleQueries.QUERY, RootUpdateExpression.class).orElse(null);
     this.predicate =

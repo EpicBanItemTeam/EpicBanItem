@@ -1,13 +1,12 @@
 package team.ebi.epicbanitem.api.expression;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.expression.SimpleQueryResult;
 
-public interface QueryResult {
+public interface QueryResult extends Map<String, QueryResult> {
   static Optional<QueryResult> failed() {
     return Optional.empty();
   }
@@ -35,8 +34,6 @@ public interface QueryResult {
   static Optional<QueryResult> fromArray(boolean b, Map<String, QueryResult> children) {
     return b ? Optional.of(array(children)) : failed();
   }
-
-  ImmutableMap<String, QueryResult> children();
 
   @Contract("_ -> new")
   QueryResult merge(@NotNull QueryResult target);

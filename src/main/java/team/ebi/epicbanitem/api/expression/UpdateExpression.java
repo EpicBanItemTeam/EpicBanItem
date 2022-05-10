@@ -22,16 +22,16 @@ public interface UpdateExpression {
   UpdateOperation update(QueryResult result, DataView data);
 
   static List<DataQuery> parseQuery(DataQuery query, QueryResult result) {
-    Stream<Tuple<ImmutableList<String>, Optional<QueryResult>>> stream =
-        Stream.of(new Tuple<>(ImmutableList.of(), Optional.of(result)));
+    Stream<Tuple<DataQuery, Optional<QueryResult>>> stream =
+        Stream.of(new Tuple<>(DataQuery.of(), Optional.of(result)));
     for (String part : query.parts()) {
       switch (part) {
         case "$":
           stream =
               stream.flatMap(
                   tuple -> {
-                    ImmutableList<String> currentParts = tuple.first();
-                    QueryResult currentResult =
+                    DataQuery current = tuple.first();
+                    QueryResult subResult =
                         tuple
                             .second()
                             .filter(it -> it.type() == Type.ARRAY)
@@ -39,27 +39,25 @@ public interface UpdateExpression {
                                 () ->
                                     new InvalidDataException(
                                         MessageFormat.format(
-                                            "Can't match \"$\" in {}, parent should be array",
-                                            String.join(".", currentParts))));
-                    return Stream.of(currentResult.children().entrySet().stream().findFirst())
+                                            "Can't match \"$\" in {0}, parent should be array",
+                                            current)));
+                    return Stream.of(
+                            subResult.entrySet().stream()
+                                .findFirst()
+                                .map(
+                                    it ->
+                                        Tuple.of(
+                                            current.then(it.getKey()), Optional.of(it.getValue()))))
                         .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .map(
-                            it ->
-                                Tuple.of(
-                                    ImmutableList.<String>builder()
-                                        .addAll(currentParts)
-                                        .add(it.getKey())
-                                        .build(),
-                                    Optional.of(it.getValue())));
+                        .map(Optional::get);
                   });
           break;
         case "$[]":
           stream =
               stream.flatMap(
                   tuple -> {
-                    ImmutableList<String> currentParts = tuple.first();
-                    QueryResult currentResult =
+                    DataQuery current = tuple.first();
+                    QueryResult subResult =
                         tuple
                             .second()
                             .filter(it -> it.type() == Type.ARRAY)
@@ -67,30 +65,21 @@ public interface UpdateExpression {
                                 () ->
                                     new InvalidDataException(
                                         MessageFormat.format(
-                                            "Can't match \"$[]\" in {}, parent should be array",
-                                            String.join(".", currentParts))));
-                    return currentResult.children().entrySet().stream()
-                        .map(
-                            it ->
-                                Tuple.of(
-                                    ImmutableList.<String>builder()
-                                        .addAll(currentParts)
-                                        .add(it.getKey())
-                                        .build(),
-                                    Optional.of(it.getValue())));
+                                            "Can't match \"$[]\" in {0}, parent should be array",
+                                            current)));
+                    return subResult.entrySet().stream()
+                        .map(it -> Tuple.of(current.then(it.getKey()), Optional.of(it.getValue())));
                   });
           break;
         default:
           stream =
               stream.map(
                   tuple ->
-                      Tuple.of(
-                          ImmutableList.<String>builder().addAll(tuple.first()).add(part).build(),
-                          tuple.second().map(it -> it.children().get(part))));
+                      Tuple.of(tuple.first().then(part), tuple.second().map(it -> it.get(part))));
       }
     }
 
     //noinspection UnstableApiUsage
-    return stream.map(it -> DataQuery.of(it.first())).collect(ImmutableList.toImmutableList());
+    return stream.map(Tuple::first).collect(ImmutableList.toImmutableList());
   }
 }

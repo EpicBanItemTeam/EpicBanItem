@@ -55,7 +55,7 @@ public class RestrictionRulesStorage {
                     .orElseThrow(
                         () ->
                             new IllegalStateException(
-                                MessageFormat.format("Rule {} can't parse", key.value()))));
+                                MessageFormat.format("Rule {0} can't parse", key.value()))));
   }
 
   public void remove(ResourceKey key) {
@@ -108,7 +108,7 @@ public class RestrictionRulesStorage {
                       .orElseThrow(
                           () ->
                               new InvalidDataException(
-                                  MessageFormat.format("Rule file {} can't parse", it)));
+                                  MessageFormat.format("Rule file {0} can't parse", it)));
                 } catch (ConfigurateException e) {
                   throw new RuntimeException(e);
                 }

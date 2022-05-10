@@ -11,7 +11,7 @@ import team.ebi.epicbanitem.util.DataViewUtils;
 
 public class ExistsQueryExpression implements QueryExpression {
   private static final String exception =
-      "$exists should be one of 0, 1, true or false. Current: {}";
+      "$exists should be one of 0, 1, true or false. Current: {0}";
   private final boolean expect;
 
   public ExistsQueryExpression(DataView data, DataQuery query) {

@@ -17,7 +17,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 
-public class DataViewComponentRenderer {
+public class QueryResultRenderer {
   private static final Component COLON = Component.text(": ");
   private static final Component LEFT_SQUARE_BRACKET = Component.text("[");
   private static final Component RIGHT_SQUARE_BRACKET = Component.text("]");
@@ -83,7 +83,7 @@ public class DataViewComponentRenderer {
       List<?> list, DataQuery expandedQuery, @Nullable QueryResult result) {
     ImmutableList.Builder<Component> components = ImmutableList.builder();
     ImmutableMap<String, QueryResult> children =
-        Objects.isNull(result) ? ImmutableMap.of() : result.children();
+        result == null ? ImmutableMap.of() : ImmutableMap.copyOf(result);
     for (int i = 0; i < list.size(); i++) {
       String key = Integer.toString(i);
       Object value = list.get(i);
@@ -108,7 +108,7 @@ public class DataViewComponentRenderer {
       DataView view, DataQuery expandedQuery, @Nullable QueryResult result) {
     ImmutableList.Builder<Component> components = ImmutableList.builder();
     ImmutableMap<String, QueryResult> children =
-        result == null ? ImmutableMap.of() : result.children();
+        result == null ? ImmutableMap.of() : ImmutableMap.copyOf(result);
     for (DataQuery query : view.keys(false)) {
       Optional<DataView> subView = view.getView(query);
       Optional<List<?>> list = view.getList(query);
