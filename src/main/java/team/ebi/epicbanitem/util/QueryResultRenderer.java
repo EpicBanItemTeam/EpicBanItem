@@ -101,7 +101,7 @@ public class QueryResultRenderer {
                     .append(COLON),
                 renderView((DataView) value, expandedQuery, children.get(key))));
       } else {
-        String pair = key + ": " + valueString(value);
+        String pair = expandedQuery.then(key) + ": " + valueString(value);
         components.add(
             wrapValue(
                 renderKey(key, expandedQuery)
@@ -146,7 +146,7 @@ public class QueryResultRenderer {
       else
         value.ifPresent(
             o -> {
-              String pair = key + ": " + valueString(value.get());
+              String pair = expandedQuery.then(key) + ": " + valueString(value.get());
               components.add(
                   wrapValue(
                       renderKey(key, currentExpandedQuery)
