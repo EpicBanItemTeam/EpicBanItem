@@ -157,25 +157,37 @@ public class EBIRegistries {
                     ImmutableMap.<ResourceKey, UpdateExpressionFunction>builder()
                         .put(
                             EpicBanItem.key(ExpressionKeys.SET),
-                            view -> new ObjectUpdateExpression(SetUpdateExpression::new, view))
+                            (view, query) ->
+                                new ObjectUpdateExpression(SetUpdateExpression::new, view, query))
                         .put(
                             EpicBanItem.key(ExpressionKeys.UNSET),
-                            view -> new ObjectUpdateExpression(UnsetUpdateExpression::new, view))
+                            (view, query) ->
+                                new ObjectUpdateExpression(
+                                    (ignored, currentQuery) ->
+                                        new UnsetUpdateExpression(currentQuery),
+                                    view,
+                                    query))
                         .put(
                             EpicBanItem.key(ExpressionKeys.RENAME),
-                            view -> new ObjectUpdateExpression(RenameUpdateExpression::new, view))
+                            (view, query) ->
+                                new ObjectUpdateExpression(
+                                    RenameUpdateExpression::new, view, query))
                         .put(
                             EpicBanItem.key(ExpressionKeys.POP),
-                            view -> new ObjectUpdateExpression(PopUpdateExpression::new, view))
+                            (view, query) ->
+                                new ObjectUpdateExpression(PopUpdateExpression::new, view, query))
                         .put(
                             EpicBanItem.key(ExpressionKeys.PULL),
-                            view -> new ObjectUpdateExpression(PullUpdateExpression::new, view))
+                            (view, query) ->
+                                new ObjectUpdateExpression(PullUpdateExpression::new, view, query))
                         .put(
                             EpicBanItem.key(ExpressionKeys.INC),
-                            view -> new ObjectUpdateExpression(IncUpdateExpression::new, view))
+                            (view, query) ->
+                                new ObjectUpdateExpression(IncUpdateExpression::new, view, query))
                         .put(
                             EpicBanItem.key(ExpressionKeys.MUL),
-                            view -> new ObjectUpdateExpression(MulUpdateExpression::new, view))
+                            (view, query) ->
+                                new ObjectUpdateExpression(MulUpdateExpression::new, view, query))
                         .build())
             .asDefaultedType(Sponge::server);
   }
