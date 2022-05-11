@@ -28,7 +28,6 @@ public class QueryResultRenderer {
   private static Component renderKey(String key, DataQuery path) {
     return Component.text()
         .content(key)
-        .append(COLON)
         .hoverEvent(Component.text(path.toString()))
         .clickEvent(ClickEvent.copyToClipboard(path.toString()))
         .build();
@@ -63,20 +62,25 @@ public class QueryResultRenderer {
 
   private static Style style(Object value) {
     Style.Builder builder = Style.style();
-    String toCopy;
+    String toCopy = valueString(value);
     if (value instanceof Boolean) {
       builder.color(NamedTextColor.LIGHT_PURPLE);
-      toCopy = value.toString();
     } else if (value instanceof String) {
       builder.color(NamedTextColor.GREEN);
-      toCopy = "\"" + value + "\"";
     } else {
       builder.color(NamedTextColor.AQUA);
-      toCopy = value.toString();
     }
     builder.hoverEvent(Component.text(toCopy));
     builder.clickEvent(ClickEvent.copyToClipboard(toCopy));
     return builder.build();
+  }
+
+  private static String valueString(Object value) {
+    if (value instanceof String) {
+      return "\"" + value + "\"";
+    } else {
+      return value.toString();
+    }
   }
 
   private static ImmutableList<Component> renderList(
@@ -92,12 +96,20 @@ public class QueryResultRenderer {
       if (value instanceof DataView) {
         components.addAll(
             wrapObject(
-                renderKey(key, expandedQuery).style(builder -> builder.merge(style.build())),
+                renderKey(key, expandedQuery)
+                    .style(builder -> builder.merge(style.build()))
+                    .append(COLON),
                 renderView((DataView) value, expandedQuery, children.get(key))));
       } else {
+        String pair = key + ": " + valueString(value);
         components.add(
             wrapValue(
-                renderKey(key, expandedQuery).style(builder -> builder.merge(style.build())),
+                renderKey(key, expandedQuery)
+                    .style(builder -> builder.merge(style.build()))
+                    .append(
+                        COLON
+                            .hoverEvent(Component.text(pair))
+                            .clickEvent(ClickEvent.copyToClipboard(pair))),
                 Component.text(value.toString()).style(style.merge(style(value)))));
       }
     }
@@ -120,21 +132,31 @@ public class QueryResultRenderer {
       if (subView.isPresent())
         components.addAll(
             wrapObject(
-                renderKey(key, currentExpandedQuery).style(builder -> builder.merge(style.build())),
+                renderKey(key, currentExpandedQuery)
+                    .style(builder -> builder.merge(style.build()))
+                    .append(COLON),
                 renderView(subView.get(), currentExpandedQuery, children.get(key))));
       else if (list.isPresent())
         components.addAll(
             wrapList(
-                renderKey(key, currentExpandedQuery).style(builder -> builder.merge(style.build())),
+                renderKey(key, currentExpandedQuery)
+                    .style(builder -> builder.merge(style.build()))
+                    .append(COLON),
                 renderList(list.get(), currentExpandedQuery, children.get(key))));
       else
         value.ifPresent(
-            o ->
-                components.add(
-                    wrapValue(
-                        renderKey(key, currentExpandedQuery)
-                            .style(builder -> builder.merge(style.build())),
-                        Component.text(o.toString()).style(style.merge(style(o))))));
+            o -> {
+              String pair = key + ": " + valueString(value.get());
+              components.add(
+                  wrapValue(
+                      renderKey(key, currentExpandedQuery)
+                          .style(builder -> builder.merge(style.build()))
+                          .append(
+                              COLON
+                                  .hoverEvent(Component.text(pair))
+                                  .clickEvent(ClickEvent.copyToClipboard(pair))),
+                      Component.text(o.toString()).style(style.merge(style(o)))));
+            });
     }
     return components.build();
   }

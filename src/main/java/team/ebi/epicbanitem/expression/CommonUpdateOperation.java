@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.expression;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import java.util.AbstractMap;
@@ -7,7 +8,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.JoinConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -58,8 +60,8 @@ public class CommonUpdateOperation extends AbstractMap<DataQuery, UpdateOperatio
 
   @Override
   public @NotNull Component asComponent() {
-    TextComponent.Builder builder = Component.text();
-    for (UpdateOperation operation : values()) builder.append(operation);
-    return builder.build();
+    ImmutableList.Builder<ComponentLike> builder = ImmutableList.builder();
+    for (UpdateOperation operation : values()) builder.add(operation);
+    return Component.join(JoinConfiguration.newlines(), builder.build());
   }
 }
