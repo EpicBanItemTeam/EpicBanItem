@@ -1,7 +1,5 @@
 package team.ebi.epicbanitem.api.expression;
 
-import com.google.common.collect.Sets;
-import java.util.Set;
 import org.spongepowered.api.data.persistence.DataQuery;
 
 public class ExpressionKeys {
@@ -37,9 +35,6 @@ public class ExpressionKeys {
   public static final String PULL = "pull";
   public static final String INC = "ind";
   public static final String MUL = "mul";
-
-  public static final Set<String> UPDATE_EXPRESSIONS =
-      Sets.newHashSet(SET, UNSET, RENAME, POP, PULL, INC, MUL);
 
   public static DataQuery query(String key) {
     return DataQuery.of("$" + key);

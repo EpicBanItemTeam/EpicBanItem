@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.expression.update;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
@@ -18,34 +19,28 @@ public class PullUpdateExpression implements UpdateExpression {
   private final DataQuery query;
   private final QueryExpression expression;
 
-  public PullUpdateExpression(DataQuery query, QueryExpression expression) {
-    this.query = query;
-    this.expression = expression;
-  }
-
-  public PullUpdateExpression(DataView data) {
-    this(
-        DataQuery.of('.', data.currentPath().toString()),
-        new CommonQueryExpression(data, DataQuery.of()));
+  public PullUpdateExpression(DataView view, DataQuery query) {
+    this.query = DataQuery.of('.', query.last().toString());
+    this.expression = new CommonQueryExpression(view, query);
   }
 
   @Override
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
-    UpdateOperation operation = UpdateOperation.common();
+    ImmutableMap.Builder<DataQuery, UpdateOperation> builder = ImmutableMap.builder();
     for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
       List<?> list =
           data.getList(query)
               .orElseThrow(
                   () ->
                       new UnsupportedOperationException(
-                          MessageFormat.format("$pull failed, {0} is invalid", query)));
+                          MessageFormat.format("$pull failed, {0} is invalid list", query)));
       ImmutableList.Builder<Object> finalList = ImmutableList.builder();
       for (int i = 0; i < list.size(); i++) {
         Optional<QueryResult> subResult = expression.query(query.then(String.valueOf(i)), data);
         if (subResult.isPresent()) finalList.add(list.get(i));
       }
-      operation = operation.merge(UpdateOperation.replace(query, finalList));
+      builder.put(query, UpdateOperation.replace(query, list));
     }
-    return operation;
+    return UpdateOperation.common(builder.build());
   }
 }

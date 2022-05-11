@@ -44,6 +44,6 @@ public class ExpressionQueries {
   /** The expressions can at root level */
   public static final Set<DataQuery> ROOT_QUERY_EXPRESSIONS = Sets.newHashSet(OR, NOR, AND);
 
-  public static final Set<DataQuery> ARRAY_QUERY_EXPRESSIONS =
-      Sets.newHashSet(IN, NIN, ALL, AND, OR, NOR);
+  public static final Set<DataQuery> UPDATE_EXPRESSIONS =
+      Sets.newHashSet(SET, UNSET, RENAME, POP, PULL, INC, MUL);
 }

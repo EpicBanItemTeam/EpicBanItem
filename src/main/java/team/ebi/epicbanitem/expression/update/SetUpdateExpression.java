@@ -1,8 +1,10 @@
 package team.ebi.epicbanitem.expression.update;
 
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
@@ -10,18 +12,20 @@ import team.ebi.epicbanitem.api.expression.UpdateOperation;
 public class SetUpdateExpression implements UpdateExpression {
 
   private final DataQuery query;
-  private final DataView value;
+  private final Object value;
 
-  public SetUpdateExpression(DataView data) {
-    this.query = DataQuery.of('.', data.currentPath().toString());
-    this.value = data;
+  public SetUpdateExpression(DataView view, DataQuery query) throws InvalidDataException {
+    this.query = DataQuery.of('.', query.last().toString());
+    this.value =
+        view.get(query).orElseThrow(() -> new InvalidDataException(query + "need a value"));
   }
 
   @Override
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
-    UpdateOperation updateOperation = UpdateOperation.common();
-    for (DataQuery query : UpdateExpression.parseQuery(query, result))
-      updateOperation = updateOperation.merge(UpdateOperation.replace(query, value));
-    return updateOperation;
+    ImmutableMap.Builder<DataQuery, UpdateOperation> builder = ImmutableMap.builder();
+    for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
+      builder.put(query, UpdateOperation.replace(query, value));
+    }
+    return UpdateOperation.common(builder.build());
   }
 }

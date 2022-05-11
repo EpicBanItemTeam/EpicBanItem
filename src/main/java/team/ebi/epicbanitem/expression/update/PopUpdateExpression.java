@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -20,23 +19,18 @@ public class PopUpdateExpression implements UpdateExpression {
   private final DataQuery query;
   private final Position value;
 
-  public PopUpdateExpression(DataView data) {
-    this.query = DataQuery.of('.', data.currentPath().toString());
-    Optional<Integer> input = data.getInt(DataQuery.of());
+  public PopUpdateExpression(DataView view, DataQuery query) {
+    this.query = DataQuery.of('.', query.last().toString());
     this.value =
         Position.fromId(
-            input
-                .filter(Position.BY_ID::containsKey)
-                .orElseThrow(
-                    () ->
-                        new InvalidDataException(
-                            MessageFormat.format(
-                                "$pop has invalid input: {0}", input.orElse(null)))));
+            view.getInt(query)
+                .filter(it -> Math.abs(it) == 1)
+                .orElseThrow(() -> new InvalidDataException(query + "need 1 or -1")));
   }
 
   @Override
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
-    UpdateOperation updateOperation = UpdateOperation.common();
+    ImmutableMap.Builder<DataQuery, UpdateOperation> builder = ImmutableMap.builder();
     for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
       List<?> list =
           data.getList(query)
@@ -52,10 +46,9 @@ public class PopUpdateExpression implements UpdateExpression {
           list.remove(list.size() - 1);
           break;
       }
-      updateOperation = updateOperation.merge(UpdateOperation.replace(query, list));
+      builder.put(query, UpdateOperation.replace(query, list));
     }
-
-    return updateOperation;
+    return UpdateOperation.common(builder.build());
   }
 
   enum Position {

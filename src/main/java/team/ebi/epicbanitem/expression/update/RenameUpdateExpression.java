@@ -16,13 +16,12 @@ public class RenameUpdateExpression implements UpdateExpression {
   private final DataQuery source;
   private final DataQuery target;
 
-  public RenameUpdateExpression(DataView data) {
-    this.source = DataQuery.of('.', data.currentPath().toString());
+  public RenameUpdateExpression(DataView view, DataQuery query) {
+    this.source = DataQuery.of('.', query.last().toString());
     this.target =
-        DataQuery.of(
-            '.',
-            data.getString(DataQuery.of())
-                .orElseThrow(() -> new InvalidDataException("$rename need value be string")));
+        view.getString(query)
+            .map(it -> DataQuery.of('.', it))
+            .orElseThrow(() -> new InvalidDataException(query + "should be a string"));
     if (source.equals(target))
       throw new InvalidDataException(
           MessageFormat.format("$rename with the same source and target query: %s", target));

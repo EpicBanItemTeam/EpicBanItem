@@ -18,7 +18,7 @@ public class RootUpdateExpression implements UpdateExpression, DataSerializable 
 
   public RootUpdateExpression(DataView view) {
     this.view = view;
-    this.expression = new CommonUpdateExpression(view);
+    this.expression = new CommonUpdateExpression(view, DataQuery.of());
   }
 
   @Override

@@ -1,13 +1,14 @@
 package team.ebi.epicbanitem.expression.update;
 
+import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.expression.MathUpdateExpression;
 
 public class IncUpdateExpression extends MathUpdateExpression {
 
-  public IncUpdateExpression(DataView view) {
-    super(view, IncUpdateExpression::sum);
+  public IncUpdateExpression(DataView view, DataQuery query) {
+    super( view, query,IncUpdateExpression::sum);
   }
 
   private static Number sum(Number source, Number arg) {

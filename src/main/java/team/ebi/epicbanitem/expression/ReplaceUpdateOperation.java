@@ -33,6 +33,7 @@ public class ReplaceUpdateOperation extends AbstractMap<DataQuery, UpdateOperati
 
   @Override
   public @NotNull Component asComponent() {
-    return Component.translatable("epicbanitem.operations.replace");
+    return Component.translatable("epicbanitem.operations.replace")
+        .args(Component.text(query.toString()), Component.text(value.toString()));
   }
 }

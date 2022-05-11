@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.api.expression;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
+import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.registry.DefaultedRegistryValue;
 import org.spongepowered.api.util.annotation.CatalogedBy;
@@ -8,4 +9,4 @@ import org.spongepowered.api.util.annotation.CatalogedBy;
 @CatalogedBy(UpdateExpressions.class)
 @FunctionalInterface
 public interface UpdateExpressionFunction
-    extends Function<DataView, UpdateExpression>, DefaultedRegistryValue {}
+    extends BiFunction<DataView, DataQuery, UpdateExpression>, DefaultedRegistryValue {}

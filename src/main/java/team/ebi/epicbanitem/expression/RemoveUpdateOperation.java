@@ -31,6 +31,7 @@ public class RemoveUpdateOperation extends AbstractMap<DataQuery, UpdateOperatio
 
   @Override
   public @NotNull Component asComponent() {
-    return Component.translatable("epicbanitem.operations.remove");
+    return Component.translatable("epicbanitem.operations.remove")
+        .args(Component.text(query.toString()));
   }
 }

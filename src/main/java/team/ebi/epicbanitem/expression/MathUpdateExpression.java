@@ -1,9 +1,10 @@
 package team.ebi.epicbanitem.expression;
 
-import java.text.MessageFormat;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableMap;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -14,40 +15,31 @@ import team.ebi.epicbanitem.api.expression.UpdateOperation;
 public class MathUpdateExpression implements UpdateExpression {
 
   private final DataQuery query;
-  private final DataQuery first;
   private final Number argNumber;
   private final BinaryOperator<Number> operator;
 
-  public MathUpdateExpression(DataView data, BinaryOperator<Number> operator) {
-    this.query = DataQuery.of('.', data.currentPath().toString());
-    this.first = query.queryParts().get(0);
+  public MathUpdateExpression(DataView view, DataQuery query, BinaryOperator<Number> operator) {
+    this.query = DataQuery.of('.', query.last().toString());
     this.argNumber =
-        data.get(DataQuery.of())
-            .filter(it -> it instanceof Number)
+        view.get(query)
+            .filter(Predicates.instanceOf(Number.class))
             .map(it -> (Number) it)
-            .orElseThrow(() -> new InvalidDataException("Input not a valid number"));
+            .orElseThrow(() -> new InvalidDataException(query + "need a number input"));
     this.operator = operator;
   }
 
   @Override
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
-    UpdateOperation updateOperation = UpdateOperation.common();
-    DataContainer container = DataContainer.createNew();
-    data.get(first).ifPresent(it -> container.set(first, it));
+    ImmutableMap.Builder<DataQuery, UpdateOperation> builder = ImmutableMap.builder();
     for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
-      Object value =
-          container
-              .get(query)
-              .orElseThrow(
-                  () ->
-                      new UnsupportedOperationException(
-                          MessageFormat.format("Set {0} to container failed", query)));
-      if (!(value instanceof Number)) continue;
-      Number source = (Number) value;
-      container.set(query, this.operator.apply(argNumber, source));
-      updateOperation = updateOperation.merge(UpdateOperation.replace(query, value));
+      Optional<Number> value =
+          data.get(query).filter(Predicates.instanceOf(Number.class)).map(it -> (Number) it);
+      if (value.isEmpty()) continue;
+      builder.put(
+          query,
+          UpdateOperation.replace(query, this.operator.apply(argNumber, value.get())));
     }
 
-    return updateOperation;
+    return UpdateOperation.common(builder.build());
   }
 }

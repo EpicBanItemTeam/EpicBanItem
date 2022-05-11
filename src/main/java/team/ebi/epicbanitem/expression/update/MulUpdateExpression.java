@@ -1,13 +1,14 @@
 package team.ebi.epicbanitem.expression.update;
 
+import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.expression.MathUpdateExpression;
 
 public class MulUpdateExpression extends MathUpdateExpression {
 
-  public MulUpdateExpression(DataView view) {
-    super(view, MulUpdateExpression::mul);
+  public MulUpdateExpression(DataView view, DataQuery query) {
+    super(view, query, MulUpdateExpression::mul);
   }
 
   private static Number mul(Number source, Number arg) {
