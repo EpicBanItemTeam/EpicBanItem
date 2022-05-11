@@ -273,7 +273,13 @@ public final class EBICommand {
     QueryResult result = queryExpression.query(cleaned).orElse(QueryResult.success());
     UpdateOperation operation = updateExpression.update(result, cleaned);
     DataView processed = operation.process(cleaned);
-    processed.values(false).forEach(container::set);
+    processed
+        .values(false)
+        .forEach(
+            (query, o) -> {
+              container.remove(query);
+              container.set(query, o);
+            });
     DataManager dataManager = Sponge.dataManager();
     ItemStack deserialized = dataManager.deserialize(ItemStack.class, container).orElseThrow();
     if (isBlock) {
