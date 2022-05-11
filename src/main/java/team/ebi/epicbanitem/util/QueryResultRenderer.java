@@ -66,10 +66,10 @@ public class QueryResultRenderer {
     String toCopy;
     if (value instanceof Boolean) {
       builder.color(NamedTextColor.LIGHT_PURPLE);
-      toCopy = "\"" + value + "\"";
+      toCopy = value.toString();
     } else if (value instanceof String) {
       builder.color(NamedTextColor.GREEN);
-      toCopy = (String) value;
+      toCopy = "\"" + value + "\"";
     } else {
       builder.color(NamedTextColor.AQUA);
       toCopy = value.toString();
