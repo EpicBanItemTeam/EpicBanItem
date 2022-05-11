@@ -2,7 +2,6 @@ package team.ebi.epicbanitem;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import io.leangen.geantyref.TypeToken;
 import java.time.Duration;
@@ -12,7 +11,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -22,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.Command.Parameterized;
 import org.spongepowered.api.command.CommandCompletion;
@@ -30,6 +30,7 @@ import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.command.parameter.managed.Flag;
+import org.spongepowered.api.data.DataManager;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -45,21 +46,25 @@ import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
-import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.util.blockray.RayTrace;
+import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRules;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
+import team.ebi.epicbanitem.api.expression.UpdateExpression;
+import team.ebi.epicbanitem.api.expression.UpdateOperation;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
+import team.ebi.epicbanitem.expression.RootUpdateExpression;
 import team.ebi.epicbanitem.util.DataSerializableValueParser;
-import team.ebi.epicbanitem.util.DataViewComponentRenderer;
 import team.ebi.epicbanitem.util.DataViewUtils;
+import team.ebi.epicbanitem.util.QueryResultRenderer;
 
 public final class EBICommand {
-  private static final Cache<UUID, QueryExpression> USED_EXPRESSION =
+  private static final Cache<UUID, QueryExpression> USED_QUERY =
       Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(10)).build();
 
   private static final class Parameters {
@@ -100,13 +105,23 @@ public final class EBICommand {
             .addParser(new DataSerializableValueParser<>(RootQueryExpression.class))
             .optional();
 
+    public static final Parameter.Value.Builder<UpdateExpression> UPDATE =
+        Parameter.builder(UpdateExpression.class)
+            .addParser(new DataSerializableValueParser<>(RootUpdateExpression.class))
+            .optional();
+
     public static final class Keys {
       public static final Parameter.Key<QueryExpression> QUERY =
           Parameter.key("query", QueryExpression.class);
-
+      public static final Parameter.Key<UpdateExpression> UPDATE =
+          Parameter.key("update", UpdateExpression.class);
       private static final Parameter.Key<ResourceKey> RULE_KEY =
           Parameter.key("rule-key", ResourceKey.class);
     }
+  }
+
+  private static final class Flags {
+    public static final Flag BLOCK = Flag.builder().aliases("block", "b").build();
   }
 
   @Inject
@@ -126,7 +141,7 @@ public final class EBICommand {
             .extendedDescription(
                 Component.translatable("epicbanitem.command.query.description.extended"))
             .permission(EpicBanItem.permission("command.query"))
-            .addFlag(Flag.builder().aliases("block", "b").build())
+            .addFlag(Flags.BLOCK)
             .addParameter(Parameters.QUERY.key(Parameters.Keys.QUERY).build())
             .executor(this::query)
             .build();
@@ -134,11 +149,20 @@ public final class EBICommand {
     final Command.Parameterized remove =
         Command.builder()
             .shortDescription(Component.translatable("epicbanitem.command.remove.description"))
-            .extendedDescription(
-                Component.translatable("epicbanitem.command.remove.description.extended"))
             .permission(EpicBanItem.permission("command.remove"))
             .addParameter(Parameters.RULE_KEY.key(Parameters.Keys.RULE_KEY).build())
             .executor(this::remove)
+            .build();
+
+    final Command.Parameterized update =
+        Command.builder()
+            .shortDescription(Component.translatable("epicbanitem.command.update.description"))
+            .extendedDescription(
+                Component.translatable("epicbanitem.command.update.description.extended"))
+            .permission(EpicBanItem.permission("command.update"))
+            .addFlag(Flags.BLOCK)
+            .addParameter(Parameters.UPDATE.key(Parameters.Keys.UPDATE).build())
+            .executor(this::update)
             .build();
 
     return Command.builder()
@@ -146,6 +170,7 @@ public final class EBICommand {
         .permission(EpicBanItem.permission("command.root"))
         .addChild(query, "query")
         .addChild(remove, "remove", "rm")
+        .addChild(update, "update")
         .build();
   }
 
@@ -163,7 +188,7 @@ public final class EBICommand {
               it ->
                   Component.translatable("epicbanitem.command.suggestRule")
                       .args(Component.text(it).clickEvent(ClickEvent.copyToClipboard(it))))
-          .ifPresent(builder::append);
+          .ifPresent(it -> builder.append(Component.newline()).append(it));
       return CommandResult.error(builder.build());
     }
     return CommandResult.success();
@@ -182,72 +207,144 @@ public final class EBICommand {
             .one(Parameters.Keys.QUERY)
             .orElse(
                 Objects.requireNonNull(
-                    USED_EXPRESSION.get(
+                    USED_QUERY.get(
                         uuid,
                         it -> new RootQueryExpression(DataContainer.createNew(), DataQuery.of()))));
-    USED_EXPRESSION.put(uuid, expression);
+    USED_QUERY.put(uuid, expression);
     SerializableDataHolder targetObject =
-        Optional.of(isBlock)
-            .filter(Boolean::booleanValue)
-            .<SerializableDataHolder>flatMap(it -> targetBlock(player))
-            // .map(EBICommands::fromBlock)
-            // .filter(Predicate.not(ItemStack::isEmpty))
-            .or(
-                () ->
-                    heldItem(player)
-                        .map(ItemStack::createSnapshot)
-                        .filter(Predicate.not(ItemStackSnapshot::isEmpty)))
+        targetObject(player, isBlock)
             .orElseThrow(
-                () -> {
-                  if (!isBlock)
-                    return new CommandException(
-                        Component.translatable("epicbanitem.command.query.needItem"));
-                  else
-                    return new CommandException(
-                        Component.translatable("epicbanitem.command.query.needBlock"));
-                });
+                () ->
+                    new CommandException(
+                        isBlock
+                            ? Component.translatable("epicbanitem.command.needBlock")
+                            : Component.translatable("epicbanitem.command.needItem")));
     DataView container = DataViewUtils.cleanup(targetObject.toContainer());
     Optional<QueryResult> result = expression.query(container);
-    Audience audience = context.cause().audience();
-    PaginationList.Builder pagination = Sponge.serviceProvider().paginationService().builder();
+    Sponge.serviceProvider()
+        .paginationService()
+        .builder()
+        .title(objectName(targetObject))
+        .header(
+            result.isPresent() ? Component.translatable("epicbanitem.command.query.success") : null)
+        .contents(QueryResultRenderer.render(container, result.orElse(null)))
+        .sendTo(context.cause().audience());
+    return CommandResult.success();
+  }
+
+  private @NotNull CommandResult update(final CommandContext context) throws CommandException {
+    if (!(context.cause().root() instanceof Player))
+      return CommandResult.error(
+          Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED));
+    final Player player = (Player) context.cause().root();
+    boolean isBlock = context.hasFlag("block");
+    UUID uuid = player.identity().uuid();
+    // Last > Empty
+    QueryExpression queryExpression =
+        Objects.requireNonNull(
+            USED_QUERY.get(
+                uuid, it -> new RootQueryExpression(DataContainer.createNew(), DataQuery.of())));
+    UpdateExpression updateExpression = context.requireOne(Parameters.Keys.UPDATE);
+    ItemStack targetObject;
+    EquipmentType hand = null;
+    BlockSnapshot block = null;
+    if (isBlock) {
+      block =
+          targetBlock(player)
+              .orElseThrow(
+                  () ->
+                      new CommandException(
+                          Component.translatable("epicbanitem.command.needBlock")));
+      targetObject = ItemStack.builder().fromBlockSnapshot(block).build();
+    } else {
+      hand =
+          heldHand(player)
+              .orElseThrow(
+                  () ->
+                      new CommandException(Component.translatable("epicbanitem.command.needItem")));
+      targetObject =
+          equipped(player, hand)
+              .orElseThrow(
+                  () ->
+                      new CommandException(Component.translatable("epicbanitem.command.needItem")));
+    }
+    DataContainer container = targetObject.toContainer();
+    DataView cleaned = DataViewUtils.cleanup(container);
+    QueryResult result = queryExpression.query(cleaned).orElse(QueryResult.success());
+    UpdateOperation operation = updateExpression.update(result, cleaned);
+    DataView processed = operation.process(cleaned);
+    for (DataQuery key : processed.keys(false)) container.set(key, processed.get(key).get());
+    DataManager dataManager = Sponge.dataManager();
+    ItemStack deserialized = dataManager.deserialize(ItemStack.class, container).orElseThrow();
+    if (isBlock) {
+      BlockType blockType = deserialized.type().block().orElseThrow();
+      BlockState oldState = block.state();
+      BlockState newState =
+          BlockState.builder()
+              .blockType(blockType)
+              .addFrom(blockType.defaultState())
+              .addFrom(oldState)
+              .build();
+      BlockSnapshot newSnapshot =
+          BlockSnapshot.builder()
+              .from(block)
+              .blockState(newState)
+              .build();
+      newSnapshot.location();
+      newSnapshot.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT);
+    } else player.equip(hand, deserialized);
+    player.sendMessage(operation.asComponent());
+    return CommandResult.success();
+  }
+
+  private static Component objectName(SerializableDataHolder holder) {
     Component objectName =
-        targetObject
+        holder
             .get(Keys.DISPLAY_NAME)
             .orElseGet(
                 () -> {
-                  if (targetObject instanceof BlockSnapshot)
-                    return ((BlockSnapshot) targetObject).state().type().asComponent();
+                  if (holder instanceof BlockSnapshot)
+                    return ((BlockSnapshot) holder).state().type().asComponent();
                   else return ItemTypes.AIR.get().asComponent();
                 });
-    if (targetObject instanceof ItemStackSnapshot)
-      objectName = objectName.hoverEvent((ItemStackSnapshot) targetObject);
-    Component header =
-        result.isPresent()
-            ? Component.translatable("epicbanitem.command.query.success")
-            : Component.translatable("epicbanitem.command.query.failed");
-    ImmutableList<Component> components =
-        DataViewComponentRenderer.render(container, result.orElse(null));
-    pagination.title(objectName).header(header).contents(components).sendTo(audience);
-    return CommandResult.success();
+    if (holder instanceof ItemStackSnapshot)
+      objectName = objectName.hoverEvent((ItemStackSnapshot) holder);
+    return objectName;
+  }
+
+  private static Optional<ItemStack> targetObject(Player player, boolean isBlock) {
+    return Optional.of(isBlock)
+        .filter(Boolean::booleanValue)
+        .flatMap(
+            ignored ->
+                targetBlock(player).map(it -> ItemStack.builder().fromBlockSnapshot(it).build()))
+        .or(() -> heldHand(player).flatMap(it -> equipped(player, it)));
   }
 
   private static Optional<BlockSnapshot> targetBlock(Living living) {
     return RayTrace.block()
         .select(RayTrace.nonAir())
-        .limit(3)
+        .limit(5)
         .sourceEyePosition(living)
         .direction(living)
         .execute()
         .map(it -> it.selectedObject().serverLocation().createSnapshot());
   }
 
-  private static ItemStack fromBlock(BlockSnapshot blockSnapshot) {
-    return ItemStack.builder().fromBlockSnapshot(blockSnapshot).build();
-  }
-
-  private static Optional<ItemStack> heldItem(Equipable equipable) {
+  private static Optional<EquipmentType> heldHand(Equipable equipable) {
     return equipable
         .equipped(EquipmentTypes.MAIN_HAND.get())
-        .or(() -> equipable.equipped(EquipmentTypes.OFF_HAND.get()));
+        .filter(Predicate.not(ItemStack::isEmpty))
+        .map(it -> EquipmentTypes.MAIN_HAND.get())
+        .or(
+            () ->
+                equipable
+                    .equipped(EquipmentTypes.OFF_HAND.get())
+                    .filter(Predicate.not(ItemStack::isEmpty))
+                    .map(it -> EquipmentTypes.OFF_HAND.get()));
+  }
+
+  private static Optional<ItemStack> equipped(Equipable equipable, EquipmentType type) {
+    return equipable.equipped(type).filter(Predicate.not(ItemStack::isEmpty));
   }
 }
