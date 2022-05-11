@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.api;
 
 import com.google.common.collect.Sets;
+import com.google.inject.ImplementedBy;
 import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +16,9 @@ import team.ebi.epicbanitem.EBIEventContextKeys;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
+import team.ebi.epicbanitem.rule.RestrictionRuleServiceImpl;
 
+@ImplementedBy(RestrictionRuleServiceImpl.class)
 public interface RestrictionRuleService {
 
   default Optional<UpdateOperation> restrict() {

@@ -2,10 +2,13 @@ package team.ebi.epicbanitem.api;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.inject.ImplementedBy;
 import java.util.Collection;
 import java.util.Comparator;
 import org.spongepowered.api.ResourceKey;
+import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
+@ImplementedBy(RulePredicateServiceImpl.class)
 public interface RulePredicateService {
   ResourceKey WILDCARD = ResourceKey.of("_", "_");
 

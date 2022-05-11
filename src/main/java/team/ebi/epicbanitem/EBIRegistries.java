@@ -10,14 +10,11 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.lifecycle.ProvideServiceEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryValueEvent;
 import org.spongepowered.api.registry.DefaultedRegistryType;
 import org.spongepowered.plugin.PluginContainer;
-import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RestrictionTrigger;
-import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.expression.ExpressionKeys;
 import team.ebi.epicbanitem.api.expression.QueryExpressionFunction;
 import team.ebi.epicbanitem.api.expression.QueryExpressions;
@@ -49,9 +46,7 @@ import team.ebi.epicbanitem.expression.update.PullUpdateExpression;
 import team.ebi.epicbanitem.expression.update.RenameUpdateExpression;
 import team.ebi.epicbanitem.expression.update.SetUpdateExpression;
 import team.ebi.epicbanitem.expression.update.UnsetUpdateExpression;
-import team.ebi.epicbanitem.rule.RestrictionRuleServiceImpl;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
-import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 import team.ebi.epicbanitem.trigger.SimpleRestrictionTrigger;
 import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
 
@@ -60,8 +55,6 @@ public class EBIRegistries {
   public static DefaultedRegistryType<RestrictionTrigger> TRIGGER;
   public static DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION;
   public static DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION;
-
-  @Inject private RulePredicateServiceImpl rulePredicateService;
 
   @Inject
   public EBIRegistries(
@@ -190,20 +183,6 @@ public class EBIRegistries {
                                 new ObjectUpdateExpression(MulUpdateExpression::new, view, query))
                         .build())
             .asDefaultedType(Sponge::server);
-  }
-
-  @Listener
-  public void provideRestrictionRuleService(
-      ProvideServiceEvent.EngineScoped<RestrictionRuleService> event) {
-    if (!(event.engine() instanceof Server)) return;
-    event.suggest(RestrictionRuleServiceImpl::new);
-  }
-
-  @Listener
-  public void provideRulePredicateService(
-      ProvideServiceEvent.EngineScoped<RulePredicateService> event) {
-    if (!(event.engine() instanceof Server)) return;
-    event.suggest(() -> rulePredicateService);
   }
 
   @Listener(order = Order.POST)

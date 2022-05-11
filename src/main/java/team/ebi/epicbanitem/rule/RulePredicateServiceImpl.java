@@ -3,7 +3,6 @@ package team.ebi.epicbanitem.rule;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
-import com.google.inject.Inject;
 import org.spongepowered.api.ResourceKey;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RulePredicateService;
@@ -11,7 +10,6 @@ import team.ebi.epicbanitem.api.RulePredicateService;
 public class RulePredicateServiceImpl implements RulePredicateService {
   private final SetMultimap<ResourceKey, RestrictionRule> predicates = HashMultimap.create();
 
-  @Inject
   public RulePredicateServiceImpl() {}
 
   @Override
