@@ -1,23 +1,12 @@
 package team.ebi.epicbanitem.util;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Optional;
 import org.codehaus.plexus.util.StringUtils;
-import org.jetbrains.annotations.Contract;
-import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
-import org.spongepowered.api.data.persistence.Queries;
 
 public final class DataViewUtils {
-  private static final ImmutableSet<DataQuery> IGNORED =
-      ImmutableSet.of(
-          Queries.CONTENT_VERSION,
-          Queries.WORLD_KEY,
-          DataQuery.of("Position"),
-          DataQuery.of("BlockState"));
-
   /**
    * Support to get value from array
    *
@@ -36,13 +25,5 @@ public final class DataViewUtils {
       return Optional.ofNullable(value);
     } else if (subView.isEmpty()) return Optional.empty();
     return get(subView.get(), query.popFirst());
-  }
-
-  @Contract(pure = true)
-  public static DataView cleanup(DataView view) {
-    DataContainer container = DataContainer.createNew();
-    for (DataQuery key : view.keys(false))
-      if (!IGNORED.contains(key)) container.set(key, view.get(key).get());
-    return container;
   }
 }
