@@ -20,7 +20,7 @@ public class CommonQueryExpression implements QueryExpression {
     Optional<DataView> currentView = view.getView(query);
 
     // Should be value
-    if (!currentView.isPresent()) {
+    if (currentView.isEmpty()) {
       this.expressions.add(
           new ValueQueryExpression(
               view.get(query).orElseThrow(() -> new InvalidDataException("No value in view"))));
@@ -28,32 +28,32 @@ public class CommonQueryExpression implements QueryExpression {
     }
 
     // Can be root expressions or nbt path
-    Set<DataQuery> keys = currentView.get().keys(false);
-    for (DataQuery key : keys) {
-      Optional<DataView> subView = currentView.get().getView(key);
+    currentView
+        .get()
+        .values(false)
+        .forEach(
+            (key, value) -> {
+              if (ROOT_QUERY_EXPRESSIONS.contains(key))
+                this.expressions.add(EXPRESSIONS.get(key.toString()).apply(view, query.then(key)));
+              else if (!(value instanceof DataView))
+                this.expressions.add(
+                    new ExtraQueryQueryExpression(
+                        new CommonQueryExpression(view, query.then(key)),
+                        DataQuery.of('.', key.toString())));
 
-      if (ROOT_QUERY_EXPRESSIONS.contains(key)) {
-        this.expressions.add(EXPRESSIONS.get(key.toString()).apply(view, query.then(key)));
-        continue;
-      }
-
-      // Can be list or value
-      if (!subView.isPresent()) {
-        this.expressions.add(new ExtraQueryQueryExpression(new CommonQueryExpression(view, query.then(key)), DataQuery.of('.', key.toString())));
-        continue;
-      }
-
-      // a.b: { $gt: 8, $lte: 12, $in: [5, 9, 10] }
-      for (DataQuery subQuery : subView.get().keys(false)) {
-        String expressionKey = subQuery.toString();
-        if (EXPRESSIONS.containsKey(expressionKey)) {
-          this.expressions.add(
-              new ExtraQueryQueryExpression(
-                  EXPRESSIONS.get(expressionKey).apply(view, query.then(key).then(expressionKey)),
-                  DataQuery.of('.', key.toString())));
-        }
-      }
-    }
+              // a.b: { $gt: 8, $lte: 12, $in: [5, 9, 10] }
+              for (DataQuery subQuery : ((DataView) value).keys(false)) {
+                String expressionKey = subQuery.toString();
+                if (EXPRESSIONS.containsKey(expressionKey)) {
+                  this.expressions.add(
+                      new ExtraQueryQueryExpression(
+                          EXPRESSIONS
+                              .get(expressionKey)
+                              .apply(view, query.then(key).then(expressionKey)),
+                          DataQuery.of('.', key.toString())));
+                }
+              }
+            });
   }
 
   @Override

@@ -273,7 +273,7 @@ public final class EBICommand {
     QueryResult result = queryExpression.query(cleaned).orElse(QueryResult.success());
     UpdateOperation operation = updateExpression.update(result, cleaned);
     DataView processed = operation.process(cleaned);
-    for (DataQuery key : processed.keys(false)) container.set(key, processed.get(key).get());
+    processed.values(false).forEach(container::set);
     DataManager dataManager = Sponge.dataManager();
     ItemStack deserialized = dataManager.deserialize(ItemStack.class, container).orElseThrow();
     if (isBlock) {
@@ -285,11 +285,7 @@ public final class EBICommand {
               .addFrom(blockType.defaultState())
               .addFrom(oldState)
               .build();
-      BlockSnapshot newSnapshot =
-          BlockSnapshot.builder()
-              .from(block)
-              .blockState(newState)
-              .build();
+      BlockSnapshot newSnapshot = BlockSnapshot.builder().from(block).blockState(newState).build();
       newSnapshot.location();
       newSnapshot.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT);
     } else player.equip(hand, deserialized);
