@@ -53,6 +53,7 @@ import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRules;
+import team.ebi.epicbanitem.api.expression.ExpressionService;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
@@ -60,8 +61,6 @@ import team.ebi.epicbanitem.api.expression.UpdateOperation;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 import team.ebi.epicbanitem.util.DataSerializableValueParser;
-import team.ebi.epicbanitem.util.DataViewUtils;
-import team.ebi.epicbanitem.util.QueryResultRenderer;
 
 public final class EBICommand {
   private static final Cache<UUID, QueryExpression> USED_QUERY =
@@ -123,6 +122,8 @@ public final class EBICommand {
   private static final class Flags {
     public static final Flag BLOCK = Flag.builder().aliases("block", "b").build();
   }
+
+  @Inject private ExpressionService expressionService;
 
   @Inject
   EBICommand(PluginContainer plugin, EventManager eventManager) {
@@ -219,7 +220,7 @@ public final class EBICommand {
                         isBlock
                             ? Component.translatable("epicbanitem.command.needBlock")
                             : Component.translatable("epicbanitem.command.needItem")));
-    DataView container = DataViewUtils.cleanup(targetObject.toContainer());
+    DataView container = ExpressionService.cleanup(targetObject.toContainer());
     Optional<QueryResult> result = expression.query(container);
     Sponge.serviceProvider()
         .paginationService()
@@ -227,7 +228,7 @@ public final class EBICommand {
         .title(objectName(targetObject))
         .header(
             result.isPresent() ? Component.translatable("epicbanitem.command.query.success") : null)
-        .contents(QueryResultRenderer.render(container, result.orElse(null)))
+        .contents(expressionService.renderQuery(container, result.orElse(null)))
         .sendTo(context.cause().audience());
     return CommandResult.success();
   }
@@ -269,7 +270,7 @@ public final class EBICommand {
                       new CommandException(Component.translatable("epicbanitem.command.needItem")));
     }
     DataContainer container = targetObject.toContainer();
-    DataView cleaned = DataViewUtils.cleanup(container);
+    DataView cleaned = ExpressionService.cleanup(container);
     QueryResult result = queryExpression.query(cleaned).orElse(QueryResult.success());
     UpdateOperation operation = updateExpression.update(result, cleaned);
     DataView processed = operation.process(cleaned);
@@ -282,6 +283,8 @@ public final class EBICommand {
             });
     DataManager dataManager = Sponge.dataManager();
     ItemStack deserialized = dataManager.deserialize(ItemStack.class, container).orElseThrow();
+    if (deserialized.quantity() > deserialized.maxStackQuantity())
+      deserialized.setQuantity(deserialized.maxStackQuantity());
     if (isBlock) {
       BlockType blockType = deserialized.type().block().orElseThrow();
       BlockState oldState = block.state();
