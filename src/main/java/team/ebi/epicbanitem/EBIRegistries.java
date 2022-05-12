@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -14,6 +15,8 @@ import org.spongepowered.api.event.lifecycle.RegisterRegistryEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryValueEvent;
 import org.spongepowered.api.registry.DefaultedRegistryType;
 import org.spongepowered.plugin.PluginContainer;
+import team.ebi.epicbanitem.api.ItemQueries;
+import team.ebi.epicbanitem.api.RestrictionPreset;
 import team.ebi.epicbanitem.api.RestrictionTrigger;
 import team.ebi.epicbanitem.api.expression.ExpressionKeys;
 import team.ebi.epicbanitem.api.expression.QueryExpressionFunction;
@@ -55,6 +58,7 @@ public class EBIRegistries {
   public static DefaultedRegistryType<RestrictionTrigger> TRIGGER;
   public static DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION;
   public static DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION;
+  public static DefaultedRegistryType<RestrictionPreset> PRESET;
 
   @Inject
   public EBIRegistries(
@@ -181,6 +185,31 @@ public class EBIRegistries {
                             EpicBanItem.key(ExpressionKeys.MUL),
                             (view, query) ->
                                 new ObjectUpdateExpression(MulUpdateExpression::new, view, query))
+                        .build())
+            .asDefaultedType(Sponge::server);
+
+    PRESET =
+        event
+            .register(
+                EpicBanItem.key("preset"),
+                false,
+                () ->
+                    ImmutableMap.<ResourceKey, RestrictionPreset>builder()
+                        .put(
+                            EpicBanItem.key("type"),
+                            view ->
+                                DataContainer.createNew()
+                                    .set(
+                                        ItemQueries.ITEM_TYPE,
+                                        view.get(ItemQueries.ITEM_TYPE).orElseThrow()))
+                        .put(
+                            EpicBanItem.key("all"),
+                            view -> {
+                              DataContainer container = DataContainer.createNew();
+                              view.values(false).forEach(container::set);
+                              return container;
+                            })
+                        .put(EpicBanItem.key("empty"), view -> DataContainer.createNew())
                         .build())
             .asDefaultedType(Sponge::server);
   }

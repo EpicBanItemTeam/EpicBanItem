@@ -10,7 +10,7 @@ import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.DataViewUtils;
 
-public class CompareQueryExpression implements QueryExpression {
+public abstract class CompareQueryExpression implements QueryExpression {
 
   private final double value;
   private final BiPredicate<Double, Double> predicate;

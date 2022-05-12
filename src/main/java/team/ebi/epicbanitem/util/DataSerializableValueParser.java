@@ -15,9 +15,9 @@ import org.spongepowered.api.data.persistence.DataSerializable;
 
 public class DataSerializableValueParser<T extends DataSerializable> implements ValueParser<T> {
 
-  private final Class<T> type;
+  private final Class<? extends T> type;
 
-  public DataSerializableValueParser(Class<T> type) {
+  public DataSerializableValueParser(Class<? extends T> type) {
     this.type = type;
   }
 

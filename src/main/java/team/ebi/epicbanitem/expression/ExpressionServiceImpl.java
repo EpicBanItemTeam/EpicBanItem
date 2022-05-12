@@ -10,7 +10,7 @@ import team.ebi.epicbanitem.util.QueryResultRenderer;
 public class ExpressionServiceImpl implements ExpressionService {
 
   @Override
-  public List<Component> renderQuery(DataView view, QueryResult result) {
+  public List<Component> renderQueryResult(DataView view, QueryResult result) {
     return QueryResultRenderer.render(view, result);
   }
 }
