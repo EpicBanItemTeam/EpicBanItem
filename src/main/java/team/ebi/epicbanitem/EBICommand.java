@@ -182,6 +182,7 @@ public final class EBICommand {
     if (Objects.isNull(rule)) {
       TextComponent.Builder builder = Component.text();
       builder.append(Component.translatable("epicbanitem.command.remove.notExist"));
+      //noinspection deprecation
       RestrictionRules.keyStream()
           .map(ResourceKey::asString)
           .min(Comparator.comparingInt(k -> StringUtils.getLevenshteinDistance(k, stringKey)))
