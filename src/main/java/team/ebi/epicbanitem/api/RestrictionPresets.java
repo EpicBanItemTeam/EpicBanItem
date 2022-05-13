@@ -5,9 +5,12 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
 import org.spongepowered.api.registry.Registry;
 import org.spongepowered.api.registry.RegistryKey;
+import org.spongepowered.api.registry.RegistryScope;
+import org.spongepowered.api.registry.RegistryScopes;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 
+@RegistryScopes(scopes = RegistryScope.ENGINE)
 public class RestrictionPresets {
 
   public static final DefaultedRegistryReference<RestrictionPreset> TYPE =

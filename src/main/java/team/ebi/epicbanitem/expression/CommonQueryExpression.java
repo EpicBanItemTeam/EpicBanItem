@@ -1,7 +1,7 @@
 package team.ebi.epicbanitem.expression;
 
 import static team.ebi.epicbanitem.api.expression.ExpressionQueries.ROOT_QUERY_EXPRESSIONS;
-import static team.ebi.epicbanitem.api.expression.QueryExpressions.EXPRESSIONS;
+import static team.ebi.epicbanitem.api.expression.QueryExpressionFunctions.EXPRESSIONS;
 
 import com.google.common.collect.Sets;
 import java.util.Optional;
@@ -40,19 +40,19 @@ public class CommonQueryExpression implements QueryExpression {
                     new ExtraQueryQueryExpression(
                         new CommonQueryExpression(view, query.then(key)),
                         DataQuery.of('.', key.toString())));
-
-              // a.b: { $gt: 8, $lte: 12, $in: [5, 9, 10] }
-              for (DataQuery subQuery : ((DataView) value).keys(false)) {
-                String expressionKey = subQuery.toString();
-                if (EXPRESSIONS.containsKey(expressionKey)) {
-                  this.expressions.add(
-                      new ExtraQueryQueryExpression(
-                          EXPRESSIONS
-                              .get(expressionKey)
-                              .apply(view, query.then(key).then(expressionKey)),
-                          DataQuery.of('.', key.toString())));
+              else
+                // a.b: { $gt: 8, $lte: 12, $in: [5, 9, 10] }
+                for (DataQuery subQuery : ((DataView) value).keys(false)) {
+                  String expressionKey = subQuery.toString();
+                  if (EXPRESSIONS.containsKey(expressionKey)) {
+                    this.expressions.add(
+                        new ExtraQueryQueryExpression(
+                            EXPRESSIONS
+                                .get(expressionKey)
+                                .apply(view, query.then(key).then(expressionKey)),
+                            DataQuery.of('.', key.toString())));
+                  }
                 }
-              }
             });
   }
 

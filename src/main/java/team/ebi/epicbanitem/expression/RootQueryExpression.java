@@ -40,6 +40,10 @@ public class RootQueryExpression implements QueryExpression, DataSerializable {
         .set(DataQuery.of("expression"), view);
   }
 
+  public DataView view() {
+    return view;
+  }
+
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     return this.expression.query(query, data);

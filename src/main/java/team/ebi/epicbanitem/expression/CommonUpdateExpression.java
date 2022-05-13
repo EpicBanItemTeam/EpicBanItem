@@ -1,7 +1,7 @@
 package team.ebi.epicbanitem.expression;
 
 import static team.ebi.epicbanitem.api.expression.ExpressionQueries.UPDATE_EXPRESSIONS;
-import static team.ebi.epicbanitem.api.expression.UpdateExpressions.EXPRESSIONS;
+import static team.ebi.epicbanitem.api.expression.UpdateExpressionFunctions.EXPRESSIONS;
 
 import com.google.common.collect.Sets;
 import java.util.Set;

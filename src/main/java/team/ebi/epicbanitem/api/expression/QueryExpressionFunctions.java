@@ -13,7 +13,7 @@ import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
-public class QueryExpressions {
+public class QueryExpressionFunctions {
   public static final DefaultedRegistryReference<QueryExpressionFunction> OR =
       key(EpicBanItem.key(ExpressionKeys.OR));
   public static final DefaultedRegistryReference<QueryExpressionFunction> NOR =

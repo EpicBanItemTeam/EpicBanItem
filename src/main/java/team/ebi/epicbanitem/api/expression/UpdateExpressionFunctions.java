@@ -13,7 +13,7 @@ import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
-public class UpdateExpressions {
+public class UpdateExpressionFunctions {
   public static final DefaultedRegistryReference<UpdateExpressionFunction> SET =
       key(EpicBanItem.key(ExpressionKeys.SET));
   public static final DefaultedRegistryReference<UpdateExpressionFunction> UNSET =
