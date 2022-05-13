@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
@@ -10,7 +11,9 @@ import net.kyori.adventure.translation.TranslationRegistry;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.Command;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
 import org.spongepowered.api.resource.Resource;
 import org.spongepowered.api.resource.ResourcePath;
@@ -38,11 +41,16 @@ public class EpicBanItem {
   }
 
   @Inject private PluginContainer plugin;
+  @Inject private Injector injector;
 
   @Inject
-  EpicBanItem(EBIRegistries registries, EBICommand commands) {
+  EpicBanItem(EBIRegistries registries) {
     Objects.requireNonNull(registries);
-    Objects.requireNonNull(commands);
+  }
+
+  @Listener
+  public void onRegisterCommand(RegisterCommandEvent<Command.Parameterized> event) {
+    event.register(plugin, injector.getInstance(EBICommand.class).build(), "epicbanitem", "ebi");
   }
 
   @Listener
