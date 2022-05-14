@@ -7,7 +7,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.util.DataViewUtils;
+import team.ebi.epicbanitem.util.DataUtils;
 
 public class ExistsQueryExpression implements QueryExpression {
   private static final String exception =
@@ -29,6 +29,6 @@ public class ExistsQueryExpression implements QueryExpression {
 
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
-    return QueryResult.from(DataViewUtils.get(data, query).isPresent() == expect);
+    return QueryResult.from(DataUtils.get(data, query).isPresent() == expect);
   }
 }

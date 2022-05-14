@@ -2,11 +2,17 @@ package team.ebi.epicbanitem.util;
 
 import java.util.List;
 import java.util.Optional;
+import net.kyori.adventure.text.Component;
 import org.codehaus.plexus.util.StringUtils;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
-public final class DataViewUtils {
+public final class DataUtils {
   /**
    * Support to get value from array
    *
@@ -25,5 +31,20 @@ public final class DataViewUtils {
       return Optional.ofNullable(value);
     } else if (subView.isEmpty()) return Optional.empty();
     return get(subView.get(), query.popFirst());
+  }
+
+  public static Component objectName(SerializableDataHolder holder) {
+    Component objectName =
+        holder
+            .get(Keys.DISPLAY_NAME)
+            .orElseGet(
+                () -> {
+                  if (holder instanceof BlockSnapshot)
+                    return ((BlockSnapshot) holder).state().type().asComponent();
+                  else return ItemTypes.AIR.get().asComponent();
+                });
+    if (holder instanceof ItemStackSnapshot)
+      objectName = objectName.hoverEvent((ItemStackSnapshot) holder);
+    return objectName;
   }
 }

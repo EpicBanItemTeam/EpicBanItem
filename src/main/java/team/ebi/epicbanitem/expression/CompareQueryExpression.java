@@ -8,7 +8,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.util.DataViewUtils;
+import team.ebi.epicbanitem.util.DataUtils;
 
 public abstract class CompareQueryExpression implements QueryExpression {
 
@@ -30,7 +30,7 @@ public abstract class CompareQueryExpression implements QueryExpression {
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     return QueryResult.from(
-        DataViewUtils.get(data, query)
+        DataUtils.get(data, query)
             .filter(IS_NUMBER)
             .map(it -> this.predicate.test(((Number) it).doubleValue(), value))
             .orElse(false));

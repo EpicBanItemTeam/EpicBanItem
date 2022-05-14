@@ -7,7 +7,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.util.DataViewUtils;
+import team.ebi.epicbanitem.util.DataUtils;
 
 public class EqQueryExpression implements QueryExpression {
   private final Object value;
@@ -23,7 +23,7 @@ public class EqQueryExpression implements QueryExpression {
 
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
-    Object value = DataViewUtils.get(data, query).orElse(null);
+    Object value = DataUtils.get(data, query).orElse(null);
     if (value instanceof Number) value = ((Number) value).doubleValue();
     return QueryResult.from(Objects.equals(this.value, value));
   }

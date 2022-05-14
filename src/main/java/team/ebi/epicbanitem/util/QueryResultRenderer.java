@@ -124,7 +124,7 @@ public class QueryResultRenderer {
     for (DataQuery query : view.keys(false)) {
       Optional<DataView> subView = view.getView(query);
       Optional<List<?>> list = view.getList(query);
-      Optional<Object> value = DataViewUtils.get(view, query);
+      Optional<Object> value = DataUtils.get(view, query);
       String key = query.parts().get(0);
       DataQuery currentExpandedQuery = expandedQuery.then(key);
       Style.Builder style = Style.style();

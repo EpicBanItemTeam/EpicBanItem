@@ -13,7 +13,7 @@ import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
 import team.ebi.epicbanitem.expression.ValueQueryExpression;
-import team.ebi.epicbanitem.util.DataViewUtils;
+import team.ebi.epicbanitem.util.DataUtils;
 
 /**
  * <code>
@@ -53,7 +53,7 @@ public class AllQueryExpression implements QueryExpression {
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     Optional<List<?>> list =
-        DataViewUtils.get(data, query).filter(it -> it instanceof List).map(it -> (List<?>) it);
+        DataUtils.get(data, query).filter(it -> it instanceof List).map(it -> (List<?>) it);
     if (list.isPresent() && !list.get().isEmpty()) {
       ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
       for (int i = 0; i < list.get().size(); i++) {

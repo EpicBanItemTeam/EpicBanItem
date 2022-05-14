@@ -1,5 +1,11 @@
 package team.ebi.epicbanitem;
 
+import static team.ebi.epicbanitem.util.DataUtils.objectName;
+import static team.ebi.epicbanitem.util.EntityUtils.equipped;
+import static team.ebi.epicbanitem.util.EntityUtils.heldHand;
+import static team.ebi.epicbanitem.util.EntityUtils.targetBlock;
+import static team.ebi.epicbanitem.util.EntityUtils.targetObject;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Predicates;
@@ -33,25 +39,16 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.data.DataManager;
-import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
-import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
-import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
-import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
-import org.spongepowered.api.util.blockray.RayTrace;
-import org.spongepowered.api.util.blockray.RayTraceResult;
 import org.spongepowered.api.world.BlockChangeFlags;
-import org.spongepowered.api.world.LocatableBlock;
 import org.spongepowered.api.world.Location;
 import team.ebi.epicbanitem.api.RestrictionPreset;
 import team.ebi.epicbanitem.api.RestrictionPresets;
@@ -73,62 +70,6 @@ import team.ebi.epicbanitem.util.command.Parameters;
 
 @Singleton
 public final class EBICommand {
-
-  private static Component objectName(SerializableDataHolder holder) {
-    Component objectName =
-        holder
-            .get(Keys.DISPLAY_NAME)
-            .orElseGet(
-                () -> {
-                  if (holder instanceof BlockSnapshot)
-                    return ((BlockSnapshot) holder).state().type().asComponent();
-                  else return ItemTypes.AIR.get().asComponent();
-                });
-    if (holder instanceof ItemStackSnapshot)
-      objectName = objectName.hoverEvent((ItemStackSnapshot) holder);
-    return objectName;
-  }
-
-  private static Optional<ItemStack> targetObject(Player player, boolean isBlock) {
-    return Optional.of(isBlock)
-        .filter(Boolean::booleanValue)
-        .flatMap(
-            ignored ->
-                targetBlock(player).map(it -> ItemStack.builder().fromBlockSnapshot(it).build()))
-        .or(() -> heldHand(player).flatMap(it -> equipped(player, it)));
-  }
-
-  private static Optional<LocatableBlock> targetLocation(Living living) {
-    return RayTrace.block()
-        .select(RayTrace.nonAir())
-        .limit(5)
-        .sourceEyePosition(living)
-        .direction(living)
-        .execute()
-        .map(RayTraceResult::selectedObject);
-  }
-
-  private static Optional<BlockSnapshot> targetBlock(Living living) {
-    return targetLocation(living).map(it -> it.serverLocation().createSnapshot());
-  }
-
-  private static Optional<EquipmentType> heldHand(Equipable equipable) {
-    return equipable
-        .equipped(EquipmentTypes.MAIN_HAND.get())
-        .filter(Predicate.not(ItemStack::isEmpty))
-        .map(it -> EquipmentTypes.MAIN_HAND.get())
-        .or(
-            () ->
-                equipable
-                    .equipped(EquipmentTypes.OFF_HAND.get())
-                    .filter(Predicate.not(ItemStack::isEmpty))
-                    .map(it -> EquipmentTypes.OFF_HAND.get()));
-  }
-
-  private static Optional<ItemStack> equipped(Equipable equipable, EquipmentType type) {
-    return equipable.equipped(type).filter(Predicate.not(ItemStack::isEmpty));
-  }
-
   @Inject private ExpressionService expressionService;
   @Inject private RestrictionRuleService ruleService;
 

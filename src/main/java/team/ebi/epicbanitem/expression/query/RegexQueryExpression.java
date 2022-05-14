@@ -7,7 +7,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.util.DataViewUtils;
+import team.ebi.epicbanitem.util.DataUtils;
 import team.ebi.epicbanitem.util.Regex;
 
 public class RegexQueryExpression implements QueryExpression {
@@ -29,7 +29,7 @@ public class RegexQueryExpression implements QueryExpression {
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     return QueryResult.from(
-        DataViewUtils.get(data, query)
+        DataUtils.get(data, query)
             .filter(it -> it instanceof String)
             .map(it -> (String) it)
             .filter(this.pattern.asPredicate())

@@ -8,7 +8,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
-import team.ebi.epicbanitem.util.DataViewUtils;
+import team.ebi.epicbanitem.util.DataUtils;
 
 public class ElemMatchQueryExpression implements QueryExpression {
   private final QueryExpression expression;
@@ -24,8 +24,8 @@ public class ElemMatchQueryExpression implements QueryExpression {
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     Optional<List<?>> list =
-        DataViewUtils.get(data, query).filter(it -> it instanceof List).map(it -> (List<?>) it);
-    if (!list.isPresent() || list.get().isEmpty()) return QueryResult.failed();
+        DataUtils.get(data, query).filter(it -> it instanceof List).map(it -> (List<?>) it);
+    if (list.isEmpty() || list.get().isEmpty()) return QueryResult.failed();
     List<?> values = list.get();
     ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
     boolean matched = false;
