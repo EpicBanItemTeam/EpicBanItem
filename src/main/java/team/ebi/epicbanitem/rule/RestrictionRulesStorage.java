@@ -24,7 +24,6 @@ import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleService;
-import team.ebi.epicbanitem.api.RestrictionRules;
 
 @Singleton
 public class RestrictionRulesStorage {
@@ -62,7 +61,7 @@ public class RestrictionRulesStorage {
   }
 
   public void remove(ResourceKey key) {
-    RestrictionRules.remove(key);
+    ruleService.remove(key);
     try {
       Files.delete(rulesDir.resolve(key.value() + ".conf"));
     } catch (IOException e) {
@@ -71,7 +70,7 @@ public class RestrictionRulesStorage {
   }
 
   public void save(ResourceKey key) {
-    this.save(key, RestrictionRules.get(key));
+    ruleService.of(key).ifPresent(it -> save(key, it));
   }
 
   public void save(ResourceKey key, RestrictionRule rule) {
@@ -85,9 +84,10 @@ public class RestrictionRulesStorage {
   }
 
   public void save() {
-    RestrictionRules.all().forEach(this::save);
+    ruleService.all().forEach(this::save);
   }
 
+  @SuppressWarnings("UnstableApiUsage")
   private ImmutableMap<ResourceKey, RestrictionRule> rulesFromFiles() throws IOException {
 
     try (Stream<Path> paths =

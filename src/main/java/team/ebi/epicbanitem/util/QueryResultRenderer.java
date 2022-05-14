@@ -52,6 +52,7 @@ public class QueryResultRenderer {
     TextComponent.Builder keyComponent = Component.text();
     if (Objects.nonNull(key)) keyComponent.append(key);
     components.add(keyComponent.append(leftBracket).build());
+    //noinspection UnstableApiUsage
     components.addAll(input.stream().map(INDENT::append).collect(ImmutableList.toImmutableList()));
     return components.add(rightBracket).build();
   }

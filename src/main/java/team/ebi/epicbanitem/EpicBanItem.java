@@ -50,7 +50,7 @@ public class EpicBanItem {
 
   @Listener
   public void onRegisterCommand(RegisterCommandEvent<Command.Parameterized> event) {
-    event.register(plugin, injector.getInstance(EBICommand.class).build(), "epicbanitem", "ebi");
+    event.register(plugin, injector.getInstance(EBICommands.class).build(), "epicbanitem", "ebi");
   }
 
   @Listener

@@ -3,13 +3,11 @@ package team.ebi.epicbanitem.api;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.inject.ImplementedBy;
-import com.google.inject.Singleton;
 import java.util.Collection;
 import java.util.Comparator;
 import org.spongepowered.api.ResourceKey;
 import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
-@Singleton
 @ImplementedBy(RulePredicateServiceImpl.class)
 public interface RulePredicateService {
   ResourceKey WILDCARD = ResourceKey.of("_", "_");
@@ -18,6 +16,7 @@ public interface RulePredicateService {
    * @param id {@link ResourceKey} of object
    * @return Rules that match the predicates
    */
+  @SuppressWarnings("UnstableApiUsage")
   default ImmutableSet<RestrictionRule> rules(ResourceKey id) {
     return predicates(id).stream()
         .map(this::rule)
@@ -42,6 +41,7 @@ public interface RulePredicateService {
 
   ImmutableSet<RestrictionRule> rule(ResourceKey predicate);
 
+  @SuppressWarnings("UnstableApiUsage")
   default ImmutableSortedSet<RestrictionRule> rulesWithPriority(ResourceKey predicate) {
     return rule(predicate).stream()
         .collect(

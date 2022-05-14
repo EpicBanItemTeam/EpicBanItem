@@ -23,25 +23,15 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
 
   boolean needCancel();
 
-  void needCancel(boolean value);
-
   boolean defaultWorldState();
 
   boolean defaultTriggerState();
 
-  void defaultWorldState(boolean state);
-
-  void defaultTriggerState(boolean state);
-
   boolean worldState(UUID uuid);
-
-  boolean worldState(@NotNull UUID uuid, boolean value);
 
   ImmutableMap<UUID, Boolean> worldStates();
 
   boolean triggerState(RestrictionTrigger trigger);
-
-  boolean triggerState(@NotNull RestrictionTrigger trigger, boolean value);
 
   ImmutableMap<RestrictionTrigger, Boolean> triggersState();
 
@@ -49,10 +39,6 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
 
   @Nullable
   UpdateExpression updateExpression();
-
-  void queryExpression(QueryExpression expression);
-
-  void updateExpression(@Nullable UpdateExpression expression);
 
   /**
    *
@@ -63,8 +49,6 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
    * @return The id filter for performance.
    */
   ResourceKey predicate();
-
-  void predicate(ResourceKey key);
 
   /**
    * @return Translatable component with args:

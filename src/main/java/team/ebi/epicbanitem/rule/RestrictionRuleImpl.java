@@ -32,18 +32,39 @@ import team.ebi.epicbanitem.expression.RootUpdateExpression;
 public class RestrictionRuleImpl implements RestrictionRule {
 
   private final int priority;
-  private boolean defaultWorldState;
-  private boolean defaultTriggerState;
+  private final boolean defaultWorldState;
+  private final boolean defaultTriggerState;
 
   private final Map<UUID, Boolean> worldStates = Maps.newHashMap();
 
   private final Map<RestrictionTrigger, Boolean> triggerStates = Maps.newHashMap();
-  private QueryExpression queryExpression;
-  private @Nullable UpdateExpression updateExpression;
-  private ResourceKey predicate;
-  private boolean needCancel;
+  private final QueryExpression queryExpression;
+  private final @Nullable UpdateExpression updateExpression;
+  private final ResourceKey predicate;
+  private final boolean needCancel;
 
   @Inject private RestrictionRuleService ruleService;
+
+  public RestrictionRuleImpl(QueryExpression queryExpression) {
+    this(10, false, false, queryExpression, null, RulePredicateService.WILDCARD, false);
+  }
+
+  public RestrictionRuleImpl(
+      int priority,
+      boolean defaultWorldState,
+      boolean defaultTriggerState,
+      QueryExpression queryExpression,
+      @Nullable UpdateExpression updateExpression,
+      ResourceKey predicate,
+      boolean needCancel) {
+    this.priority = priority;
+    this.defaultWorldState = defaultWorldState;
+    this.defaultTriggerState = defaultTriggerState;
+    this.queryExpression = queryExpression;
+    this.updateExpression = updateExpression;
+    this.predicate = predicate;
+    this.needCancel = needCancel;
+  }
 
   public RestrictionRuleImpl(DataView data) {
     this.priority = data.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
@@ -58,6 +79,11 @@ public class RestrictionRuleImpl implements RestrictionRule {
     this.predicate =
         data.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
     this.needCancel = data.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
+    // TODO Need config
+    this.defaultWorldState =
+        data.getBoolean(RestrictionRuleQueries.DEFAULT_WORLD_STATE).orElse(false);
+    this.defaultTriggerState =
+        data.getBoolean(RestrictionRuleQueries.DEFAULT_TRIGGER_STATE).orElse(false);
   }
 
   @Override
@@ -78,11 +104,6 @@ public class RestrictionRuleImpl implements RestrictionRule {
   }
 
   @Override
-  public void needCancel(boolean value) {
-    this.needCancel = value;
-  }
-
-  @Override
   public boolean defaultWorldState() {
     return this.defaultWorldState;
   }
@@ -93,23 +114,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
   }
 
   @Override
-  public void defaultWorldState(boolean state) {
-    this.defaultWorldState = state;
-  }
-
-  @Override
-  public void defaultTriggerState(boolean state) {
-    this.defaultTriggerState = state;
-  }
-
-  @Override
   public boolean worldState(UUID uuid) {
     return this.worldStates.getOrDefault(uuid, defaultWorldState);
-  }
-
-  @Override
-  public boolean worldState(@NotNull UUID uuid, boolean value) {
-    return Boolean.TRUE.equals(this.worldStates.put(uuid, value));
   }
 
   @Override
@@ -120,11 +126,6 @@ public class RestrictionRuleImpl implements RestrictionRule {
   @Override
   public boolean triggerState(RestrictionTrigger trigger) {
     return this.triggerStates.getOrDefault(trigger, defaultTriggerState);
-  }
-
-  @Override
-  public boolean triggerState(@NotNull RestrictionTrigger trigger, boolean value) {
-    return Boolean.TRUE.equals(this.triggerStates.put(trigger, value));
   }
 
   @Override
@@ -143,23 +144,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
   }
 
   @Override
-  public void queryExpression(QueryExpression expression) {
-    this.queryExpression = expression;
-  }
-
-  @Override
-  public void updateExpression(UpdateExpression expression) {
-    this.updateExpression = expression;
-  }
-
-  @Override
   public ResourceKey predicate() {
     return this.predicate;
-  }
-
-  @Override
-  public void predicate(ResourceKey key) {
-    this.predicate = key;
   }
 
   @Override
