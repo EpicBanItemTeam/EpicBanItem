@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.rule;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.inject.Inject;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +21,7 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleQueries;
-import team.ebi.epicbanitem.api.RestrictionRules;
+import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RestrictionTrigger;
 import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
@@ -42,6 +43,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
   private ResourceKey predicate;
   private boolean needCancel;
 
+  @Inject private RestrictionRuleService ruleService;
+
   public RestrictionRuleImpl(DataView data) {
     this.priority = data.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
     this.queryExpression =
@@ -59,7 +62,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
   @Override
   public @NotNull ResourceKey key() {
-    return RestrictionRules.of(this)
+    return ruleService
+        .of(this)
         .orElseThrow(() -> new IllegalArgumentException("Rule have to registered to get key"));
   }
 
@@ -229,14 +233,14 @@ public class RestrictionRuleImpl implements RestrictionRule {
         .toHashCode();
   }
 
-  public static final class Builder extends AbstractDataBuilder<RestrictionRuleImpl> {
+  public static final class Builder extends AbstractDataBuilder<RestrictionRule> {
 
     public Builder() {
-      super(RestrictionRuleImpl.class, 0);
+      super(RestrictionRule.class, 0);
     }
 
     @Override
-    protected Optional<RestrictionRuleImpl> buildContent(DataView container)
+    protected Optional<RestrictionRule> buildContent(DataView container)
         throws InvalidDataException {
       return Optional.of(new RestrictionRuleImpl(container));
     }

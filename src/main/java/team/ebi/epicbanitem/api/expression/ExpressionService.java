@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.api.expression;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.ImplementedBy;
+import com.google.inject.Singleton;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -11,6 +12,7 @@ import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.api.ItemQueries;
 import team.ebi.epicbanitem.expression.ExpressionServiceImpl;
 
+@Singleton
 @ImplementedBy(ExpressionServiceImpl.class)
 public interface ExpressionService {
   ImmutableSet<DataQuery> IGNORED =

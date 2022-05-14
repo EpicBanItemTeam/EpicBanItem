@@ -3,10 +3,9 @@ package team.ebi.epicbanitem;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Predicates;
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.leangen.geantyref.TypeToken;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
@@ -24,33 +23,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.adventure.SpongeComponents;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.entity.carrier.CarrierBlockEntity;
 import org.spongepowered.api.command.Command;
-import org.spongepowered.api.command.CommandCompletion;
 import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.exception.ArgumentParseException;
 import org.spongepowered.api.command.exception.CommandException;
-import org.spongepowered.api.command.parameter.ArgumentReader.Mutable;
 import org.spongepowered.api.command.parameter.CommandContext;
-import org.spongepowered.api.command.parameter.CommandContext.Builder;
-import org.spongepowered.api.command.parameter.Parameter;
-import org.spongepowered.api.command.parameter.Parameter.Key;
-import org.spongepowered.api.command.parameter.managed.Flag;
-import org.spongepowered.api.command.parameter.managed.ValueParser;
-import org.spongepowered.api.command.parameter.managed.clientcompletion.ClientCompletionType;
-import org.spongepowered.api.command.parameter.managed.clientcompletion.ClientCompletionTypes;
 import org.spongepowered.api.data.DataManager;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.SerializableDataHolder;
 import org.spongepowered.api.data.persistence.DataContainer;
-import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.Inventory;
@@ -58,7 +48,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
-import org.spongepowered.api.util.StartsWithPredicate;
 import org.spongepowered.api.util.blockray.RayTrace;
 import org.spongepowered.api.util.blockray.RayTraceResult;
 import org.spongepowered.api.world.BlockChangeFlags;
@@ -67,6 +56,8 @@ import org.spongepowered.api.world.Location;
 import team.ebi.epicbanitem.api.RestrictionPreset;
 import team.ebi.epicbanitem.api.RestrictionPresets;
 import team.ebi.epicbanitem.api.RestrictionRule;
+import team.ebi.epicbanitem.api.RestrictionRuleQueries;
+import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RestrictionRules;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.api.expression.ExpressionService;
@@ -75,91 +66,13 @@ import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
-import team.ebi.epicbanitem.expression.RootUpdateExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
-import team.ebi.epicbanitem.util.DataSerializableValueParser;
+import team.ebi.epicbanitem.util.Components;
+import team.ebi.epicbanitem.util.command.Flags;
+import team.ebi.epicbanitem.util.command.Parameters;
 
 @Singleton
 public final class EBICommand {
-  private static final class Parameters {
-    public static final Parameter.Value.Builder<ResourceKey> RULE_NAME =
-        Parameter.builder(ResourceKey.class)
-            .addParser(
-                new ValueParser<>() {
-                  @Override
-                  public Optional<? extends ResourceKey> parseValue(
-                      Key<? super ResourceKey> parameterKey, Mutable reader, Builder context)
-                      throws ArgumentParseException {
-                    ResourceKey key = reader.parseResourceKey(EpicBanItem.NAMESPACE);
-                    if (!key.namespace().equals(EpicBanItem.NAMESPACE))
-                      throw new ArgumentParseException(
-                          Component.translatable("epicbanitem.command.create.rejectNamespace"),
-                          key.toString(),
-                          key.namespace().length());
-                    return Optional.of(key);
-                  }
-
-                  @Override
-                  public List<ClientCompletionType> clientCompletionType() {
-                    return List.of(ClientCompletionTypes.RESOURCE_KEY.get());
-                  }
-                });
-    public static final Parameter.Value.Builder<ResourceKey> RULE_KEY =
-        Parameter.resourceKey()
-            .completer(
-                (context, currentInput) ->
-                    RestrictionRules.keyStream()
-                        .map(
-                            it ->
-                                it.namespace().equals(EpicBanItem.NAMESPACE)
-                                    ? it.value()
-                                    : it.asString())
-                        .filter(it -> new StartsWithPredicate(it).test(currentInput))
-                        .map(CommandCompletion::of)
-                        .collect(Collectors.toList()));
-
-    public static final Parameter.Value.Builder<RestrictionPreset> PRESET =
-        Parameter.registryElement(
-            TypeToken.get(RestrictionPreset.class), EBIRegistries.PRESET, EpicBanItem.NAMESPACE);
-
-    public static final Parameter.Value.Builder<RestrictionRule> RULE =
-        Parameter.builder(Keys.RULE)
-            .addParser(new DataSerializableValueParser<>(RestrictionRuleImpl.class));
-
-    public static final Parameter.Value.Builder<RootQueryExpression> QUERY =
-        Parameter.builder(Keys.QUERY)
-            .addParser(new DataSerializableValueParser<>(RootQueryExpression.class));
-
-    public static final Parameter.Value.Builder<RootUpdateExpression> UPDATE =
-        Parameter.builder(Keys.UPDATE)
-            .addParser(new DataSerializableValueParser<>(RootUpdateExpression.class));
-
-    public static final class Keys {
-      public static final Parameter.Key<RootQueryExpression> QUERY =
-          Parameter.key("query", RootQueryExpression.class);
-      public static final Parameter.Key<RootUpdateExpression> UPDATE =
-          Parameter.key("update", RootUpdateExpression.class);
-      public static final Parameter.Key<ResourceKey> RULE_KEY =
-          Parameter.key("rule-key", ResourceKey.class);
-
-      public static final Parameter.Key<ResourceKey> RULE_NAME =
-          Parameter.key("rule-name", ResourceKey.class);
-      public static final Parameter.Key<RestrictionRule> RULE =
-          Parameter.key("rule", RestrictionRule.class);
-      public static final Parameter.Key<RestrictionPreset> PRESET =
-          Parameter.key("preset", RestrictionPreset.class);
-    }
-  }
-
-  private static final class Flags {
-    public static final Flag BLOCK = Flag.builder().aliases("block", "b").build();
-
-    public static final Flag PRESET =
-        Flag.builder()
-            .aliases("preset", "p")
-            .setParameter(Parameters.PRESET.key(Parameters.Keys.PRESET).build())
-            .build();
-  }
 
   private static Component objectName(SerializableDataHolder holder) {
     Component objectName =
@@ -217,6 +130,7 @@ public final class EBICommand {
   }
 
   @Inject private ExpressionService expressionService;
+  @Inject private RestrictionRuleService ruleService;
 
   EBICommand() {}
 
@@ -263,7 +177,7 @@ public final class EBICommand {
             .build();
 
     return Command.builder()
-        .shortDescription(Component.translatable("command.root.description"))
+        .shortDescription(Component.translatable("epicbanitem.command.root.description"))
         .permission(EpicBanItem.permission("command.root"))
         .addChild(query, "query")
         .addChild(remove, "remove", "rm")
@@ -397,10 +311,10 @@ public final class EBICommand {
   }
 
   private CommandResult create(CommandContext context) {
-    if (!(context.cause().root() instanceof Player))
+    if (!(context.cause().root() instanceof ServerPlayer))
       return CommandResult.error(
           Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED));
-    final Player player = (Player) context.cause().root();
+    final ServerPlayer player = (ServerPlayer) context.cause().root();
     final RestrictionPreset preset =
         context.one(Parameters.Keys.PRESET).orElse(RestrictionPresets.TYPE.get());
     final ResourceKey name = context.requireOne(Parameters.Keys.RULE_NAME);
@@ -447,8 +361,49 @@ public final class EBICommand {
     if (expressionView.keys(false).isEmpty()) {
       return CommandResult.error(Component.translatable("epicbanitem.command.create.noExpression"));
     }
+    ruleService.register(
+        name,
+        new RestrictionRuleImpl(
+            DataContainer.createNew().set(RestrictionRuleQueries.QUERY, expressionView)));
     player.sendMessage(
-        Component.text(new Gson().toJson(expressionView.getMap(DataQuery.of()).get())));
+        Component.translatable("epicbanitem.command.create.success")
+            .args(Component.text(name.value()))
+            .append(Component.space())
+            .append(
+                Components.EDIT
+                    .color(NamedTextColor.GRAY)
+                    .clickEvent(
+                        SpongeComponents.executeCallback(
+                            cause -> {
+                              try {
+                                Sponge.server()
+                                    .commandManager()
+                                    .process(
+                                        player,
+                                        MessageFormat.format(
+                                            "{0} edit {1}", EpicBanItem.NAMESPACE, name));
+                              } catch (CommandException e) {
+                                throw new RuntimeException(e);
+                              }
+                            })))
+            .append(Component.space())
+            .append(
+                Components.TEST_HELD
+                    .color(NamedTextColor.GRAY)
+                    .clickEvent(
+                        SpongeComponents.executeCallback(
+                            cause -> {
+                              try {
+                                Sponge.server()
+                                    .commandManager()
+                                    .process(
+                                        player,
+                                        MessageFormat.format(
+                                            "{0} test {1}", EpicBanItem.NAMESPACE, name));
+                              } catch (CommandException e) {
+                                throw new RuntimeException(e);
+                              }
+                            }))));
     return CommandResult.success();
   }
 }

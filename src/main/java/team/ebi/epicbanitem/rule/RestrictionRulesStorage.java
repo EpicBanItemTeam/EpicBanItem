@@ -23,12 +23,14 @@ import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.RestrictionRule;
+import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RestrictionRules;
 
 @Singleton
 public class RestrictionRulesStorage {
 
   private final Path rulesDir;
+  @Inject private RestrictionRuleService ruleService;
 
   @Inject
   public RestrictionRulesStorage(
@@ -51,7 +53,8 @@ public class RestrictionRulesStorage {
     this.rulesFromFiles()
         .forEach(
             (key, rule) ->
-                RestrictionRules.register(key, rule)
+                ruleService
+                    .register(key, rule)
                     .orElseThrow(
                         () ->
                             new IllegalStateException(
