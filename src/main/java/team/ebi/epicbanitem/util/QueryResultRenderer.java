@@ -96,16 +96,14 @@ public class QueryResultRenderer {
       if (value instanceof DataView) {
         components.addAll(
             wrapObject(
-                renderKey(key, expandedQuery)
-                    .style(builder -> builder.merge(style.build()))
-                    .append(COLON),
+                renderKey(key, expandedQuery).applyFallbackStyle(style.build()).append(COLON),
                 renderView((DataView) value, expandedQuery, children.get(key))));
       } else {
         String pair = expandedQuery.then(key) + ": " + valueString(value);
         components.add(
             wrapValue(
                 renderKey(key, expandedQuery)
-                    .style(builder -> builder.merge(style.build()))
+                    .applyFallbackStyle(style.build())
                     .append(
                         COLON
                             .hoverEvent(Component.text(pair))
@@ -133,14 +131,14 @@ public class QueryResultRenderer {
         components.addAll(
             wrapObject(
                 renderKey(key, currentExpandedQuery)
-                    .style(builder -> builder.merge(style.build()))
+                    .applyFallbackStyle(style.build())
                     .append(COLON),
                 renderView(subView.get(), currentExpandedQuery, children.get(key))));
       else if (list.isPresent())
         components.addAll(
             wrapList(
                 renderKey(key, currentExpandedQuery)
-                    .style(builder -> builder.merge(style.build()))
+                    .applyFallbackStyle(style.build())
                     .append(COLON),
                 renderList(list.get(), currentExpandedQuery, children.get(key))));
       else
@@ -150,7 +148,7 @@ public class QueryResultRenderer {
               components.add(
                   wrapValue(
                       renderKey(key, currentExpandedQuery)
-                          .style(builder -> builder.merge(style.build()))
+                          .applyFallbackStyle(style.build())
                           .append(
                               COLON
                                   .hoverEvent(Component.text(pair))
