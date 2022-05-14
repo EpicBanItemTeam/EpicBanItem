@@ -2,7 +2,6 @@ package team.ebi.epicbanitem.rule;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Optional;
@@ -19,9 +18,10 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.data.persistence.Queries;
+import team.ebi.epicbanitem.EBIServices;
+import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleQueries;
-import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RestrictionTrigger;
 import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
@@ -42,8 +42,6 @@ public class RestrictionRuleImpl implements RestrictionRule {
   private final @Nullable UpdateExpression updateExpression;
   private final ResourceKey predicate;
   private final boolean needCancel;
-
-  @Inject private RestrictionRuleService ruleService;
 
   public RestrictionRuleImpl(QueryExpression queryExpression) {
     this(10, false, false, queryExpression, null, RulePredicateService.WILDCARD, false);
@@ -88,7 +86,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
   @Override
   public @NotNull ResourceKey key() {
-    return ruleService
+    return EBIServices.ruleService
         .of(this)
         .orElseThrow(() -> new IllegalArgumentException("Rule have to registered to get key"));
   }
@@ -150,17 +148,26 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
   @Override
   public TranslatableComponent updatedMessage() {
-    return Component.translatable("epicbanitem.rules." + key() + ".updated");
+    String key = "epicbanitem.rules." + key() + ".updated";
+    if (!EpicBanItem.translations.contains(key))
+      return Component.translatable("epicbanitem.rules.updated");
+    return Component.translatable(key);
   }
 
   @Override
   public TranslatableComponent canceledMessage() {
-    return Component.translatable("epicbanitem.rules." + key() + ".canceled");
+    String key = "epicbanitem.rules." + key() + ".canceled";
+    if (!EpicBanItem.translations.contains(key))
+      return Component.translatable("epicbanitem.rules.canceled");
+    return Component.translatable(key);
   }
 
   @Override
   public @NotNull Component asComponent() {
-    return Component.translatable("epicbanitem.rules." + key());
+    ResourceKey resourceKey = key();
+    String key = "epicbanitem.rules." + resourceKey;
+    if (!EpicBanItem.translations.contains(key)) return Component.text(resourceKey.asString());
+    return Component.translatable(key);
   }
 
   @Override

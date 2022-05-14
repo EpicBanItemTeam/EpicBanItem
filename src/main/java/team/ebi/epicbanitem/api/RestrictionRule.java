@@ -70,6 +70,5 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
   TranslatableComponent canceledMessage();
 
   @Override
-  @NotNull
-  Component asComponent();
+  @NotNull Component asComponent();
 }

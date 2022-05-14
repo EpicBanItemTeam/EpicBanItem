@@ -32,6 +32,8 @@ import team.ebi.epicbanitem.util.PropertyResourceBundle;
 public class EpicBanItem {
   public static final String NAMESPACE = "epicbanitem";
 
+  public static TranslationRegistry translations;
+
   public static ResourceKey key(String value) {
     return ResourceKey.of(NAMESPACE, value);
   }
@@ -43,9 +45,11 @@ public class EpicBanItem {
   @Inject private PluginContainer plugin;
   @Inject private Injector injector;
 
+  @SuppressWarnings("SpongeInjection")
   @Inject
-  EpicBanItem(EBIRegistries registries) {
+  EpicBanItem(EBIRegistries registries, EBIServices services) {
     Objects.requireNonNull(registries);
+    Objects.requireNonNull(services);
   }
 
   @Listener
@@ -55,7 +59,7 @@ public class EpicBanItem {
 
   @Listener
   public void onStartingEngine(final StartingEngineEvent<Server> event) {
-    final TranslationRegistry translations = TranslationRegistry.create(key("translations"));
+    translations = new EBITranslationRegistry();
     try (Pack pack = Sponge.server().packRepository().pack(plugin)) {
       PackContents contents = pack.contents();
       Collection<ResourcePath> paths =
