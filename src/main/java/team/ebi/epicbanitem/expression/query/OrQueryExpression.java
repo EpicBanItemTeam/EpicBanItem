@@ -21,7 +21,7 @@ public class OrQueryExpression implements QueryExpression {
             .orElseThrow(() -> new InvalidDataException("$or should be objects array"));
     this.expressions =
         views.stream()
-            .map(it -> new CommonQueryExpression(data, it.currentPath()))
+            .map(it -> new CommonQueryExpression(it, it.currentPath()))
             .collect(Collectors.toSet());
   }
 
