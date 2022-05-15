@@ -17,12 +17,13 @@ import com.google.inject.Singleton;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
@@ -289,10 +290,11 @@ public final class EBICommands {
     final var expression = context.one(keys.query);
     var expressionView = DataContainer.createNew();
     final var isBlock = context.hasFlag(flags.block);
-    expression.ifPresent(it -> it.toContainer().values(false).forEach(expressionView::set));
+    expression.ifPresent(
+        it -> it.expression().toContainer().values(false).forEach(expressionView::set));
     if (isBlock) {
       Optional<BlockSnapshot> block = targetBlock(player);
-      List<DataView> views =
+      Set<DataView> views =
           block
               .flatMap(it -> it.location().flatMap(Location::blockEntity))
               .filter(Predicates.instanceOf(CarrierBlockEntity.class))
@@ -307,7 +309,7 @@ public final class EBICommands {
               .map(ExpressionService::cleanup)
               .map(preset)
               .filter(it -> !it.keys(false).isEmpty())
-              .toList();
+              .collect(Collectors.toUnmodifiableSet());
       if (!views.isEmpty()) {
         expressionView.set(ExpressionQueries.OR, views);
       } else {
@@ -336,7 +338,8 @@ public final class EBICommands {
             .args(
                 Component.text(name.value())
                     .hoverEvent(Component.join(JoinConfiguration.newlines(),
-                        DataViewRenderer.render(finalExpression.expression().toContainer()).stream().limit(25).toList())))
+                        DataViewRenderer.render(finalExpression.expression().toContainer()).stream()
+                            .limit(25).toList())))
             .append(Component.space())
             .append(
                 Components.EDIT
@@ -380,7 +383,9 @@ public final class EBICommands {
             rule -> {
               player.sendMessage(
                   Component.translatable(
-                      "epicbanitem.command.test.result.rule", rule.asComponent()));
+                      "epicbanitem.command.test.result.rule", rule.asComponent().hoverEvent(
+                          Component.join(JoinConfiguration.newlines(),
+                              DataViewRenderer.render(rule.queryExpression().toContainer())))));
               triggers
                   .map(
                       trigger ->

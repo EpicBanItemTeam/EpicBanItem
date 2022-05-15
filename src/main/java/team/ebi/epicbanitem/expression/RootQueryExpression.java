@@ -7,7 +7,6 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
-import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 
@@ -33,9 +32,7 @@ public record RootQueryExpression(CommonQueryExpression expression) implements Q
 
   @Override
   public DataContainer toContainer() {
-    return DataContainer.createNew()
-        .set(Queries.CONTENT_VERSION, contentVersion())
-        .set(ROOT, expression.toContainer());
+    return expression.toContainer();
   }
 
   @Override
