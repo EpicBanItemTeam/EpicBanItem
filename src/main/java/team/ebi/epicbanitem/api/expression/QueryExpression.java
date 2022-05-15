@@ -6,7 +6,7 @@ import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 
 public interface QueryExpression extends DataSerializable {
-  DataQuery ROOT = DataQuery.of("ExpressionRoot");
+  DataQuery ROOT = DataQuery.of("$ExpressionRoot");
 
   /**
    * @param query query path of the node

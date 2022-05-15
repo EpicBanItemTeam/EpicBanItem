@@ -1,9 +1,10 @@
 package team.ebi.epicbanitem.expression.update;
 
-import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -42,10 +43,15 @@ public class RenameUpdateExpression implements UpdateExpression {
     if (value.isPresent()) {
       operation =
           UpdateOperation.common(
-              ImmutableMap.of(
+              Map.of(
                   source, UpdateOperation.remove(source),
                   target, UpdateOperation.replace(target, value.get())));
     }
     return operation;
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return DataContainer.createNew().set(ROOT,target);
   }
 }

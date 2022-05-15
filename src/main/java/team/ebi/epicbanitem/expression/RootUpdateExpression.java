@@ -14,10 +14,8 @@ import team.ebi.epicbanitem.api.expression.UpdateOperation;
 
 public class RootUpdateExpression implements UpdateExpression, DataSerializable {
   private final UpdateExpression expression;
-  private final DataView view;
 
   public RootUpdateExpression(DataView view) {
-    this.view = view;
     this.expression = new CommonUpdateExpression(view, DataQuery.of());
   }
 
@@ -30,7 +28,7 @@ public class RootUpdateExpression implements UpdateExpression, DataSerializable 
   public DataContainer toContainer() {
     return DataContainer.createNew()
         .set(Queries.CONTENT_VERSION, contentVersion())
-        .set(DataQuery.of("expression"), view);
+        .set(DataQuery.of("expression"), expression);
   }
 
   @Override

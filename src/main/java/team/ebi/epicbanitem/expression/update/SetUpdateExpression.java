@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.expression.update;
 
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -23,9 +24,14 @@ public class SetUpdateExpression implements UpdateExpression {
   @Override
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
     ImmutableMap.Builder<DataQuery, UpdateOperation> builder = ImmutableMap.builder();
-    for (DataQuery query : UpdateExpression.parseQuery(query, result)) {
-      builder.put(query, UpdateOperation.replace(query, value));
+    for (DataQuery currentQuery : UpdateExpression.parseQuery(query, result)) {
+      builder.put(currentQuery, UpdateOperation.replace(currentQuery, value));
     }
     return UpdateOperation.common(builder.build());
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return DataContainer.createNew().set(ROOT, value);
   }
 }
