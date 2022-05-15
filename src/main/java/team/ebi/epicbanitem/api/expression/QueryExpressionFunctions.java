@@ -1,6 +1,6 @@
 package team.ebi.epicbanitem.api.expression;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
@@ -13,7 +13,8 @@ import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
-public class QueryExpressionFunctions {
+public final class QueryExpressionFunctions {
+
   public static final DefaultedRegistryReference<QueryExpressionFunction> OR =
       key(EpicBanItem.key(ExpressionKeys.OR));
   public static final DefaultedRegistryReference<QueryExpressionFunction> NOR =
@@ -49,7 +50,15 @@ public class QueryExpressionFunctions {
   public static final DefaultedRegistryReference<QueryExpressionFunction> REGEX =
       key(EpicBanItem.key(ExpressionKeys.REGEX));
 
-  public static ImmutableMap<String, QueryExpressionFunction> EXPRESSIONS;
+  public static Map<String, QueryExpressionFunction> expressions;
+
+  static {
+    Sponge.dataManager()
+        .registerBuilder(RootQueryExpression.class, new RootQueryExpression.Builder());
+  }
+
+  private QueryExpressionFunctions() {
+  }
 
   public static Registry<QueryExpressionFunction> registry() {
     return EBIRegistries.QUERY_EXPRESSION.get();
@@ -59,10 +68,5 @@ public class QueryExpressionFunctions {
       final ResourceKey location) {
     return RegistryKey.of(EBIRegistries.QUERY_EXPRESSION, location)
         .asDefaultedReference(Sponge::server);
-  }
-
-  static {
-    Sponge.dataManager()
-        .registerBuilder(RootQueryExpression.class, new RootQueryExpression.Builder());
   }
 }

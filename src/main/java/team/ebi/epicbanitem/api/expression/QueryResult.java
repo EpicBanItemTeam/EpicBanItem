@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.expression.SimpleQueryResult;
 
 public interface QueryResult extends Map<String, QueryResult> {
+
   static Optional<QueryResult> failed() {
     return Optional.empty();
   }

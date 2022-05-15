@@ -1,7 +1,6 @@
 package team.ebi.epicbanitem.expression;
 
 import static team.ebi.epicbanitem.api.expression.ExpressionQueries.UPDATE_EXPRESSIONS;
-import static team.ebi.epicbanitem.api.expression.UpdateExpressionFunctions.EXPRESSIONS;
 
 import com.google.common.collect.Maps;
 import java.util.Map;
@@ -10,6 +9,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
+import team.ebi.epicbanitem.api.expression.UpdateExpressionFunctions;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 import team.ebi.epicbanitem.expression.update.SetUpdateExpression;
 
@@ -23,7 +23,7 @@ public class CommonUpdateExpression implements UpdateExpression {
       String key = subQuery.toString();
       DataQuery entireQuery = query.then(subQuery);
       if (UPDATE_EXPRESSIONS.contains(subQuery)) {
-        this.expressions.put(entireQuery, EXPRESSIONS.get(key).apply(view, entireQuery));
+        this.expressions.put(entireQuery, UpdateExpressionFunctions.expressions.get(key).apply(view, entireQuery));
       } else {
         this.expressions.clear();
         break;

@@ -1,7 +1,6 @@
 package team.ebi.epicbanitem.expression;
 
 import static team.ebi.epicbanitem.api.expression.ExpressionQueries.ROOT_QUERY_EXPRESSIONS;
-import static team.ebi.epicbanitem.api.expression.QueryExpressionFunctions.EXPRESSIONS;
 
 import com.google.common.collect.Maps;
 import java.util.Map;
@@ -11,6 +10,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
+import team.ebi.epicbanitem.api.expression.QueryExpressionFunctions;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 
 public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions) implements
@@ -38,7 +38,7 @@ public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions)
               DataQuery currentQuery = query.then(key);
               if (ROOT_QUERY_EXPRESSIONS.contains(key)) {
                 this.expressions.put(currentQuery,
-                    EXPRESSIONS.get(key.toString()).apply(view, currentQuery));
+                    QueryExpressionFunctions.expressions.get(key.toString()).apply(view, currentQuery));
               } else if (!(value instanceof DataView subView)) {
                 this.expressions.put(currentQuery,
                     new ExtraQueryQueryExpression(
@@ -49,10 +49,10 @@ public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions)
               } else {
                 for (DataQuery subQuery : subView.keys(false)) {
                   String expressionKey = subQuery.toString();
-                  if (EXPRESSIONS.containsKey(expressionKey)) {
+                  if (QueryExpressionFunctions.expressions.containsKey(expressionKey)) {
                     this.expressions.put(currentQuery.then(subQuery),
                         new ExtraQueryQueryExpression(
-                            EXPRESSIONS
+                            QueryExpressionFunctions.expressions
                                 .get(expressionKey)
                                 .apply(view, currentQuery.then(subQuery)),
                             DataQuery.of('.', key.toString())));

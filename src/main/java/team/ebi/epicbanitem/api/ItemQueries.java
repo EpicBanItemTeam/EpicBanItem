@@ -7,4 +7,7 @@ public final class ItemQueries {
   public static final DataQuery ITEM_TYPE = DataQuery.of("ItemType");
   public static final DataQuery CREATOR =
       DataQuery.of("UnsafeData", "BlockEntityTag", "sponge-data", "sponge", "creator_tracked");
+
+  private ItemQueries() {
+  }
 }

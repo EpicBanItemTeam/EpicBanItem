@@ -2,11 +2,11 @@ package team.ebi.epicbanitem.api.expression;
 
 import static team.ebi.epicbanitem.api.expression.ExpressionKeys.query;
 
-import com.google.common.collect.Sets;
 import java.util.Set;
 import org.spongepowered.api.data.persistence.DataQuery;
 
-public class ExpressionQueries {
+public final class ExpressionQueries {
+
   public static final DataQuery OR = query(ExpressionKeys.OR);
   public static final DataQuery NOR = query(ExpressionKeys.NOR);
   public static final DataQuery AND = query(ExpressionKeys.AND);
@@ -41,9 +41,14 @@ public class ExpressionQueries {
   public static final DataQuery INC = query(ExpressionKeys.INC);
   public static final DataQuery MUL = query(ExpressionKeys.MUL);
 
-  /** The expressions can at root level */
-  public static final Set<DataQuery> ROOT_QUERY_EXPRESSIONS = Sets.newHashSet(OR, NOR, AND);
+  /**
+   * The expressions can at root level
+   */
+  public static final Set<DataQuery> ROOT_QUERY_EXPRESSIONS = Set.of(OR, NOR, AND);
 
   public static final Set<DataQuery> UPDATE_EXPRESSIONS =
-      Sets.newHashSet(SET, UNSET, RENAME, POP, PULL, INC, MUL);
+      Set.of(SET, UNSET, RENAME, POP, PULL, INC, MUL);
+
+  private ExpressionQueries() {
+  }
 }

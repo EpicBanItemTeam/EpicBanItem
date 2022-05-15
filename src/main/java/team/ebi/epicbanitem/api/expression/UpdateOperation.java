@@ -1,6 +1,5 @@
 package team.ebi.epicbanitem.api.expression;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Objects;
 import net.kyori.adventure.text.ComponentLike;
@@ -14,7 +13,7 @@ import team.ebi.epicbanitem.expression.ReplaceUpdateOperation;
 public interface UpdateOperation extends Map<DataQuery, UpdateOperation>, ComponentLike {
 
   static UpdateOperation common() {
-    return common(ImmutableMap.of());
+    return common(Map.of());
   }
 
   static UpdateOperation common(Map<DataQuery, UpdateOperation> children) {

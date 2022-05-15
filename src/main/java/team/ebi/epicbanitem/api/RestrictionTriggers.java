@@ -11,7 +11,8 @@ import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
-public class RestrictionTriggers {
+public final class RestrictionTriggers {
+
   public static final DefaultedRegistryReference<RestrictionTrigger> USE =
       key(EpicBanItem.key("use"));
   public static final DefaultedRegistryReference<RestrictionTrigger> INTERACT =
@@ -40,6 +41,9 @@ public class RestrictionTriggers {
 
   public static final DefaultedRegistryReference<RestrictionTrigger> JOIN =
       key(EpicBanItem.key("join"));
+
+  private RestrictionTriggers() {
+  }
 
   public static Registry<RestrictionTrigger> registry() {
     return Sponge.server().registry(EBIRegistries.TRIGGER);

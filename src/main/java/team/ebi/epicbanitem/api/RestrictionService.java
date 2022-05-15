@@ -15,6 +15,7 @@ import team.ebi.epicbanitem.rule.RestrictionServiceImpl;
 
 @ImplementedBy(RestrictionServiceImpl.class)
 public interface RestrictionService {
+
   default boolean shouldBypass(Subject subject, RestrictionRule rule, RestrictionTrigger trigger) {
     return subject.hasPermission(
         EpicBanItem.permission("bypass." + rule),
@@ -27,9 +28,15 @@ public interface RestrictionService {
       ServerWorld world,
       RestrictionTrigger trigger,
       @Nullable Subject subject) {
-    if (!rule.triggerState(trigger)) return Optional.empty();
-    if (!rule.worldState(world.uniqueId())) return Optional.empty();
-    if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) return Optional.empty();
+    if (!rule.triggerState(trigger)) {
+      return Optional.empty();
+    }
+    if (!rule.worldState(world.uniqueId())) {
+      return Optional.empty();
+    }
+    if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) {
+      return Optional.empty();
+    }
     return rule.queryExpression()
         .query(view)
         .flatMap(

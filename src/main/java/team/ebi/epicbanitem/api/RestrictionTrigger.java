@@ -7,9 +7,12 @@ import org.spongepowered.api.registry.DefaultedRegistryValue;
 import org.spongepowered.api.util.annotation.CatalogedBy;
 import team.ebi.epicbanitem.EpicBanItem;
 
-/** Recommend to extend {@link AbstractRestrictionTrigger} */
+/**
+ * Recommend to extend {@link AbstractRestrictionTrigger}
+ */
 @CatalogedBy(RestrictionTriggers.class)
 public interface RestrictionTrigger extends DefaultedRegistryValue, ResourceKeyed, ComponentLike {
+
   String CONTEXT_KEY = EpicBanItem.NAMESPACE + "-trigger";
 
   Component description();

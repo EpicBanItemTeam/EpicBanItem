@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import io.leangen.geantyref.TypeToken;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.ResourceKey;
@@ -32,6 +31,7 @@ import team.ebi.epicbanitem.util.DataSerializableValueParser;
 
 @Singleton
 public final class Parameters {
+
   public final Parameter.Value.Builder<ResourceKey> ruleName;
   public final Parameter.Value.Builder<ResourceKey> ruleKey;
 
@@ -85,7 +85,7 @@ public final class Parameters {
                             ruleService.keys().map(ResourceKey::namespace))
                         .filter(it -> new StartsWithPredicate(it).test(currentInput))
                         .map(CommandCompletion::of)
-                        .collect(Collectors.toList()));
+                        .toList());
 
     preset =
         Parameter.registryElement(
@@ -108,7 +108,7 @@ public final class Parameters {
                             ruleService.keys().map(ResourceKey::namespace))
                         .filter(it -> new StartsWithPredicate(it).test(currentInput))
                         .map(CommandCompletion::of)
-                        .collect(Collectors.toList()));
+                        .toList());
 
     query =
         Parameter.builder(keys.query)

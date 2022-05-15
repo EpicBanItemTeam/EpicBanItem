@@ -10,6 +10,7 @@ import team.ebi.epicbanitem.rule.RestrictionRuleServiceImpl;
 
 @ImplementedBy(RestrictionRuleServiceImpl.class)
 public interface RestrictionRuleService {
+
   Optional<ResourceKey> register(ResourceKey key, RestrictionRule rule);
 
   default Optional<ResourceKey> of(RestrictionRule rule) {

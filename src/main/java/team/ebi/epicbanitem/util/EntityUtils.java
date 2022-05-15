@@ -15,6 +15,9 @@ import org.spongepowered.api.world.LocatableBlock;
 
 public class EntityUtils {
 
+  private EntityUtils() {
+  }
+
   public static Optional<ItemStack> targetObject(Player player, boolean isBlock) {
     return Optional.of(isBlock)
         .filter(Boolean::booleanValue)

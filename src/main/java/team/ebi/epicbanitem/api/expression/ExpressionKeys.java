@@ -2,7 +2,7 @@ package team.ebi.epicbanitem.api.expression;
 
 import org.spongepowered.api.data.persistence.DataQuery;
 
-public class ExpressionKeys {
+public final class ExpressionKeys {
   // Query
   public static final String OR = "or";
   public static final String NOR = "nor";
@@ -38,5 +38,8 @@ public class ExpressionKeys {
 
   public static DataQuery query(String key) {
     return DataQuery.of("$" + key);
+  }
+
+  private ExpressionKeys() {
   }
 }

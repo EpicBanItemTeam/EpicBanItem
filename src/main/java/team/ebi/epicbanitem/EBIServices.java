@@ -10,6 +10,7 @@ import team.ebi.epicbanitem.api.expression.ExpressionService;
  * @apiNote Use {@link Inject} if possible
  */
 public final class EBIServices {
+
   public static RulePredicateService predicateService;
   public static RestrictionService restrictionService;
   public static RestrictionRuleService ruleService;

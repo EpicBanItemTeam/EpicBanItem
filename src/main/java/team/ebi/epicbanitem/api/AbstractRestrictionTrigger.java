@@ -10,7 +10,7 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
 
   private final ResourceKey key;
 
-  public AbstractRestrictionTrigger(ResourceKey key) {
+  protected AbstractRestrictionTrigger(ResourceKey key) {
     this.key = key;
     Sponge.eventManager()
         .registerListeners(

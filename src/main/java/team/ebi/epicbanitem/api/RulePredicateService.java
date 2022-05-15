@@ -1,53 +1,50 @@
 package team.ebi.epicbanitem.api;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.inject.ImplementedBy;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import org.spongepowered.api.ResourceKey;
 import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
 @ImplementedBy(RulePredicateServiceImpl.class)
 public interface RulePredicateService {
+
   ResourceKey WILDCARD = ResourceKey.of("_", "_");
 
   /**
    * @param id {@link ResourceKey} of object
    * @return Rules that match the predicates
    */
-  @SuppressWarnings("UnstableApiUsage")
-  default ImmutableSet<RestrictionRule> rules(ResourceKey id) {
+  default List<RestrictionRule> rules(ResourceKey id) {
     return predicates(id).stream()
         .map(this::rule)
         .flatMap(Collection::stream)
-        .collect(ImmutableSet.toImmutableSet());
+        .toList();
   }
 
-  @SuppressWarnings("UnstableApiUsage")
-  default ImmutableSortedSet<RestrictionRule> rulesWithPriority(ResourceKey id) {
+  default List<RestrictionRule> rulesWithPriority(ResourceKey id) {
     return rules(id).stream()
-        .collect(
-            ImmutableSortedSet.toImmutableSortedSet(
-                Comparator.comparingInt(RestrictionRule::priority)));
+        .sorted(Comparator.comparingInt(RestrictionRule::priority))
+        .toList();
   }
 
   /**
    * @param key Object key
    * @return All possible predicates
    */
-  default ImmutableSet<ResourceKey> predicates(ResourceKey key) {
-    return ImmutableSet.<ResourceKey>builder()
-        .add(WILDCARD)
-        .add(key)
-        .add(ResourceKey.of(key.namespace(), "_"))
-        .add(ResourceKey.of("_", key.value()))
-        .build();
+  default Set<ResourceKey> predicates(ResourceKey key) {
+    return Set.of(
+        WILDCARD,
+        key,
+        ResourceKey.of(key.namespace(), "_"),
+        ResourceKey.of("_", key.value()));
   }
 
-  ImmutableSet<ResourceKey> predicates();
+  Set<ResourceKey> predicates();
 
-  ImmutableSet<RestrictionRule> rule(ResourceKey predicate);
+  Set<RestrictionRule> rule(ResourceKey predicate);
 
   /**
    * Register a predicate
@@ -55,5 +52,5 @@ public interface RulePredicateService {
    * @param rule rule with predicate
    * @return registered predicate for rule
    */
-  ImmutableSet<ResourceKey> register(RestrictionRule rule);
+  Set<ResourceKey> register(RestrictionRule rule);
 }

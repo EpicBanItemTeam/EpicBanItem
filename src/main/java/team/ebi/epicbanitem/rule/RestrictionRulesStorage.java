@@ -1,6 +1,5 @@
 package team.ebi.epicbanitem.rule;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.FileNotFoundException;
@@ -8,7 +7,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.config.ConfigDir;
@@ -29,7 +30,8 @@ import team.ebi.epicbanitem.api.RestrictionRuleService;
 public class RestrictionRulesStorage {
 
   private final Path rulesDir;
-  @Inject private RestrictionRuleService ruleService;
+  @Inject
+  private RestrictionRuleService ruleService;
 
   @Inject
   public RestrictionRulesStorage(
@@ -39,7 +41,9 @@ public class RestrictionRulesStorage {
       throws IOException {
     eventManager.registerListeners(plugin, this);
     this.rulesDir = configDir.resolve("rules");
-    if (Files.notExists(this.rulesDir)) Files.createDirectories(this.rulesDir);
+    if (Files.notExists(this.rulesDir)) {
+      Files.createDirectories(this.rulesDir);
+    }
     this.load();
   }
 
@@ -63,9 +67,11 @@ public class RestrictionRulesStorage {
   public void remove(ResourceKey key) {
     ruleService.remove(key);
     try {
-      Files.delete(rulesDir.resolve(key.value() + ".conf"));
+      Files.delete(rulesDir.resolve(configExtension(key.value())));
     } catch (IOException e) {
-      if (!(e instanceof FileNotFoundException)) throw new RuntimeException(e);
+      if (!(e instanceof FileNotFoundException)) {
+        throw new IllegalStateException(e);
+      }
     }
   }
 
@@ -76,10 +82,11 @@ public class RestrictionRulesStorage {
   public void save(ResourceKey key, RestrictionRule rule) {
     try {
       HoconConfigurationLoader loader =
-          HoconConfigurationLoader.builder().path(rulesDir.resolve(key.value() + ".conf")).build();
+          HoconConfigurationLoader.builder().path(rulesDir.resolve(configExtension(key.value())))
+              .build();
       loader.save(loader.createNode().set(rule.toContainer()));
     } catch (ConfigurateException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -87,8 +94,11 @@ public class RestrictionRulesStorage {
     ruleService.all().forEach(this::save);
   }
 
-  @SuppressWarnings("UnstableApiUsage")
-  private ImmutableMap<ResourceKey, RestrictionRule> rulesFromFiles() throws IOException {
+  private String configExtension(String name) {
+    return name + ".conf";
+  }
+
+  private Map<ResourceKey, RestrictionRule> rulesFromFiles() throws IOException {
 
     try (Stream<Path> paths =
         Files.find(
@@ -97,7 +107,7 @@ public class RestrictionRulesStorage {
             (path, attributes) ->
                 attributes.isRegularFile() && path.toString().endsWith(".conf"))) {
       return paths.collect(
-          ImmutableMap.toImmutableMap(
+          Collectors.toUnmodifiableMap(
               it -> EpicBanItem.key(getNameWithoutExtension(it.toString())),
               it -> {
                 try {
@@ -113,7 +123,7 @@ public class RestrictionRulesStorage {
                               new InvalidDataException(
                                   MessageFormat.format("Rule file {0} can't parse", it)));
                 } catch (ConfigurateException e) {
-                  throw new RuntimeException(e);
+                  throw new IllegalStateException(e);
                 }
               }));
     }

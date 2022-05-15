@@ -56,19 +56,40 @@ import team.ebi.epicbanitem.trigger.SimpleRestrictionTrigger;
 import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
 
 @Singleton
-public class EBIRegistries {
-  public static DefaultedRegistryType<RestrictionTrigger> TRIGGER = key("restriction_trigger");
-  public static DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION = key("query_expression");
-  public static DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION = key("update_expression");
-  public static DefaultedRegistryType<RestrictionPreset> PRESET = key("preset");
+public final class EBIRegistries {
+
+  public static final DefaultedRegistryType<RestrictionTrigger> TRIGGER = key(
+      "restriction_trigger");
+  public static final DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION = key(
+      "query_expression");
+  public static final DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION = key(
+      "update_expression");
+  public static final DefaultedRegistryType<RestrictionPreset> PRESET = key("preset");
 
   @Inject
-  public EBIRegistries(
+  EBIRegistries(
       PluginContainer pluginContainer,
       EventManager eventManager,
       RestrictionRulesStorage rulesStorage) {
     eventManager.registerListeners(pluginContainer, this);
     Objects.requireNonNull(rulesStorage);
+  }
+
+  private static <T> ImmutableMap<String, T> asMap(DefaultedRegistryType<T> registry) {
+    return registry
+        .get()
+        .streamEntries()
+        .reduce(
+            ImmutableMap.<String, T>builder(),
+            (builder, entry) -> builder.put("$" + entry.key().value(), entry.value()),
+            (builder, other) -> other)
+        .build();
+  }
+
+  private static <V> DefaultedRegistryType<V> key(final String key) {
+    return RegistryType.of(
+            RegistryRoots.SPONGE, EpicBanItem.key(Objects.requireNonNull(key, "key")))
+        .asDefaultedType(Sponge::server);
   }
 
   @Listener
@@ -202,24 +223,7 @@ public class EBIRegistries {
 
   @Listener(order = Order.POST)
   public void onRegisterRegistryValue(RegisterRegistryValueEvent.EngineScoped<Server> event) {
-    QueryExpressionFunctions.EXPRESSIONS = asMap(QUERY_EXPRESSION);
-    UpdateExpressionFunctions.EXPRESSIONS = asMap(UPDATE_EXPRESSION);
-  }
-
-  private static <T> ImmutableMap<String, T> asMap(DefaultedRegistryType<T> registry) {
-    return registry
-        .get()
-        .streamEntries()
-        .reduce(
-            ImmutableMap.<String, T>builder(),
-            (builder, entry) -> builder.put("$" + entry.key().value(), entry.value()),
-            (builder, other) -> other)
-        .build();
-  }
-
-  private static <V> DefaultedRegistryType<V> key(final String key) {
-    return RegistryType.of(
-            RegistryRoots.SPONGE, EpicBanItem.key(Objects.requireNonNull(key, "key")))
-        .asDefaultedType(Sponge::server);
+    QueryExpressionFunctions.expressions = asMap(QUERY_EXPRESSION);
+    UpdateExpressionFunctions.expressions = asMap(UPDATE_EXPRESSION);
   }
 }

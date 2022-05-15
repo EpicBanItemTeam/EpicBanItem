@@ -1,6 +1,6 @@
 package team.ebi.epicbanitem.api.expression;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
@@ -13,7 +13,8 @@ import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
-public class UpdateExpressionFunctions {
+public final class UpdateExpressionFunctions {
+
   public static final DefaultedRegistryReference<UpdateExpressionFunction> SET =
       key(EpicBanItem.key(ExpressionKeys.SET));
   public static final DefaultedRegistryReference<UpdateExpressionFunction> UNSET =
@@ -31,7 +32,15 @@ public class UpdateExpressionFunctions {
   public static final DefaultedRegistryReference<UpdateExpressionFunction> MUL =
       key(EpicBanItem.key(ExpressionKeys.MUL));
 
-  public static ImmutableMap<String, UpdateExpressionFunction> EXPRESSIONS;
+  public static Map<String, UpdateExpressionFunction> expressions;
+
+  static {
+    Sponge.dataManager()
+        .registerBuilder(RootUpdateExpression.class, new RootUpdateExpression.Builder());
+  }
+
+  private UpdateExpressionFunctions() {
+  }
 
   public static Registry<UpdateExpressionFunction> registry() {
     return EBIRegistries.UPDATE_EXPRESSION.get();
@@ -41,10 +50,5 @@ public class UpdateExpressionFunctions {
       final ResourceKey location) {
     return RegistryKey.of(EBIRegistries.UPDATE_EXPRESSION, location)
         .asDefaultedReference(Sponge::server);
-  }
-
-  static {
-    Sponge.dataManager()
-        .registerBuilder(RootUpdateExpression.class, new RootUpdateExpression.Builder());
   }
 }

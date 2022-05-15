@@ -1,6 +1,5 @@
 package team.ebi.epicbanitem.util;
 
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Optional;
 import org.spongepowered.api.Sponge;
@@ -32,6 +31,6 @@ public class DataSerializableValueParser<T extends DataSerializable> implements 
 
   @Override
   public List<ClientCompletionType> clientCompletionType() {
-    return ImmutableList.of(ClientCompletionTypes.SNBT.get());
+    return List.of(ClientCompletionTypes.SNBT.get());
   }
 }

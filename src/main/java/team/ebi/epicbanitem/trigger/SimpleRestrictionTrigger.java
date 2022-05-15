@@ -8,8 +8,6 @@ import team.ebi.epicbanitem.api.RestrictionTrigger;
 
 public class SimpleRestrictionTrigger implements RestrictionTrigger {
 
-  public SimpleRestrictionTrigger() {}
-
   @Override
   public @NotNull Component asComponent() {
     return Component.translatable("trigger." + key() + ".name");

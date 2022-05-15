@@ -146,27 +146,35 @@ public class RestrictionRuleImpl implements RestrictionRule {
     return this.predicate;
   }
 
+  private String messageKey(String path) {
+    return "epicbanitem.rules." + path;
+  }
+
   @Override
   public TranslatableComponent updatedMessage() {
-    String key = "epicbanitem.rules." + key() + ".updated";
-    if (!EpicBanItem.translations.contains(key))
+    String key = messageKey(key() + ".updated");
+    if (!EpicBanItem.translations.contains(key)) {
       return Component.translatable("epicbanitem.rules.updated");
+    }
     return Component.translatable(key);
   }
 
   @Override
   public TranslatableComponent canceledMessage() {
-    String key = "epicbanitem.rules." + key() + ".canceled";
-    if (!EpicBanItem.translations.contains(key))
+    String key = messageKey(key() + ".canceled");
+    if (!EpicBanItem.translations.contains(key)) {
       return Component.translatable("epicbanitem.rules.canceled");
+    }
     return Component.translatable(key);
   }
 
   @Override
   public @NotNull Component asComponent() {
     ResourceKey resourceKey = key();
-    String key = "epicbanitem.rules." + resourceKey;
-    if (!EpicBanItem.translations.contains(key)) return Component.text(resourceKey.asString());
+    String key = messageKey(resourceKey.asString());
+    if (!EpicBanItem.translations.contains(key)) {
+      return Component.text(resourceKey.asString());
+    }
     return Component.translatable(key);
   }
 

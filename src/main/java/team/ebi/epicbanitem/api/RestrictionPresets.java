@@ -11,7 +11,7 @@ import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 
 @RegistryScopes(scopes = RegistryScope.ENGINE)
-public class RestrictionPresets {
+public final class RestrictionPresets {
 
   public static final DefaultedRegistryReference<RestrictionPreset> TYPE =
       key(EpicBanItem.key("type"));
@@ -21,6 +21,9 @@ public class RestrictionPresets {
 
   public static final DefaultedRegistryReference<RestrictionPreset> EMPTY =
       key(EpicBanItem.key("empty"));
+
+  private RestrictionPresets() {
+  }
 
   public static Registry<RestrictionPreset> registry() {
     return Sponge.server().registry(EBIRegistries.PRESET);

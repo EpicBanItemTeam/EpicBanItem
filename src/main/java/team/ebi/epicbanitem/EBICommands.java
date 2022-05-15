@@ -1,5 +1,8 @@
 package team.ebi.epicbanitem;
 
+import static team.ebi.epicbanitem.util.Components.NEED_BLOCK;
+import static team.ebi.epicbanitem.util.Components.NEED_ITEM;
+import static team.ebi.epicbanitem.util.Components.NEED_PLAYER;
 import static team.ebi.epicbanitem.util.DataUtils.objectName;
 import static team.ebi.epicbanitem.util.EntityUtils.equipped;
 import static team.ebi.epicbanitem.util.EntityUtils.heldHand;
@@ -20,7 +23,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
@@ -67,15 +69,23 @@ import team.ebi.epicbanitem.util.command.Parameters;
 
 @Singleton
 public final class EBICommands {
+
   private final Cache<UUID, RootQueryExpression> usedQuery =
       Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(10)).build();
-  @Inject private ExpressionService expressionService;
-  @Inject private RestrictionRuleService ruleService;
-  @Inject private RestrictionService restrictionService;
-  @Inject private RulePredicateService predicateService;
-  @Inject private Parameters parameters;
-  @Inject private Parameters.Keys keys;
-  @Inject private Flags flags;
+  @Inject
+  private ExpressionService expressionService;
+  @Inject
+  private RestrictionRuleService ruleService;
+  @Inject
+  private RestrictionService restrictionService;
+  @Inject
+  private RulePredicateService predicateService;
+  @Inject
+  private Parameters parameters;
+  @Inject
+  private Parameters.Keys keys;
+  @Inject
+  private Flags flags;
 
   public Command.Parameterized build() {
     final var query =
@@ -167,9 +177,9 @@ public final class EBICommands {
   }
 
   private @NotNull CommandResult query(final CommandContext context) throws CommandException {
-    if (!(context.cause().root() instanceof final Player player))
-      return CommandResult.error(
-          Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED));
+    if (!(context.cause().root() instanceof final Player player)) {
+      return CommandResult.error(NEED_PLAYER);
+    }
     var isBlock = context.hasFlag("block");
     var uuid = player.identity().uuid();
     // Argument > Last > Empty
@@ -184,8 +194,8 @@ public final class EBICommands {
                 () ->
                     new CommandException(
                         isBlock
-                            ? Component.translatable("epicbanitem.command.needBlock")
-                            : Component.translatable("epicbanitem.command.needItem")));
+                            ? NEED_BLOCK
+                            : NEED_ITEM));
     var container = ExpressionService.cleanup(targetObject.toContainer());
     var result = expression.query(container);
     Sponge.serviceProvider()
@@ -200,9 +210,9 @@ public final class EBICommands {
   }
 
   private @NotNull CommandResult update(final CommandContext context) throws CommandException {
-    if (!(context.cause().root() instanceof final Player player))
-      return CommandResult.error(
-          Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED));
+    if (!(context.cause().root() instanceof final Player player)) {
+      return CommandResult.error(NEED_PLAYER);
+    }
     boolean isBlock = context.hasFlag("block");
     UUID uuid = player.identity().uuid();
     // Last > Empty
@@ -217,20 +227,19 @@ public final class EBICommands {
           targetBlock(player)
               .orElseThrow(
                   () ->
-                      new CommandException(
-                          Component.translatable("epicbanitem.command.needBlock")));
+                      new CommandException(NEED_BLOCK));
       targetObject = ItemStack.builder().fromBlockSnapshot(block).build();
     } else {
       hand =
           heldHand(player)
               .orElseThrow(
                   () ->
-                      new CommandException(Component.translatable("epicbanitem.command.needItem")));
+                      new CommandException(NEED_ITEM));
       targetObject =
           equipped(player, hand)
               .orElseThrow(
                   () ->
-                      new CommandException(Component.translatable("epicbanitem.command.needItem")));
+                      new CommandException(NEED_ITEM));
     }
     var container = targetObject.toContainer();
     var cleaned = ExpressionService.cleanup(container);
@@ -246,8 +255,9 @@ public final class EBICommands {
             });
     var dataManager = Sponge.dataManager();
     var deserialized = dataManager.deserialize(ItemStack.class, container).orElseThrow();
-    if (deserialized.quantity() > deserialized.maxStackQuantity())
+    if (deserialized.quantity() > deserialized.maxStackQuantity()) {
       deserialized.setQuantity(deserialized.maxStackQuantity());
+    }
     if (isBlock) {
       BlockType blockType = deserialized.type().block().orElseThrow();
       BlockState oldState = block.state();
@@ -259,7 +269,9 @@ public final class EBICommands {
               .build();
       BlockSnapshot newSnapshot = BlockSnapshot.builder().from(block).blockState(newState).build();
       newSnapshot.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT);
-    } else player.equip(hand, deserialized);
+    } else {
+      player.equip(hand, deserialized);
+    }
     player.sendMessage(
         Component.translatable("epicbanitem.command.update.result")
             .color(NamedTextColor.GREEN)
@@ -269,15 +281,15 @@ public final class EBICommands {
   }
 
   private @NotNull CommandResult create(CommandContext context) {
-    if (!(context.cause().root() instanceof final ServerPlayer player))
-      return CommandResult.error(
-          Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED));
+    if (!(context.cause().root() instanceof final ServerPlayer player)) {
+      return CommandResult.error(NEED_PLAYER);
+    }
     final var preset = context.one(keys.preset).orElse(RestrictionPresets.TYPE.get());
     final var name = context.requireOne(keys.ruleName);
     final var expression = context.one(keys.query);
     var expressionView = DataContainer.createNew();
     final var isBlock = context.hasFlag(flags.block);
-    expression.ifPresent(it -> it.view().values(false).forEach(expressionView::set));
+    expression.ifPresent(it -> it.toContainer().values(false).forEach(expressionView::set));
     if (isBlock) {
       Optional<BlockSnapshot> block = targetBlock(player);
       List<DataView> views =
@@ -295,7 +307,7 @@ public final class EBICommands {
               .map(ExpressionService::cleanup)
               .map(preset)
               .filter(it -> !it.keys(false).isEmpty())
-              .collect(Collectors.toList());
+              .toList();
       if (!views.isEmpty()) {
         expressionView.set(ExpressionQueries.OR, views);
       } else {
@@ -317,14 +329,14 @@ public final class EBICommands {
     if (expressionView.keys(false).isEmpty()) {
       return CommandResult.error(Component.translatable("epicbanitem.command.create.noExpression"));
     }
-    ruleService.register(name, new RestrictionRuleImpl(new RootQueryExpression(expressionView)));
+    RootQueryExpression finalExpression = new RootQueryExpression(expressionView);
+    ruleService.register(name, new RestrictionRuleImpl(finalExpression));
     player.sendMessage(
         Component.translatable("epicbanitem.command.create.success")
             .args(
                 Component.text(name.value())
                     .hoverEvent(Component.join(JoinConfiguration.newlines(),
-                        DataViewRenderer.render(expressionView).stream().limit(25).collect(
-                            Collectors.toList()))))
+                        DataViewRenderer.render(finalExpression.expression().toContainer()).stream().limit(25).toList())))
             .append(Component.space())
             .append(
                 Components.EDIT
@@ -340,26 +352,21 @@ public final class EBICommands {
                                         MessageFormat.format(
                                             "{0} edit {1}", EpicBanItem.NAMESPACE, name));
                               } catch (CommandException e) {
-                                throw new RuntimeException(e);
+                                throw new IllegalStateException(e);
                               }
                             }))));
     return CommandResult.success();
   }
 
   private @NotNull CommandResult test(CommandContext context) throws CommandException {
-    if (!(context.cause().root() instanceof final ServerPlayer player))
-      return CommandResult.error(
-          Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED));
+    if (!(context.cause().root() instanceof final ServerPlayer player)) {
+      return CommandResult.error(NEED_PLAYER);
+    }
     final var world = context.one(keys.world).orElse(player.world());
     final var isBlock = context.hasFlag(flags.block);
     var targetObject =
         targetObject(player, isBlock)
-            .orElseThrow(
-                () ->
-                    new CommandException(
-                        isBlock
-                            ? Component.translatable("epicbanitem.command.needBlock")
-                            : Component.translatable("epicbanitem.command.needItem")));
+            .orElseThrow(() -> new CommandException(isBlock ? NEED_BLOCK : NEED_ITEM));
     var targetView = targetObject.toContainer();
     final var triggers =
         context.hasAny(keys.trigger)
