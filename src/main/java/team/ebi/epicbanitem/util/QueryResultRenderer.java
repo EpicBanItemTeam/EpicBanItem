@@ -1,15 +1,16 @@
 package team.ebi.epicbanitem.util;
 
-import com.google.common.base.Strings;
+import static team.ebi.epicbanitem.util.DataViewRenderer.COLON;
+import static team.ebi.epicbanitem.util.DataViewRenderer.valueString;
+import static team.ebi.epicbanitem.util.DataViewRenderer.valueStyle;
+import static team.ebi.epicbanitem.util.DataViewRenderer.wrapList;
+import static team.ebi.epicbanitem.util.DataViewRenderer.wrapObject;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.Nullable;
@@ -18,70 +19,12 @@ import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 
 public class QueryResultRenderer {
-  private static final Component COLON = Component.text(": ");
-  private static final Component LEFT_SQUARE_BRACKET = Component.text("[");
-  private static final Component RIGHT_SQUARE_BRACKET = Component.text("]");
-  private static final Component LEFT_CURLY_BRACKET = Component.text("{");
-  private static final Component RIGHT_CURLY_BRACKET = Component.text("}");
-  private static final Component INDENT = Component.text(Strings.repeat(" ", 2));
-
   private static Component renderKey(String key, DataQuery path) {
     return Component.text()
         .content(key)
         .hoverEvent(Component.text(path.toString()))
         .clickEvent(ClickEvent.copyToClipboard(path.toString()))
         .build();
-  }
-
-  private static ImmutableList<Component> wrapList(
-      @Nullable Component key, ImmutableList<Component> input) {
-    return wrap(key, input, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET);
-  }
-
-  private static ImmutableList<Component> wrapObject(
-      @Nullable Component key, ImmutableList<Component> input) {
-    return wrap(key, input, LEFT_CURLY_BRACKET, RIGHT_CURLY_BRACKET);
-  }
-
-  private static ImmutableList<Component> wrap(
-      @Nullable Component key,
-      ImmutableList<Component> input,
-      Component leftBracket,
-      Component rightBracket) {
-    ImmutableList.Builder<Component> components = ImmutableList.builder();
-    TextComponent.Builder keyComponent = Component.text();
-    if (Objects.nonNull(key)) keyComponent.append(key);
-    components.add(keyComponent.append(leftBracket).build());
-    //noinspection UnstableApiUsage
-    components.addAll(input.stream().map(INDENT::append).collect(ImmutableList.toImmutableList()));
-    return components.add(rightBracket).build();
-  }
-
-  private static Component wrapValue(Component key, Component value) {
-    return key.append(value);
-  }
-
-  private static Style style(Object value) {
-    Style.Builder builder = Style.style();
-    String toCopy = valueString(value);
-    if (value instanceof Boolean) {
-      builder.color(NamedTextColor.LIGHT_PURPLE);
-    } else if (value instanceof String) {
-      builder.color(NamedTextColor.GREEN);
-    } else {
-      builder.color(NamedTextColor.AQUA);
-    }
-    builder.hoverEvent(Component.text(toCopy));
-    builder.clickEvent(ClickEvent.copyToClipboard(toCopy));
-    return builder.build();
-  }
-
-  private static String valueString(Object value) {
-    if (value instanceof String) {
-      return "\"" + value + "\"";
-    } else {
-      return value.toString();
-    }
   }
 
   private static ImmutableList<Component> renderList(
@@ -102,14 +45,13 @@ public class QueryResultRenderer {
       } else {
         String pair = expandedQuery.then(key) + ": " + valueString(value);
         components.add(
-            wrapValue(
-                renderKey(key, expandedQuery)
-                    .applyFallbackStyle(style.build())
-                    .append(
-                        COLON
-                            .hoverEvent(Component.text(pair))
-                            .clickEvent(ClickEvent.copyToClipboard(pair))),
-                Component.text(value.toString()).style(style.merge(style(value)))));
+            renderKey(key, expandedQuery)
+                .applyFallbackStyle(style.build())
+                .append(
+                    COLON
+                        .hoverEvent(Component.text(pair))
+                        .clickEvent(ClickEvent.copyToClipboard(pair)))
+                .append(Component.text(value.toString()).style(style.merge(valueStyle(value)))));
       }
     }
     return components.build();
@@ -121,41 +63,36 @@ public class QueryResultRenderer {
     ImmutableMap<String, QueryResult> children =
         result == null ? ImmutableMap.of() : ImmutableMap.copyOf(result);
     for (DataQuery query : view.keys(false)) {
-      Optional<DataView> subView = view.getView(query);
-      Optional<List<?>> list = view.getList(query);
-      Optional<Object> value = DataUtils.get(view, query);
+      Object value = view.get(query).orElseThrow();
       String key = query.parts().get(0);
       DataQuery currentExpandedQuery = expandedQuery.then(key);
       Style.Builder style = Style.style();
       if (children.get(key) != null) style.decorate(TextDecoration.BOLD);
-      if (subView.isPresent())
+      if (value instanceof DataView subView)
         components.addAll(
             wrapObject(
                 renderKey(key, currentExpandedQuery)
                     .applyFallbackStyle(style.build())
                     .append(COLON),
-                renderView(subView.get(), currentExpandedQuery, children.get(key))));
-      else if (list.isPresent())
+                renderView(subView, currentExpandedQuery, children.get(key))));
+      else if(value instanceof List<?> list)
         components.addAll(
             wrapList(
                 renderKey(key, currentExpandedQuery)
                     .applyFallbackStyle(style.build())
                     .append(COLON),
-                renderList(list.get(), currentExpandedQuery, children.get(key))));
-      else
-        value.ifPresent(
-            o -> {
-              String pair = expandedQuery.then(key) + ": " + valueString(value.get());
-              components.add(
-                  wrapValue(
-                      renderKey(key, currentExpandedQuery)
-                          .applyFallbackStyle(style.build())
-                          .append(
-                              COLON
-                                  .hoverEvent(Component.text(pair))
-                                  .clickEvent(ClickEvent.copyToClipboard(pair))),
-                      Component.text(o.toString()).style(style.merge(style(o)))));
-            });
+                renderList(list, currentExpandedQuery, children.get(key))));
+      else {
+        String pair = expandedQuery.then(key) + ": " + valueString(value);
+        components.add(
+            renderKey(key, currentExpandedQuery)
+                .applyFallbackStyle(style.build())
+                .append(
+                    COLON
+                        .hoverEvent(Component.text(pair))
+                        .clickEvent(ClickEvent.copyToClipboard(pair)))
+                .append(Component.text(value.toString()).style(style.merge(valueStyle(value)))));
+      }
     }
     return components.build();
   }
