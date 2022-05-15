@@ -142,6 +142,14 @@ public final class EBICommands {
             .executor(this::test)
             .build();
 
+    final var list =
+        Command.builder()
+            .shortDescription(Component.translatable("epicbanitem.command.list.description"))
+            .permission(EpicBanItem.permission("command.test"))
+            .addParameters(parameters.predicate.key(keys.predicate).optional().build())
+            .executor(this::list)
+            .build();
+
     return Command.builder()
         .shortDescription(Component.translatable("epicbanitem.command.root.description"))
         .permission(EpicBanItem.permission("command.root"))
@@ -150,6 +158,7 @@ public final class EBICommands {
         .addChild(update, "update")
         .addChild(create, "create")
         .addChild(test, "test")
+        .addChild(list, "list", "ls")
         .build();
   }
 
@@ -405,6 +414,42 @@ public final class EBICommands {
                       });
             });
     player.sendMessage(component);
+    return CommandResult.success();
+  }
+
+  private @NotNull CommandResult list(CommandContext context) {
+    final var subject = context.cause().subject();
+    final var predicate = context.one(keys.predicate).orElse(RulePredicateService.WILDCARD);
+    final var components = predicateService.rule(predicate).stream()
+        .<Component>map(rule -> {
+          var editComponent = Components.EDIT.color(NamedTextColor.GRAY);
+          if (subject instanceof ServerPlayer player) {
+            editComponent = editComponent.clickEvent(
+                SpongeComponents.executeCallback(
+                    cause -> {
+                      try {
+                        Sponge.server()
+                            .commandManager()
+                            .process(
+                                player,
+                                MessageFormat.format(
+                                    "{0} edit {1}", EpicBanItem.NAMESPACE, rule.key()));
+                      } catch (CommandException e) {
+                        throw new IllegalStateException(e);
+                      }
+                    }));
+          }
+          return rule.asComponent().hoverEvent(Component.join(JoinConfiguration.newlines(),
+                  DataViewRenderer.render(rule.queryExpression().toContainer())))
+              .append(Component.space())
+              .append(editComponent);
+        }).toList();
+    Sponge.serviceProvider()
+        .paginationService()
+        .builder()
+        .title(Component.translatable("epicbanitem.command.list.title"))
+        .contents(components)
+        .sendTo(context.cause().audience());
     return CommandResult.success();
   }
 }

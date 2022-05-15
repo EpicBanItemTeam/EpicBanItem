@@ -25,6 +25,7 @@ import team.ebi.epicbanitem.api.RestrictionPreset;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RestrictionTrigger;
+import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 import team.ebi.epicbanitem.util.DataSerializableValueParser;
@@ -45,9 +46,11 @@ public final class Parameters {
   public final Parameter.Value.Builder<RootQueryExpression> query;
 
   public final Parameter.Value.Builder<RootUpdateExpression> update;
+  public final Parameter.Value.Builder<ResourceKey> predicate;
 
   @Inject
-  public Parameters(Keys keys, RestrictionRuleService ruleService) {
+  public Parameters(Keys keys, RestrictionRuleService ruleService,
+      RulePredicateService predicateService) {
     ruleName =
         Parameter.builder(ResourceKey.class)
             .addParser(
@@ -117,6 +120,17 @@ public final class Parameters {
     update =
         Parameter.builder(keys.update)
             .addParser(new DataSerializableValueParser<>(RootUpdateExpression.class));
+    predicate = Parameter.resourceKey().addParser((key, reader, context) -> {
+      ResourceKey resourceKey = reader.parseResourceKey(EpicBanItem.NAMESPACE);
+      return predicateService.predicates().filter(it -> it.equals(resourceKey)).findFirst();
+    }).completer(
+        (context, currentInput) ->
+            Stream.concat(
+                    predicateService.predicates().map(ResourceKey::value),
+                    predicateService.predicates().map(ResourceKey::namespace))
+                .filter(it -> new StartsWithPredicate(it).test(currentInput))
+                .map(CommandCompletion::of)
+                .toList());
   }
 
   @Singleton
@@ -133,5 +147,6 @@ public final class Parameters {
     public final Key<RestrictionTrigger> trigger =
         Parameter.key("trigger", RestrictionTrigger.class);
     public final Key<ServerWorld> world = Parameter.key("world", ServerWorld.class);
+    public final Key<ResourceKey> predicate = Parameter.key("predicate", ResourceKey.class);
   }
 }

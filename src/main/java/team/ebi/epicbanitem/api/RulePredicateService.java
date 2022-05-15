@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.spongepowered.api.ResourceKey;
 import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
@@ -44,7 +45,7 @@ public interface RulePredicateService {
 
   boolean remove(RestrictionRule rule);
 
-  Set<ResourceKey> predicates();
+  Stream<ResourceKey> predicates();
 
   Set<RestrictionRule> rule(ResourceKey predicate);
 

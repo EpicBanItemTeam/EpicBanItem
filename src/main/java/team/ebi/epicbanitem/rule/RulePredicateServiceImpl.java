@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.inject.Singleton;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.spongepowered.api.ResourceKey;
 import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RulePredicateService;
@@ -24,8 +25,8 @@ public class RulePredicateServiceImpl implements RulePredicateService {
   }
 
   @Override
-  public Set<ResourceKey> predicates() {
-    return predicates.keySet();
+  public Stream<ResourceKey> predicates() {
+    return predicates.keySet().stream();
   }
 
   @Override
