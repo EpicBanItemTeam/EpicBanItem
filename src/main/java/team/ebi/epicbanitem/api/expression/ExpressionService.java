@@ -14,17 +14,21 @@ import team.ebi.epicbanitem.expression.ExpressionServiceImpl;
 @ImplementedBy(ExpressionServiceImpl.class)
 public interface ExpressionService {
   ImmutableSet<DataQuery> IGNORED =
-      ImmutableSet.of(Queries.CONTENT_VERSION, Queries.WORLD_KEY, ItemQueries.UNSAFE_DAMAGE);
-
-  List<Component> renderQueryResult(DataView view, QueryResult result);
+      ImmutableSet.of(
+          Queries.CONTENT_VERSION,
+          Queries.WORLD_KEY,
+          ItemQueries.UNSAFE_DAMAGE,
+          ItemQueries.CREATOR);
 
   static DataView cleanup(DataView view) {
     DataContainer container = DataContainer.createNew();
-    view.values(false)
+    view.values(true)
         .forEach(
             (key, o) -> {
               if (!IGNORED.contains(key)) container.set(key, o);
             });
     return container;
   }
+
+  List<Component> renderQueryResult(DataView view, QueryResult result);
 }
