@@ -30,9 +30,21 @@ import team.ebi.epicbanitem.util.PropertyResourceBundle;
  */
 @Plugin(EpicBanItem.NAMESPACE)
 public class EpicBanItem {
+
   public static final String NAMESPACE = "epicbanitem";
 
   public static TranslationRegistry translations;
+  @Inject
+  private PluginContainer plugin;
+  @Inject
+  private Injector injector;
+
+  @SuppressWarnings("SpongeInjection")
+  @Inject
+  EpicBanItem(EBIRegistries registries, EBIServices services) {
+    Objects.requireNonNull(registries);
+    Objects.requireNonNull(services);
+  }
 
   public static ResourceKey key(String value) {
     return ResourceKey.of(NAMESPACE, value);
@@ -42,19 +54,9 @@ public class EpicBanItem {
     return NAMESPACE + "." + permission;
   }
 
-  @Inject private PluginContainer plugin;
-  @Inject private Injector injector;
-
-  @SuppressWarnings("SpongeInjection")
-  @Inject
-  EpicBanItem(EBIRegistries registries, EBIServices services) {
-    Objects.requireNonNull(registries);
-    Objects.requireNonNull(services);
-  }
-
   @Listener
   public void onRegisterCommand(RegisterCommandEvent<Command.Parameterized> event) {
-    event.register(plugin, injector.getInstance(EBICommands.class).build(), "epicbanitem", "ebi");
+    event.register(plugin, injector.getInstance(EBICommands.class).build(), NAMESPACE, "ebi");
   }
 
   @Listener
@@ -66,10 +68,10 @@ public class EpicBanItem {
       Collection<ResourcePath> paths =
           contents.paths(
               PackType.server(),
-              EpicBanItem.NAMESPACE,
+              NAMESPACE,
               "assets/messages",
               3,
-              name -> name.startsWith("messages_") && name.endsWith("properties"));
+              name -> name.startsWith("assets/messages/messages_") && name.endsWith(".properties"));
       for (ResourcePath path : paths) {
         String name = path.name();
         Resource resource = contents.requireResource(PackType.server(), path);
@@ -79,7 +81,7 @@ public class EpicBanItem {
         translations.registerAll(Locales.of(locale), bundle, false);
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
     GlobalTranslator.translator().addSource(translations);
   }
