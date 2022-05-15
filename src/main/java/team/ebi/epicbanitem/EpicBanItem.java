@@ -59,6 +59,7 @@ public class EpicBanItem {
 
   @Listener
   public void onStartingEngine(final StartingEngineEvent<Server> event) {
+    // TODO read external messages files
     translations = new EBITranslationRegistry();
     try (Pack pack = Sponge.server().packRepository().pack(plugin)) {
       PackContents contents = pack.contents();
@@ -68,11 +69,11 @@ public class EpicBanItem {
               EpicBanItem.NAMESPACE,
               "assets/messages",
               3,
-              name -> name.endsWith("properties"));
+              name -> name.startsWith("messages_") && name.endsWith("properties"));
       for (ResourcePath path : paths) {
         String name = path.name();
         Resource resource = contents.requireResource(PackType.server(), path);
-        String locale = name.substring(0, name.lastIndexOf(".properties"));
+        String locale = name.substring(9, name.lastIndexOf(".properties"));
         PropertyResourceBundle bundle =
             new PropertyResourceBundle(new InputStreamReader(resource.inputStream()));
         translations.registerAll(Locales.of(locale), bundle, false);
