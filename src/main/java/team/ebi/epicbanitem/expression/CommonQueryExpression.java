@@ -3,27 +3,29 @@ package team.ebi.epicbanitem.expression;
 import static team.ebi.epicbanitem.api.expression.ExpressionQueries.ROOT_QUERY_EXPRESSIONS;
 import static team.ebi.epicbanitem.api.expression.QueryExpressionFunctions.EXPRESSIONS;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 
-public class CommonQueryExpression implements QueryExpression {
-  private final Set<QueryExpression> expressions;
+public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions) implements
+    QueryExpression {
+
+  public CommonQueryExpression(DataView view) {
+    this(view, DataQuery.of());
+  }
 
   public CommonQueryExpression(DataView view, DataQuery query) {
-    this.expressions = Sets.newHashSet();
+    this(Maps.newHashMap());
     Optional<DataView> currentView = view.getView(query);
 
-    // Should be value
+    // Shouldn't be value
     if (currentView.isEmpty()) {
-      this.expressions.add(
-          new ValueQueryExpression(
-              view.get(query).orElseThrow(() -> new InvalidDataException("No value in view"))));
       return;
     }
 
@@ -33,40 +35,53 @@ public class CommonQueryExpression implements QueryExpression {
         .values(false)
         .forEach(
             (key, value) -> {
-              if (ROOT_QUERY_EXPRESSIONS.contains(key))
-                this.expressions.add(EXPRESSIONS.get(key.toString()).apply(view, query.then(key)));
-              else if (!(value instanceof DataView))
-                this.expressions.add(
+              DataQuery currentQuery = query.then(key);
+              if (ROOT_QUERY_EXPRESSIONS.contains(key)) {
+                this.expressions.put(currentQuery,
+                    EXPRESSIONS.get(key.toString()).apply(view, currentQuery));
+              } else if (!(value instanceof DataView subView)) {
+                this.expressions.put(currentQuery,
                     new ExtraQueryQueryExpression(
-                        new CommonQueryExpression(view, query.then(key)),
+                        new ValueQueryExpression(
+                            view.get(currentQuery)
+                                .orElseThrow(() -> new InvalidDataException("No value in view"))),
                         DataQuery.of('.', key.toString())));
-              else
-                // a.b: { $gt: 8, $lte: 12, $in: [5, 9, 10] }
-                for (DataQuery subQuery : ((DataView) value).keys(false)) {
+              } else {
+                for (DataQuery subQuery : subView.keys(false)) {
                   String expressionKey = subQuery.toString();
                   if (EXPRESSIONS.containsKey(expressionKey)) {
-                    this.expressions.add(
+                    this.expressions.put(currentQuery.then(subQuery),
                         new ExtraQueryQueryExpression(
                             EXPRESSIONS
                                 .get(expressionKey)
-                                .apply(view, query.then(key).then(expressionKey)),
+                                .apply(view, currentQuery.then(subQuery)),
                             DataQuery.of('.', key.toString())));
                   }
                 }
+              }
             });
   }
 
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     QueryResult result = QueryResult.success();
-    for (QueryExpression expression : this.expressions) {
+    for (QueryExpression expression : this.expressions.values()) {
       Optional<QueryResult> currentResult = expression.query(query, data);
       if (currentResult.isPresent()) {
         result = currentResult.get().merge(result);
       } else {
         return QueryResult.failed();
       }
+
     }
     return Optional.of(result);
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    DataContainer container = DataContainer.createNew();
+    this.expressions.forEach((query, expression) -> container.set(query,
+        expression.toContainer().get(ROOT).orElse(expression.toContainer())));
+    return container;
   }
 }

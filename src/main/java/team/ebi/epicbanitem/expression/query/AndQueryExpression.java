@@ -1,9 +1,9 @@
 package team.ebi.epicbanitem.expression.query;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -13,16 +13,21 @@ import team.ebi.epicbanitem.expression.CommonQueryExpression;
 
 public class AndQueryExpression implements QueryExpression {
 
-  private final Set<QueryExpression> expressions;
+  private final ImmutableList<QueryExpression> expressions;
 
+  public AndQueryExpression(List<QueryExpression> expressions) {
+    this.expressions = ImmutableList.copyOf(expressions);
+  }
+
+  @SuppressWarnings("UnstableApiUsage")
   public AndQueryExpression(DataView data, DataQuery query) {
     List<DataView> views =
         data.getViewList(query)
-            .orElseThrow(() -> new InvalidDataException("$and should be objects array"));
+            .orElseThrow(() -> new InvalidDataException("$and should be an object array"));
     this.expressions =
         views.stream()
             .map(it -> new CommonQueryExpression(data, it.currentPath()))
-            .collect(Collectors.toSet());
+            .collect(ImmutableList.toImmutableList());
   }
 
   @Override
@@ -34,5 +39,10 @@ public class AndQueryExpression implements QueryExpression {
       else return QueryResult.failed();
     }
     return Optional.of(result);
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return DataContainer.createNew().set(ROOT, expressions);
   }
 }

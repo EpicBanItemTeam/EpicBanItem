@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.expression;
 
 import java.util.Optional;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
@@ -15,13 +16,18 @@ public class ValueQueryExpression implements QueryExpression {
 
   public ValueQueryExpression(Object value) {
     this.expression =
-        value instanceof String && Regex.isRegex((String) value)
-            ? new RegexQueryExpression((String) value)
+        value instanceof String s && Regex.isRegex(s)
+            ? new RegexQueryExpression(s)
             : new ArrayableQueryExpression(new EqQueryExpression(value));
   }
 
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     return expression.query(query, data);
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return expression.toContainer();
   }
 }

@@ -11,9 +11,8 @@ import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 
-public class RootQueryExpression implements QueryExpression, DataSerializable {
-  private final QueryExpression expression;
-  private final DataView view;
+public record RootQueryExpression(CommonQueryExpression expression) implements QueryExpression,
+    DataSerializable {
 
   public RootQueryExpression() {
     this(DataContainer.createNew());
@@ -24,8 +23,7 @@ public class RootQueryExpression implements QueryExpression, DataSerializable {
   }
 
   public RootQueryExpression(DataView view, DataQuery query) {
-    this.view = view;
-    this.expression = new CommonQueryExpression(view, query);
+    this(new CommonQueryExpression(view, query));
   }
 
   @Override
@@ -37,11 +35,7 @@ public class RootQueryExpression implements QueryExpression, DataSerializable {
   public DataContainer toContainer() {
     return DataContainer.createNew()
         .set(Queries.CONTENT_VERSION, contentVersion())
-        .set(DataQuery.of("expression"), view);
-  }
-
-  public DataView view() {
-    return view;
+        .set(ROOT, expression.toContainer());
   }
 
   @Override

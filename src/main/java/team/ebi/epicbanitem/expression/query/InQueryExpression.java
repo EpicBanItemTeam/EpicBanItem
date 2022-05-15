@@ -1,9 +1,9 @@
 package team.ebi.epicbanitem.expression.query;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -13,12 +13,18 @@ import team.ebi.epicbanitem.expression.ValueQueryExpression;
 
 public class InQueryExpression implements QueryExpression {
 
-  private final Set<QueryExpression> expressions;
+  private final ImmutableList<QueryExpression> expressions;
 
+  public InQueryExpression(List<QueryExpression> expressions) {
+    this.expressions = ImmutableList.copyOf(expressions);
+  }
+
+  @SuppressWarnings("UnstableApiUsage")
   public InQueryExpression(DataView data, DataQuery query) {
     List<?> values =
-        data.getList(query).orElseThrow(() -> new InvalidDataException("$in should be objects array"));
-    this.expressions = values.stream().map(ValueQueryExpression::new).collect(Collectors.toSet());
+        data.getList(query).orElseThrow(() -> new InvalidDataException("$in should be an array"));
+    this.expressions =
+        values.stream().map(ValueQueryExpression::new).collect(ImmutableList.toImmutableList());
   }
 
   @Override
@@ -28,5 +34,10 @@ public class InQueryExpression implements QueryExpression {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .findAny();
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return DataContainer.createNew().set(ROOT, expressions);
   }
 }

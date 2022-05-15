@@ -3,6 +3,7 @@ package team.ebi.epicbanitem.expression.query;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Optional;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
@@ -24,7 +25,7 @@ public class ElemMatchQueryExpression implements QueryExpression {
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     Optional<List<?>> list =
-        DataUtils.get(data, query).filter(it -> it instanceof List).map(it -> (List<?>) it);
+        DataUtils.get(data, query).filter(List.class::isInstance).map(it -> (List<?>) it);
     if (list.isEmpty() || list.get().isEmpty()) return QueryResult.failed();
     List<?> values = list.get();
     ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
@@ -38,5 +39,10 @@ public class ElemMatchQueryExpression implements QueryExpression {
       }
     }
     return QueryResult.fromArray(matched, builder.build());
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return expression.toContainer();
   }
 }

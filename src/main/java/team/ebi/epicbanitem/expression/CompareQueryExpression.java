@@ -1,8 +1,10 @@
 package team.ebi.epicbanitem.expression;
 
+import com.google.common.base.Predicates;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -12,12 +14,11 @@ import team.ebi.epicbanitem.util.DataUtils;
 
 public abstract class CompareQueryExpression implements QueryExpression {
 
+  private static final Predicate<Object> IS_NUMBER = Predicates.instanceOf(Number.class);
   private final double value;
   private final BiPredicate<Double, Double> predicate;
 
-  private static final Predicate<Object> IS_NUMBER = it -> it instanceof Number;
-
-  public CompareQueryExpression(
+  protected CompareQueryExpression(
       DataView data, DataQuery query, BiPredicate<Double, Double> predicate) {
     this.value =
         data.get(query)
@@ -34,5 +35,10 @@ public abstract class CompareQueryExpression implements QueryExpression {
             .filter(IS_NUMBER)
             .map(it -> this.predicate.test(((Number) it).doubleValue(), value))
             .orElse(false));
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return DataContainer.createNew().set(ROOT, value);
   }
 }

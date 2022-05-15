@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -12,7 +13,6 @@ import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
 
 public class OrQueryExpression implements QueryExpression {
-
   private final Set<QueryExpression> expressions;
 
   public OrQueryExpression(DataView data, DataQuery query) {
@@ -32,5 +32,10 @@ public class OrQueryExpression implements QueryExpression {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .findAny();
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return DataContainer.createNew().set(ROOT, expressions);
   }
 }

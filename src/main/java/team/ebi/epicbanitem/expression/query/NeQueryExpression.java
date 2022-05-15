@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.expression.query;
 
 import java.util.Optional;
+import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
@@ -19,6 +20,11 @@ public class NeQueryExpression implements QueryExpression {
 
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
-    return QueryResult.from(!expression.query(query, data).isPresent());
+    return QueryResult.from(expression.query(query, data).isEmpty());
+  }
+
+  @Override
+  public DataContainer toContainer() {
+    return expression.toContainer();
   }
 }
