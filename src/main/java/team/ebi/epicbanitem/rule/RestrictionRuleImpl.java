@@ -88,7 +88,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
   public @NotNull ResourceKey key() {
     return EBIServices.ruleService
         .of(this)
-        .orElseThrow(() -> new IllegalArgumentException("Rule have to registered to get key"));
+        .orElseThrow(() -> new IllegalArgumentException("Rule has to registered to get key"));
   }
 
   @Override

@@ -14,9 +14,11 @@ import team.ebi.epicbanitem.api.RulePredicateService;
 
 @Singleton
 public class RestrictionRuleServiceImpl implements RestrictionRuleService {
+
   private final BiMap<ResourceKey, RestrictionRule> map = HashBiMap.create();
 
-  @Inject private RulePredicateService predicateService;
+  @Inject
+  private RulePredicateService predicateService;
 
   @Inject
   public RestrictionRuleServiceImpl() {
@@ -25,10 +27,12 @@ public class RestrictionRuleServiceImpl implements RestrictionRuleService {
 
   @Override
   public Optional<ResourceKey> register(ResourceKey key, RestrictionRule rule) {
-    predicateService.register(rule);
     RestrictionRule putted = map.put(key, rule);
-    if (putted == null) return Optional.empty();
-    else return Optional.of(key);
+    if (putted != null) {
+      predicateService.remove(putted);
+    }
+    predicateService.register(rule);
+    return Optional.of(key);
   }
 
   @Override

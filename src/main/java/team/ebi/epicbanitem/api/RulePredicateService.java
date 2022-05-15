@@ -31,16 +31,18 @@ public interface RulePredicateService {
   }
 
   /**
-   * @param key Object key
+   * @param id Object id
    * @return All possible predicates
    */
-  default Set<ResourceKey> predicates(ResourceKey key) {
-    return Set.of(
+  default Set<ResourceKey> predicates(ResourceKey id) {
+    return Set.copyOf(List.of(
         WILDCARD,
-        key,
-        ResourceKey.of(key.namespace(), "_"),
-        ResourceKey.of("_", key.value()));
+        id,
+        ResourceKey.of(id.namespace(), "_"),
+        ResourceKey.of("_", id.value())));
   }
+
+  boolean remove(RestrictionRule rule);
 
   Set<ResourceKey> predicates();
 
