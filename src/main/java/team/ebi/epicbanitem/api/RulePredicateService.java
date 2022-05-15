@@ -24,6 +24,14 @@ public interface RulePredicateService {
         .collect(ImmutableSet.toImmutableSet());
   }
 
+  @SuppressWarnings("UnstableApiUsage")
+  default ImmutableSortedSet<RestrictionRule> rulesWithPriority(ResourceKey id) {
+    return rules(id).stream()
+        .collect(
+            ImmutableSortedSet.toImmutableSortedSet(
+                Comparator.comparingInt(RestrictionRule::priority)));
+  }
+
   /**
    * @param key Object key
    * @return All possible predicates
@@ -40,14 +48,6 @@ public interface RulePredicateService {
   ImmutableSet<ResourceKey> predicates();
 
   ImmutableSet<RestrictionRule> rule(ResourceKey predicate);
-
-  @SuppressWarnings("UnstableApiUsage")
-  default ImmutableSortedSet<RestrictionRule> rulesWithPriority(ResourceKey predicate) {
-    return rule(predicate).stream()
-        .collect(
-            ImmutableSortedSet.toImmutableSortedSet(
-                Comparator.comparingInt(RestrictionRule::priority)));
-  }
 
   /**
    * Register a predicate

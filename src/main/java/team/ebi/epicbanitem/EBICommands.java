@@ -368,7 +368,7 @@ public final class EBICommands {
     var component =
         Component.translatable("epicbanitem.command.test.result").toBuilder();
     predicateService
-        .rules(targetObject.type().key(RegistryTypes.ITEM_TYPE))
+        .rulesWithPriority(targetObject.type().key(RegistryTypes.ITEM_TYPE))
         .forEach(
             rule -> {
               player.sendMessage(
