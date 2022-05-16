@@ -17,6 +17,8 @@ public class EqQueryExpression implements QueryExpression {
   public EqQueryExpression(Object data) {
     if (data instanceof Number n) {
       data = n.doubleValue();
+    } else if (data instanceof DataView view) {
+      data = view.copy();
     }
     this.value = data;
   }
@@ -30,6 +32,8 @@ public class EqQueryExpression implements QueryExpression {
     Object current = DataUtils.get(data, query).orElse(null);
     if (current instanceof Number n) {
       current = n.doubleValue();
+    } else if (current instanceof DataView view) {
+      current = view.copy();
     }
     return QueryResult.from(Objects.equals(value, current));
   }
