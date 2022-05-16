@@ -1,8 +1,9 @@
 package team.ebi.epicbanitem.expression.query;
 
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -13,13 +14,12 @@ import team.ebi.epicbanitem.expression.CommonQueryExpression;
 
 public class AndQueryExpression implements QueryExpression {
 
-  private final ImmutableList<QueryExpression> expressions;
+  private final Set<QueryExpression> expressions;
 
-  public AndQueryExpression(List<QueryExpression> expressions) {
-    this.expressions = ImmutableList.copyOf(expressions);
+  public AndQueryExpression(Set<QueryExpression> expressions) {
+    this.expressions = expressions;
   }
 
-  @SuppressWarnings("UnstableApiUsage")
   public AndQueryExpression(DataView data, DataQuery query) {
     List<DataView> views =
         data.getViewList(query)
@@ -27,7 +27,7 @@ public class AndQueryExpression implements QueryExpression {
     this.expressions =
         views.stream()
             .map(it -> new CommonQueryExpression(data, it.currentPath()))
-            .collect(ImmutableList.toImmutableList());
+            .collect(Collectors.toSet());
   }
 
   @Override

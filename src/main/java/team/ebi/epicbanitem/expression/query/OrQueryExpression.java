@@ -15,6 +15,10 @@ import team.ebi.epicbanitem.expression.CommonQueryExpression;
 public class OrQueryExpression implements QueryExpression {
   private final Set<QueryExpression> expressions;
 
+  public OrQueryExpression(Set<QueryExpression> expressions) {
+    this.expressions = expressions;
+  }
+
   public OrQueryExpression(DataView data, DataQuery query) {
     List<DataView> views =
         data.getViewList(query)

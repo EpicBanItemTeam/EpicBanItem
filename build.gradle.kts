@@ -23,6 +23,8 @@ val mockitoVersion: String by project
 val spongeApiVersion: String by project
 
 dependencies {
+    testRuntimeOnly("org.spongepowered:spongeapi:$spongeApiVersion")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
@@ -77,4 +79,10 @@ tasks.withType(JavaCompile::class).configureEach {
 tasks.withType(AbstractArchiveTask::class).configureEach {
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
+}
+
+tasks {
+    test {
+        useJUnitPlatform()
+    }
 }
