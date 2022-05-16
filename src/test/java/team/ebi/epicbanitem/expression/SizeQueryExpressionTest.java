@@ -3,7 +3,9 @@ package team.ebi.epicbanitem.expression;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -12,13 +14,14 @@ import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.expression.query.RegexQueryExpression;
 import team.ebi.epicbanitem.expression.query.SizeQueryExpression;
 
+@Disabled
 class SizeQueryExpressionTest {
 
   private static final DataView testContainer = new DummyDataContainer();
 
   @BeforeAll
   static void beforeAll() {
-    testContainer.set(DataQuery.of("list"), new int[] {0, 0, 0, 0});
+    testContainer.set(DataQuery.of("list"), List.of(1, 2, 3, 4));
   }
 
   // TODO DataView#getList can't get native type array
