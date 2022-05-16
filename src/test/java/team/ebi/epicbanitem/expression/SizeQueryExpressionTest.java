@@ -18,15 +18,17 @@ class SizeQueryExpressionTest {
 
   @BeforeAll
   static void beforeAll() {
-    testContainer.set(DataQuery.of("list"), new int[]{0, 0, 0, 0});
+    testContainer.set(DataQuery.of("list"), new int[] {0, 0, 0, 0});
   }
 
   // TODO DataView#getList can't get native type array
   @Test
   void constructFromView() {
     DataQuery query = ExpressionQueries.SIZE;
-    assertTrue(new SizeQueryExpression(new DummyDataContainer().set(query, 4), query).query(
-        DataQuery.of("list"), testContainer).isPresent());
+    assertTrue(
+        new SizeQueryExpression(new DummyDataContainer().set(query, 4), query)
+            .query(DataQuery.of("list"), testContainer)
+            .isPresent());
     new RegexQueryExpression(new DummyDataContainer().set(query, "/.*?world/"), query);
   }
 

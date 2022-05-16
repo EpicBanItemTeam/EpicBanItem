@@ -3,6 +3,8 @@ package team.ebi.epicbanitem.expression.query;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -21,9 +23,9 @@ import team.ebi.epicbanitem.util.data.DataUtils;
  */
 public class AllQueryExpression implements QueryExpression {
 
-  private final List<QueryExpression> expressions;
+  private final Set<QueryExpression> expressions;
 
-  public AllQueryExpression(List<QueryExpression> expressions) {
+  public AllQueryExpression(Set<QueryExpression> expressions) {
     this.expressions = expressions;
   }
 
@@ -41,7 +43,7 @@ public class AllQueryExpression implements QueryExpression {
                     return new ValueQueryExpression(value);
                   }
                 })
-            .toList();
+            .collect(Collectors.toUnmodifiableSet());
   }
 
   @Override
@@ -49,6 +51,7 @@ public class AllQueryExpression implements QueryExpression {
     Optional<List<?>> list = DataUtils.get(data, query).flatMap(Coerce::asList);
     if (list.isPresent() && !list.get().isEmpty()) {
       ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
+
       for (int i = 0; i < list.get().size(); i++) {
         String key = Integer.toString(i);
         DataQuery subQuery = query.then(key);
@@ -56,11 +59,10 @@ public class AllQueryExpression implements QueryExpression {
             .map(it -> it.query(subQuery, data))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .findAny()
-            .ifPresent(it -> builder.put(key, it));
+            .forEach(it -> builder.put(key, it));
       }
       ImmutableMap<String, QueryResult> map = builder.build();
-      if (!map.isEmpty()) {
+      if (map.size() >= expressions.size()) {
         return Optional.of(QueryResult.array(map));
       }
     }

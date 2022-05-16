@@ -28,7 +28,8 @@ class CompareQueryExpressionTest {
     DataQuery query = DataQuery.of("number");
     expressionView.set(query, 14);
     assertTrue(
-        new GtQueryExpression(expressionView, query).query(DataQuery.of("number"), testContainer)
+        new GtQueryExpression(expressionView, query)
+            .query(DataQuery.of("number"), testContainer)
             .isPresent());
   }
 
