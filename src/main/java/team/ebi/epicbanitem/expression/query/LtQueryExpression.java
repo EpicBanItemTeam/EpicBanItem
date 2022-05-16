@@ -6,6 +6,10 @@ import team.ebi.epicbanitem.expression.CompareQueryExpression;
 
 public class LtQueryExpression extends CompareQueryExpression {
 
+  public LtQueryExpression(double value) {
+    super(value, (i, j) -> i < j);
+  }
+
   public LtQueryExpression(DataView data, DataQuery query) {
     super(data, query, (i, j) -> i < j);
   }

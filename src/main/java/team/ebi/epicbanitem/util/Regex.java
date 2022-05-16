@@ -16,13 +16,12 @@ public final class Regex {
   public Regex(String s) {
     String[] strings = s.split("/");
     if (strings.length > 1) {
+      this.regexString = strings[1];
       if (strings.length == 3) {
-        this.regexString = strings[1];
         this.flags = strings[2];
-        return;
+      } else {
+        this.flags = "";
       }
-      this.regexString = s;
-      this.flags = null;
     } else {
       throw new IllegalArgumentException(
           MessageFormat.format("input string isn't a regex: {0}", s));

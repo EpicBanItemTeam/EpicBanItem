@@ -2,19 +2,16 @@ package team.ebi.epicbanitem.expression;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.DummyDataContainer;
-import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.query.EqQueryExpression;
 
 class EqQueryExpressionTest {
 
-  private static
-  final DataView testContainer = new DummyDataContainer();
+  private static final DataView testContainer = new DummyDataContainer();
 
   @BeforeAll
   static void beforeAll() {
@@ -24,15 +21,27 @@ class EqQueryExpressionTest {
   }
 
   @Test
+  void constructFromView() {
+    final DataView expressionView = new DummyDataContainer();
+    DataQuery query = DataQuery.of("string");
+    expressionView.set(query, "bar");
+    final EqQueryExpression expression = new EqQueryExpression(expressionView, query);
+    assertTrue(expression.query(DataQuery.of("string"), testContainer).isPresent());
+    assertTrue(expression.query(DataQuery.of("number"), testContainer).isEmpty());
+  }
+
+  @Test
   void string() {
-    EqQueryExpression stringEq = new EqQueryExpression("bar");
-    assertTrue(stringEq.query(DataQuery.of("string"), testContainer).isPresent());
+    EqQueryExpression expression = new EqQueryExpression("bar");
+    assertTrue(expression.query(DataQuery.of("string"), testContainer).isPresent());
+    assertTrue(expression.query(DataQuery.of("number"), testContainer).isEmpty());
   }
 
   @Test
   void number() {
-    EqQueryExpression numberEq = new EqQueryExpression(123456);
-    assertTrue(numberEq.query(DataQuery.of("number"), testContainer).isPresent());
+    EqQueryExpression expression = new EqQueryExpression(123456);
+    assertTrue(expression.query(DataQuery.of("number"), testContainer).isPresent());
+    assertTrue(expression.query(DataQuery.of("string"), testContainer).isEmpty());
   }
 
   @Test
@@ -40,8 +49,8 @@ class EqQueryExpressionTest {
     final DataView object = new DummyDataContainer();
     object.set(DataQuery.of("foo"), "bar");
 
-    EqQueryExpression objectEq = new EqQueryExpression(object);
-    Optional<QueryResult> result = objectEq.query(DataQuery.of("object"), testContainer);
-    assertTrue(result.isPresent());
+    EqQueryExpression expression = new EqQueryExpression(object);
+    assertTrue(expression.query(DataQuery.of("object"), testContainer).isPresent());
+    assertTrue(expression.query(DataQuery.of("number"), testContainer).isEmpty());
   }
 }

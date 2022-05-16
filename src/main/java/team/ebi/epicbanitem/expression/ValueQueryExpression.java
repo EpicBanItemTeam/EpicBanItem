@@ -4,6 +4,7 @@ import java.util.Optional;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.util.Coerce;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.query.EqQueryExpression;
@@ -15,10 +16,10 @@ public class ValueQueryExpression implements QueryExpression {
   private final QueryExpression expression;
 
   public ValueQueryExpression(Object value) {
-    this.expression =
-        value instanceof String s && Regex.isRegex(s)
-            ? new RegexQueryExpression(s)
-            : new ArrayableQueryExpression(new EqQueryExpression(value));
+    this.expression = Coerce.asString(value)
+        .filter(Regex::isRegex)
+        .<QueryExpression>map(RegexQueryExpression::new)
+        .orElse(new ArrayableQueryExpression(new EqQueryExpression(value)));
   }
 
   @Override

@@ -8,6 +8,7 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.util.Coerce;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
@@ -32,8 +33,7 @@ public class MathUpdateExpression implements UpdateExpression {
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
     ImmutableMap.Builder<DataQuery, UpdateOperation> builder = ImmutableMap.builder();
     for (DataQuery currentQuery : UpdateExpression.parseQuery(query, result)) {
-      Optional<Number> value =
-          data.get(currentQuery).filter(Number.class::isInstance).map(Number.class::cast);
+      Optional<Number> value = data.get(currentQuery).flatMap(Coerce::asDouble);
       if (value.isEmpty()) {
         continue;
       }
