@@ -8,8 +8,8 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
-import team.ebi.epicbanitem.util.DataUtils;
 import team.ebi.epicbanitem.util.Regex;
+import team.ebi.epicbanitem.util.data.DataUtils;
 
 public class RegexQueryExpression implements QueryExpression {
   private final Pattern pattern;

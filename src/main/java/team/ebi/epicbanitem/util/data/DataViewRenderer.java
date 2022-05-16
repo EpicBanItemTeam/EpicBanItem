@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.util;
+package team.ebi.epicbanitem.util.data;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;

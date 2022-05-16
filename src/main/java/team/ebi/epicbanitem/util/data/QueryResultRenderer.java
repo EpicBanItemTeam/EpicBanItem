@@ -1,10 +1,10 @@
-package team.ebi.epicbanitem.util;
+package team.ebi.epicbanitem.util.data;
 
-import static team.ebi.epicbanitem.util.DataViewRenderer.COLON;
-import static team.ebi.epicbanitem.util.DataViewRenderer.valueString;
-import static team.ebi.epicbanitem.util.DataViewRenderer.valueStyle;
-import static team.ebi.epicbanitem.util.DataViewRenderer.wrapList;
-import static team.ebi.epicbanitem.util.DataViewRenderer.wrapObject;
+import static team.ebi.epicbanitem.util.data.DataViewRenderer.COLON;
+import static team.ebi.epicbanitem.util.data.DataViewRenderer.valueString;
+import static team.ebi.epicbanitem.util.data.DataViewRenderer.valueStyle;
+import static team.ebi.epicbanitem.util.data.DataViewRenderer.wrapList;
+import static team.ebi.epicbanitem.util.data.DataViewRenderer.wrapObject;
 
 import com.google.common.collect.Lists;
 import java.util.List;

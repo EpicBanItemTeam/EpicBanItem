@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.util;
+package team.ebi.epicbanitem.util.data;
 
 import java.util.List;
 import java.util.Optional;

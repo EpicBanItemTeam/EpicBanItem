@@ -9,7 +9,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
-import team.ebi.epicbanitem.util.DataUtils;
+import team.ebi.epicbanitem.util.data.DataUtils;
 
 public class ElemMatchQueryExpression implements QueryExpression {
   private final QueryExpression expression;

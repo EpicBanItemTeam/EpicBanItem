@@ -28,7 +28,7 @@ import team.ebi.epicbanitem.api.RestrictionTrigger;
 import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
-import team.ebi.epicbanitem.util.DataSerializableValueParser;
+import team.ebi.epicbanitem.util.data.DataSerializableValueParser;
 
 @Singleton
 public final class Parameters {

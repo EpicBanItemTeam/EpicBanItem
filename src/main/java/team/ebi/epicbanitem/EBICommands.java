@@ -3,11 +3,11 @@ package team.ebi.epicbanitem;
 import static team.ebi.epicbanitem.util.Components.NEED_BLOCK;
 import static team.ebi.epicbanitem.util.Components.NEED_ITEM;
 import static team.ebi.epicbanitem.util.Components.NEED_PLAYER;
-import static team.ebi.epicbanitem.util.DataUtils.objectName;
 import static team.ebi.epicbanitem.util.EntityUtils.equipped;
 import static team.ebi.epicbanitem.util.EntityUtils.heldHand;
 import static team.ebi.epicbanitem.util.EntityUtils.targetBlock;
 import static team.ebi.epicbanitem.util.EntityUtils.targetObject;
+import static team.ebi.epicbanitem.util.data.DataUtils.objectName;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -64,9 +64,9 @@ import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 import team.ebi.epicbanitem.util.Components;
-import team.ebi.epicbanitem.util.DataViewRenderer;
 import team.ebi.epicbanitem.util.command.Flags;
 import team.ebi.epicbanitem.util.command.Parameters;
+import team.ebi.epicbanitem.util.data.DataViewRenderer;
 
 @Singleton
 public final class EBICommands {
@@ -439,6 +439,7 @@ public final class EBICommands {
                       }
                     }));
           }
+          // TODO copy rule
           return rule.asComponent().hoverEvent(Component.join(JoinConfiguration.newlines(),
                   DataViewRenderer.render(rule.queryExpression().toContainer())))
               .append(Component.space())
