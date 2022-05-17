@@ -11,6 +11,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.util.Coerce;
 
 public final class DataUtils {
 
@@ -28,19 +29,20 @@ public final class DataUtils {
     if (query.parts().size() <= 1) {
       return view.get(query);
     }
-    Optional<DataView> subView = view.getView(query.queryParts().get(0));
-    Optional<List<?>> list = view.getList(query.queryParts().get(0));
+    DataQuery firstQuery = query.queryParts().get(0);
+    Optional<DataView> subView = view.getView(firstQuery);
+    // Coerce#asList(Object) will process primitive types
+    Optional<List<?>> list = view.get(firstQuery).flatMap(Coerce::asList);
     String index = query.parts().get(1);
-    if (list.isPresent() && StringUtils.isNumeric(index)) {
+    if (StringUtils.isNumeric(index) && list.isPresent()) {
       Object value = list.get().get(Integer.parseInt(index));
       if (value instanceof DataView viewValue) {
+        // The first is index. Second is the key
         return get(viewValue, query.popFirst().popFirst());
       }
-      return Optional.ofNullable(value);
-    } else if (subView.isEmpty()) {
-      return Optional.empty();
+      return Optional.of(value);
     }
-    return get(subView.get(), query.popFirst());
+    return subView.flatMap(it -> get(it, query.popFirst()));
   }
 
   public static Component objectName(SerializableDataHolder holder) {
