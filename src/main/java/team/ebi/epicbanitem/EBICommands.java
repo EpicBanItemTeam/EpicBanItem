@@ -320,7 +320,11 @@ public final class EBICommands {
               .filter(it -> !it.keys(false).isEmpty())
               .collect(Collectors.toUnmodifiableSet());
       if (!views.isEmpty()) {
-        expressionView.set(ExpressionQueries.OR, views);
+        if (views.size() == 1) {
+          views.iterator().next().values(false).forEach(expressionView::set);
+        } else {
+          expressionView.set(ExpressionQueries.OR, views);
+        }
       } else {
         block
             .map(it -> ItemStack.builder().fromBlockSnapshot(it).build())
