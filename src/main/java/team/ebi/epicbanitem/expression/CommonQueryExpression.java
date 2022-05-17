@@ -75,7 +75,6 @@ public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions)
       } else {
         return QueryResult.failed();
       }
-
     }
     return Optional.of(result);
   }

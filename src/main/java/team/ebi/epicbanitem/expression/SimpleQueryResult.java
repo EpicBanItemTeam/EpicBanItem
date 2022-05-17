@@ -29,13 +29,8 @@ public class SimpleQueryResult extends AbstractMap<String, QueryResult> implemen
 
   @Override
   public QueryResult merge(@NotNull QueryResult target) {
-    var map = Maps.<String, QueryResult>newHashMap();
-    target.forEach(
-        (key, value) ->
-            map.compute(
-                key,
-                (ignored, oldValue) ->
-                    Objects.isNull(oldValue) ? value : oldValue.merge(value)));
+    var map = Maps.newHashMap(this);
+    target.forEach((key, value) -> map.merge(key, value, QueryResult::merge));
     return new SimpleQueryResult(type.merge(target.type()), map);
   }
 
@@ -67,7 +62,7 @@ public class SimpleQueryResult extends AbstractMap<String, QueryResult> implemen
       return false;
     }
     SimpleQueryResult that = (SimpleQueryResult) o;
-    return children.equals(that.children) && type == that.type;
+    return entrySet().equals(that.entrySet()) && type == that.type;
   }
 
   @Override

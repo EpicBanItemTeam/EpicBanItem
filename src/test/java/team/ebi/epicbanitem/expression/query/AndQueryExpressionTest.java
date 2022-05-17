@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.expression;
+package team.ebi.epicbanitem.expression.query;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,11 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.DummyDataContainer;
-import team.ebi.epicbanitem.expression.query.GtQueryExpression;
-import team.ebi.epicbanitem.expression.query.LtQueryExpression;
-import team.ebi.epicbanitem.expression.query.OrQueryExpression;
 
-class OrQueryExpressionTest {
+class AndQueryExpressionTest {
 
   private static final DataView testContainer = new DummyDataContainer();
 
@@ -24,13 +21,13 @@ class OrQueryExpressionTest {
 
   @Test
   void gtAndLt() {
-    assertFalse(
-        new OrQueryExpression(Set.of(new GtQueryExpression(6), new LtQueryExpression(4)))
+    assertTrue(
+        new AndQueryExpression(Set.of(new GtQueryExpression(4), new LtQueryExpression(6)))
             .query(DataQuery.of("number"), testContainer)
             .isPresent());
 
-    assertTrue(
-        new OrQueryExpression(Set.of(new GtQueryExpression(5), new LtQueryExpression(6)))
+    assertFalse(
+        new AndQueryExpression(Set.of(new GtQueryExpression(5), new LtQueryExpression(6)))
             .query(DataQuery.of("number"), testContainer)
             .isPresent());
   }

@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.expression;
+package team.ebi.epicbanitem.expression.query;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,7 +9,6 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import team.ebi.epicbanitem.DummyDataContainer;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
-import team.ebi.epicbanitem.expression.query.RegexQueryExpression;
 
 class RegexQueryExpressionTest {
 
