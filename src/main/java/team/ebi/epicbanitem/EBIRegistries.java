@@ -54,6 +54,7 @@ import team.ebi.epicbanitem.expression.update.UnsetUpdateExpression;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
 import team.ebi.epicbanitem.trigger.SimpleRestrictionTrigger;
 import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
+import team.ebi.epicbanitem.util.data.DataUtils;
 
 @Singleton
 public final class EBIRegistries {
@@ -211,12 +212,7 @@ public final class EBIRegistries {
                                 ItemQueries.ITEM_TYPE,
                                 view.get(ItemQueries.ITEM_TYPE).orElseThrow()))
                 .put(
-                    EpicBanItem.key("all"),
-                    view -> {
-                      DataContainer container = DataContainer.createNew();
-                      view.values(false).forEach(container::set);
-                      return container;
-                    })
+                    EpicBanItem.key("all"), DataUtils::dataToExpression)
                 .put(EpicBanItem.key("empty"), view -> DataContainer.createNew())
                 .build());
   }

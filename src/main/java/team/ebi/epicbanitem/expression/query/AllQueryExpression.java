@@ -9,7 +9,6 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
-import org.spongepowered.api.util.Coerce;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.expression.CommonQueryExpression;
@@ -48,7 +47,7 @@ public class AllQueryExpression implements QueryExpression {
 
   @Override
   public Optional<QueryResult> query(DataQuery query, DataView data) {
-    Optional<List<?>> list = DataUtils.get(data, query).flatMap(Coerce::asList);
+    Optional<List<?>> list = DataUtils.get(data, query).flatMap(DataUtils::asList);
     if (list.isPresent() && !list.get().isEmpty()) {
       ImmutableMap.Builder<String, QueryResult> builder = ImmutableMap.builder();
 

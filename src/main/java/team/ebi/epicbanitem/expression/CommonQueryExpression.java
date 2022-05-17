@@ -9,6 +9,7 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.util.Tuple;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryExpressionFunctions;
 import team.ebi.epicbanitem.api.expression.QueryResult;
@@ -22,44 +23,46 @@ public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions)
 
   public CommonQueryExpression(DataView view, DataQuery query) {
     this(Maps.newHashMap());
-    Optional<DataView> currentView = view.getView(query);
-
-    // Shouldn't be value
-    if (currentView.isEmpty()) {
-      return;
-    }
-
-    // Can be root expressions or nbt path
-    currentView
-        .get()
-        .values(false)
-        .forEach(
-            (key, value) -> {
-              DataQuery currentQuery = query.then(key);
-              if (ROOT_QUERY_EXPRESSIONS.contains(key)) {
-                this.expressions.put(currentQuery,
-                    QueryExpressionFunctions.expressions.get(key.toString()).apply(view, currentQuery));
-              } else if (!(value instanceof DataView subView)) {
-                this.expressions.put(currentQuery,
-                    new ExtraQueryQueryExpression(
-                        new ValueQueryExpression(
-                            view.get(currentQuery)
-                                .orElseThrow(() -> new InvalidDataException("No value in view"))),
-                        DataQuery.of('.', key.toString())));
-              } else {
-                for (DataQuery subQuery : subView.keys(false)) {
-                  String expressionKey = subQuery.toString();
-                  if (QueryExpressionFunctions.expressions.containsKey(expressionKey)) {
-                    this.expressions.put(currentQuery.then(subQuery),
+    view.getView(query)
+        .ifPresent(expressionView ->
+            expressionView.keys(false)
+                .stream()
+                .map(it -> Tuple.of(it, expressionView.get(it).orElseThrow()))
+                .forEach(tuple -> {
+                  // Can be root expressions or nbt path
+                  DataQuery key = tuple.first();
+                  Object value = tuple.second();
+                  DataQuery entireQuery = query.then(key);
+                  if (ROOT_QUERY_EXPRESSIONS.contains(key)) {
+                    this.expressions.put(key,
+                        QueryExpressionFunctions.expressions.get(key.toString())
+                            .apply(view, entireQuery));
+                  } else if (value instanceof DataView valueView) {
+                    // Not the root. Children should be node paths.
+                    for (DataQuery subKey : valueView.keys(false)) {
+                      entireQuery = entireQuery.then(subKey);
+                      String stringSubKey = subKey.toString();
+                      // Have to be an expression. Not support nested nbt path.
+                      if (QueryExpressionFunctions.expressions.containsKey(stringSubKey)) {
+                        this.expressions.put(key.then(subKey),
+                            new ExtraQueryQueryExpression(
+                                QueryExpressionFunctions.expressions
+                                    .get(stringSubKey)
+                                    .apply(view, entireQuery),
+                                DataQuery.of('.', key.toString())));
+                      }
+                    }
+                  } else {
+                    // Not view or root. Should be nbt path with a value.
+                    this.expressions.put(key,
                         new ExtraQueryQueryExpression(
-                            QueryExpressionFunctions.expressions
-                                .get(expressionKey)
-                                .apply(view, currentQuery.then(subQuery)),
+                            new ValueQueryExpression(
+                                view.get(entireQuery)
+                                    .orElseThrow(
+                                        () -> new InvalidDataException("No value in view"))),
                             DataQuery.of('.', key.toString())));
                   }
-                }
-              }
-            });
+                }));
   }
 
   @Override
