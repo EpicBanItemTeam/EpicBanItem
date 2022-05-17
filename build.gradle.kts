@@ -85,4 +85,7 @@ tasks {
     test {
         useJUnitPlatform()
     }
+    runServer {
+        jvmArgs("-XX:+AllowEnhancedClassRedefinition", "-XX:HotswapAgent=fatjar")
+    }
 }
