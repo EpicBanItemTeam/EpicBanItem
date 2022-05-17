@@ -8,11 +8,12 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
+import team.ebi.epicbanitem.expression.ValueQueryExpression;
 
 public class NinQueryExpression implements QueryExpression {
-  private final QueryExpression expression;
+  private final InQueryExpression expression;
 
-  public NinQueryExpression(List<QueryExpression> expressions) {
+  public NinQueryExpression(List<ValueQueryExpression> expressions) {
     this.expression = new InQueryExpression(expressions);
   }
 

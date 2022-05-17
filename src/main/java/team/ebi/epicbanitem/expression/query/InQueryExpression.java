@@ -13,10 +13,10 @@ import team.ebi.epicbanitem.expression.ValueQueryExpression;
 
 public class InQueryExpression implements QueryExpression {
 
-  private final ImmutableList<QueryExpression> expressions;
+  private final List<ValueQueryExpression> expressions;
 
-  public InQueryExpression(List<QueryExpression> expressions) {
-    this.expressions = ImmutableList.copyOf(expressions);
+  public InQueryExpression(List<ValueQueryExpression> expressions) {
+    this.expressions = expressions;
   }
 
   @SuppressWarnings("UnstableApiUsage")

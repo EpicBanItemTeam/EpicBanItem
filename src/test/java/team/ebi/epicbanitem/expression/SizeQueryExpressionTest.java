@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -14,7 +13,6 @@ import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.expression.query.RegexQueryExpression;
 import team.ebi.epicbanitem.expression.query.SizeQueryExpression;
 
-@Disabled
 class SizeQueryExpressionTest {
 
   private static final DataView testContainer = new DummyDataContainer();

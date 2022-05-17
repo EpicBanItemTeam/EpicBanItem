@@ -6,12 +6,14 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.util.Coerce;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.Regex;
 import team.ebi.epicbanitem.util.data.DataUtils;
 
 public class RegexQueryExpression implements QueryExpression {
+
   private final Pattern pattern;
   private final Regex regex;
 
@@ -30,8 +32,7 @@ public class RegexQueryExpression implements QueryExpression {
   public Optional<QueryResult> query(DataQuery query, DataView data) {
     return QueryResult.from(
         DataUtils.get(data, query)
-            .filter(String.class::isInstance)
-            .map(String.class::cast)
+            .flatMap(Coerce::asString)
             .filter(this.pattern.asPredicate())
             .isPresent());
   }
