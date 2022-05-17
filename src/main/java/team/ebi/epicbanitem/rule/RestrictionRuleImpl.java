@@ -2,8 +2,8 @@ package team.ebi.epicbanitem.rule;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import java.text.MessageFormat;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
@@ -65,23 +65,21 @@ public class RestrictionRuleImpl implements RestrictionRule {
   }
 
   public RestrictionRuleImpl(DataView data) {
-    this.priority = data.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
+    DataView view = data.getView(RestrictionRuleQueries.RULE).orElseThrow();
+    this.priority = view.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
     this.queryExpression =
-        data.getSerializable(RestrictionRuleQueries.QUERY, RootQueryExpression.class)
-            .orElseThrow(
-                () ->
-                    new InvalidDataException(
-                        MessageFormat.format("Invalid query expression for rule {0}", key())));
+        view.getSerializable(RestrictionRuleQueries.QUERY, RootQueryExpression.class)
+            .orElseThrow(() -> new InvalidDataException("Invalid query expression for rule"));
     this.updateExpression =
-        data.getSerializable(RestrictionRuleQueries.QUERY, RootUpdateExpression.class).orElse(null);
+        view.getSerializable(RestrictionRuleQueries.QUERY, RootUpdateExpression.class).orElse(null);
     this.predicate =
-        data.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
-    this.needCancel = data.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
+        view.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
+    this.needCancel = view.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
     // TODO Need config
     this.defaultWorldState =
-        data.getBoolean(RestrictionRuleQueries.DEFAULT_WORLD_STATE).orElse(false);
+        view.getBoolean(RestrictionRuleQueries.DEFAULT_WORLD_STATE).orElse(false);
     this.defaultTriggerState =
-        data.getBoolean(RestrictionRuleQueries.DEFAULT_TRIGGER_STATE).orElse(false);
+        view.getBoolean(RestrictionRuleQueries.DEFAULT_TRIGGER_STATE).orElse(false);
   }
 
   @Override
@@ -186,11 +184,13 @@ public class RestrictionRuleImpl implements RestrictionRule {
   @Override
   public DataContainer toContainer() {
     DataContainer container = DataContainer.createNew();
-    container
-        .createView(RestrictionRuleQueries.RULE)
+    DataView ruleView = container.createView(RestrictionRuleQueries.RULE);
+    if (Objects.nonNull(updateExpression)) {
+      ruleView.set(RestrictionRuleQueries.UPDATE, updateExpression);
+    }
+    ruleView
         .set(RestrictionRuleQueries.PRIORITY, priority)
         .set(RestrictionRuleQueries.QUERY, queryExpression)
-        .set(RestrictionRuleQueries.UPDATE, updateExpression)
         .set(RestrictionRuleQueries.PREDICATE, predicate)
         .set(RestrictionRuleQueries.NEED_CANCEL, needCancel);
     return container.set(Queries.CONTENT_VERSION, contentVersion());

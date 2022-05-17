@@ -2,6 +2,7 @@ package team.ebi.epicbanitem;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import java.util.Objects;
 import org.spongepowered.api.ResourceKey;
@@ -59,21 +60,19 @@ import team.ebi.epicbanitem.util.data.DataUtils;
 @Singleton
 public final class EBIRegistries {
 
-  public static final DefaultedRegistryType<RestrictionTrigger> TRIGGER = key(
-      "restriction_trigger");
-  public static final DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION = key(
-      "query_expression");
-  public static final DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION = key(
-      "update_expression");
+  public static final DefaultedRegistryType<RestrictionTrigger> TRIGGER =
+      key("restriction_trigger");
+  public static final DefaultedRegistryType<QueryExpressionFunction> QUERY_EXPRESSION =
+      key("query_expression");
+  public static final DefaultedRegistryType<UpdateExpressionFunction> UPDATE_EXPRESSION =
+      key("update_expression");
   public static final DefaultedRegistryType<RestrictionPreset> PRESET = key("preset");
 
+  @Inject private Injector injector;
+
   @Inject
-  EBIRegistries(
-      PluginContainer pluginContainer,
-      EventManager eventManager,
-      RestrictionRulesStorage rulesStorage) {
+  EBIRegistries(PluginContainer pluginContainer, EventManager eventManager) {
     eventManager.registerListeners(pluginContainer, this);
-    Objects.requireNonNull(rulesStorage);
   }
 
   private static <T> ImmutableMap<String, T> asMap(DefaultedRegistryType<T> registry) {
@@ -211,8 +210,7 @@ public final class EBIRegistries {
                             .set(
                                 ItemQueries.ITEM_TYPE,
                                 view.get(ItemQueries.ITEM_TYPE).orElseThrow()))
-                .put(
-                    EpicBanItem.key("all"), DataUtils::dataToExpression)
+                .put(EpicBanItem.key("all"), DataUtils::dataToExpression)
                 .put(EpicBanItem.key("empty"), view -> DataContainer.createNew())
                 .build());
   }
@@ -221,5 +219,6 @@ public final class EBIRegistries {
   public void onRegisterRegistryValue(RegisterRegistryValueEvent.EngineScoped<Server> event) {
     QueryExpressionFunctions.expressions = asMap(QUERY_EXPRESSION);
     UpdateExpressionFunctions.expressions = asMap(UPDATE_EXPRESSION);
+    Objects.requireNonNull(injector.getInstance(RestrictionRulesStorage.class));
   }
 }

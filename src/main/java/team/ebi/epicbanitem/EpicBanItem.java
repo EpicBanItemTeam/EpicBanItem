@@ -34,16 +34,14 @@ public class EpicBanItem {
   public static final String NAMESPACE = "epicbanitem";
 
   public static TranslationRegistry translations;
-  @Inject
-  private PluginContainer plugin;
-  @Inject
-  private Injector injector;
+  @Inject private PluginContainer plugin;
+  @Inject private Injector injector;
 
   @SuppressWarnings("SpongeInjection")
   @Inject
-  EpicBanItem(EBIRegistries registries, EBIServices services) {
-    Objects.requireNonNull(registries);
+  EpicBanItem(EBIServices services, EBIRegistries registries) {
     Objects.requireNonNull(services);
+    Objects.requireNonNull(registries);
   }
 
   public static ResourceKey key(String value) {

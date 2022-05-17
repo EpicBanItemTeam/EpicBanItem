@@ -12,14 +12,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.spongepowered.api.ResourceKey;
-import org.spongepowered.api.config.ConfigDir;
-import org.spongepowered.api.data.persistence.DataContainer;
-import org.spongepowered.api.data.persistence.DataQuery;
-import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.config.ConfigManager;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.RefreshGameEvent;
 import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.EpicBanItem;
@@ -30,17 +29,21 @@ import team.ebi.epicbanitem.api.RestrictionRuleService;
 public class RestrictionRulesStorage {
 
   private final Path rulesDir;
-  @Inject
-  private RestrictionRuleService ruleService;
+  private final HoconConfigurationLoader.Builder configBuilder;
+  private final RestrictionRuleService ruleService;
 
   @Inject
   public RestrictionRulesStorage(
-      PluginContainer plugin,
-      EventManager eventManager,
-      @ConfigDir(sharedRoot = false) Path configDir)
+      EventManager eventManager, ConfigManager configManager, RestrictionRuleService ruleService)
       throws IOException {
+    PluginContainer plugin = Sponge.pluginManager().plugin(EpicBanItem.NAMESPACE).orElseThrow();
     eventManager.registerListeners(plugin, this);
-    this.rulesDir = configDir.resolve("rules");
+    this.rulesDir = configManager.pluginConfig(plugin).directory().resolve("rules");
+    this.configBuilder =
+        HoconConfigurationLoader.builder()
+            .defaultOptions(
+                ConfigurationOptions.defaults().serializers(configManager.serializers()));
+    this.ruleService = ruleService;
     if (Files.notExists(this.rulesDir)) {
       Files.createDirectories(this.rulesDir);
     }
@@ -81,17 +84,20 @@ public class RestrictionRulesStorage {
 
   public void save(ResourceKey key, RestrictionRule rule) {
     try {
-      HoconConfigurationLoader loader =
-          HoconConfigurationLoader.builder().path(rulesDir.resolve(configExtension(key.value())))
-              .build();
-      loader.save(loader.createNode().set(rule.toContainer()));
+      var loader = this.configBuilder.path(rulesDir.resolve(configExtension(key.value()))).build();
+      loader.save(loader.createNode().set(rule));
     } catch (ConfigurateException e) {
       throw new IllegalStateException(e);
     }
   }
 
   public void save() {
-    ruleService.all().forEach(this::save);
+    ruleService
+        .all()
+        .forEach(
+            (key, rule) -> {
+              if (key.namespace().equals(EpicBanItem.NAMESPACE)) this.save(key, rule);
+            });
   }
 
   private String configExtension(String name) {
@@ -108,20 +114,11 @@ public class RestrictionRulesStorage {
                 attributes.isRegularFile() && path.toString().endsWith(".conf"))) {
       return paths.collect(
           Collectors.toUnmodifiableMap(
-              it -> EpicBanItem.key(getNameWithoutExtension(it.toString())),
+              it -> EpicBanItem.key(getNameWithoutExtension(it.getFileName().toString())),
               it -> {
                 try {
                   return Objects.requireNonNull(
-                          HoconConfigurationLoader.builder()
-                              .path(it)
-                              .build()
-                              .load()
-                              .get(DataContainer.class))
-                      .getObject(DataQuery.of(), RestrictionRuleImpl.class)
-                      .orElseThrow(
-                          () ->
-                              new InvalidDataException(
-                                  MessageFormat.format("Rule file {0} can't parse", it)));
+                      configBuilder.path(it).build().load().get(RestrictionRule.class));
                 } catch (ConfigurateException e) {
                   throw new IllegalStateException(e);
                 }

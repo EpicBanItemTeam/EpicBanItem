@@ -1,11 +1,14 @@
 package team.ebi.epicbanitem.rule;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import team.ebi.epicbanitem.api.RestrictionRule;
@@ -17,8 +20,10 @@ public class RestrictionRuleServiceImpl implements RestrictionRuleService {
 
   private final BiMap<ResourceKey, RestrictionRule> map = HashBiMap.create();
 
-  @Inject
-  private RulePredicateService predicateService;
+  @Inject private RulePredicateService predicateService;
+  @Inject private Injector injector;
+  private final Supplier<RestrictionRulesStorage> rulesStorage =
+      Suppliers.memoize(() -> injector.getInstance(RestrictionRulesStorage.class));
 
   @Inject
   public RestrictionRuleServiceImpl() {
@@ -42,6 +47,14 @@ public class RestrictionRuleServiceImpl implements RestrictionRuleService {
 
   @Override
   public RestrictionRule remove(ResourceKey key) {
-    return map.remove(key);
+    RestrictionRule rule = map.remove(key);
+    predicateService.remove(rule);
+    rulesStorage.get().remove(key);
+    return rule;
+  }
+
+  @Override
+  public void save() {
+    rulesStorage.get().save();
   }
 }

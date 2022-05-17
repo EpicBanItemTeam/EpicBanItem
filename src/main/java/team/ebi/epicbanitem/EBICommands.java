@@ -371,6 +371,7 @@ public final class EBICommands {
                                 throw new IllegalStateException(e);
                               }
                             }))));
+    ruleService.save();
     return CommandResult.success();
   }
 

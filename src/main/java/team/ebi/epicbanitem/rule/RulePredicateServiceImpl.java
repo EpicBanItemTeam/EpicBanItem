@@ -20,8 +20,7 @@ public class RulePredicateServiceImpl implements RulePredicateService {
         .reduce(
             false,
             (prev, curr) -> prev || predicates.get(curr).remove(rule),
-            (prev, curr) -> prev || curr
-        );
+            (prev, curr) -> prev || curr);
   }
 
   @Override
