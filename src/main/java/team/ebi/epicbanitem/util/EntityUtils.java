@@ -3,6 +3,8 @@ package team.ebi.epicbanitem.util;
 import java.util.Optional;
 import java.util.function.Predicate;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.data.type.MatterTypes;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.Equipable;
@@ -15,8 +17,7 @@ import org.spongepowered.api.world.LocatableBlock;
 
 public class EntityUtils {
 
-  private EntityUtils() {
-  }
+  private EntityUtils() {}
 
   public static Optional<ItemStack> targetObject(Player player, boolean isBlock) {
     return Optional.of(isBlock)
@@ -29,7 +30,16 @@ public class EntityUtils {
 
   public static Optional<LocatableBlock> targetLocation(Living living) {
     return RayTrace.block()
-        .select(RayTrace.nonAir())
+        .select(
+            RayTrace.nonAir()
+                .and(
+                    block ->
+                        (!block.blockState().get(Keys.IS_PASSABLE).orElse(true))
+                            || (block
+                                .blockState()
+                                .get(Keys.MATTER_TYPE)
+                                .map(matter -> matter.equals(MatterTypes.SOLID.get()))
+                                .orElse(false))))
         .limit(5)
         .sourceEyePosition(living)
         .direction(living)
