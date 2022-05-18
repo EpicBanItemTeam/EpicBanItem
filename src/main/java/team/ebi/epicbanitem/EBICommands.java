@@ -389,10 +389,7 @@ public final class EBICommands {
     var targetView = targetObject.toContainer();
     final var hasTrigger = context.hasAny(keys.trigger);
     final var triggerArgs = context.all(keys.trigger);
-    final var triggers =
-        context.hasAny(keys.trigger)
-            ? context.all(keys.trigger).stream()
-            : RestrictionTriggers.registry().stream();
+    final var allTriggers = RestrictionTriggers.registry();
     var component =
         Component.translatable("epicbanitem.command.test.result").toBuilder();
     predicateService
@@ -404,7 +401,7 @@ public final class EBICommands {
                       "epicbanitem.command.test.result.rule", rule.asComponent().hoverEvent(
                           Component.join(JoinConfiguration.newlines(),
                               DataViewRenderer.render(rule.queryExpression().toContainer())))));
-              triggers
+              (hasTrigger ? triggerArgs.stream() : allTriggers.stream())
                   .map(
                       trigger ->
                           restrictionService.restrict(rule, targetView, world, trigger, null))
