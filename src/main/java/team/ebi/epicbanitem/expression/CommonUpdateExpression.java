@@ -23,7 +23,8 @@ public class CommonUpdateExpression implements UpdateExpression {
       String key = subQuery.toString();
       DataQuery entireQuery = query.then(subQuery);
       if (UPDATE_EXPRESSIONS.contains(subQuery)) {
-        this.expressions.put(entireQuery, UpdateExpressionFunctions.expressions.get(key).apply(view, entireQuery));
+        this.expressions.put(entireQuery,
+            UpdateExpressionFunctions.expressions.get(key).apply(view, entireQuery));
       } else {
         this.expressions.clear();
         break;
@@ -47,8 +48,11 @@ public class CommonUpdateExpression implements UpdateExpression {
   @Override
   public DataContainer toContainer() {
     DataContainer container = DataContainer.createNew();
-    this.expressions.forEach((query, expression) -> container.set(query,
-        expression.toContainer().get(ROOT).orElse(expression.toContainer())));
+    this.expressions.forEach((query, expression) -> {
+      if (!query.parts().isEmpty()) {
+        container.set(query, expression.toContainer().get(ROOT).orElse(expression.toContainer()));
+      }
+    });
     return container;
   }
 }

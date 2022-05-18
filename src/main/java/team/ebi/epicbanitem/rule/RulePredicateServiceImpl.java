@@ -41,4 +41,9 @@ public class RulePredicateServiceImpl implements RulePredicateService {
     }
     return keys;
   }
+
+  @Override
+  public void clear() {
+    predicates.clear();
+  }
 }

@@ -28,6 +28,8 @@ public interface RestrictionRuleService {
     return all().keySet().stream();
   }
 
+  void clear();
+
   RestrictionRule remove(ResourceKey key);
 
   void save();

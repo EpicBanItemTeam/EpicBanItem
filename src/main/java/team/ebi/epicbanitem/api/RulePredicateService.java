@@ -56,4 +56,6 @@ public interface RulePredicateService {
    * @return registered predicate for rule
    */
   Set<ResourceKey> register(RestrictionRule rule);
+
+  void clear();
 }

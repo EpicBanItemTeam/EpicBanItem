@@ -52,6 +52,7 @@ public class RestrictionRulesStorage {
 
   @Listener
   public void onRefreshGame(RefreshGameEvent event) throws IOException {
+    ruleService.clear();
     this.load();
   }
 
@@ -96,7 +97,9 @@ public class RestrictionRulesStorage {
         .all()
         .forEach(
             (key, rule) -> {
-              if (key.namespace().equals(EpicBanItem.NAMESPACE)) this.save(key, rule);
+              if (key.namespace().equals(EpicBanItem.NAMESPACE)) {
+                this.save(key, rule);
+              }
             });
   }
 
@@ -111,7 +114,9 @@ public class RestrictionRulesStorage {
             rulesDir,
             2,
             (path, attributes) ->
-                attributes.isRegularFile() && path.toString().endsWith(".conf"))) {
+                attributes.isRegularFile()
+                    && path.toString().endsWith(".conf")
+                    && !path.getFileName().toString().equals(".conf"))) {
       return paths.collect(
           Collectors.toUnmodifiableMap(
               it -> EpicBanItem.key(getNameWithoutExtension(it.getFileName().toString())),

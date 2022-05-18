@@ -46,6 +46,12 @@ public class RestrictionRuleServiceImpl implements RestrictionRuleService {
   }
 
   @Override
+  public void clear() {
+    predicateService.clear();
+    map.clear();
+  }
+
+  @Override
   public RestrictionRule remove(ResourceKey key) {
     RestrictionRule rule = map.remove(key);
     predicateService.remove(rule);

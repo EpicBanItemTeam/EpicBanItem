@@ -386,7 +386,7 @@ public final class EBICommands {
     var targetObject =
         targetObject(player, isBlock)
             .orElseThrow(() -> new CommandException(isBlock ? NEED_BLOCK : NEED_ITEM));
-    var targetView = targetObject.toContainer();
+    var targetView = ExpressionService.cleanup(targetObject.toContainer());
     final var hasTrigger = context.hasAny(keys.trigger);
     final var triggerArgs = context.all(keys.trigger);
     final var allTriggers = RestrictionTriggers.registry();

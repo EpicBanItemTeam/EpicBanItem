@@ -60,6 +60,7 @@ public final class Parameters {
                       Key<? super ResourceKey> parameterKey, Mutable reader, Builder context)
                       throws ArgumentParseException {
                     ResourceKey key = reader.parseResourceKey(EpicBanItem.NAMESPACE);
+                    if (key.value().length() == 0) return Optional.empty();
                     if (!key.namespace().equals(EpicBanItem.NAMESPACE)) {
                       throw new ArgumentParseException(
                           Component.translatable("epicbanitem.command.create.rejectNamespace"),

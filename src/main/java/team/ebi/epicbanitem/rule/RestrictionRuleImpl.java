@@ -44,7 +44,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
   private final boolean needCancel;
 
   public RestrictionRuleImpl(QueryExpression queryExpression) {
-    this(10, false, false, queryExpression, null, RulePredicateService.WILDCARD, false);
+    this(10, true, true, queryExpression, null, RulePredicateService.WILDCARD, false);
   }
 
   public RestrictionRuleImpl(
@@ -77,9 +77,9 @@ public class RestrictionRuleImpl implements RestrictionRule {
     this.needCancel = view.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
     // TODO Need config
     this.defaultWorldState =
-        view.getBoolean(RestrictionRuleQueries.DEFAULT_WORLD_STATE).orElse(false);
+        view.getBoolean(RestrictionRuleQueries.DEFAULT_WORLD_STATE).orElse(true);
     this.defaultTriggerState =
-        view.getBoolean(RestrictionRuleQueries.DEFAULT_TRIGGER_STATE).orElse(false);
+        view.getBoolean(RestrictionRuleQueries.DEFAULT_TRIGGER_STATE).orElse(true);
   }
 
   @Override
