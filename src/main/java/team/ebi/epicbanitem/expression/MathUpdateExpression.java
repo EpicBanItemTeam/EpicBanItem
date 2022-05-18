@@ -8,7 +8,6 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
-import org.spongepowered.api.util.Coerce;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
@@ -18,6 +17,12 @@ public class MathUpdateExpression implements UpdateExpression {
   private final DataQuery query;
   private final Number argNumber;
   private final BinaryOperator<Number> operator;
+
+  public MathUpdateExpression(DataQuery query, Number argNumber, BinaryOperator<Number> operator) {
+    this.query = query;
+    this.argNumber = argNumber;
+    this.operator = operator;
+  }
 
   public MathUpdateExpression(DataView view, DataQuery query, BinaryOperator<Number> operator) {
     this.query = DataQuery.of('.', query.last().toString());
@@ -33,13 +38,19 @@ public class MathUpdateExpression implements UpdateExpression {
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
     ImmutableMap.Builder<DataQuery, UpdateOperation> builder = ImmutableMap.builder();
     for (DataQuery currentQuery : UpdateExpression.parseQuery(query, result)) {
-      Optional<Number> value = data.get(currentQuery).flatMap(Coerce::asDouble);
+      Optional<Number> value = data.get(currentQuery).map(it -> {
+        if (it instanceof Number n) {
+          return n;
+        }
+        return null;
+      });
       if (value.isEmpty()) {
         continue;
       }
       builder.put(
           currentQuery,
-          UpdateOperation.replace(currentQuery, this.operator.apply(argNumber, value.get())));
+          UpdateOperation.replace(
+              currentQuery, this.operator.apply(value.get(), argNumber)));
     }
 
     return UpdateOperation.common(builder.build());

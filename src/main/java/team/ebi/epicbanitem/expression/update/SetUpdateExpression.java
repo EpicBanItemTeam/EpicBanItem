@@ -15,6 +15,11 @@ public class SetUpdateExpression implements UpdateExpression {
   private final DataQuery query;
   private final Object value;
 
+  public SetUpdateExpression(DataQuery query, Object value) {
+    this.query = query;
+    this.value = value;
+  }
+
   public SetUpdateExpression(DataView view, DataQuery query) throws InvalidDataException {
     this.query = DataQuery.of('.', query.last().toString());
     this.value =

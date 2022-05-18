@@ -1,6 +1,7 @@
 package team.ebi.epicbanitem.expression;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
@@ -19,6 +20,14 @@ public class ReplaceUpdateOperation extends AbstractMap<DataQuery, UpdateOperati
   public ReplaceUpdateOperation(DataQuery query, Object value) {
     this.query = query;
     this.value = value;
+  }
+
+  public Object value() {
+    return value;
+  }
+
+  public DataQuery query() {
+    return query;
   }
 
   @Override
@@ -50,6 +59,15 @@ public class ReplaceUpdateOperation extends AbstractMap<DataQuery, UpdateOperati
       return false;
     }
     ReplaceUpdateOperation that = (ReplaceUpdateOperation) o;
+    if (value instanceof int[] o1 && that.value instanceof int[] o2) {
+      return Arrays.equals(o1, o2) && query.equals(that.query);
+    }
+    if (value instanceof byte[] o1 && that.value instanceof byte[] o2) {
+      return Arrays.equals(o1, o2) && query.equals(that.query);
+    }
+    if (value instanceof long[] o1 && that.value instanceof long[] o2) {
+      return Arrays.equals(o1, o2) && query.equals(that.query);
+    }
     return value.equals(that.value) && query.equals(that.query);
   }
 

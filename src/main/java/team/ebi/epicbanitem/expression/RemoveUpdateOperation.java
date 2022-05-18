@@ -19,6 +19,10 @@ public class RemoveUpdateOperation extends AbstractMap<DataQuery, UpdateOperatio
     this.query = query;
   }
 
+  public DataQuery query() {
+    return query;
+  }
+
   @Override
   public DataView process(DataView view) {
     return view.remove(query);

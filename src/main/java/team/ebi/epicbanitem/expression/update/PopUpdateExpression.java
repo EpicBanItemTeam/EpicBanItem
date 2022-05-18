@@ -3,6 +3,7 @@ package team.ebi.epicbanitem.expression.update;
 import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -13,11 +14,17 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
+import team.ebi.epicbanitem.util.data.DataUtils;
 
 public class PopUpdateExpression implements UpdateExpression {
 
   private final DataQuery query;
   private final Position value;
+
+  public PopUpdateExpression(DataQuery query, Position value) {
+    this.query = query;
+    this.value = value;
+  }
 
   public PopUpdateExpression(DataView view, DataQuery query) {
     this.query = DataQuery.of('.', query.last().toString());
@@ -32,18 +39,23 @@ public class PopUpdateExpression implements UpdateExpression {
   public @NotNull UpdateOperation update(QueryResult result, DataView data) {
     var builder = ImmutableMap.<DataQuery, UpdateOperation>builder();
     for (DataQuery currentQuery : UpdateExpression.parseQuery(query, result)) {
-      var list =
-          data.getList(currentQuery)
-              .orElseThrow(
-                  () ->
-                      new UnsupportedOperationException(
-                          MessageFormat.format("$pop failed, {0} is invalid array", currentQuery)));
-      if (value == Position.FIRST) {
-        list.remove(0);
-      } else if (value == Position.LAST) {
-        list.remove(list.size() - 1);
+      Optional<Object> currentValue = data.get(currentQuery);
+      if (currentValue.isEmpty()) {
+        continue;
       }
-      builder.put(currentQuery, UpdateOperation.replace(currentQuery, list));
+      DataUtils.operateListOrArray(currentValue.get(), list -> {
+        if (value == Position.FIRST) {
+          list.remove(0);
+        } else {
+          list.remove(list.size() - 1);
+        }
+        return list;
+      }).ifPresentOrElse(
+          it -> builder.put(currentQuery, UpdateOperation.replace(currentQuery, it)),
+          () -> {
+            throw new UnsupportedOperationException(
+                MessageFormat.format("$pop failed, {0} is invalid list", currentQuery));
+          });
     }
     return UpdateOperation.common(builder.build());
   }

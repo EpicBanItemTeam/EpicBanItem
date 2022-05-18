@@ -1,5 +1,6 @@
 package team.ebi.epicbanitem.util.data;
 
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
@@ -12,7 +13,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.ArrayUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.codehaus.plexus.util.StringUtils;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -109,8 +112,32 @@ public final class DataUtils {
     } else if (obj instanceof double[] array) {
       return Doubles.asList(array);
     }
-
     return Collections.emptyList();
+  }
+
+  public static Optional<Object> operateListOrArray(Object value, UnaryOperator<List<?>> consumer) {
+    boolean isArray = value.getClass().isArray();
+    Class<?> type = value.getClass().componentType();
+    Optional<List<?>> list = asList(value);
+    if (list.isEmpty()) {
+      return Optional.empty();
+    }
+    var finalList = consumer.apply(Lists.newArrayList(list.get()));
+    Object finalValue = null;
+    if (isArray) {
+      if (Integer.TYPE.equals(type)) {
+        finalValue = ArrayUtils.toPrimitive(finalList.toArray(new Integer[0]));
+      }
+      if (Long.TYPE.equals(type)) {
+        finalValue = ArrayUtils.toPrimitive(finalList.toArray(new Long[0]));
+      }
+      if (Byte.TYPE.equals(type)) {
+        finalValue = ArrayUtils.toPrimitive(finalList.toArray(new Byte[0]));
+      }
+    } else {
+      finalValue = finalList;
+    }
+    return Optional.ofNullable(finalValue);
   }
 
   public static Component objectName(SerializableDataHolder holder) {

@@ -17,6 +17,11 @@ public class RenameUpdateExpression implements UpdateExpression {
   private final DataQuery source;
   private final DataQuery target;
 
+  public RenameUpdateExpression(DataQuery source, DataQuery target) {
+    this.source = source;
+    this.target = target;
+  }
+
   public RenameUpdateExpression(DataView view, DataQuery query) {
     this.source = DataQuery.of('.', query.last().toString());
     this.target =
@@ -52,6 +57,6 @@ public class RenameUpdateExpression implements UpdateExpression {
 
   @Override
   public DataContainer toContainer() {
-    return DataContainer.createNew().set(ROOT,target);
+    return DataContainer.createNew().set(ROOT, target);
   }
 }
