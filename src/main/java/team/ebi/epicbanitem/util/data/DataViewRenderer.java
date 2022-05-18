@@ -44,9 +44,13 @@ public final class DataViewRenderer {
     if (Objects.nonNull(key)) {
       keyComponent.append(key);
     }
-    components.add(keyComponent.append(leftBracket).build());
-    components.addAll(input.stream().map(INDENT::append).toList());
-    components.add(rightBracket);
+    if (input.isEmpty()) {
+      components.add(keyComponent.append(leftBracket).append(rightBracket).build());
+    } else {
+      components.add(keyComponent.append(leftBracket).build());
+      components.addAll(input.stream().map(INDENT::append).toList());
+      components.add(rightBracket);
+    }
     return components;
   }
 

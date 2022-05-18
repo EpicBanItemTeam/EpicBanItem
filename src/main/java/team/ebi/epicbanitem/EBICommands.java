@@ -97,6 +97,7 @@ public final class EBICommands {
             .permission(EpicBanItem.permission("command.query"))
             .addFlag(flags.block)
             .addParameter(parameters.query.optional().key(keys.query).build())
+            .terminal(true)
             .executor(this::query)
             .build();
 
@@ -139,6 +140,7 @@ public final class EBICommands {
                 Component.translatable("epicbanitem.command.test.description.extended"))
             .permission(EpicBanItem.permission("command.test"))
             .addFlags(flags.block, flags.trigger, flags.world)
+            .terminal(true)
             .executor(this::test)
             .build();
 
@@ -385,6 +387,8 @@ public final class EBICommands {
         targetObject(player, isBlock)
             .orElseThrow(() -> new CommandException(isBlock ? NEED_BLOCK : NEED_ITEM));
     var targetView = targetObject.toContainer();
+    final var hasTrigger = context.hasAny(keys.trigger);
+    final var triggerArgs = context.all(keys.trigger);
     final var triggers =
         context.hasAny(keys.trigger)
             ? context.all(keys.trigger).stream()

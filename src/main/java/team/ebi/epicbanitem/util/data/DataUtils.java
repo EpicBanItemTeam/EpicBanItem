@@ -65,8 +65,13 @@ public final class DataUtils {
     view.values(true).forEach((key, value) -> {
       if (!(value instanceof DataView)) {
         asList(value).ifPresentOrElse(
-            list ->
-                container.createView(DataQuery.of(key.toString())).set(ExpressionQueries.ALL, list),
+            list -> {
+              if (list.size() > 0) {
+                container.createView(DataQuery.of(key.toString())).set(ExpressionQueries.ALL, list);
+              } else {
+                container.set(DataQuery.of(key.toString()), list);
+              }
+            },
             () -> container.set(DataQuery.of(key.toString()), value));
       }
     });
