@@ -66,7 +66,7 @@ public final class DataUtils {
       if (!(value instanceof DataView)) {
         asList(value).ifPresentOrElse(
             list -> {
-              if (list.size() > 0) {
+              if (!list.isEmpty()) {
                 container.createView(DataQuery.of(key.toString())).set(ExpressionQueries.ALL, list);
               } else {
                 container.set(DataQuery.of(key.toString()), list);

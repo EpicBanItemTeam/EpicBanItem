@@ -22,9 +22,7 @@ public class EntityUtils {
   public static Optional<ItemStack> targetObject(Player player, boolean isBlock) {
     return Optional.of(isBlock)
         .filter(Boolean::booleanValue)
-        .flatMap(
-            ignored ->
-                targetBlock(player).map(it -> ItemStack.builder().fromBlockSnapshot(it).build()))
+        .flatMap(ignored -> targetBlock(player).flatMap(BlockUtils::fromBlock))
         .or(() -> heldHand(player).flatMap(it -> equipped(player, it)));
   }
 
