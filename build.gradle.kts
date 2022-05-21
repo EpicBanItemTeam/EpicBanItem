@@ -4,6 +4,7 @@ import org.spongepowered.plugin.metadata.model.PluginDependency
 plugins {
     `java-library`
     id("org.spongepowered.gradle.plugin") version "2.0.2"
+    id("org.spongepowered.gradle.vanilla") version "0.2"
 }
 
 val id: String by project
@@ -58,6 +59,10 @@ sponge {
             optional(false)
         }
     }
+}
+
+minecraft {
+    version("1.16.5")
 }
 
 val javaTarget = 16
