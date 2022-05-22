@@ -18,6 +18,7 @@ import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.ArrayUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.codehaus.plexus.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.SerializableDataHolder;
@@ -40,7 +41,7 @@ public final class DataUtils {
    * @param query current query
    * @return value
    */
-  public static Optional<Object> get(DataView view, DataQuery query) {
+  public static Optional<Object> get(DataView view, @NotNull DataQuery query) {
     if (query.parts().size() <= 1) {
       return view.get(query);
     }
@@ -60,7 +61,7 @@ public final class DataUtils {
     return subView.flatMap(it -> get(it, query.popFirst()));
   }
 
-  public static DataView dataToExpression(DataView view) {
+  public static DataView dataToExpression(@NotNull DataView view) {
     DataContainer container = DataContainer.createNew();
     view.values(true).forEach((key, value) -> {
       if (!(value instanceof DataView)) {
@@ -120,7 +121,8 @@ public final class DataUtils {
     return Collections.emptyList();
   }
 
-  public static Optional<Object> operateListOrArray(Object value, UnaryOperator<List<?>> consumer) {
+  @SuppressWarnings("SuspiciousToArrayCall")
+  public static Optional<Object> operateListOrArray(@NotNull Object value, UnaryOperator<List<?>> consumer) {
     boolean isArray = value.getClass().isArray();
     Class<?> type = value.getClass().componentType();
     Optional<List<?>> list = asList(value);

@@ -1,11 +1,7 @@
 package team.ebi.epicbanitem.rule;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -20,12 +16,11 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.data.persistence.Queries;
 import team.ebi.epicbanitem.EBIServices;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.RestrictionRule;
-import team.ebi.epicbanitem.api.RestrictionRuleQueries;
-import team.ebi.epicbanitem.api.RestrictionTrigger;
-import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
+import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.rule.RestrictionRuleQueries;
+import team.ebi.epicbanitem.api.rule.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 
@@ -35,17 +30,13 @@ public class RestrictionRuleImpl implements RestrictionRule {
   private final boolean defaultWorldState;
   private final boolean defaultTriggerState;
 
-  private final Map<UUID, Boolean> worldStates = Maps.newHashMap();
+  private final WorldStates worldStates;
 
-  private final Map<RestrictionTrigger, Boolean> triggerStates = Maps.newHashMap();
+  private final TriggerStates triggerStates;
   private final QueryExpression queryExpression;
   private final @Nullable UpdateExpression updateExpression;
   private final ResourceKey predicate;
   private final boolean needCancel;
-
-  public RestrictionRuleImpl(QueryExpression queryExpression) {
-    this(10, true, true, queryExpression, null, RulePredicateService.WILDCARD, false);
-  }
 
   public RestrictionRuleImpl(
       int priority,
@@ -62,6 +53,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
     this.updateExpression = updateExpression;
     this.predicate = predicate;
     this.needCancel = needCancel;
+    this.worldStates = new WorldStates(defaultWorldState);
+    this.triggerStates = new TriggerStates(defaultTriggerState);
   }
 
   public RestrictionRuleImpl(DataView data) {
@@ -80,6 +73,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
         view.getBoolean(RestrictionRuleQueries.DEFAULT_WORLD_STATE).orElse(true);
     this.defaultTriggerState =
         view.getBoolean(RestrictionRuleQueries.DEFAULT_TRIGGER_STATE).orElse(true);
+    this.worldStates = new WorldStates(defaultWorldState);
+    this.triggerStates = new TriggerStates(defaultTriggerState);
   }
 
   @Override
@@ -110,23 +105,22 @@ public class RestrictionRuleImpl implements RestrictionRule {
   }
 
   @Override
-  public boolean worldState(UUID uuid) {
-    return this.worldStates.getOrDefault(uuid, defaultWorldState);
+  public boolean worldState(ResourceKey key) {
+    return this.worldStates.getOrDefault(key, defaultWorldState);
   }
 
   @Override
-  public ImmutableMap<UUID, Boolean> worldStates() {
-    return ImmutableMap.copyOf(this.worldStates);
+  public boolean triggerState(ResourceKey key) {
+    return this.triggerStates.getOrDefault(key, defaultTriggerState);
   }
 
   @Override
-  public boolean triggerState(RestrictionTrigger trigger) {
-    return this.triggerStates.getOrDefault(trigger, defaultTriggerState);
+  public WorldStates worldStates() {
+    return worldStates;
   }
 
-  @Override
-  public ImmutableMap<RestrictionTrigger, Boolean> triggersState() {
-    return ImmutableMap.copyOf(this.triggerStates);
+  public TriggerStates triggerStates() {
+    return triggerStates;
   }
 
   @Override

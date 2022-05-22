@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.api;
+package team.ebi.epicbanitem.api.rule;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.inject.ImplementedBy;

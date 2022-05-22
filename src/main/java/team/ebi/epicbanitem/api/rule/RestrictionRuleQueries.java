@@ -1,4 +1,4 @@
-package team.ebi.epicbanitem.api;
+package team.ebi.epicbanitem.api.rule;
 
 import org.spongepowered.api.data.persistence.DataQuery;
 

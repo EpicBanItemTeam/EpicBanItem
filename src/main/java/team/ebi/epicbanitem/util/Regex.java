@@ -2,6 +2,8 @@ package team.ebi.epicbanitem.util;
 
 import java.text.MessageFormat;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 public final class Regex {
 
@@ -13,7 +15,7 @@ public final class Regex {
     this.flags = flags;
   }
 
-  public Regex(String s) {
+  public Regex(@NotNull String s) {
     String[] strings = s.split("/");
     if (strings.length > 1) {
       this.regexString = strings[1];
@@ -28,12 +30,13 @@ public final class Regex {
     }
   }
 
-  public static boolean isRegex(String s) {
+  public static boolean isRegex(@NotNull String s) {
     int last = s.lastIndexOf('/');
     return s.charAt(0) == '/' && last > 0;
   }
 
-  public Pattern pattern() {
+  @Contract(" -> new")
+  public @NotNull Pattern pattern() {
     //noinspection MagicConstant
     return Pattern.compile(regexString, mergeFlags());
   }

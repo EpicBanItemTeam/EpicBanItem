@@ -53,7 +53,7 @@ import team.ebi.epicbanitem.expression.update.RenameUpdateExpression;
 import team.ebi.epicbanitem.expression.update.SetUpdateExpression;
 import team.ebi.epicbanitem.expression.update.UnsetUpdateExpression;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
-import team.ebi.epicbanitem.trigger.SimpleRestrictionTrigger;
+import team.ebi.epicbanitem.trigger.RestrictionTriggerImpl;
 import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
 import team.ebi.epicbanitem.util.data.DataUtils;
 
@@ -100,17 +100,17 @@ public final class EBIRegistries {
         () ->
             ImmutableMap.<ResourceKey, RestrictionTrigger>builder()
                 .put(EpicBanItem.key("use"), new UseRestrictionTrigger())
-                .put(EpicBanItem.key("equip"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("craft"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("pickup"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("click"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("throw"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("drop"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("place"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("break"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("interact"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("join"), new SimpleRestrictionTrigger())
-                .put(EpicBanItem.key("store"), new SimpleRestrictionTrigger())
+                .put(EpicBanItem.key("equip"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("pickup"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("click"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("throw"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("drop"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("place"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("break"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("interact"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("join"), new RestrictionTriggerImpl())
+                .put(EpicBanItem.key("store"), new RestrictionTriggerImpl())
                 .build());
 
     event.register(

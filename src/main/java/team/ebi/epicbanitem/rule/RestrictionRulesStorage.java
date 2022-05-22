@@ -22,8 +22,8 @@ import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.plugin.PluginContainer;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.RestrictionRule;
-import team.ebi.epicbanitem.api.RestrictionRuleService;
+import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
 
 @Singleton
 public class RestrictionRulesStorage {

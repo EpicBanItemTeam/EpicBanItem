@@ -11,9 +11,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
-import team.ebi.epicbanitem.api.RestrictionRule;
-import team.ebi.epicbanitem.api.RestrictionRuleService;
-import team.ebi.epicbanitem.api.RulePredicateService;
+import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
+import team.ebi.epicbanitem.api.rule.RulePredicateService;
 
 @Singleton
 public class RestrictionRuleServiceImpl implements RestrictionRuleService {

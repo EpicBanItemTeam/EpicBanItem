@@ -54,13 +54,13 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
 import team.ebi.epicbanitem.api.RestrictionPresets;
-import team.ebi.epicbanitem.api.RestrictionRuleService;
 import team.ebi.epicbanitem.api.RestrictionService;
 import team.ebi.epicbanitem.api.RestrictionTriggers;
-import team.ebi.epicbanitem.api.RulePredicateService;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.api.expression.ExpressionService;
 import team.ebi.epicbanitem.api.expression.QueryResult;
+import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
+import team.ebi.epicbanitem.api.rule.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 import team.ebi.epicbanitem.util.Components;
@@ -88,7 +88,7 @@ public final class EBICommands {
   @Inject
   private Flags flags;
 
-  public Command.Parameterized build() {
+  public Command.@NotNull Parameterized build() {
     final var query =
         Command.builder()
             .shortDescription(Component.translatable("epicbanitem.command.query.description"))
@@ -152,6 +152,14 @@ public final class EBICommands {
             .executor(this::list)
             .build();
 
+    final var edit =
+        Command.builder()
+            .shortDescription(Component.translatable("epicbanitem.command.edit.description"))
+            .permission(EpicBanItem.permission("command.edit"))
+            .addParameters(parameters.ruleKey.key(keys.ruleKey).build())
+            .executor(this::edit)
+            .build();
+
     return Command.builder()
         .shortDescription(Component.translatable("epicbanitem.command.root.description"))
         .permission(EpicBanItem.permission("command.root"))
@@ -161,10 +169,11 @@ public final class EBICommands {
         .addChild(create, "create")
         .addChild(test, "test")
         .addChild(list, "list", "ls")
+        .addChild(edit, "edit")
         .build();
   }
 
-  private @NotNull CommandResult remove(final CommandContext context) {
+  private @NotNull CommandResult remove(final @NotNull CommandContext context) {
     var key = context.requireOne(keys.ruleKey);
     var stringKey = key.asString();
     var rule = ruleService.remove(key);
@@ -188,7 +197,7 @@ public final class EBICommands {
     return CommandResult.success();
   }
 
-  private @NotNull CommandResult query(final CommandContext context) throws CommandException {
+  private @NotNull CommandResult query(final @NotNull CommandContext context) throws CommandException {
     if (!(context.cause().root() instanceof final Player player)) {
       return CommandResult.error(NEED_PLAYER);
     }
@@ -221,7 +230,7 @@ public final class EBICommands {
     return CommandResult.success();
   }
 
-  private @NotNull CommandResult update(final CommandContext context) throws CommandException {
+  private @NotNull CommandResult update(final @NotNull CommandContext context) throws CommandException {
     if (!(context.cause().root() instanceof final Player player)) {
       return CommandResult.error(NEED_PLAYER);
     }
@@ -292,7 +301,7 @@ public final class EBICommands {
     return CommandResult.success();
   }
 
-  private @NotNull CommandResult create(CommandContext context) {
+  private @NotNull CommandResult create(@NotNull CommandContext context) {
     if (!(context.cause().root() instanceof final ServerPlayer player)) {
       return CommandResult.error(NEED_PLAYER);
     }
@@ -377,7 +386,7 @@ public final class EBICommands {
     return CommandResult.success();
   }
 
-  private @NotNull CommandResult test(CommandContext context) throws CommandException {
+  private @NotNull CommandResult test(@NotNull CommandContext context) throws CommandException {
     if (!(context.cause().root() instanceof final ServerPlayer player)) {
       return CommandResult.error(NEED_PLAYER);
     }
@@ -423,7 +432,7 @@ public final class EBICommands {
     return CommandResult.success();
   }
 
-  private @NotNull CommandResult list(CommandContext context) {
+  private @NotNull CommandResult list(@NotNull CommandContext context) {
     final var subject = context.cause().subject();
     final var predicate = context.one(keys.predicate).orElse(RulePredicateService.WILDCARD);
     final var components = predicateService.rule(predicate).stream()
@@ -457,6 +466,14 @@ public final class EBICommands {
         .title(Component.translatable("epicbanitem.command.list.title"))
         .contents(components)
         .sendTo(context.cause().audience());
+    return CommandResult.success();
+  }
+
+  private @NotNull  CommandResult edit(@NotNull CommandContext context) {
+    if (!(context.cause().root() instanceof final ServerPlayer player)) {
+      return CommandResult.error(NEED_PLAYER);
+    }
+
     return CommandResult.success();
   }
 }

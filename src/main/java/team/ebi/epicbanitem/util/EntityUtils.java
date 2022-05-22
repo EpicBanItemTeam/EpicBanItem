@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.util;
 
 import java.util.Optional;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.type.MatterTypes;
@@ -49,7 +50,7 @@ public class EntityUtils {
     return targetLocation(living).map(it -> it.serverLocation().createSnapshot());
   }
 
-  public static Optional<EquipmentType> heldHand(Equipable equipable) {
+  public static Optional<EquipmentType> heldHand(@NotNull Equipable equipable) {
     return equipable
         .equipped(EquipmentTypes.MAIN_HAND.get())
         .filter(Predicate.not(ItemStack::isEmpty))
@@ -62,7 +63,7 @@ public class EntityUtils {
                     .map(it -> EquipmentTypes.OFF_HAND.get()));
   }
 
-  public static Optional<ItemStack> equipped(Equipable equipable, EquipmentType type) {
+  public static Optional<ItemStack> equipped(@NotNull Equipable equipable, EquipmentType type) {
     return equipable.equipped(type).filter(Predicate.not(ItemStack::isEmpty));
   }
 }

@@ -24,9 +24,9 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.world.server.ServerWorld;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.AbstractRestrictionTrigger;
-import team.ebi.epicbanitem.api.RestrictionRule;
 import team.ebi.epicbanitem.api.RestrictionService;
-import team.ebi.epicbanitem.api.RulePredicateService;
+import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.rule.RulePredicateService;
 
 public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
 

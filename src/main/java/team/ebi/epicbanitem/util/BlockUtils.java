@@ -24,7 +24,7 @@ public final class BlockUtils {
     if (pluginManager.plugin("minecraft").isPresent()) {
       BLOCK_TO_ITEM.put(
           it -> it.state().type().equals(BlockTypes.TALL_SEAGRASS.get()),
-          it -> ItemStack.of(ItemTypes.SEAGRASS.get()));
+          ignored -> ItemStack.of(ItemTypes.SEAGRASS.get()));
       BLOCK_TO_ITEM.put(
           it -> it.state().type() instanceof FlowerPotBlock,
           block ->

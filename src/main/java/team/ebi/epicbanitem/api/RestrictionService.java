@@ -11,6 +11,7 @@ import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.server.ServerWorld;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
+import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.rule.RestrictionServiceImpl;
 
 @ImplementedBy(RestrictionServiceImpl.class)
@@ -28,10 +29,10 @@ public interface RestrictionService {
       ServerWorld world,
       RestrictionTrigger trigger,
       @Nullable Subject subject) {
-    if (!rule.triggerState(trigger)) {
+    if (!rule.triggerState(trigger.key())) {
       return Optional.empty();
     }
-    if (!rule.worldState(world.uniqueId())) {
+    if (!rule.worldState(world.key())) {
       return Optional.empty();
     }
     if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) {

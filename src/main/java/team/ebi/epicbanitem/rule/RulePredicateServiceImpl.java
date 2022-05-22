@@ -6,8 +6,8 @@ import com.google.inject.Singleton;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.spongepowered.api.ResourceKey;
-import team.ebi.epicbanitem.api.RestrictionRule;
-import team.ebi.epicbanitem.api.RulePredicateService;
+import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.rule.RulePredicateService;
 
 @Singleton
 public class RulePredicateServiceImpl implements RulePredicateService {

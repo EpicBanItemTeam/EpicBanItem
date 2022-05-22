@@ -2,6 +2,7 @@ package team.ebi.epicbanitem.util.data;
 
 import java.util.List;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.exception.ArgumentParseException;
 import org.spongepowered.api.command.parameter.ArgumentReader;
@@ -23,7 +24,7 @@ public class DataSerializableValueParser<T extends DataSerializable> implements 
   @Override
   public Optional<? extends T> parseValue(
       Parameter.Key<? super T> parameterKey,
-      ArgumentReader.Mutable reader,
+      ArgumentReader.@NotNull Mutable reader,
       CommandContext.Builder context)
       throws ArgumentParseException {
     return Sponge.dataManager().deserialize(type, reader.parseDataContainer());

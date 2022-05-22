@@ -6,7 +6,7 @@ import org.spongepowered.api.ResourceKey;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.api.RestrictionTrigger;
 
-public class SimpleRestrictionTrigger implements RestrictionTrigger {
+public class RestrictionTriggerImpl implements RestrictionTrigger {
 
   @Override
   public @NotNull Component asComponent() {
