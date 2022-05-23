@@ -41,8 +41,7 @@ public final class UpdateExpressionFunctions {
         Sponge.dataManager().registerBuilder(RootUpdateExpression.class, new RootUpdateExpression.Builder());
     }
 
-    private UpdateExpressionFunctions() {
-    }
+    private UpdateExpressionFunctions() {}
 
     public static Registry<UpdateExpressionFunction> registry() {
         return EBIRegistries.UPDATE_EXPRESSION.get();

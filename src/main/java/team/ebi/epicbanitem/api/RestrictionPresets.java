@@ -21,8 +21,7 @@ public final class RestrictionPresets {
 
     public static final DefaultedRegistryReference<RestrictionPreset> EMPTY = key(EpicBanItem.key("empty"));
 
-    private RestrictionPresets() {
-    }
+    private RestrictionPresets() {}
 
     public static Registry<RestrictionPreset> registry() {
         return Sponge.server().registry(EBIRegistries.PRESET);

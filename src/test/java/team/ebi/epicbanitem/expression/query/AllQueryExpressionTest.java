@@ -48,10 +48,10 @@ class AllQueryExpressionTest {
                 .query(DataQuery.of("foo", "0", "bar"), testContainer)
                 .isPresent());
         assertFalse(new AllQueryExpression(Set.of(
-                new ValueQueryExpression(0),
-                new ValueQueryExpression(1),
-                new ValueQueryExpression(2),
-                new ValueQueryExpression(3)))
+                        new ValueQueryExpression(0),
+                        new ValueQueryExpression(1),
+                        new ValueQueryExpression(2),
+                        new ValueQueryExpression(3)))
                 .query(DataQuery.of("foo", "0", "bar"), testContainer)
                 .isPresent());
         var result = new AllQueryExpression(Set.of(new ValueQueryExpression(0), new ValueQueryExpression(2)))

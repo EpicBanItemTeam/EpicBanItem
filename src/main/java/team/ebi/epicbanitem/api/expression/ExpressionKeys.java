@@ -42,8 +42,7 @@ public final class ExpressionKeys {
     public static final String INC = "ind";
     public static final String MUL = "mul";
 
-    private ExpressionKeys() {
-    }
+    private ExpressionKeys() {}
 
     public static DataQuery query(String key) {
         return DataQuery.of("$" + key);

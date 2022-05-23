@@ -59,8 +59,7 @@ public final class QueryExpressionFunctions {
         Sponge.dataManager().registerBuilder(RootQueryExpression.class, new RootQueryExpression.Builder());
     }
 
-    private QueryExpressionFunctions() {
-    }
+    private QueryExpressionFunctions() {}
 
     public static Registry<QueryExpressionFunction> registry() {
         return EBIRegistries.QUERY_EXPRESSION.get();

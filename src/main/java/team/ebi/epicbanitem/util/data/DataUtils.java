@@ -31,8 +31,7 @@ import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 
 public final class DataUtils {
 
-    private DataUtils() {
-    }
+    private DataUtils() {}
 
     /**
      * Support to get value from array

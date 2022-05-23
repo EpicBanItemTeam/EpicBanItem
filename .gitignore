@@ -23,5 +23,4 @@
 !settings.gradle.kts
 !gradle.properties
 
-# Baseline
-!.baseline
+!.github

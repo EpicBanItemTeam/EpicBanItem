@@ -28,8 +28,7 @@ public final class DataViewRenderer {
     static final Component RIGHT_CURLY_BRACKET = Component.text("}");
     static final Component INDENT = Component.text(Strings.repeat(" ", 2));
 
-    private DataViewRenderer() {
-    }
+    private DataViewRenderer() {}
 
     static List<Component> wrapList(@Nullable Component key, List<Component> input) {
         return wrap(key, input, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET);

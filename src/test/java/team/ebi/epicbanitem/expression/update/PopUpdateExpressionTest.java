@@ -29,7 +29,7 @@ class PopUpdateExpressionTest {
     @BeforeAll
     static void beforeAll() {
         query = DataQuery.of("array");
-        testContainer.set(query, new int[]{0, 1, 2});
+        testContainer.set(query, new int[] {0, 1, 2});
     }
 
     @Test
@@ -40,6 +40,6 @@ class PopUpdateExpressionTest {
         UpdateOperation replace = operation.get(query);
         assertTrue(replace instanceof ReplaceUpdateOperation);
         assertNotEquals(new ReplaceUpdateOperation(query, List.of(1, 2)), replace);
-        assertArrayEquals(new int[]{1, 2}, (int[]) ((ReplaceUpdateOperation) replace).value());
+        assertArrayEquals(new int[] {1, 2}, (int[]) ((ReplaceUpdateOperation) replace).value());
     }
 }

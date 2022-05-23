@@ -6,15 +6,15 @@ plugins {
     id("org.spongepowered.gradle.plugin") version "2.0.2"
     id("org.spongepowered.gradle.vanilla") version "0.2"
     id("com.diffplug.spotless") version "6.6.1"
+    id("io.github.nefilim.gradle.semver-plugin") version "0.3.13"
 }
 
 val id: String by project
 val group: String by project
-val version: String by project
 
 
 project.group = group
-project.version = version
+project.version = semver.version
 
 repositories {
     mavenCentral()
@@ -103,11 +103,16 @@ spotless {
         importOrder("java", "javax", "org.spongepowered", "", "\\#")
         licenseHeader(
             """
-          /*
-           * Copyright ${'$'}YEAR EpicBanItem Team. All Rights Reserved.
-           *
-           * This file is part of EpicBanItem, licensed under the GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3.0)
-           */""".trimIndent()
+           /*
+            * Copyright ${'$'}YEAR EpicBanItem Team. All Rights Reserved.
+            *
+            * This file is part of EpicBanItem, licensed under the GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3.0)
+            */""".trimIndent()
         )
     }
+}
+
+semver {
+    tagPrefix("v")
+    initialVersion("1.0.0")
 }

@@ -32,8 +32,7 @@ public final class RestrictionTriggers {
 
     public static final DefaultedRegistryReference<RestrictionTrigger> JOIN = key(EpicBanItem.key("join"));
 
-    private RestrictionTriggers() {
-    }
+    private RestrictionTriggers() {}
 
     public static Registry<RestrictionTrigger> registry() {
         return Sponge.server().registry(EBIRegistries.TRIGGER);

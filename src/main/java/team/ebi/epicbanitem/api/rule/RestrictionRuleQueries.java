@@ -18,6 +18,5 @@ public final class RestrictionRuleQueries {
     public static final DataQuery DEFAULT_WORLD_STATE = DataQuery.of("DefaultWorldState");
     public static final DataQuery DEFAULT_TRIGGER_STATE = DataQuery.of("DefaultTriggerState");
 
-    private RestrictionRuleQueries() {
-    }
+    private RestrictionRuleQueries() {}
 }

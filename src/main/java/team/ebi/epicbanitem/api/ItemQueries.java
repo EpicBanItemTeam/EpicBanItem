@@ -21,6 +21,5 @@ public final class ItemQueries {
 
     public static final DataQuery Z = BLOCK_ENTITY_TAG.then("z");
 
-    private ItemQueries() {
-    }
+    private ItemQueries() {}
 }

@@ -15,5 +15,4 @@ import org.spongepowered.api.util.annotation.CatalogedBy;
 @CatalogedBy(QueryExpressionFunctions.class)
 @FunctionalInterface
 public interface QueryExpressionFunction
-        extends BiFunction<DataView, DataQuery, QueryExpression>, DefaultedRegistryValue {
-}
+        extends BiFunction<DataView, DataQuery, QueryExpression>, DefaultedRegistryValue {}

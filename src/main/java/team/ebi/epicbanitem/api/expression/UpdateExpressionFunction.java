@@ -15,5 +15,4 @@ import org.spongepowered.api.util.annotation.CatalogedBy;
 @CatalogedBy(UpdateExpressionFunctions.class)
 @FunctionalInterface
 public interface UpdateExpressionFunction
-        extends BiFunction<DataView, DataQuery, UpdateExpression>, DefaultedRegistryValue {
-}
+        extends BiFunction<DataView, DataQuery, UpdateExpression>, DefaultedRegistryValue {}

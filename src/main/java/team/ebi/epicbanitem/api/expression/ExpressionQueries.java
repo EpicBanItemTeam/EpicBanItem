@@ -54,6 +54,5 @@ public final class ExpressionQueries {
 
     public static final Set<DataQuery> UPDATE_EXPRESSIONS = Set.of(SET, UNSET, RENAME, POP, PULL, INC, MUL);
 
-    private ExpressionQueries() {
-    }
+    private ExpressionQueries() {}
 }

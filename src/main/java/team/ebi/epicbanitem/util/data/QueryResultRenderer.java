@@ -23,8 +23,7 @@ import static team.ebi.epicbanitem.util.data.DataViewRenderer.*;
 
 public final class QueryResultRenderer {
 
-    private QueryResultRenderer() {
-    }
+    private QueryResultRenderer() {}
 
     private static Component renderKey(String key, DataQuery path) {
         return Component.text()

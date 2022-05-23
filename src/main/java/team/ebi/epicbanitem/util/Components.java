@@ -21,6 +21,5 @@ public final class Components {
     public static final TranslatableComponent TEST_HELD = Component.translatable("epicbanitem.ui.testHeld")
             .hoverEvent(Component.translatable("epicbanitem.ui.testHeld.description"));
 
-    private Components() {
-    }
+    private Components() {}
 }

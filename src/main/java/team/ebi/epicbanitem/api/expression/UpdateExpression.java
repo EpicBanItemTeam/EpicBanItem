@@ -48,8 +48,7 @@ public interface UpdateExpression extends DataSerializable {
                             .map(it -> Tuple.of(current.then(it.getKey()), Optional.of(it.getValue())));
                 });
                 default -> stream.map(tuple ->
-                        Tuple.of(tuple.first().then(part), tuple.second().map(it -> it.get(part))));
-            };
+                        Tuple.of(tuple.first().then(part), tuple.second().map(it -> it.get(part))));};
         }
 
         return stream.map(Tuple::first).toList();
