@@ -45,6 +45,12 @@ jobs:
           writeToFile: false
           excludeTypes: build,docs,other,style,ci
 
+#      - name: Find Tag
+#        id: tagger
+#        uses: jimschubert/query-tag-action@v1
+#        with:
+#          include: v[0-9]+.[0-9]+.[0-9]+
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
