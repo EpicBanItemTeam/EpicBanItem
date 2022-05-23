@@ -1,8 +1,9 @@
-name: Build and Release
+name: Tag and Release
 on:
   push:
     branches:
       - main
+      - develop
 
 jobs:
   release:
@@ -19,20 +20,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-
       - name: Test
         run: ./gradlew test
 
       - name: Build
         run: ./gradlew build
 
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v3
+      - name: Create tag
+        run: ./gradlew createAndPushVersionTag
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
-          extra_plugins: |
-            @semantic-release/changelog
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/git
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          draft: false
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changes }}
+          token: ${{ github.token }}
