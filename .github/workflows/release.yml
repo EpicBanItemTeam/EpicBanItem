@@ -41,6 +41,6 @@ jobs:
         with:
           allowUpdates: true
           draft: false
-          name: ${{ steps.tag.outputs.version }}
+          tag: ${{ steps.tag.outputs.version }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
