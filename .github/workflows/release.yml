@@ -36,6 +36,13 @@ jobs:
           ./gradlew generateVersionFile
           echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
 
+      - name: Update CHANGELOG
+        id: changelog
+        uses: Requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ steps.tag.outputs.version }}
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
