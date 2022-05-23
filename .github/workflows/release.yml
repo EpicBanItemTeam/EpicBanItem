@@ -36,12 +36,14 @@ jobs:
           ./gradlew generateVersionFile
           echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
 
-      - name: Update CHANGELOG
+      - name: Generate Changelog
         id: changelog
         uses: Requarks/changelog-action@v1
         with:
           token: ${{ github.token }}
           tag: ${{ steps.tag.outputs.version }}
+          writeToFile: false
+          excludeTypes: build,docs,other,style,ci
 
       - name: Create Release
         uses: ncipollo/release-action@v1
@@ -51,3 +53,4 @@ jobs:
           tag: ${{ steps.tag.outputs.version }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
+          artifacts: build/libs/EpicBanItem*
