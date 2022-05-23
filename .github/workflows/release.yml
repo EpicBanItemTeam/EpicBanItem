@@ -32,6 +32,7 @@ jobs:
       - name: Create tag
         id: tag
         run: ./gradlew createAndPushVersionTag
+          | ./gradlew generateVersionFile
           | echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
 
       - name: Create Release
