@@ -30,13 +30,15 @@ jobs:
         run: ./gradlew build
 
       - name: Create tag
+        id: tag
         run: ./gradlew createAndPushVersionTag
+          | echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
 
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           draft: false
-          name: ${{ github.ref_name }}
+          name: ${{ steps.tag.outputs.version }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
