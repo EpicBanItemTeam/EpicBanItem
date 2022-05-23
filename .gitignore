@@ -1,6 +1,9 @@
 # Whitelist Mode
 /*
 
+# IDEA
+!.idea
+
 # Git Files
 !.gitignore
 
@@ -11,8 +14,6 @@
 
 # Java Files
 !src/
-!resources/
-!api/
 
 # Gradle Files
 !gradle/
@@ -21,11 +22,6 @@
 !build.gradle.kts
 !settings.gradle.kts
 !gradle.properties
-!buildSrc/
-buildSrc/*
-!buildSrc/build.gradle
-!buildSrc/src
 
-# Circle CI
-!.circleci/
-
+# Baseline
+!.baseline

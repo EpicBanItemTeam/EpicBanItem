@@ -1,0 +1,6 @@
+<project version="4">
+  <component name="ExternalDependencies">
+    <plugin id="palantir-java-format"/>
+    <plugin id="CheckStyle-IDEA"/>
+  </component>
+</project>

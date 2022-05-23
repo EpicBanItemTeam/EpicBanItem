@@ -1,0 +1,83 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <option name="LINE_SEPARATOR" value="&#10;" />
+    <AndroidXmlCodeStyleSettings>
+      <option name="USE_CUSTOM_SETTINGS" value="true" />
+      <option name="LAYOUT_SETTINGS">
+        <value>
+          <option name="INSERT_BLANK_LINE_BEFORE_TAG" value="false" />
+        </value>
+      </option>
+    </AndroidXmlCodeStyleSettings>
+    <HoconCodeStyleSettings>
+      <option name="LISTS_ALIGN_WHEN_MULTILINE" value="true" />
+    </HoconCodeStyleSettings>
+    <JavaCodeStyleSettings>
+      <option name="IMPORT_LAYOUT_TABLE">
+        <value>
+          <package name="javax" withSubpackages="true" static="false" />
+          <emptyLine />
+          <package name="java" withSubpackages="true" static="false" />
+          <emptyLine />
+          <package name="org.spongepowered" withSubpackages="true" static="false" />
+          <emptyLine />
+          <package name="" withSubpackages="true" static="false" />
+          <emptyLine />
+          <package name="" withSubpackages="true" static="true" />
+        </value>
+      </option>
+    </JavaCodeStyleSettings>
+    <JetCodeStyleSettings>
+      <option name="NAME_COUNT_TO_USE_STAR_IMPORT_FOR_MEMBERS" value="2147483647" />
+      <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
+    </JetCodeStyleSettings>
+    <Objective-C>
+      <option name="INDENT_NAMESPACE_MEMBERS" value="0" />
+      <option name="INDENT_C_STRUCT_MEMBERS" value="2" />
+      <option name="INDENT_CLASS_MEMBERS" value="2" />
+      <option name="INDENT_VISIBILITY_KEYWORDS" value="1" />
+      <option name="INDENT_INSIDE_CODE_BLOCK" value="2" />
+      <option name="KEEP_STRUCTURES_IN_ONE_LINE" value="true" />
+      <option name="FUNCTION_PARAMETERS_WRAP" value="5" />
+      <option name="FUNCTION_CALL_ARGUMENTS_WRAP" value="5" />
+      <option name="TEMPLATE_CALL_ARGUMENTS_WRAP" value="5" />
+      <option name="TEMPLATE_CALL_ARGUMENTS_ALIGN_MULTILINE" value="true" />
+      <option name="ALIGN_INIT_LIST_IN_COLUMNS" value="false" />
+      <option name="SPACE_BEFORE_SUPERCLASS_COLON" value="false" />
+    </Objective-C>
+    <Objective-C-extensions>
+      <option name="GENERATE_INSTANCE_VARIABLES_FOR_PROPERTIES" value="ASK" />
+      <option name="RELEASE_STYLE" value="IVAR" />
+      <option name="TYPE_QUALIFIERS_PLACEMENT" value="BEFORE" />
+      <file>
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Import" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Macro" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Typedef" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Enum" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Constant" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Global" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Struct" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="FunctionPredecl" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Function" />
+      </file>
+      <class>
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Property" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Synthesize" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="InitMethod" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="StaticMethod" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="InstanceMethod" />
+        <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="DeallocMethod" />
+      </class>
+      <extensions>
+        <pair source="cc" header="h" />
+        <pair source="c" header="h" />
+      </extensions>
+    </Objective-C-extensions>
+    <ScalaCodeStyleSettings>
+      <option name="MULTILINE_STRING_CLOSING_QUOTES_ON_NEW_LINE" value="true" />
+    </ScalaCodeStyleSettings>
+    <codeStyleSettings language="kotlin">
+      <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
+    </codeStyleSettings>
+  </code_scheme>
+</component>

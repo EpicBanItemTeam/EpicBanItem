@@ -5,6 +5,7 @@ plugins {
     `java-library`
     id("org.spongepowered.gradle.plugin") version "2.0.2"
     id("org.spongepowered.gradle.vanilla") version "0.2"
+    id("com.diffplug.spotless") version "6.6.1"
 }
 
 val id: String by project
@@ -92,5 +93,21 @@ tasks {
     }
     runServer {
         jvmArgs("-XX:+AllowEnhancedClassRedefinition", "-XX:HotswapAgent=fatjar")
+    }
+}
+
+spotless {
+    encoding(Charsets.UTF_8)
+    java {
+        palantirJavaFormat()
+        importOrder("java", "javax", "org.spongepowered", "", "\\#")
+        licenseHeader(
+            """
+          /*
+           * Copyright ${'$'}YEAR EpicBanItem Team. All Rights Reserved.
+           *
+           * This file is part of EpicBanItem, licensed under the GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3.0)
+           */""".trimIndent()
+        )
     }
 }
