@@ -35,11 +35,13 @@ public final class BlockUtils {
                     it -> it.state().type().equals(BlockTypes.TALL_SEAGRASS.get()),
                     ignored -> Optional.ofNullable(ItemStack.of(ItemTypes.SEAGRASS.get())));
 
-            BLOCK_TO_ITEM.put(it -> it.state().type() instanceof FlowerPotBlock, block -> Optional.ofNullable(((BlockType)
-                    ((FlowerPotBlock) block.state().type()).getContent())
-                    .item()
-                    .map(ItemStack::of)
-                    .orElse(ItemStack.of(ItemTypes.FLOWER_POT))));
+            BLOCK_TO_ITEM.put(
+                    it -> it.state().type() instanceof FlowerPotBlock,
+                    block -> Optional.ofNullable(
+                            ((BlockType) ((FlowerPotBlock) block.state().type()).getContent())
+                                    .item()
+                                    .map(ItemStack::of)
+                                    .orElse(ItemStack.of(ItemTypes.FLOWER_POT))));
 
             BLOCK_TO_ITEM.put(
                     it -> it.state().type().equals(BlockTypes.BAMBOO_SAPLING.get()),
@@ -67,8 +69,7 @@ public final class BlockUtils {
         }
     }
 
-    private BlockUtils() {
-    }
+    private BlockUtils() {}
 
     public static Optional<ItemStack> fromBlock(BlockSnapshot snapshot) {
         try {
