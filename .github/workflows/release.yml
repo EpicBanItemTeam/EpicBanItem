@@ -23,8 +23,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Test
-        run: ./gradlew test
+      - name: Create tag
+        if: success()
+        id: tag
+        run: |
+          ./gradlew createAndPushVersionTag
+          ./gradlew generateVersionFile
+          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
 
       - name: Generate Changelog
         id: changelog
@@ -35,17 +40,13 @@ jobs:
           writeToFile: false
           excludeTypes: build,docs,other,style,ci
 
-      - name: Build
+      - name: Test
         if: steps.changelog.outputs.changes
-        run: ./gradlew build
+        run: ./gradlew test
 
-      - name: Create tag
+      - name: Build
         if: success()
-        id: tag
-        run: |
-          ./gradlew createAndPushVersionTag
-          ./gradlew generateVersionFile
-          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
+        run: ./gradlew build
 
       #      - name: Find Tag
       #        id: tagger
