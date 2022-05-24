@@ -17,7 +17,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.util.data.DataViewRenderer;
 
 public final class StaticRestrictionRuleRenderer {
 
@@ -40,6 +42,35 @@ public final class StaticRestrictionRuleRenderer {
         components.add(renderWorldStates(rule.worldStates()));
         components.add(renderTriggerStates(rule.triggerStates()));
 
+        // TODO Copy
+        components.add(renderKey(Component.translatable("epicbanitem.ui.rule.query.key")
+                .hoverEvent(Component.join(
+                        JoinConfiguration.newlines(),
+                        DataViewRenderer.render(rule.queryExpression().toContainer()).stream()
+                                .limit(25)
+                                .toList()))));
+        UpdateExpression updateExpression = rule.updateExpression();
+        components.add(renderKey(Component.translatable("epicbanitem.ui.rule.update.key")
+                .hoverEvent(
+                        Objects.isNull(updateExpression)
+                                ? Component.text("null")
+                                : Component.join(
+                                        JoinConfiguration.newlines(),
+                                        DataViewRenderer.render(Objects.requireNonNull(updateExpression)
+                                                        .toContainer())
+                                                .stream()
+                                                .limit(25)
+                                                .toList()))));
+
+        components.add(Component.text()
+                .append(Component.translatable("epicbanitem.ui.rule.updateMessage.key")
+                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.updateMessage.description")
+                                .args(Component.text(ruleKeyString))))
+                .append(Component.text("  "))
+                .append(Component.translatable("epicbanitem.ui.rule.cancelMessage.key")
+                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.cancelMessage.description")
+                                .args(Component.text(ruleKeyString))))
+                .build());
         return Component.join(JoinConfiguration.newlines(), components);
     }
 
