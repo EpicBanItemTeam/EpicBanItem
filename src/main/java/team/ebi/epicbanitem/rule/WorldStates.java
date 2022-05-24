@@ -18,6 +18,7 @@ import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.api.rule.RestrictionRule.States;
 
 public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements States {
@@ -33,12 +34,23 @@ public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements S
     public WorldStates(boolean defaultState, Map<ResourceKey, Tristate> map) {
         this.map = map;
         this.defaultState = defaultState;
+        this.update(defaultState);
     }
 
-    @NotNull
     @Override
     public Tristate get(Object key) {
-        return getOrDefault(key, Tristate.UNDEFINED);
+        return this.map.get(key);
+    }
+
+    @Override
+    public Tristate put(ResourceKey key, Tristate value) {
+        return this.map.put(key, value);
+    }
+
+    @Nullable
+    @Override
+    public Tristate putIfAbsent(ResourceKey key, Tristate value) {
+        return this.map.putIfAbsent(key, value);
     }
 
     @NotNull

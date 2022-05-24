@@ -79,7 +79,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
         // TODO Need config
         this.worldStates = new WorldStates(
                 view.getBoolean(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.DEFAULT))
-                        .orElse(false),
+                        .orElse(true),
                 view.getMap(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.STATES))
                         .map(it -> it.entrySet().stream()
                                 .collect(Collectors.toMap(
@@ -90,8 +90,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
                         .orElse(Maps.newHashMap()));
         this.triggerStates = new TriggerStates(
                 view.getBoolean(RestrictionRuleQueries.TRIGGER.then(RestrictionRuleQueries.DEFAULT))
-                        .orElse(false),
-                view.getMap(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.STATES))
+                        .orElse(true),
+                view.getMap(RestrictionRuleQueries.TRIGGER.then(RestrictionRuleQueries.STATES))
                         .map(it -> it.entrySet().stream()
                                 .collect(Collectors.toMap(
                                         entry -> ResourceKey.resolve(

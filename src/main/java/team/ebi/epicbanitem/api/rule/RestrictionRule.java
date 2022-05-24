@@ -84,10 +84,6 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
             return Objects.requireNonNullElse(get(key).asNullableBoolean(), defaultState());
         }
 
-        @NotNull
-        @Override
-        Tristate get(Object key);
-
         boolean defaultState();
     }
 }
