@@ -10,13 +10,19 @@ import org.spongepowered.api.ResourceKey;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.EBIRegistries;
+import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.RestrictionTrigger;
 
 public class RestrictionTriggerImpl implements RestrictionTrigger {
 
     @Override
     public @NotNull Component asComponent() {
-        return Component.translatable("trigger." + key() + ".name");
+        final var resourceKey = key();
+        final var key = "epicbanitem.trigger." + resourceKey;
+        if (!EpicBanItem.translations.contains(key)) {
+            return Component.text(resourceKey.asString());
+        }
+        return Component.translatable(key);
     }
 
     @Override

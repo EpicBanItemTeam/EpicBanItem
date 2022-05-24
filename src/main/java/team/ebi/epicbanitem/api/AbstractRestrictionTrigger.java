@@ -33,7 +33,12 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
 
     @Override
     public @NotNull Component asComponent() {
-        return Component.translatable("trigger." + key());
+        final var resourceKey = key();
+        final var key = "epicbanitem.trigger." + resourceKey;
+        if (!EpicBanItem.translations.contains(key)) {
+            return Component.text(resourceKey.asString());
+        }
+        return Component.translatable(key);
     }
 
     @Override
