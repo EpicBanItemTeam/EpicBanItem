@@ -45,7 +45,7 @@ jobs:
         run: ./gradlew test
 
       - name: Build
-        if: success()
+        if: steps.changelog.outputs.changes
         run: ./gradlew build
 
       #      - name: Find Tag
@@ -55,7 +55,7 @@ jobs:
       #          include: v[0-9]+.[0-9]+.[0-9]+
 
       - name: Create Release
-        if: success()
+        if: steps.changelog.outputs.changes
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
