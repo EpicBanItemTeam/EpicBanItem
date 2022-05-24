@@ -26,16 +26,6 @@ jobs:
       - name: Test
         run: ./gradlew test
 
-      - name: Build
-        run: ./gradlew build
-
-      - name: Create tag
-        id: tag
-        run: |
-          ./gradlew createAndPushVersionTag
-          ./gradlew generateVersionFile
-          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
-
       - name: Generate Changelog
         id: changelog
         uses: Requarks/changelog-action@v1
@@ -45,14 +35,26 @@ jobs:
           writeToFile: false
           excludeTypes: build,docs,other,style,ci
 
-#      - name: Find Tag
-#        id: tagger
-#        uses: jimschubert/query-tag-action@v1
-#        with:
-#          include: v[0-9]+.[0-9]+.[0-9]+
+      - name: Build
+        if: steps.changelog.outputs.changes
+        run: ./gradlew build
+
+      - name: Create tag
+        if: success()
+        id: tag
+        run: |
+          ./gradlew createAndPushVersionTag
+          ./gradlew generateVersionFile
+          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
+
+      #      - name: Find Tag
+      #        id: tagger
+      #        uses: jimschubert/query-tag-action@v1
+      #        with:
+      #          include: v[0-9]+.[0-9]+.[0-9]+
 
       - name: Create Release
-        if: ${{ steps.changelog.outputs.changes }}
+        if: success()
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
