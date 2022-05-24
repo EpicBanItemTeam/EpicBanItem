@@ -9,7 +9,7 @@ gitHooks {
     commitMsg {
         conventionalCommits()
     }
-    createHooks()
+    createHooks(true)
 }
 
 rootProject.name = "EpicBanItem"
