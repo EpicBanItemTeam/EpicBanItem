@@ -29,38 +29,42 @@ public final class StaticRestrictionRuleRenderer {
         final var ruleKeyString = rule.key().asString();
         final var components = Lists.<Component>newArrayList();
         components.add(renderKey(Component.translatable("epicbanitem.ui.rule.title.key"))
-                .append(rule.asComponent()
-                        .hoverEvent(Component.text(ruleKeyString)
-                                .append(Component.newline())
-                                .append(Component.translatable("epicbanitem.ui.rule.title.description")
-                                        .args(Component.text(ruleKeyString))))
-                        .clickEvent(ClickEvent.copyToClipboard(ruleKeyString))));
+                .append(rule.asComponent())
+                .hoverEvent(Component.text(ruleKeyString)
+                        .append(Component.newline())
+                        .append(Component.translatable("epicbanitem.ui.rule.title.description")
+                                .args(Component.text(ruleKeyString))))
+                .clickEvent(ClickEvent.copyToClipboard(ruleKeyString)));
 
         components.add(renderKey(Component.translatable("epicbanitem.ui.rule.priority.key"))
-                .append(Component.text(rule.priority())));
+                .append(Component.text(rule.priority()))
+                .hoverEvent(Component.translatable("epicbanitem.ui.rule.priority.description")));
 
         components.add(renderWorldStates(rule.worldStates()));
         components.add(renderTriggerStates(rule.triggerStates()));
 
         // TODO Copy
-        components.add(renderKey(Component.translatable("epicbanitem.ui.rule.query.key")
-                .hoverEvent(Component.join(
-                        JoinConfiguration.newlines(),
-                        DataViewRenderer.render(rule.queryExpression().toContainer()).stream()
-                                .limit(25)
-                                .toList()))));
         UpdateExpression updateExpression = rule.updateExpression();
-        components.add(renderKey(Component.translatable("epicbanitem.ui.rule.update.key")
-                .hoverEvent(
-                        Objects.isNull(updateExpression)
-                                ? Component.text("null")
-                                : Component.join(
-                                        JoinConfiguration.newlines(),
-                                        DataViewRenderer.render(Objects.requireNonNull(updateExpression)
-                                                        .toContainer())
-                                                .stream()
-                                                .limit(25)
-                                                .toList()))));
+        components.add(Component.text()
+                .append(Component.translatable("epicbanitem.ui.rule.query.key")
+                        .hoverEvent(Component.join(
+                                JoinConfiguration.newlines(),
+                                DataViewRenderer.render(rule.queryExpression().toContainer()).stream()
+                                        .limit(25)
+                                        .toList())))
+                .append(Component.text("  "))
+                .append(Component.translatable("epicbanitem.ui.rule.update.key")
+                        .hoverEvent(
+                                Objects.isNull(updateExpression)
+                                        ? Component.text("null")
+                                        : Component.join(
+                                                JoinConfiguration.newlines(),
+                                                DataViewRenderer.render(Objects.requireNonNull(updateExpression)
+                                                                .toContainer())
+                                                        .stream()
+                                                        .limit(25)
+                                                        .toList())))
+                .build());
 
         components.add(Component.text()
                 .append(Component.translatable("epicbanitem.ui.rule.updateMessage.key")
@@ -99,7 +103,7 @@ public final class StaticRestrictionRuleRenderer {
                         JoinConfiguration.separator(Component.text("  ")),
                         states.keySet().stream()
                                 .map(key -> {
-                                    final var tristate = states.get(key);
+                                    final var tristate = states.getOrDefault(key, Tristate.UNDEFINED);
                                     final var builder = Component.text();
                                     builder.append(states.key(key))
                                             .color(
