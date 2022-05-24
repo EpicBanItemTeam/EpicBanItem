@@ -5,6 +5,7 @@
  */
 package team.ebi.epicbanitem;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.*;
@@ -24,6 +25,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.data.persistence.DataContainer;
+import org.spongepowered.api.data.persistence.DataFormats;
 import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.entity.living.player.Player;
@@ -58,6 +60,7 @@ import team.ebi.epicbanitem.api.rule.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 import team.ebi.epicbanitem.util.Components;
+import team.ebi.epicbanitem.util.StaticRestrictionRuleRenderer;
 import team.ebi.epicbanitem.util.command.Flags;
 import team.ebi.epicbanitem.util.command.Parameters;
 import team.ebi.epicbanitem.util.data.DataViewRenderer;
@@ -148,11 +151,18 @@ public final class EBICommands {
                 .executor(this::list)
                 .build();
 
-        final var edit = Command.builder()
-                .shortDescription(Component.translatable("epicbanitem.command.edit.description"))
-                .permission(EpicBanItem.permission("command.edit"))
-                .addParameters(parameters.ruleKey.key(keys.ruleKey).build())
-                .executor(this::edit)
+        final var editor = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.editor.description"))
+                .permission(EpicBanItem.permission("command.editor"))
+                .addParameters(parameters.rule.key(keys.rule).build())
+                .executor(this::editor)
+                .build();
+
+        final var info = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.info.description"))
+                .permission(EpicBanItem.permission("command.info"))
+                .addParameters(parameters.rule.key(keys.rule).build())
+                .executor(this::info)
                 .build();
 
         return Command.builder()
@@ -164,7 +174,8 @@ public final class EBICommands {
                 .addChild(create, "create")
                 .addChild(test, "test")
                 .addChild(list, "list", "ls")
-                .addChild(edit, "edit")
+                .addChild(editor, "editor")
+                .addChild(info, "info")
                 .build();
     }
 
@@ -392,7 +403,7 @@ public final class EBICommands {
         final var subject = context.cause().subject();
         final var predicate = context.one(keys.predicate).orElse(RulePredicateService.WILDCARD);
         final var components = predicateService.rule(predicate).stream()
-                .map(rule -> {
+                .<Component>map(rule -> {
                     var editComponent = Components.EDIT.color(NamedTextColor.GRAY);
                     if (subject instanceof ServerPlayer player) {
                         editComponent = editComponent.clickEvent(SpongeComponents.executeCallback(cause -> {
@@ -409,13 +420,20 @@ public final class EBICommands {
                         }));
                     }
                     // TODO copy rule
-                    return rule.asComponent()
-                            .hoverEvent(Component.join(
-                                    JoinConfiguration.newlines(),
-                                    DataViewRenderer.render(
-                                            rule.queryExpression().toContainer())))
-                            .append(Component.space())
-                            .append(editComponent);
+                    try {
+                        return rule.asComponent()
+                                .hoverEvent(Component.join(
+                                        JoinConfiguration.newlines(),
+                                        DataViewRenderer.render(
+                                                rule.queryExpression().toContainer())))
+                                .clickEvent(ClickEvent.suggestCommand(DataFormats.HOCON
+                                        .get()
+                                        .write(rule.queryExpression().toContainer())))
+                                .append(Component.space())
+                                .append(editComponent);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 })
                 .toList();
         Sponge.serviceProvider()
@@ -427,11 +445,18 @@ public final class EBICommands {
         return CommandResult.success();
     }
 
-    private @NotNull CommandResult edit(@NotNull CommandContext context) {
+    private @NotNull CommandResult editor(@NotNull CommandContext context) {
         if (!(context.cause().root() instanceof final ServerPlayer player)) {
             return CommandResult.error(NEED_PLAYER);
         }
 
+        return CommandResult.success();
+    }
+
+    private @NotNull CommandResult info(final @NotNull CommandContext context) {
+        final var audience = context.cause().audience();
+        final var rule = context.requireOne(keys.rule);
+        audience.sendMessage(StaticRestrictionRuleRenderer.renderRule(rule));
         return CommandResult.success();
     }
 }
