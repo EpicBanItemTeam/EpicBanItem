@@ -379,8 +379,11 @@ public final class EBICommands {
                             rule.asComponent()
                                     .hoverEvent(Component.join(
                                             JoinConfiguration.newlines(),
-                                            DataViewRenderer.render(
-                                                    rule.queryExpression().toContainer())))));
+                                            DataViewRenderer.render(rule.queryExpression()
+                                                            .toContainer())
+                                                    .stream()
+                                                    .limit(25)
+                                                    .toList()))));
                     (hasTrigger ? triggerArgs.stream() : allTriggers.stream())
                             .map(trigger -> restrictionService.restrict(rule, targetView, world, trigger, null))
                             .filter(Optional::isPresent)
@@ -425,7 +428,10 @@ public final class EBICommands {
                                 .hoverEvent(Component.join(
                                         JoinConfiguration.newlines(),
                                         DataViewRenderer.render(
-                                                rule.queryExpression().toContainer())))
+                                                        rule.queryExpression().toContainer())
+                                                .stream()
+                                                .limit(25)
+                                                .toList()))
                                 .clickEvent(ClickEvent.suggestCommand(DataFormats.HOCON
                                         .get()
                                         .write(rule.queryExpression().toContainer())))
