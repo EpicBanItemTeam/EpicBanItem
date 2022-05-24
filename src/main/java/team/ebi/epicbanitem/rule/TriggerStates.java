@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.registry.RegistryEntry;
+import org.spongepowered.api.util.Tristate;
 
 import com.google.common.collect.Maps;
 import net.kyori.adventure.text.ComponentLike;
@@ -19,27 +20,30 @@ import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.api.RestrictionTriggers;
 import team.ebi.epicbanitem.api.rule.RestrictionRule.States;
 
-public class TriggerStates extends AbstractMap<ResourceKey, Boolean> implements States<ResourceKey> {
+public class TriggerStates extends AbstractMap<ResourceKey, Tristate> implements States {
 
-    private final Map<ResourceKey, Boolean> map;
+    private final Map<ResourceKey, Tristate> map;
+    private boolean defaultState;
 
     public TriggerStates(boolean defaultState) {
         this.map = Maps.newHashMap();
         this.update(defaultState);
     }
 
-    public TriggerStates(Map<ResourceKey, Boolean> map) {
+    public TriggerStates(boolean defaultState, Map<ResourceKey, Tristate> map) {
         this.map = map;
-    }
-
-    @Override
-    public Boolean get(Object key) {
-        return map.get(key);
+        this.defaultState = defaultState;
     }
 
     @NotNull
     @Override
-    public Set<Entry<ResourceKey, Boolean>> entrySet() {
+    public Tristate get(Object key) {
+        return getOrDefault(key, Tristate.UNDEFINED);
+    }
+
+    @NotNull
+    @Override
+    public Set<Entry<ResourceKey, Tristate>> entrySet() {
         return map.entrySet();
     }
 
@@ -50,11 +54,17 @@ public class TriggerStates extends AbstractMap<ResourceKey, Boolean> implements 
 
     @Override
     public void update(boolean defaultState) {
+        this.defaultState = defaultState;
         clear();
         RestrictionTriggers.registry()
                 .streamEntries()
                 .map(RegistryEntry::key)
-                .forEach(key -> map.putIfAbsent(key, defaultState));
+                .forEach(key -> map.putIfAbsent(key, Tristate.UNDEFINED));
+    }
+
+    @Override
+    public boolean defaultState() {
+        return defaultState;
     }
 
     @Override

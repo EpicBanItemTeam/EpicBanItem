@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.util.Tristate;
 
 import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
@@ -19,27 +20,30 @@ import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.api.rule.RestrictionRule.States;
 
-public class WorldStates extends AbstractMap<ResourceKey, Boolean> implements States<ResourceKey> {
+public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements States {
 
-    private final Map<ResourceKey, Boolean> map;
+    private final Map<ResourceKey, Tristate> map;
+    private boolean defaultState;
 
     public WorldStates(boolean defaultState) {
         this.map = Maps.newHashMap();
         this.update(defaultState);
     }
 
-    public WorldStates(Map<ResourceKey, Boolean> map) {
+    public WorldStates(boolean defaultState, Map<ResourceKey, Tristate> map) {
         this.map = map;
-    }
-
-    @Override
-    public Boolean get(Object key) {
-        return map.get(key);
+        this.defaultState = defaultState;
     }
 
     @NotNull
     @Override
-    public Set<Entry<ResourceKey, Boolean>> entrySet() {
+    public Tristate get(Object key) {
+        return getOrDefault(key, Tristate.UNDEFINED);
+    }
+
+    @NotNull
+    @Override
+    public Set<Entry<ResourceKey, Tristate>> entrySet() {
         return map.entrySet();
     }
 
@@ -50,8 +54,9 @@ public class WorldStates extends AbstractMap<ResourceKey, Boolean> implements St
 
     @Override
     public void update(boolean defaultState) {
+        this.defaultState = defaultState;
         clear();
-        Sponge.server().worldManager().worlds().forEach(world -> put(world.key(), defaultState));
+        Sponge.server().worldManager().worlds().forEach(world -> put(world.key(), Tristate.UNDEFINED));
     }
 
     @Override
@@ -72,5 +77,10 @@ public class WorldStates extends AbstractMap<ResourceKey, Boolean> implements St
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), map);
+    }
+
+    @Override
+    public boolean defaultState() {
+        return defaultState;
     }
 }

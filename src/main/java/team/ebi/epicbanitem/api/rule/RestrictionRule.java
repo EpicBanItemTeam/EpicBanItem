@@ -6,17 +6,16 @@
 package team.ebi.epicbanitem.api.rule;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.ResourceKeyed;
-import org.spongepowered.api.adventure.SpongeComponents;
 import org.spongepowered.api.data.persistence.DataSerializable;
+import org.spongepowered.api.util.Tristate;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,17 +30,13 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
 
     boolean needCancel();
 
-    boolean defaultWorldState();
-
-    boolean defaultTriggerState();
-
-    States<ResourceKey> worldStates();
+    States worldStates();
 
     boolean worldState(ResourceKey key);
 
     boolean triggerState(ResourceKey key);
 
-    States<ResourceKey> triggerStates();
+    States triggerStates();
 
     QueryExpression queryExpression();
 
@@ -80,22 +75,19 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
     @NotNull
     Component asComponent();
 
-    interface States<K> extends Map<K, Boolean>, ComponentLike {
-        ComponentLike key(K key);
+    interface States extends Map<ResourceKey, Tristate> {
+        ComponentLike key(ResourceKey key);
 
         void update(boolean defaultState);
 
-        @Override
-        default @NotNull Component asComponent() {
-            return Component.join(
-                    JoinConfiguration.separator(Component.space()),
-                    keySet().stream()
-                            .map(key -> Component.text()
-                                    .append(key(key))
-                                    .color(Boolean.TRUE.equals(get(key)) ? NamedTextColor.GREEN : NamedTextColor.RED)
-                                    .clickEvent(SpongeComponents.executeCallback(cause -> put(key, !get(key))))
-                                    .build())
-                            .toList());
+        default boolean getOrDefault(ResourceKey key) {
+            return Objects.requireNonNullElse(get(key).asNullableBoolean(), defaultState());
         }
+
+        @NotNull
+        @Override
+        Tristate get(Object key);
+
+        boolean defaultState();
     }
 }

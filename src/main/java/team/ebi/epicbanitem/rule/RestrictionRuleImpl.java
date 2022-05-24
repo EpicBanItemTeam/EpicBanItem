@@ -7,10 +7,13 @@ package team.ebi.epicbanitem.rule;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.*;
+import org.spongepowered.api.util.Tristate;
 
+import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -30,8 +33,6 @@ import team.ebi.epicbanitem.expression.RootUpdateExpression;
 public class RestrictionRuleImpl implements RestrictionRule {
 
     private final int priority;
-    private final boolean defaultWorldState;
-    private final boolean defaultTriggerState;
 
     private final WorldStates worldStates;
 
@@ -43,33 +44,27 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     public RestrictionRuleImpl(QueryExpression queryExpression) {
         this.priority = 10;
-        this.defaultWorldState = true;
-        this.defaultTriggerState = true;
         this.queryExpression = queryExpression;
         this.updateExpression = null;
         this.predicate = RulePredicateService.WILDCARD;
         this.needCancel = false;
-        this.worldStates = new WorldStates(defaultWorldState);
-        this.triggerStates = new TriggerStates(defaultTriggerState);
+        this.worldStates = new WorldStates(true);
+        this.triggerStates = new TriggerStates(true);
     }
 
     public RestrictionRuleImpl(
             int priority,
-            boolean defaultWorldState,
-            boolean defaultTriggerState,
             QueryExpression queryExpression,
             @Nullable UpdateExpression updateExpression,
             ResourceKey predicate,
             boolean needCancel) {
         this.priority = priority;
-        this.defaultWorldState = defaultWorldState;
-        this.defaultTriggerState = defaultTriggerState;
         this.queryExpression = queryExpression;
         this.updateExpression = updateExpression;
         this.predicate = predicate;
         this.needCancel = needCancel;
-        this.worldStates = new WorldStates(defaultWorldState);
-        this.triggerStates = new TriggerStates(defaultTriggerState);
+        this.worldStates = new WorldStates(true);
+        this.triggerStates = new TriggerStates(true);
     }
 
     public RestrictionRuleImpl(DataView data) {
@@ -82,12 +77,28 @@ public class RestrictionRuleImpl implements RestrictionRule {
         this.predicate = view.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
         this.needCancel = view.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
         // TODO Need config
-        this.defaultWorldState =
-                view.getBoolean(RestrictionRuleQueries.DEFAULT_WORLD_STATE).orElse(true);
-        this.defaultTriggerState =
-                view.getBoolean(RestrictionRuleQueries.DEFAULT_TRIGGER_STATE).orElse(true);
-        this.worldStates = new WorldStates(defaultWorldState);
-        this.triggerStates = new TriggerStates(defaultTriggerState);
+        this.worldStates = new WorldStates(
+                view.getBoolean(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.DEFAULT))
+                        .orElse(false),
+                view.getMap(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.STATES))
+                        .map(it -> it.entrySet().stream()
+                                .collect(Collectors.toMap(
+                                        entry -> ResourceKey.resolve(
+                                                entry.getKey().toString()),
+                                        entry -> Tristate.valueOf(
+                                                entry.getValue().toString().toUpperCase()))))
+                        .orElse(Maps.newHashMap()));
+        this.triggerStates = new TriggerStates(
+                view.getBoolean(RestrictionRuleQueries.TRIGGER.then(RestrictionRuleQueries.DEFAULT))
+                        .orElse(false),
+                view.getMap(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.STATES))
+                        .map(it -> it.entrySet().stream()
+                                .collect(Collectors.toMap(
+                                        entry -> ResourceKey.resolve(
+                                                entry.getKey().toString()),
+                                        entry -> Tristate.valueOf(
+                                                entry.getValue().toString().toUpperCase()))))
+                        .orElse(Maps.newHashMap()));
     }
 
     @Override
@@ -108,23 +119,13 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     @Override
-    public boolean defaultWorldState() {
-        return this.defaultWorldState;
-    }
-
-    @Override
-    public boolean defaultTriggerState() {
-        return this.defaultTriggerState;
-    }
-
-    @Override
     public boolean worldState(ResourceKey key) {
-        return this.worldStates.getOrDefault(key, defaultWorldState);
+        return this.worldStates.getOrDefault(key);
     }
 
     @Override
     public boolean triggerState(ResourceKey key) {
-        return this.triggerStates.getOrDefault(key, defaultTriggerState);
+        return this.triggerStates.getOrDefault(key);
     }
 
     @Override
@@ -157,26 +158,26 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     @Override
     public TranslatableComponent updatedMessage() {
-        String key = messageKey(key() + ".updated");
+        final var key = messageKey(key() + ".updated");
         if (!EpicBanItem.translations.contains(key)) {
-            return Component.translatable("epicbanitem.rules.updated");
+            return Component.translatable("epicbanitem.rule.updated");
         }
         return Component.translatable(key);
     }
 
     @Override
     public TranslatableComponent canceledMessage() {
-        String key = messageKey(key() + ".canceled");
+        final var key = messageKey(key() + ".canceled");
         if (!EpicBanItem.translations.contains(key)) {
-            return Component.translatable("epicbanitem.rules.canceled");
+            return Component.translatable("epicbanitem.rule.canceled");
         }
         return Component.translatable(key);
     }
 
     @Override
     public @NotNull Component asComponent() {
-        ResourceKey resourceKey = key();
-        String key = messageKey(resourceKey.asString());
+        final var resourceKey = key();
+        final var key = messageKey(resourceKey.asString());
         if (!EpicBanItem.translations.contains(key)) {
             return Component.text(resourceKey.asString());
         }
@@ -190,8 +191,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     @Override
     public DataContainer toContainer() {
-        DataContainer container = DataContainer.createNew();
-        DataView ruleView = container.createView(RestrictionRuleQueries.RULE);
+        var container = DataContainer.createNew();
+        var ruleView = container.createView(RestrictionRuleQueries.RULE);
         if (Objects.nonNull(updateExpression)) {
             ruleView.set(RestrictionRuleQueries.UPDATE, updateExpression);
         }
@@ -212,12 +213,10 @@ public class RestrictionRuleImpl implements RestrictionRule {
             return false;
         }
 
-        RestrictionRuleImpl that = (RestrictionRuleImpl) o;
+        var that = (RestrictionRuleImpl) o;
 
         return new EqualsBuilder()
                 .append(priority, that.priority)
-                .append(defaultWorldState, that.defaultWorldState)
-                .append(defaultTriggerState, that.defaultTriggerState)
                 .append(worldStates, that.worldStates)
                 .append(triggerStates, that.triggerStates)
                 .append(queryExpression, that.queryExpression)
@@ -230,8 +229,6 @@ public class RestrictionRuleImpl implements RestrictionRule {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(priority)
-                .append(defaultWorldState)
-                .append(defaultTriggerState)
                 .append(worldStates)
                 .append(triggerStates)
                 .append(queryExpression)
