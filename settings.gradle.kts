@@ -4,10 +4,19 @@ plugins {
 
 gitHooks {
     preCommit {
-        tasks("spotlessApply")
+        tasks("spotlessApply spotlessCheck")
     }
     commitMsg {
         conventionalCommits()
+    }
+    hook("post-commit") {
+        from {
+            """
+            files="${'$'}(git show --pretty= --name-only | tr '\n' ' ')"
+            git add ${'$'}files
+            git -c core.hooksPath= commit --amend -C HEAD
+            """.trimIndent()
+        }
     }
     createHooks(true)
 }
