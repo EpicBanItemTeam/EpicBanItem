@@ -5,13 +5,9 @@
  */
 package team.ebi.epicbanitem.api.rule;
 
-import java.util.Map;
-import java.util.Objects;
-
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.ResourceKeyed;
 import org.spongepowered.api.data.persistence.DataSerializable;
-import org.spongepowered.api.util.Tristate;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -28,20 +24,35 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
      */
     int priority();
 
+    @Contract(pure = true)
+    RestrictionRule priority(int value);
+
     boolean needCancel();
+
+    @Contract(pure = true)
+    RestrictionRule needCancel(boolean value);
 
     States worldStates();
 
-    boolean worldState(ResourceKey key);
-
-    boolean triggerState(ResourceKey key);
+    @Contract(pure = true)
+    RestrictionRule worldStates(WorldStates states);
 
     States triggerStates();
 
+    @Contract(pure = true)
+    RestrictionRule triggerStates(TriggerStates states);
+
     QueryExpression queryExpression();
+
+    @Contract(pure = true)
+    RestrictionRule queryExpression(QueryExpression value);
 
     @Nullable
     UpdateExpression updateExpression();
+
+    @Contract(pure = true)
+    @Nullable
+    RestrictionRule updateExpression(UpdateExpression value);
 
     /**
      * <li>"minecraft:*" will try to match rule on all minecraft objects
@@ -51,6 +62,9 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
      * @return The id filter for performance.
      */
     ResourceKey predicate();
+
+    @Contract(pure = true)
+    RestrictionRule predicate(ResourceKey value);
 
     /**
      * @return Translatable component with args:
@@ -74,16 +88,4 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
     @Override
     @NotNull
     Component asComponent();
-
-    interface States extends Map<ResourceKey, Tristate> {
-        ComponentLike key(ResourceKey key);
-
-        void update(boolean defaultState);
-
-        default boolean getOrDefault(ResourceKey key) {
-            return Objects.requireNonNullElse(get(key).asNullableBoolean(), defaultState());
-        }
-
-        boolean defaultState();
-    }
 }

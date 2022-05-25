@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.rule.States;
 import team.ebi.epicbanitem.util.data.DataViewRenderer;
 
 public final class StaticRestrictionRuleRenderer {
@@ -82,18 +83,18 @@ public final class StaticRestrictionRuleRenderer {
         return key.append(COLON);
     }
 
-    private static @NotNull Component renderWorldStates(RestrictionRule.States states) {
+    private static @NotNull Component renderWorldStates(States states) {
         return renderKey(Component.translatable("epicbanitem.ui.rule.worldStates.key"))
                 .append(renderRuleStates(states));
     }
 
-    private static @NotNull Component renderTriggerStates(RestrictionRule.States states) {
+    private static @NotNull Component renderTriggerStates(States states) {
         return renderKey(Component.translatable("epicbanitem.ui.rule.triggerStates.key"))
                 .append(renderRuleStates(states));
     }
 
     @Contract(pure = true)
-    private static @NotNull Component renderRuleStates(RestrictionRule.@NotNull States states) {
+    private static @NotNull Component renderRuleStates(@NotNull States states) {
         return Component.text()
                 .append(Component.translatable("epicbanitem.ui.rule.defaultState")
                         .color(states.defaultState() ? NamedTextColor.GREEN : NamedTextColor.RED)

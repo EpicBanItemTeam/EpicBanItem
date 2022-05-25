@@ -3,7 +3,7 @@
  *
  * This file is part of EpicBanItem, licensed under the GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3.0)
  */
-package team.ebi.epicbanitem.rule;
+package team.ebi.epicbanitem.api.rule;
 
 import java.util.AbstractMap;
 import java.util.Map;
@@ -19,7 +19,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import team.ebi.epicbanitem.api.rule.RestrictionRule.States;
 
 public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements States {
 

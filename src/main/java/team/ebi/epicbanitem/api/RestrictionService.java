@@ -37,10 +37,10 @@ public interface RestrictionService {
             ServerWorld world,
             RestrictionTrigger trigger,
             @Nullable Subject subject) {
-        if (!rule.triggerState(trigger.key())) {
+        if (!rule.triggerStates().getOrDefault(trigger.key())) {
             return Optional.empty();
         }
-        if (!rule.worldState(world.key())) {
+        if (!rule.worldStates().getOrDefault(world.key())) {
             return Optional.empty();
         }
         if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) {
