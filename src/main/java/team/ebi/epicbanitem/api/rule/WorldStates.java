@@ -61,7 +61,7 @@ public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements S
 
     @Override
     public ComponentLike key(ResourceKey key) {
-        return Component.text(key.asString());
+        return Component.text(key.value());
     }
 
     @Override
