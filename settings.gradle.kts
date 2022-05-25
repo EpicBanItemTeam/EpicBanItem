@@ -4,7 +4,11 @@ plugins {
 
 gitHooks {
     preCommit {
-        tasks("spotlessApply spotlessCheck")
+        from {
+            """
+            git diff --cached --name-only --diff-filter=ACMR | while read -r a; do echo ${'$'}(readlink -f ${"$"}a); ./gradlew spotlessApply -q -PspotlessIdeHook="${'$'}(readlink -f ${"$"}a)" </dev/null; done
+            """.trimIndent()
+        }
     }
     commitMsg {
         conventionalCommits()
