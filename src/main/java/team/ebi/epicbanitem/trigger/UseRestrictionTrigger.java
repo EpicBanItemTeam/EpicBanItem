@@ -7,7 +7,9 @@ package team.ebi.epicbanitem.trigger;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.data.type.HandTypes;
@@ -16,7 +18,6 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.entity.living.AnimateHandEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.Last;
-import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
@@ -48,36 +49,35 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
     }
 
     @Listener
-    public void onAnimateHand(
-            AnimateHandEvent event,
-            @Getter("handType") HandType hand,
-            @Last ServerPlayer user,
-            @Last ServerWorld world) {
+    public void onAnimateHand(AnimateHandEvent event, @Getter("handType") HandType hand, @Last ServerPlayer user) {
         EquipmentType equipment =
                 HandTypes.MAIN_HAND.get().equals(hand) ? EquipmentTypes.MAIN_HAND.get() : EquipmentTypes.OFF_HAND.get();
         Optional<Slot> slot = user.equipment().slot(equipment);
         if (slot.isEmpty()) {
             return;
         }
-        ItemStack itemStack = slot.get().peek();
-        ItemStackSnapshot item = itemStack.createSnapshot();
-        List<RestrictionRule> rules =
-                predicateService.rulesWithPriority(item.type().key(RegistryTypes.ITEM_TYPE));
+        final var itemStack = slot.get().peek();
+        final var item = itemStack.createSnapshot();
+        final var container = item.toContainer();
+        final var itemType = item.type().key(RegistryTypes.ITEM_TYPE);
+        Set<ResourceKey> predicates = predicateService.predicates(itemType);
+        List<RestrictionRule> rules = predicateService.rulesWithPriority(itemType);
         List<Component> components = Lists.newArrayList();
+        ServerWorld world = user.world();
         for (RestrictionRule rule : rules) {
+            if (!predicates.contains(rule.predicate())) return;
             if (rule.needCancel()) {
                 event.setCancelled(true);
                 TranslatableComponent component = rule.canceledMessage();
                 components.add(GlobalTranslator.render(component.args(rule, this, itemStack), user.locale()));
             }
             Optional<ItemStackSnapshot> result = restrictionService
-                    .restrict(rule, item.toContainer(), world, this, user)
-                    .flatMap(it ->
-                            Sponge.dataManager().deserialize(ItemStackSnapshot.class, it.process(item.toContainer())));
+                    .restrict(rule, container, world, this, user)
+                    .flatMap(it -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, it.process(container)));
             if (result.isEmpty()) {
                 break;
             }
-            slot.get().offer(result.get().createStack());
+            slot.get().set(result.get().createStack());
             TranslatableComponent component = rule.updatedMessage();
             components.add(GlobalTranslator.render(
                     component.args(rule, this, itemStack, result.get().createStack()), user.locale()));
