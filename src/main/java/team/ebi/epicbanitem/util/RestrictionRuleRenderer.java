@@ -27,8 +27,8 @@ import team.ebi.epicbanitem.util.data.DataViewRenderer;
 public final class RestrictionRuleRenderer {
 
     private static final Component COLON = Component.text(": ");
-    private static final Component DIVIDER_TOP = Component.text(Strings.repeat('━', 15));
-    private static final Component DIVIDER_BOTTOM = Component.text(Strings.repeat('━', 15));
+    private static final Component DIVIDER_TOP = Component.text(Strings.repeat('━', 22));
+    private static final Component DIVIDER_BOTTOM = Component.text(Strings.repeat('━', 22));
 
     public static Component renderRule(RestrictionRule rule) {
         final var ruleKeyString = rule.key().asString();
@@ -46,13 +46,19 @@ public final class RestrictionRuleRenderer {
                 .append(Component.text(rule.predicate().asString()))
                 .hoverEvent(Component.translatable("epicbanitem.ui.rule.predicate.description"))
                 .clickEvent(ClickEvent.suggestCommand(
-                        "/" + EpicBanItem.NAMESPACE + " set predicate " + ruleKeyString + " " + rule.predicate())));
+                        "/" + EpicBanItem.NAMESPACE + " set " + ruleKeyString + " predicate " + rule.predicate())));
 
         components.add(renderKey(Component.translatable("epicbanitem.ui.rule.priority.key"))
                 .append(Component.text(rule.priority()))
                 .hoverEvent(Component.translatable("epicbanitem.ui.rule.priority.description"))
                 .clickEvent(ClickEvent.suggestCommand(
-                        "/" + EpicBanItem.NAMESPACE + " set priority " + ruleKeyString + " " + rule.priority())));
+                        "/" + EpicBanItem.NAMESPACE + " set " + ruleKeyString + " priority " + rule.priority())));
+
+        components.add(renderKey(Component.translatable("epicbanitem.ui.rule.cancel.key"))
+                .append(Component.text(rule.needCancel()))
+                .hoverEvent(Component.translatable("epicbanitem.ui.rule.cancel.description"))
+                .clickEvent(ClickEvent.suggestCommand(
+                        "/" + EpicBanItem.NAMESPACE + " set " + ruleKeyString + " cancel " + rule.needCancel())));
 
         components.add(renderWorldStates(ruleKeyString, rule.worldStates()));
         components.add(renderTriggerStates(ruleKeyString, rule.triggerStates()));
@@ -128,7 +134,7 @@ public final class RestrictionRuleRenderer {
                                                             : NamedTextColor.RED)
                                             .hoverEvent(Component.text(key.asString()))
                                             .clickEvent(ClickEvent.suggestCommand("/" + EpicBanItem.NAMESPACE + " set "
-                                                    + stateName + " " + rule + " " + key + " " + tristate));
+                                                    + rule + " " + stateName + " " + key + " " + tristate));
                                     if (tristate.equals(Tristate.UNDEFINED)) builder.decorate(TextDecoration.ITALIC);
                                     return builder.build();
                                 })
