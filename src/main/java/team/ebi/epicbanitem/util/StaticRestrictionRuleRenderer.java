@@ -105,7 +105,7 @@ public final class StaticRestrictionRuleRenderer {
                         .hoverEvent(Component.translatable("epicbanitem.ui.rule.defaultState.description")))
                 .append(Component.newline())
                 .append(Component.join(
-                        JoinConfiguration.separator(Component.text("  ")),
+                        JoinConfiguration.separator(Component.text(" ")),
                         states.keySet().stream()
                                 .map(key -> {
                                     final var tristate = states.getOrDefault(key, Tristate.UNDEFINED);

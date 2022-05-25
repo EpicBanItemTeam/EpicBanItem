@@ -14,6 +14,7 @@ import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.lifecycle.LoadedGameEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryEvent;
 import org.spongepowered.api.event.lifecycle.RegisterRegistryValueEvent;
 import org.spongepowered.api.registry.DefaultedRegistryType;
@@ -173,6 +174,10 @@ public final class EBIRegistries {
     public void onRegisterRegistryValue(RegisterRegistryValueEvent.EngineScoped<Server> event) {
         QueryExpressionFunctions.expressions = asMap(QUERY_EXPRESSION);
         UpdateExpressionFunctions.expressions = asMap(UPDATE_EXPRESSION);
+    }
+
+    @Listener
+    public void onLoadedGame(LoadedGameEvent event) {
         Objects.requireNonNull(injector.getInstance(RestrictionRulesStorage.class));
     }
 }
