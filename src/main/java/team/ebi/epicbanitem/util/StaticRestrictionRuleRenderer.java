@@ -37,6 +37,10 @@ public final class StaticRestrictionRuleRenderer {
                                 .args(Component.text(ruleKeyString))))
                 .clickEvent(ClickEvent.copyToClipboard(ruleKeyString)));
 
+        components.add(renderKey(Component.translatable("epicbanitem.ui.rule.predicate.key"))
+                .append(Component.text(rule.predicate().asString()))
+                .hoverEvent(Component.translatable("epicbanitem.ui.rule.predicate.description")));
+
         components.add(renderKey(Component.translatable("epicbanitem.ui.rule.priority.key"))
                 .append(Component.text(rule.priority()))
                 .hoverEvent(Component.translatable("epicbanitem.ui.rule.priority.description")));

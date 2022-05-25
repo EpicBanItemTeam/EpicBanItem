@@ -75,18 +75,18 @@ public final class EBIRegistries {
                 EpicBanItem.key("restriction_trigger"),
                 false,
                 () -> ImmutableMap.<ResourceKey, RestrictionTrigger>builder()
-                        .put(EpicBanItem.key("use"), new UseRestrictionTrigger())
-                        .put(EpicBanItem.key("equip"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("pickup"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("click"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("throw"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("drop"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("place"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("break"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("pickup"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("throw"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("drop"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("use"), new UseRestrictionTrigger())
                         .put(EpicBanItem.key("interact"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("join"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("equip"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("store"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("click"), new RestrictionTriggerImpl())
                         .build());
 
         event.register(
