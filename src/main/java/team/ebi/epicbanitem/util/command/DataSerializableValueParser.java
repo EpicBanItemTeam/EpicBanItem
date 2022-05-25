@@ -3,7 +3,7 @@
  *
  * This file is part of EpicBanItem, licensed under the GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3.0)
  */
-package team.ebi.epicbanitem.util.data;
+package team.ebi.epicbanitem.util.command;
 
 import java.util.List;
 import java.util.Optional;

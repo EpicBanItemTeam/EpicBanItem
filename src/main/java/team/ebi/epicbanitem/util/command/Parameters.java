@@ -7,7 +7,6 @@ package team.ebi.epicbanitem.util.command;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.command.CommandCompletion;
@@ -35,8 +34,6 @@ import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
-import team.ebi.epicbanitem.util.data.QueryExpressionValueParser;
-import team.ebi.epicbanitem.util.data.UpdateExpressionValueParser;
 
 @Singleton
 public final class Parameters {
@@ -86,10 +83,13 @@ public final class Parameters {
                     ResourceKey resourceKey = reader.parseResourceKey(EpicBanItem.NAMESPACE);
                     return ruleService.of(resourceKey).map(it -> resourceKey);
                 })
-                .completer((context, currentInput) -> Stream.concat(
-                                ruleService.keys().map(ResourceKey::value),
-                                ruleService.keys().map(ResourceKey::namespace))
-                        .filter(it -> new StartsWithPredicate(it).test(currentInput))
+                .completer((context, currentInput) -> ruleService
+                        .keys()
+                        .filter(it -> {
+                            StartsWithPredicate starts = new StartsWithPredicate(currentInput);
+                            return starts.test(it.value()) || starts.test(it.namespace());
+                        })
+                        .map(ResourceKey::asString)
                         .map(CommandCompletion::of)
                         .toList());
 
@@ -102,10 +102,13 @@ public final class Parameters {
 
         rule = Parameter.builder(RestrictionRule.class)
                 .addParser((key, reader, context) -> ruleService.of(reader.parseResourceKey(EpicBanItem.NAMESPACE)))
-                .completer((context, currentInput) -> Stream.concat(
-                                ruleService.keys().map(ResourceKey::value),
-                                ruleService.keys().map(ResourceKey::namespace))
-                        .filter(it -> new StartsWithPredicate(it).test(currentInput))
+                .completer((context, currentInput) -> ruleService
+                        .keys()
+                        .filter(it -> {
+                            StartsWithPredicate starts = new StartsWithPredicate(currentInput);
+                            return starts.test(it.value()) || starts.test(it.namespace());
+                        })
+                        .map(ResourceKey::asString)
                         .map(CommandCompletion::of)
                         .toList());
 
@@ -114,17 +117,19 @@ public final class Parameters {
 
         predicate = Parameter.resourceKey()
                 .addParser((key, reader, context) -> Optional.of(reader.parseResourceKey(EpicBanItem.NAMESPACE)))
-                .completer((context, currentInput) -> Stream.concat(
-                                predicateService.predicates().map(ResourceKey::value),
-                                predicateService.predicates().map(ResourceKey::namespace))
-                        .filter(it -> new StartsWithPredicate(it).test(currentInput))
+                .completer((context, currentInput) -> predicateService
+                        .predicates()
+                        .filter(it -> {
+                            StartsWithPredicate starts = new StartsWithPredicate(currentInput);
+                            return starts.test(it.value()) || starts.test(it.namespace());
+                        })
+                        .map(ResourceKey::asString)
                         .map(CommandCompletion::of)
                         .toList());
     }
 
     @Singleton
     public static final class Keys {
-
         public final Key<RootQueryExpression> query = Parameter.key("query", RootQueryExpression.class);
         public final Key<RootUpdateExpression> update = Parameter.key("update", RootUpdateExpression.class);
         public final Key<ResourceKey> ruleKey = Parameter.key("rule-key", ResourceKey.class);
