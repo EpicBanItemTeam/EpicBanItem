@@ -24,6 +24,7 @@ import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
+import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataFormats;
 import org.spongepowered.api.data.persistence.DataSerializable;
@@ -34,14 +35,17 @@ import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.registry.RegistryTypes;
+import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.server.ServerWorld;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Predicates;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
@@ -51,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.api.RestrictionPresets;
 import team.ebi.epicbanitem.api.RestrictionService;
+import team.ebi.epicbanitem.api.RestrictionTrigger;
 import team.ebi.epicbanitem.api.RestrictionTriggers;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.api.expression.ExpressionService;
@@ -60,7 +65,7 @@ import team.ebi.epicbanitem.api.rule.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 import team.ebi.epicbanitem.util.Components;
-import team.ebi.epicbanitem.util.StaticRestrictionRuleRenderer;
+import team.ebi.epicbanitem.util.RestrictionRuleRenderer;
 import team.ebi.epicbanitem.util.command.Flags;
 import team.ebi.epicbanitem.util.command.Parameters;
 import team.ebi.epicbanitem.util.data.DataViewRenderer;
@@ -96,7 +101,7 @@ public final class EBICommands {
     @Inject
     private Flags flags;
 
-    public Command.@NotNull Parameterized build() {
+    public Command.@NotNull Parameterized buildCommand() {
         final var query = Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.query.description"))
                 .extendedDescription(Component.translatable("epicbanitem.command.query.description.extended"))
@@ -107,13 +112,6 @@ public final class EBICommands {
                 .executor(this::query)
                 .build();
 
-        final var remove = Command.builder()
-                .shortDescription(Component.translatable("epicbanitem.command.remove.description"))
-                .permission(EpicBanItem.permission("command.remove"))
-                .addParameter(parameters.ruleKey.key(keys.ruleKey).build())
-                .executor(this::remove)
-                .build();
-
         final var update = Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.update.description"))
                 .extendedDescription(Component.translatable("epicbanitem.command.update.description.extended"))
@@ -121,6 +119,15 @@ public final class EBICommands {
                 .addFlag(flags.block)
                 .addParameter(parameters.update.key(keys.update).build())
                 .executor(this::update)
+                .build();
+
+        final var test = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.test.description"))
+                .extendedDescription(Component.translatable("epicbanitem.command.test.description.extended"))
+                .permission(EpicBanItem.permission("command.test"))
+                .addFlags(flags.block, flags.trigger, flags.world)
+                .terminal(true)
+                .executor(this::test)
                 .build();
 
         final var create = Command.builder()
@@ -134,30 +141,6 @@ public final class EBICommands {
                 .executor(this::create)
                 .build();
 
-        final var test = Command.builder()
-                .shortDescription(Component.translatable("epicbanitem.command.test.description"))
-                .extendedDescription(Component.translatable("epicbanitem.command.test.description.extended"))
-                .permission(EpicBanItem.permission("command.test"))
-                .addFlags(flags.block, flags.trigger, flags.world)
-                .terminal(true)
-                .executor(this::test)
-                .build();
-
-        final var list = Command.builder()
-                .shortDescription(Component.translatable("epicbanitem.command.list.description"))
-                .permission(EpicBanItem.permission("command.test"))
-                .addParameters(
-                        parameters.predicate.key(keys.predicate).optional().build())
-                .executor(this::list)
-                .build();
-
-        final var editor = Command.builder()
-                .shortDescription(Component.translatable("epicbanitem.command.editor.description"))
-                .permission(EpicBanItem.permission("command.editor"))
-                .addParameters(parameters.rule.key(keys.rule).build())
-                .executor(this::editor)
-                .build();
-
         final var info = Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.info.description"))
                 .permission(EpicBanItem.permission("command.info"))
@@ -165,17 +148,238 @@ public final class EBICommands {
                 .executor(this::info)
                 .build();
 
+        final var remove = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.remove.description"))
+                .permission(EpicBanItem.permission("command.remove"))
+                .addParameter(parameters.ruleKey.key(keys.ruleKey).build())
+                .executor(this::remove)
+                .build();
+
+        final var list = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.list.description"))
+                .permission(EpicBanItem.permission("command.list"))
+                .addParameters(
+                        parameters.predicate.key(keys.predicate).optional().build())
+                .executor(this::list)
+                .build();
+
         return Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.root.description"))
                 .permission(EpicBanItem.permission("command.root"))
                 .addChild(query, "query")
-                .addChild(remove, "remove", "rm")
                 .addChild(update, "update")
-                .addChild(create, "create")
                 .addChild(test, "test")
+                .addChild(remove, "remove", "rm")
+                .addChild(create, "create")
                 .addChild(list, "list", "ls")
-                .addChild(editor, "editor")
                 .addChild(info, "info")
+                .addChild(buildSetCommand(), "set")
+                .build();
+    }
+
+    public Command.@NotNull Parameterized buildSetCommand() {
+        final var priority = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.priority"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        Parameter.rangedInteger(1, 10).key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", Integer.class));
+                    ruleService.register(rule.key(), rule.priority(value));
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var world = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.world"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        Parameter.world().key("world").build(),
+                        Parameter.enumValue(Tristate.class).key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var serverWorld = context.requireOne(Parameter.key("world", ServerWorld.class));
+                    final var value = context.requireOne(Parameter.key("value", Tristate.class));
+                    rule.worldStates().put(serverWorld.key(), value);
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var worldDefault = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.worldDefault"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        Parameter.bool().key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", Boolean.class));
+                    rule.worldStates().update(value);
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var trigger = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.trigger"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        Parameter.registryElement(
+                                        TypeToken.get(RestrictionTrigger.class),
+                                        EBIRegistries.TRIGGER,
+                                        EpicBanItem.NAMESPACE)
+                                .key("trigger")
+                                .build(),
+                        Parameter.enumValue(Tristate.class).key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var restrictionTrigger =
+                            context.requireOne(Parameter.key("trigger", RestrictionTrigger.class));
+                    final var value = context.requireOne(Parameter.key("value", Tristate.class));
+                    rule.triggerStates().put(restrictionTrigger.key(), value);
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var triggerDefault = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.triggerDefault"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        Parameter.bool().key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", Boolean.class));
+                    rule.triggerStates().update(value);
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var predicate = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.predicate"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        parameters.predicate.key(keys.predicate).build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(keys.predicate);
+                    ruleService.register(rule.key(), rule.predicate(value));
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var cancel = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.cancel"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        Parameter.bool().key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", Boolean.class));
+                    ruleService.register(rule.key(), rule.needCancel(value));
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var query = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.query"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        parameters.query.key(keys.query).build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(keys.query);
+                    ruleService.register(rule.key(), rule.queryExpression(value));
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var update = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.update"))
+                .addParameters(
+                        parameters.rule.key(keys.rule).build(),
+                        parameters.update.key(keys.update).build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(keys.update);
+                    ruleService.register(rule.key(), rule.updateExpression(value));
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                    return CommandResult.success();
+                })
+                .build();
+
+        return Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description"))
+                .permission(EpicBanItem.permission("command.set"))
+                .addChild(priority, "priority")
+                .addChild(world, "world")
+                .addChild(worldDefault, "worldDefault")
+                .addChild(trigger, "trigger")
+                .addChild(triggerDefault, "triggerDefault")
+                .addChild(predicate, "predicate")
+                .addChild(cancel, "cancel")
+                .addChild(query, "query")
+                .addChild(update, "update")
                 .build();
     }
 
@@ -406,7 +610,7 @@ public final class EBICommands {
         final var subject = context.cause().subject();
         final var predicate = context.one(keys.predicate).orElse(RulePredicateService.WILDCARD);
         final var components = predicateService.rule(predicate).stream()
-                .<Component>map(rule -> {
+                .map(rule -> {
                     var editComponent = Components.EDIT.color(NamedTextColor.GRAY);
                     if (subject instanceof ServerPlayer player) {
                         editComponent = editComponent.clickEvent(SpongeComponents.executeCallback(cause -> {
@@ -451,18 +655,10 @@ public final class EBICommands {
         return CommandResult.success();
     }
 
-    private @NotNull CommandResult editor(@NotNull CommandContext context) {
-        if (!(context.cause().root() instanceof final ServerPlayer player)) {
-            return CommandResult.error(NEED_PLAYER);
-        }
-
-        return CommandResult.success();
-    }
-
     private @NotNull CommandResult info(final @NotNull CommandContext context) {
         final var audience = context.cause().audience();
         final var rule = context.requireOne(keys.rule);
-        audience.sendMessage(StaticRestrictionRuleRenderer.renderRule(rule));
+        audience.sendMessage(RestrictionRuleRenderer.renderRule(rule));
         return CommandResult.success();
     }
 }

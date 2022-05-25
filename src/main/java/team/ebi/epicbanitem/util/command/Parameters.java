@@ -35,28 +35,29 @@ import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
-import team.ebi.epicbanitem.util.data.DataSerializableValueParser;
+import team.ebi.epicbanitem.util.data.QueryExpressionValueParser;
+import team.ebi.epicbanitem.util.data.UpdateExpressionValueParser;
 
 @Singleton
 public final class Parameters {
 
     public final Parameter.Value.Builder<ResourceKey> ruleName;
     public final Parameter.Value.Builder<ResourceKey> ruleKey;
-
     public final Parameter.Value.Builder<RestrictionPreset> preset;
-
     public final Parameter.Value.Builder<RestrictionTrigger> trigger;
     public final Parameter.Value.Builder<ServerWorld> world;
-
     public final Parameter.Value.Builder<RestrictionRule> rule;
-
     public final Parameter.Value.Builder<RootQueryExpression> query;
-
     public final Parameter.Value.Builder<RootUpdateExpression> update;
     public final Parameter.Value.Builder<ResourceKey> predicate;
 
     @Inject
-    public Parameters(Keys keys, RestrictionRuleService ruleService, RulePredicateService predicateService) {
+    public Parameters(
+            Keys keys,
+            RestrictionRuleService ruleService,
+            RulePredicateService predicateService,
+            UpdateExpressionValueParser updateExpressionValueParser,
+            QueryExpressionValueParser queryExpressionValueParser) {
         ruleName = Parameter.builder(ResourceKey.class).addParser(new ValueParser<>() {
             @Override
             public Optional<? extends ResourceKey> parseValue(
@@ -108,18 +109,11 @@ public final class Parameters {
                         .map(CommandCompletion::of)
                         .toList());
 
-        query = Parameter.builder(keys.query).addParser(new DataSerializableValueParser<>(RootQueryExpression.class));
+        query = Parameter.builder(keys.query).addParser(queryExpressionValueParser);
+        update = Parameter.builder(keys.update).addParser(updateExpressionValueParser);
 
-        update =
-                Parameter.builder(keys.update).addParser(new DataSerializableValueParser<>(RootUpdateExpression.class));
         predicate = Parameter.resourceKey()
-                .addParser((key, reader, context) -> {
-                    ResourceKey resourceKey = reader.parseResourceKey(EpicBanItem.NAMESPACE);
-                    return predicateService
-                            .predicates()
-                            .filter(it -> it.equals(resourceKey))
-                            .findFirst();
-                })
+                .addParser((key, reader, context) -> Optional.of(reader.parseResourceKey(EpicBanItem.NAMESPACE)))
                 .completer((context, currentInput) -> Stream.concat(
                                 predicateService.predicates().map(ResourceKey::value),
                                 predicateService.predicates().map(ResourceKey::namespace))
