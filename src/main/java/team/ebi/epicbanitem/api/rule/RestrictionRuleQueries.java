@@ -8,7 +8,6 @@ package team.ebi.epicbanitem.api.rule;
 import org.spongepowered.api.data.persistence.DataQuery;
 
 public final class RestrictionRuleQueries {
-
     public static final DataQuery RULE = DataQuery.of("Rule");
     public static final DataQuery PRIORITY = DataQuery.of("Priority");
     public static final DataQuery QUERY = DataQuery.of("Query");

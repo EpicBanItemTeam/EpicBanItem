@@ -5,13 +5,14 @@
  */
 package team.ebi.epicbanitem.api.rule;
 
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.persistence.AbstractDataBuilder;
+import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.Tristate;
 
 import com.google.common.collect.Maps;
@@ -93,5 +94,27 @@ public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements S
     @Override
     public boolean defaultState() {
         return defaultState;
+    }
+
+    public static class Builder extends AbstractDataBuilder<WorldStates> {
+
+        public Builder() {
+            super(WorldStates.class, 0);
+        }
+
+        @Override
+        protected Optional<WorldStates> buildContent(DataView container) throws InvalidDataException {
+            return Optional.of(new WorldStates(
+                    container.getBoolean(RestrictionRuleQueries.DEFAULT).orElse(true),
+                    container
+                            .getMap(RestrictionRuleQueries.STATES)
+                            .map(it -> it.entrySet().stream()
+                                    .collect(Collectors.toMap(
+                                            entry -> ResourceKey.resolve(
+                                                    entry.getKey().toString()),
+                                            entry -> Tristate.valueOf(
+                                                    entry.getValue().toString().toUpperCase()))))
+                            .orElse(Maps.newHashMap())));
+        }
     }
 }

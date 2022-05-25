@@ -18,9 +18,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import team.ebi.epicbanitem.api.rule.RestrictionRule;
-import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
-import team.ebi.epicbanitem.api.rule.RulePredicateService;
+import team.ebi.epicbanitem.api.rule.*;
 
 @Singleton
 public class RestrictionRuleServiceImpl implements RestrictionRuleService {
@@ -39,6 +37,8 @@ public class RestrictionRuleServiceImpl implements RestrictionRuleService {
     @Inject
     public RestrictionRuleServiceImpl() {
         Sponge.dataManager().registerBuilder(RestrictionRule.class, new RestrictionRuleImpl.Builder());
+        Sponge.dataManager().registerBuilder(TriggerStates.class, new TriggerStates.Builder());
+        Sponge.dataManager().registerBuilder(WorldStates.class, new WorldStates.Builder());
     }
 
     @Override

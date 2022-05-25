@@ -9,11 +9,12 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.spongepowered.api.ResourceKey;
+import org.spongepowered.api.data.persistence.*;
 import org.spongepowered.api.util.Tristate;
 
 import net.kyori.adventure.text.ComponentLike;
 
-public interface States extends Map<ResourceKey, Tristate> {
+public interface States extends Map<ResourceKey, Tristate>, DataSerializable {
     ComponentLike key(ResourceKey key);
 
     void update(boolean defaultState);
@@ -23,4 +24,17 @@ public interface States extends Map<ResourceKey, Tristate> {
     }
 
     boolean defaultState();
+
+    @Override
+    default DataContainer toContainer() {
+        return DataContainer.createNew()
+                .set(RestrictionRuleQueries.DEFAULT, defaultState())
+                // Avoid recursive
+                .set(RestrictionRuleQueries.STATES, Map.copyOf(this));
+    }
+
+    @Override
+    default int contentVersion() {
+        return 0;
+    }
 }

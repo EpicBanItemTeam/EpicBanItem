@@ -5,12 +5,13 @@
  */
 package team.ebi.epicbanitem.api.rule;
 
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
+import org.spongepowered.api.data.persistence.AbstractDataBuilder;
+import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.registry.RegistryEntry;
 import org.spongepowered.api.util.Tristate;
 
@@ -96,5 +97,27 @@ public class TriggerStates extends AbstractMap<ResourceKey, Tristate> implements
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), map);
+    }
+
+    public static class Builder extends AbstractDataBuilder<TriggerStates> {
+
+        public Builder() {
+            super(TriggerStates.class, 0);
+        }
+
+        @Override
+        protected Optional<TriggerStates> buildContent(DataView container) throws InvalidDataException {
+            return Optional.of(new TriggerStates(
+                    container.getBoolean(RestrictionRuleQueries.DEFAULT).orElse(true),
+                    container
+                            .getMap(RestrictionRuleQueries.STATES)
+                            .map(it -> it.entrySet().stream()
+                                    .collect(Collectors.toMap(
+                                            entry -> ResourceKey.resolve(
+                                                    entry.getKey().toString()),
+                                            entry -> Tristate.valueOf(
+                                                    entry.getValue().toString().toUpperCase()))))
+                            .orElse(Maps.newHashMap())));
+        }
     }
 }
