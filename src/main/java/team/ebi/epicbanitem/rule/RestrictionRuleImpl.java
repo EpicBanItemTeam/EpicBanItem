@@ -7,13 +7,10 @@ package team.ebi.epicbanitem.rule;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.*;
-import org.spongepowered.api.util.Tristate;
 
-import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -24,9 +21,7 @@ import team.ebi.epicbanitem.EBIServices;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
-import team.ebi.epicbanitem.api.rule.RestrictionRule;
-import team.ebi.epicbanitem.api.rule.RestrictionRuleQueries;
-import team.ebi.epicbanitem.api.rule.RulePredicateService;
+import team.ebi.epicbanitem.api.rule.*;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 
@@ -54,17 +49,19 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     public RestrictionRuleImpl(
             int priority,
+            WorldStates worldStates,
+            TriggerStates triggerStates,
             QueryExpression queryExpression,
             @Nullable UpdateExpression updateExpression,
             ResourceKey predicate,
             boolean needCancel) {
         this.priority = priority;
+        this.worldStates = worldStates;
+        this.triggerStates = triggerStates;
         this.queryExpression = queryExpression;
         this.updateExpression = updateExpression;
         this.predicate = predicate;
         this.needCancel = needCancel;
-        this.worldStates = new WorldStates(true);
-        this.triggerStates = new TriggerStates(true);
     }
 
     public RestrictionRuleImpl(DataView data) {
@@ -77,28 +74,10 @@ public class RestrictionRuleImpl implements RestrictionRule {
         this.predicate = view.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
         this.needCancel = view.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
         // TODO Need config
-        this.worldStates = new WorldStates(
-                view.getBoolean(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.DEFAULT))
-                        .orElse(true),
-                view.getMap(RestrictionRuleQueries.WORLD.then(RestrictionRuleQueries.STATES))
-                        .map(it -> it.entrySet().stream()
-                                .collect(Collectors.toMap(
-                                        entry -> ResourceKey.resolve(
-                                                entry.getKey().toString()),
-                                        entry -> Tristate.valueOf(
-                                                entry.getValue().toString().toUpperCase()))))
-                        .orElse(Maps.newHashMap()));
-        this.triggerStates = new TriggerStates(
-                view.getBoolean(RestrictionRuleQueries.TRIGGER.then(RestrictionRuleQueries.DEFAULT))
-                        .orElse(true),
-                view.getMap(RestrictionRuleQueries.TRIGGER.then(RestrictionRuleQueries.STATES))
-                        .map(it -> it.entrySet().stream()
-                                .collect(Collectors.toMap(
-                                        entry -> ResourceKey.resolve(
-                                                entry.getKey().toString()),
-                                        entry -> Tristate.valueOf(
-                                                entry.getValue().toString().toUpperCase()))))
-                        .orElse(Maps.newHashMap()));
+        this.worldStates = view.getSerializable(RestrictionRuleQueries.WORLD, WorldStates.class)
+                .orElse(new WorldStates(true));
+        this.triggerStates = view.getSerializable(RestrictionRuleQueries.TRIGGER, TriggerStates.class)
+                .orElse(new TriggerStates(true));
     }
 
     @Override
@@ -114,18 +93,20 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     @Override
+    public RestrictionRule priority(int value) {
+        return new RestrictionRuleImpl(
+                value, worldStates, triggerStates, queryExpression, updateExpression, predicate, needCancel);
+    }
+
+    @Override
     public boolean needCancel() {
         return this.needCancel;
     }
 
     @Override
-    public boolean worldState(ResourceKey key) {
-        return this.worldStates.getOrDefault(key);
-    }
-
-    @Override
-    public boolean triggerState(ResourceKey key) {
-        return this.triggerStates.getOrDefault(key);
+    public RestrictionRule needCancel(boolean value) {
+        return new RestrictionRuleImpl(
+                priority, worldStates, triggerStates, queryExpression, updateExpression, predicate, value);
     }
 
     @Override
@@ -133,8 +114,20 @@ public class RestrictionRuleImpl implements RestrictionRule {
         return worldStates;
     }
 
+    @Override
+    public RestrictionRule worldStates(WorldStates states) {
+        return new RestrictionRuleImpl(
+                priority, states, triggerStates, queryExpression, updateExpression, predicate, needCancel);
+    }
+
     public TriggerStates triggerStates() {
         return triggerStates;
+    }
+
+    @Override
+    public RestrictionRule triggerStates(TriggerStates states) {
+        return new RestrictionRuleImpl(
+                priority, worldStates, states, queryExpression, updateExpression, predicate, needCancel);
     }
 
     @Override
@@ -143,13 +136,32 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     @Override
+    public RestrictionRule queryExpression(QueryExpression value) {
+        return new RestrictionRuleImpl(
+                priority, worldStates, triggerStates, value, updateExpression, predicate, needCancel);
+    }
+
+    @Override
     public UpdateExpression updateExpression() {
         return this.updateExpression;
     }
 
     @Override
+    public @Nullable RestrictionRule updateExpression(UpdateExpression value) {
+
+        return new RestrictionRuleImpl(
+                priority, worldStates, triggerStates, queryExpression, value, predicate, needCancel);
+    }
+
+    @Override
     public ResourceKey predicate() {
         return this.predicate;
+    }
+
+    @Override
+    public RestrictionRule predicate(ResourceKey value) {
+        return new RestrictionRuleImpl(
+                priority, worldStates, triggerStates, queryExpression, updateExpression, value, needCancel);
     }
 
     private String messageKey(String path) {
@@ -197,6 +209,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
             ruleView.set(RestrictionRuleQueries.UPDATE, updateExpression);
         }
         ruleView.set(RestrictionRuleQueries.PRIORITY, priority)
+                .set(RestrictionRuleQueries.QUERY, queryExpression)
                 .set(RestrictionRuleQueries.QUERY, queryExpression)
                 .set(RestrictionRuleQueries.PREDICATE, predicate)
                 .set(RestrictionRuleQueries.NEED_CANCEL, needCancel);
