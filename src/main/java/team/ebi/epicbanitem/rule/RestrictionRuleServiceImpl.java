@@ -43,7 +43,7 @@ public class RestrictionRuleServiceImpl implements RestrictionRuleService {
 
     @Override
     public Optional<ResourceKey> register(ResourceKey key, RestrictionRule rule) {
-        RestrictionRule putted = map.put(key, rule);
+        RestrictionRule putted = map.forcePut(key, rule);
         if (putted != null) {
             predicateService.remove(putted);
         }

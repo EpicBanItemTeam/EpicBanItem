@@ -13,8 +13,6 @@ import org.spongepowered.api.data.persistence.*;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.EBIServices;
@@ -218,36 +216,22 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        var that = (RestrictionRuleImpl) o;
-
-        return new EqualsBuilder()
-                .append(priority, that.priority)
-                .append(worldStates, that.worldStates)
-                .append(triggerStates, that.triggerStates)
-                .append(queryExpression, that.queryExpression)
-                .append(updateExpression, that.updateExpression)
-                .append(predicate, that.predicate)
-                .isEquals();
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RestrictionRuleImpl that = (RestrictionRuleImpl) o;
+        return priority == that.priority
+                && needCancel == that.needCancel
+                && worldStates.equals(that.worldStates)
+                && triggerStates.equals(that.triggerStates)
+                && queryExpression.equals(that.queryExpression)
+                && Objects.equals(updateExpression, that.updateExpression)
+                && predicate.equals(that.predicate);
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(priority)
-                .append(worldStates)
-                .append(triggerStates)
-                .append(queryExpression)
-                .append(updateExpression)
-                .append(predicate)
-                .toHashCode();
+        return Objects.hash(
+                priority, worldStates, triggerStates, queryExpression, updateExpression, predicate, needCancel);
     }
 
     public static final class Builder extends AbstractDataBuilder<RestrictionRule> {
