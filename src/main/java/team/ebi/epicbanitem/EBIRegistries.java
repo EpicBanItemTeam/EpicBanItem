@@ -36,6 +36,7 @@ import team.ebi.epicbanitem.expression.query.*;
 import team.ebi.epicbanitem.expression.update.*;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
 import team.ebi.epicbanitem.trigger.EquipRestrictionTrigger;
+import team.ebi.epicbanitem.trigger.PlaceRestrictionTrigger;
 import team.ebi.epicbanitem.trigger.RestrictionTriggerImpl;
 import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
 import team.ebi.epicbanitem.util.data.DataUtils;
@@ -77,7 +78,7 @@ public final class EBIRegistries {
                 EpicBanItem.key("restriction_trigger"),
                 false,
                 () -> ImmutableMap.<ResourceKey, RestrictionTrigger>builder()
-                        .put(EpicBanItem.key("place"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("place"), injector.getInstance(PlaceRestrictionTrigger.class))
                         .put(EpicBanItem.key("break"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("pickup"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("throw"), new RestrictionTriggerImpl())
