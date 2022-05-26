@@ -12,11 +12,13 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.registry.DefaultedRegistryValue;
 import org.spongepowered.api.util.annotation.CatalogedBy;
 
+import org.jetbrains.annotations.NotNull;
+
 @CatalogedBy(RestrictionPresets.class)
 @FunctionalInterface
 public interface RestrictionPreset extends DefaultedRegistryValue, Function<DataView, DataView> {
 
-    static DataView merge(DataView v1, DataView v2) {
+    static DataView merge(@NotNull DataView v1, @NotNull DataView v2) {
         DataContainer container = DataContainer.createNew();
         v1.values(false).forEach(container::set);
         v2.values(false).forEach(container::set);

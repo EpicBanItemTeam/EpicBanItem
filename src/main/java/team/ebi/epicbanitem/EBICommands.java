@@ -53,10 +53,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import team.ebi.epicbanitem.api.RestrictionPresets;
-import team.ebi.epicbanitem.api.RestrictionService;
-import team.ebi.epicbanitem.api.RestrictionTrigger;
-import team.ebi.epicbanitem.api.RestrictionTriggers;
+import team.ebi.epicbanitem.api.*;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.api.expression.ExpressionService;
 import team.ebi.epicbanitem.api.expression.QueryResult;
@@ -484,6 +481,7 @@ public final class EBICommands {
         final var preset = context.one(keys.preset).orElse(RestrictionPresets.TYPE.get());
         final var name = context.requireOne(keys.ruleName);
         final var expression = context.one(keys.query);
+        var predicate = RulePredicateService.WILDCARD;
         var expressionView = DataContainer.createNew();
         final var isBlock = context.hasFlag(flags.block);
         expression.ifPresent(it -> it.expression().toContainer().values(false).forEach(expressionView::set));
@@ -506,16 +504,32 @@ public final class EBICommands {
                     .collect(Collectors.toUnmodifiableSet());
             if (!views.isEmpty()) {
                 if (views.size() == 1) {
-                    views.iterator().next().values(false).forEach(expressionView::set);
+                    DataView view = views.iterator().next();
+                    Optional<ResourceKey> key = view.getResourceKey(ItemQueries.ITEM_TYPE);
+                    if (key.isPresent())
+                        predicate = key.map(predicateService::minimumPredicate).orElse(RulePredicateService.WILDCARD);
+
+                    view.values(false).forEach(expressionView::set);
                 } else {
                     expressionView.set(ExpressionQueries.OR, views);
+                    predicate = predicateService.minimumPredicate(views.stream()
+                            .map(it -> it.getResourceKey(ItemQueries.ITEM_TYPE))
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .toList());
                 }
             } else {
-                block.map(it -> ItemStack.builder().fromBlockSnapshot(it).build())
+                Optional<DataView> data = block.map(
+                                it -> ItemStack.builder().fromBlockSnapshot(it).build())
                         .map(DataSerializable::toContainer)
                         .map(ExpressionService::cleanup)
-                        .map(preset)
-                        .ifPresent(view -> view.values(false).forEach(expressionView::set));
+                        .map(preset);
+                if (data.isPresent()) {
+                    data.get().values(false).forEach(expressionView::set);
+                    Optional<ResourceKey> key = data.flatMap(it -> it.getResourceKey(ItemQueries.ITEM_TYPE));
+                    if (key.isPresent())
+                        predicate = key.map(predicateService::minimumPredicate).orElse(RulePredicateService.WILDCARD);
+                }
             }
         } else {
             heldHand(player)
@@ -529,7 +543,7 @@ public final class EBICommands {
             return CommandResult.error(Component.translatable("epicbanitem.command.create.noExpression"));
         }
         RootQueryExpression finalExpression = new RootQueryExpression(expressionView);
-        ruleService.register(name, new RestrictionRuleImpl(finalExpression));
+        ruleService.register(name, new RestrictionRuleImpl(finalExpression).predicate(predicate));
         player.sendMessage(Component.translatable("epicbanitem.command.create.success")
                 .args(Component.text(name.value())
                         .hoverEvent(Component.join(
@@ -540,7 +554,7 @@ public final class EBICommands {
                                         .limit(25)
                                         .toList())))
                 .append(Component.space())
-                .append(Components.EDIT
+                .append(Components.INFO
                         .color(NamedTextColor.GRAY)
                         .clickEvent(SpongeComponents.executeCallback(cause -> {
                             try {
@@ -548,7 +562,7 @@ public final class EBICommands {
                                         .commandManager()
                                         .process(
                                                 player,
-                                                MessageFormat.format("{0} edit {1}", EpicBanItem.NAMESPACE, name));
+                                                MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, name));
                             } catch (CommandException e) {
                                 throw new IllegalStateException(e);
                             }
@@ -606,7 +620,7 @@ public final class EBICommands {
         final var predicate = context.one(keys.predicate).orElse(RulePredicateService.WILDCARD);
         final var components = predicateService.rule(predicate).stream()
                 .map(rule -> {
-                    var editComponent = Components.EDIT.color(NamedTextColor.GRAY);
+                    var editComponent = Components.INFO.color(NamedTextColor.GRAY);
                     if (subject instanceof ServerPlayer player) {
                         editComponent = editComponent.clickEvent(SpongeComponents.executeCallback(cause -> {
                             try {

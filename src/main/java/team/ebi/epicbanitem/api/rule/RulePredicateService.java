@@ -5,15 +5,13 @@
  */
 package team.ebi.epicbanitem.api.rule;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import org.spongepowered.api.ResourceKey;
 
 import com.google.inject.ImplementedBy;
+import it.unimi.dsi.fastutil.objects.*;
 import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
 
 @ImplementedBy(RulePredicateServiceImpl.class)
@@ -38,12 +36,28 @@ public interface RulePredicateService {
                 .toList();
     }
 
+    default ResourceKey minimumPredicate(Collection<ResourceKey> keys) {
+        return keys.stream()
+                .map(this::predicates)
+                .reduce((s1, s2) -> {
+                    s1.retainAll(s2);
+                    return s1;
+                })
+                .map(SortedSet::last)
+                .orElse(WILDCARD);
+    }
+
+    default ResourceKey minimumPredicate(ResourceKey key) {
+        return predicates(key).last();
+    }
+
     /**
      * @param id Object id
-     * @return All possible predicates
+     * @return All possible predicates. Sorted for calc predicate from keys
      */
-    default Set<ResourceKey> predicates(ResourceKey id) {
-        return Set.copyOf(List.of(WILDCARD, id, ResourceKey.of(id.namespace(), "_"), ResourceKey.of("_", id.value())));
+    default SortedSet<ResourceKey> predicates(ResourceKey id) {
+        return new ObjectLinkedOpenHashSet<>(
+                List.of(WILDCARD, ResourceKey.of(id.namespace(), "_"), ResourceKey.of("_", id.value()), id));
     }
 
     boolean remove(RestrictionRule rule);

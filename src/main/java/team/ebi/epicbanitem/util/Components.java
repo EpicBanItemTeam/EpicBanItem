@@ -15,8 +15,8 @@ public final class Components {
             Component.translatable("epicbanitem.command.needPlayer", NamedTextColor.RED);
     public static final Component NEED_BLOCK = Component.translatable("epicbanitem.command.needBlock");
     public static final Component NEED_ITEM = Component.translatable("epicbanitem.command.needItem");
-    public static final TranslatableComponent EDIT = Component.translatable("epicbanitem.ui.edit")
-            .hoverEvent(Component.translatable("epicbanitem.ui.edit.description"));
+    public static final TranslatableComponent INFO = Component.translatable("epicbanitem.ui.info")
+            .hoverEvent(Component.translatable("epicbanitem.ui.info.description"));
 
     public static final TranslatableComponent TEST_HELD = Component.translatable("epicbanitem.ui.testHeld")
             .hoverEvent(Component.translatable("epicbanitem.ui.testHeld.description"));
