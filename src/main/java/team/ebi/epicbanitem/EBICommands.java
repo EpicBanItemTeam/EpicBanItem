@@ -532,12 +532,16 @@ public final class EBICommands {
                 }
             }
         } else {
-            heldHand(player)
+            Optional<DataView> data = heldHand(player)
                     .flatMap(it -> equipped(player, it))
                     .map(DataSerializable::toContainer)
                     .map(ExpressionService::cleanup)
-                    .map(preset)
-                    .ifPresent(view -> view.values(false).forEach(expressionView::set));
+                    .map(preset);
+            if (data.isPresent()) {
+                Optional<ResourceKey> key = data.flatMap(it -> it.getResourceKey(ItemQueries.ITEM_TYPE));
+                predicate = key.map(predicateService::minimumPredicate).orElse(RulePredicateService.WILDCARD);
+                data.get().values(false).forEach(expressionView::set);
+            }
         }
         if (expressionView.keys(false).isEmpty()) {
             return CommandResult.error(Component.translatable("epicbanitem.command.create.noExpression"));
