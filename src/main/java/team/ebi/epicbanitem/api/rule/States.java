@@ -12,10 +12,16 @@ import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.*;
 import org.spongepowered.api.util.Tristate;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
+import org.jetbrains.annotations.NotNull;
 
 public interface States extends Map<ResourceKey, Tristate>, DataSerializable {
     ComponentLike key(ResourceKey key);
+
+    default Component description(@NotNull ResourceKey key) {
+        return Component.text(key.asString());
+    }
 
     void update(boolean defaultState);
 

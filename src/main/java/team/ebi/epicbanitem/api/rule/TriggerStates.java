@@ -16,6 +16,7 @@ import org.spongepowered.api.registry.RegistryEntry;
 import org.spongepowered.api.util.Tristate;
 
 import com.google.common.collect.Maps;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,11 @@ public class TriggerStates extends AbstractMap<ResourceKey, Tristate> implements
         this.map = map;
         this.defaultState = defaultState;
         this.update(defaultState);
+    }
+
+    @Override
+    public Component description(@NotNull ResourceKey key) {
+        return RestrictionTriggers.registry().value(key).description();
     }
 
     @Override

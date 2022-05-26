@@ -132,7 +132,7 @@ public final class RestrictionRuleRenderer {
                                                                     tristate.asNullableBoolean(), states.defaultState())
                                                             ? NamedTextColor.GREEN
                                                             : NamedTextColor.RED)
-                                            .hoverEvent(Component.text(key.asString()))
+                                            .hoverEvent(states.description(key))
                                             .clickEvent(ClickEvent.suggestCommand("/" + EpicBanItem.NAMESPACE + " set "
                                                     + rule + " " + stateName + " " + key + " " + tristate));
                                     if (tristate.equals(Tristate.UNDEFINED)) builder.decorate(TextDecoration.ITALIC);
