@@ -8,6 +8,7 @@ package team.ebi.epicbanitem.api.trigger;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.data.persistence.DataView;
@@ -34,16 +35,17 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
         super(key);
     }
 
-    protected DataView process(
+    protected <T> Optional<T> process(
             Event event,
             DataView view,
             ResourceKey objectType,
             Consumer<RestrictionRule> onCancel,
-            BiConsumer<RestrictionRule, DataView> onProcessed) {
+            BiConsumer<RestrictionRule, Optional<T>> onProcessed,
+            Function<DataView, Optional<T>> processor) {
         final var cause = event.cause();
         final var world =
                 cause.last(Locatable.class).map(Locatable::serverLocation).map(Location::world);
-        if (world.isEmpty()) return view;
+        if (world.isEmpty()) return processor.apply(view);
         final var subject = cause.last(Subject.class).orElse(null);
         final var predicates = predicateService.predicates(objectType);
         for (RestrictionRule rule : predicateService
@@ -61,8 +63,8 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
                     .map(it -> it.process(finalView));
             if (result.isEmpty()) continue;
             view = result.get();
-            onProcessed.accept(rule, view);
+            onProcessed.accept(rule, processor.apply(view));
         }
-        return view;
+        return processor.apply(view);
     }
 }

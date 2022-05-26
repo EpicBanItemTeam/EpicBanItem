@@ -51,23 +51,25 @@ public class UseRestrictionTrigger extends SingleTargetRestrictionTrigger {
         final var locale = locale(event.cause());
         final var itemStack = slot.get().peek();
         final var components = Lists.<Component>newArrayList();
-        final var finalView = process(
-                event,
-                item.toContainer(),
-                item.type().key(RegistryTypes.ITEM_TYPE),
-                rule -> components.add(
-                        GlobalTranslator.render(rule.canceledMessage().args(rule, this, itemStack), locale)),
-                (rule, view) -> {
-                    Optional<ItemStackSnapshot> result =
-                            Sponge.dataManager().deserialize(ItemStackSnapshot.class, view);
-                    if (result.isEmpty()) return;
-                    components.add(GlobalTranslator.render(
-                            rule.updatedMessage()
-                                    .args(rule, this, itemStack, result.get().createStack()),
-                            locale));
-                });
-        Sponge.dataManager().deserialize(ItemStackSnapshot.class, finalView).ifPresent(it -> slot.get()
-                .set(it.createStack()));
+        process(
+                        event,
+                        item.toContainer(),
+                        item.type().key(RegistryTypes.ITEM_TYPE),
+                        rule -> components.add(
+                                GlobalTranslator.render(rule.canceledMessage().args(rule, this, itemStack), locale)),
+                        (rule, result) -> {
+                            if (result.isEmpty()) return;
+                            components.add(GlobalTranslator.render(
+                                    rule.updatedMessage()
+                                            .args(
+                                                    rule,
+                                                    this,
+                                                    itemStack,
+                                                    result.get().createStack()),
+                                    locale));
+                        },
+                        view -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, view))
+                .ifPresent(it -> slot.get().set(it.createStack()));
         audience.ifPresent(it -> it.sendMessage(Component.join(JoinConfiguration.newlines(), components)));
     }
 }
