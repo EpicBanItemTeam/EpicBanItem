@@ -8,9 +8,7 @@ package team.ebi.epicbanitem.api;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.persistence.DataView;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.server.ServerWorld;
@@ -51,9 +49,5 @@ public interface RestrictionService {
         }
         return rule.queryExpression().query(view).flatMap(result -> Optional.ofNullable(rule.updateExpression())
                 .map(it -> it.update(result, view)));
-    }
-
-    default Optional<ItemStackSnapshot> processedItem(DataView view, UpdateOperation operation) {
-        return Sponge.dataManager().deserialize(ItemStackSnapshot.class, operation.process(view));
     }
 }

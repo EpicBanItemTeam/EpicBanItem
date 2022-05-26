@@ -51,7 +51,6 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
                 .filter(it -> predicates.contains(it.predicate()))
                 .sorted(RulePredicateService.PRIORITY_ASC)
                 .toList()) {
-
             if (rule.needCancel() && event instanceof Cancellable cancellable) {
                 cancellable.setCancelled(true);
                 onCancel.accept(rule);

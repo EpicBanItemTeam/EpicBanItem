@@ -7,7 +7,11 @@ package team.ebi.epicbanitem.trigger;
 
 import java.util.Optional;
 
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.filter.Getter;
+import org.spongepowered.api.event.filter.cause.ContextValue;
 import org.spongepowered.api.event.filter.cause.Last;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.item.inventory.Equipable;
@@ -16,30 +20,17 @@ import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.registry.RegistryTypes;
-import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.api.world.Locatable;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.translation.GlobalTranslator;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.AbstractRestrictionTrigger;
-import team.ebi.epicbanitem.api.RestrictionService;
-import team.ebi.epicbanitem.api.rule.RestrictionRule;
-import team.ebi.epicbanitem.api.rule.RulePredicateService;
+import team.ebi.epicbanitem.api.trigger.SingleTargetRestrictionTrigger;
 
-public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
-
-    @Inject
-    private RulePredicateService predicateService;
-
-    @Inject
-    private RestrictionService restrictionService;
-
+public class UseRestrictionTrigger extends SingleTargetRestrictionTrigger {
     public UseRestrictionTrigger() {
         super(EpicBanItem.key("use"));
     }
@@ -49,43 +40,34 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
             InteractItemEvent.Secondary event,
             @Last Locatable locatable,
             @Last Equipable equipable,
-            @Last LocaleSource localeSource) {
-        EquipmentType equipment = EquipmentTypes.OFF_HAND.get();
+            @Getter("itemStack") ItemStackSnapshot item,
+            @ContextValue("USED_HAND") HandType hand) {
+        EquipmentType equipment = EquipmentTypes.registry().value(hand.key(RegistryTypes.HAND_TYPE));
         Optional<Slot> slot = equipable.equipment().slot(equipment);
         if (slot.isEmpty()) {
             return;
         }
-        final var subject = event.cause().last(Subject.class).orElse(null);
         final var audience = event.cause().last(Audience.class);
-        final var locale = localeSource.locale();
+        final var locale = locale(event.cause());
         final var itemStack = slot.get().peek();
-        final var item = itemStack.createSnapshot();
-        final var container = item.toContainer();
-        final var itemType = item.type().key(RegistryTypes.ITEM_TYPE);
-        final var predicates = predicateService.predicates(itemType);
-        final var rules = predicateService
-                .rules(predicates)
-                .filter(it -> predicates.contains(it.predicate()))
-                .sorted(RulePredicateService.PRIORITY_ASC)
-                .toList();
         final var components = Lists.<Component>newArrayList();
-        final var world = locatable.serverLocation().world();
-        for (RestrictionRule rule : rules) {
-            if (rule.needCancel()) {
-                event.setCancelled(true);
-                components.add(GlobalTranslator.render(rule.canceledMessage().args(rule, this, itemStack), locale));
-            }
-            Optional<ItemStackSnapshot> result = restrictionService
-                    .restrict(rule, container, world, this, subject)
-                    .flatMap(it -> restrictionService.processedItem(container, it));
-            if (result.isEmpty()) continue;
-            slot.get().set(result.get().createStack());
-            components.add(GlobalTranslator.render(
-                    rule.updatedMessage()
-                            .args(rule, this, itemStack, result.get().createStack()),
-                    locale));
-        }
-
+        final var finalView = process(
+                event,
+                item.toContainer(),
+                item.type().key(RegistryTypes.ITEM_TYPE),
+                rule -> components.add(
+                        GlobalTranslator.render(rule.canceledMessage().args(rule, this, itemStack), locale)),
+                (rule, view) -> {
+                    Optional<ItemStackSnapshot> result =
+                            Sponge.dataManager().deserialize(ItemStackSnapshot.class, view);
+                    if (result.isEmpty()) return;
+                    components.add(GlobalTranslator.render(
+                            rule.updatedMessage()
+                                    .args(rule, this, itemStack, result.get().createStack()),
+                            locale));
+                });
+        Sponge.dataManager().deserialize(ItemStackSnapshot.class, finalView).ifPresent(it -> slot.get()
+                .set(it.createStack()));
         audience.ifPresent(it -> it.sendMessage(Component.join(JoinConfiguration.newlines(), components)));
     }
 }

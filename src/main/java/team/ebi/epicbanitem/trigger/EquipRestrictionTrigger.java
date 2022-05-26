@@ -8,9 +8,9 @@ package team.ebi.epicbanitem.trigger;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.AbstractRestrictionTrigger;
 import team.ebi.epicbanitem.api.RestrictionService;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
+import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
 @Singleton
 public class EquipRestrictionTrigger extends AbstractRestrictionTrigger {
