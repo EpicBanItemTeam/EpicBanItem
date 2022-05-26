@@ -7,7 +7,6 @@ package team.ebi.epicbanitem.trigger;
 
 import java.util.Optional;
 
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.cause.Last;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
@@ -26,7 +25,6 @@ import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.translation.GlobalTranslator;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.AbstractRestrictionTrigger;
@@ -75,17 +73,17 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
         for (RestrictionRule rule : rules) {
             if (rule.needCancel()) {
                 event.setCancelled(true);
-                TranslatableComponent component = rule.canceledMessage();
-                components.add(GlobalTranslator.render(component.args(rule, this, itemStack), locale));
+                components.add(GlobalTranslator.render(rule.canceledMessage().args(rule, this, itemStack), locale));
             }
             Optional<ItemStackSnapshot> result = restrictionService
                     .restrict(rule, container, world, this, subject)
-                    .flatMap(it -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, it.process(container)));
+                    .flatMap(it -> restrictionService.processedItem(container, it));
             if (result.isEmpty()) continue;
             slot.get().set(result.get().createStack());
-            TranslatableComponent component = rule.updatedMessage();
             components.add(GlobalTranslator.render(
-                    component.args(rule, this, itemStack, result.get().createStack()), locale));
+                    rule.updatedMessage()
+                            .args(rule, this, itemStack, result.get().createStack()),
+                    locale));
         }
 
         audience.ifPresent(it -> it.sendMessage(Component.join(JoinConfiguration.newlines(), components)));
