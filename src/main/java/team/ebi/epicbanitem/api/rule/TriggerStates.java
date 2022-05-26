@@ -20,7 +20,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import team.ebi.epicbanitem.api.RestrictionTriggers;
+import team.ebi.epicbanitem.api.trigger.RestrictionTriggers;
 
 public class TriggerStates extends AbstractMap<ResourceKey, Tristate> implements States {
 

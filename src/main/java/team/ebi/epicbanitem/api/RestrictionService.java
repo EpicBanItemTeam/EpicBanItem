@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.trigger.RestrictionTrigger;
 import team.ebi.epicbanitem.rule.RestrictionServiceImpl;
 
 @ImplementedBy(RestrictionServiceImpl.class)

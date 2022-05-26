@@ -59,6 +59,8 @@ import team.ebi.epicbanitem.api.expression.ExpressionService;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
+import team.ebi.epicbanitem.api.trigger.RestrictionTrigger;
+import team.ebi.epicbanitem.api.trigger.RestrictionTriggers;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
 import team.ebi.epicbanitem.util.Components;

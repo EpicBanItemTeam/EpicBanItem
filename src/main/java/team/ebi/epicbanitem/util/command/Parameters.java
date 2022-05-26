@@ -28,10 +28,10 @@ import net.kyori.adventure.text.Component;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.RestrictionPreset;
-import team.ebi.epicbanitem.api.RestrictionTrigger;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
+import team.ebi.epicbanitem.api.trigger.RestrictionTrigger;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
 

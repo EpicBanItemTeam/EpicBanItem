@@ -11,7 +11,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.EBIRegistries;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.RestrictionTrigger;
+import team.ebi.epicbanitem.api.trigger.RestrictionTrigger;
 
 public class RestrictionTriggerImpl implements RestrictionTrigger {
 

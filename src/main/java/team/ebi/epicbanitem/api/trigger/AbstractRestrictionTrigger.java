@@ -3,10 +3,14 @@
  *
  * This file is part of EpicBanItem, licensed under the GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3.0)
  */
-package team.ebi.epicbanitem.api;
+package team.ebi.epicbanitem.api.trigger;
+
+import java.util.Locale;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.event.Cause;
+import org.spongepowered.api.util.locale.LocaleSource;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -44,5 +48,9 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
     @Override
     public Component description() {
         return Component.translatable(EpicBanItem.NAMESPACE + ".trigger." + key() + ".description");
+    }
+
+    protected Locale locale(Cause cause) {
+        return cause.last(LocaleSource.class).map(LocaleSource::locale).orElse(Locale.getDefault());
     }
 }

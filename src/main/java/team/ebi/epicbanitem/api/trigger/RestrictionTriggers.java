@@ -3,7 +3,7 @@
  *
  * This file is part of EpicBanItem, licensed under the GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3.0)
  */
-package team.ebi.epicbanitem.api;
+package team.ebi.epicbanitem.api.trigger;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
