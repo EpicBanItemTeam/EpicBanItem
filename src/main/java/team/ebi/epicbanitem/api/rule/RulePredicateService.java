@@ -19,21 +19,18 @@ public interface RulePredicateService {
 
     ResourceKey WILDCARD = ResourceKey.of("_", "_");
 
+    Comparator<RestrictionRule> PRIORITY_ASC = Comparator.comparingInt(RestrictionRule::priority);
+
     /**
      * @param id {@link ResourceKey} of object
      * @return Rules that match the predicates
      */
-    default List<RestrictionRule> rules(ResourceKey id) {
-        return predicates(id).stream()
-                .map(this::rule)
-                .flatMap(Collection::stream)
-                .toList();
+    default Stream<RestrictionRule> rules(ResourceKey id) {
+        return this.rules(predicates(id));
     }
 
-    default List<RestrictionRule> rulesWithPriority(ResourceKey id) {
-        return rules(id).stream()
-                .sorted(Comparator.comparingInt(RestrictionRule::priority))
-                .toList();
+    default Stream<RestrictionRule> rules(Set<ResourceKey> predicates) {
+        return predicates.stream().map(this::rule).flatMap(Collection::stream).distinct();
     }
 
     default ResourceKey minimumPredicate(Collection<ResourceKey> keys) {

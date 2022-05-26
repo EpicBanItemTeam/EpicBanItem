@@ -585,7 +585,8 @@ public final class EBICommands {
         final var allTriggers = RestrictionTriggers.registry();
         var component = Component.translatable("epicbanitem.command.test.result").toBuilder();
         predicateService
-                .rulesWithPriority(targetObject.type().key(RegistryTypes.ITEM_TYPE))
+                .rules(targetObject.type().key(RegistryTypes.ITEM_TYPE))
+                .sorted(RulePredicateService.PRIORITY_ASC)
                 .forEach(rule -> {
                     player.sendMessage(Component.translatable(
                             "epicbanitem.command.test.result.rule",
