@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.adventure.SpongeComponents;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
@@ -53,7 +52,9 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import team.ebi.epicbanitem.api.*;
+import team.ebi.epicbanitem.api.ItemQueries;
+import team.ebi.epicbanitem.api.RestrictionPresets;
+import team.ebi.epicbanitem.api.RestrictionService;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 import team.ebi.epicbanitem.api.expression.ExpressionService;
 import team.ebi.epicbanitem.api.expression.QueryResult;
@@ -476,7 +477,7 @@ public final class EBICommands {
         return CommandResult.success();
     }
 
-    private @NotNull CommandResult create(@NotNull CommandContext context) {
+    private @NotNull CommandResult create(@NotNull CommandContext context) throws CommandException {
         if (!(context.cause().root() instanceof final ServerPlayer player)) {
             return CommandResult.error(NEED_PLAYER);
         }
@@ -559,21 +560,11 @@ public final class EBICommands {
                                         .stream()
                                         .limit(25)
                                         .toList())))
-                .append(Component.space())
-                .append(Components.INFO
-                        .color(NamedTextColor.GRAY)
-                        .clickEvent(SpongeComponents.executeCallback(cause -> {
-                            try {
-                                Sponge.server()
-                                        .commandManager()
-                                        .process(
-                                                player,
-                                                MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, name));
-                            } catch (CommandException e) {
-                                throw new IllegalStateException(e);
-                            }
-                        }))));
+                .append(Component.space()));
         ruleService.save();
+        Sponge.server()
+                .commandManager()
+                .process(player, MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, name));
         return CommandResult.success();
     }
 
@@ -627,21 +618,6 @@ public final class EBICommands {
         final var predicate = context.one(keys.predicate).orElse(RulePredicateService.WILDCARD);
         final var components = predicateService.rule(predicate).stream()
                 .map(rule -> {
-                    var editComponent = Components.INFO.color(NamedTextColor.GRAY);
-                    if (subject instanceof ServerPlayer player) {
-                        editComponent = editComponent.clickEvent(SpongeComponents.executeCallback(cause -> {
-                            try {
-                                Sponge.server()
-                                        .commandManager()
-                                        .process(
-                                                player,
-                                                MessageFormat.format(
-                                                        "{0} edit {1}", EpicBanItem.NAMESPACE, rule.key()));
-                            } catch (CommandException e) {
-                                throw new IllegalStateException(e);
-                            }
-                        }));
-                    }
                     // TODO copy rule
                     try {
                         return rule.asComponent()
@@ -656,7 +632,10 @@ public final class EBICommands {
                                         .get()
                                         .write(rule.queryExpression().toContainer())))
                                 .append(Component.space())
-                                .append(editComponent);
+                                .append(Components.INFO
+                                        .color(NamedTextColor.GRAY)
+                                        .clickEvent(ClickEvent.runCommand(MessageFormat.format(
+                                                "/{0} info {1}", EpicBanItem.NAMESPACE, rule.key()))));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
