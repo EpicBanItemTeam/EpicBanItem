@@ -5,11 +5,8 @@
  */
 package team.ebi.epicbanitem.trigger;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.cause.Last;
@@ -23,12 +20,12 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.api.world.Locatable;
-import org.spongepowered.api.world.server.ServerWorld;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.translation.GlobalTranslator;
 import team.ebi.epicbanitem.EpicBanItem;
@@ -67,12 +64,15 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
         final var item = itemStack.createSnapshot();
         final var container = item.toContainer();
         final var itemType = item.type().key(RegistryTypes.ITEM_TYPE);
-        Set<ResourceKey> predicates = predicateService.predicates(itemType);
-        List<RestrictionRule> rules = predicateService.rulesWithPriority(itemType);
-        List<Component> components = Lists.newArrayList();
-        ServerWorld world = locatable.serverLocation().world();
+        final var predicates = predicateService.predicates(itemType);
+        final var rules = predicateService
+                .rules(predicates)
+                .filter(it -> predicates.contains(it.predicate()))
+                .sorted(RulePredicateService.PRIORITY_ASC)
+                .toList();
+        final var components = Lists.<Component>newArrayList();
+        final var world = locatable.serverLocation().world();
         for (RestrictionRule rule : rules) {
-            if (!predicates.contains(rule.predicate())) return;
             if (rule.needCancel()) {
                 event.setCancelled(true);
                 TranslatableComponent component = rule.canceledMessage();
@@ -81,18 +81,13 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
             Optional<ItemStackSnapshot> result = restrictionService
                     .restrict(rule, container, world, this, subject)
                     .flatMap(it -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, it.process(container)));
-            if (result.isEmpty()) {
-                break;
-            }
+            if (result.isEmpty()) continue;
             slot.get().set(result.get().createStack());
             TranslatableComponent component = rule.updatedMessage();
             components.add(GlobalTranslator.render(
                     component.args(rule, this, itemStack, result.get().createStack()), locale));
         }
-        audience.ifPresent(it -> {
-            for (Component component : components) {
-                it.sendMessage(component);
-            }
-        });
+
+        audience.ifPresent(it -> it.sendMessage(Component.join(JoinConfiguration.newlines(), components)));
     }
 }
