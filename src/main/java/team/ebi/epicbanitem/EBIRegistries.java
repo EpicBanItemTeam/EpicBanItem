@@ -35,6 +35,7 @@ import team.ebi.epicbanitem.expression.ObjectUpdateExpression;
 import team.ebi.epicbanitem.expression.query.*;
 import team.ebi.epicbanitem.expression.update.*;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
+import team.ebi.epicbanitem.trigger.EquipRestrictionTrigger;
 import team.ebi.epicbanitem.trigger.RestrictionTriggerImpl;
 import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
 import team.ebi.epicbanitem.util.data.DataUtils;
@@ -85,7 +86,7 @@ public final class EBIRegistries {
                         .put(EpicBanItem.key("interact"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("be_interacted"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("join"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("equip"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("equip"), injector.getInstance(EquipRestrictionTrigger.class))
                         .put(EpicBanItem.key("be_equipped"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("store"), new RestrictionTriggerImpl())
