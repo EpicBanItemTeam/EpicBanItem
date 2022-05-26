@@ -5,6 +5,7 @@
  */
 package team.ebi.epicbanitem.util;
 
+import java.text.MessageFormat;
 import java.util.Objects;
 
 import org.spongepowered.api.util.Tristate;
@@ -46,19 +47,19 @@ public final class RestrictionRuleRenderer {
                 .append(Component.text(rule.predicate().asString()))
                 .hoverEvent(Component.translatable("epicbanitem.ui.rule.predicate.description"))
                 .clickEvent(ClickEvent.suggestCommand(
-                        "/" + EpicBanItem.NAMESPACE + " set " + ruleKeyString + " predicate " + rule.predicate())));
+                        MessageFormat.format("/{0} set {1} predicate ", EpicBanItem.NAMESPACE, ruleKeyString))));
 
         components.add(renderKey(Component.translatable("epicbanitem.ui.rule.priority.key"))
                 .append(Component.text(rule.priority()))
                 .hoverEvent(Component.translatable("epicbanitem.ui.rule.priority.description"))
                 .clickEvent(ClickEvent.suggestCommand(
-                        "/" + EpicBanItem.NAMESPACE + " set " + ruleKeyString + " priority " + rule.priority())));
+                        MessageFormat.format("/{0} set {1} priority ", EpicBanItem.NAMESPACE, ruleKeyString))));
 
         components.add(renderKey(Component.translatable("epicbanitem.ui.rule.cancel.key"))
                 .append(Component.text(rule.needCancel()))
                 .hoverEvent(Component.translatable("epicbanitem.ui.rule.cancel.description"))
-                .clickEvent(ClickEvent.suggestCommand(
-                        "/" + EpicBanItem.NAMESPACE + " set " + ruleKeyString + " cancel " + rule.needCancel())));
+                .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                        "/{0} set {1} cancel {2}", EpicBanItem.NAMESPACE, ruleKeyString, !rule.needCancel()))));
 
         components.add(renderWorldStates(ruleKeyString, rule.worldStates()));
         components.add(renderTriggerStates(ruleKeyString, rule.triggerStates()));
@@ -118,7 +119,10 @@ public final class RestrictionRuleRenderer {
         return Component.text()
                 .append(Component.translatable("epicbanitem.ui.rule.defaultState")
                         .color(states.defaultState() ? NamedTextColor.GREEN : NamedTextColor.RED)
-                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.defaultState.description")))
+                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.defaultState.description"))
+                        .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                "/{0} set {1} {2}Default {3}",
+                                EpicBanItem.NAMESPACE, rule, stateName, !states.defaultState()))))
                 .append(Component.newline())
                 .append(Component.join(
                         JoinConfiguration.separator(Component.text(" ")),
@@ -133,8 +137,9 @@ public final class RestrictionRuleRenderer {
                                                             ? NamedTextColor.GREEN
                                                             : NamedTextColor.RED)
                                             .hoverEvent(states.description(key))
-                                            .clickEvent(ClickEvent.suggestCommand("/" + EpicBanItem.NAMESPACE + " set "
-                                                    + rule + " " + stateName + " " + key + " " + tristate));
+                                            .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                                    "/{0} set {1} {2} {3} ",
+                                                    EpicBanItem.NAMESPACE, rule, stateName, key)));
                                     if (tristate.equals(Tristate.UNDEFINED)) builder.decorate(TextDecoration.ITALIC);
                                     return builder.build();
                                 })
