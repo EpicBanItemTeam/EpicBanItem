@@ -24,3 +24,5 @@
 !gradle.properties
 
 !.github
+
+!log4j2.xml

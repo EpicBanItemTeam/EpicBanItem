@@ -92,7 +92,7 @@ tasks {
         useJUnitPlatform()
     }
     runServer {
-        jvmArgs("-XX:+AllowEnhancedClassRedefinition", "-XX:HotswapAgent=fatjar")
+        jvmArgs("-XX:+AllowEnhancedClassRedefinition", "-XX:HotswapAgent=fatjar", "-Dlog4j.configurationFile=../log4j2.xml")
     }
 }
 
