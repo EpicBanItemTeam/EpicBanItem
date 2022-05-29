@@ -135,13 +135,16 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
                 cause.last(Locatable.class).map(Locatable::serverLocation).map(Location::world);
         if (world.isEmpty()) return translator.apply(view);
         final var subject = cause.last(Subject.class).orElse(null);
+        var finalView = Optional.<DataView>empty();
         for (RestrictionRule rule : predicateService
                 .rules(predicateService.predicates(objectType))
                 .sorted(RulePredicateService.PRIORITY_ASC)
-                .toList())
-            view = processRule(rule, event, view, world.get(), subject, onCancelled, onProcessed, translator)
-                    .orElse(view);
-        return translator.apply(view);
+                .toList()) {
+            Optional<DataView> processed =
+                    processRule(rule, event, view, world.get(), subject, onCancelled, onProcessed, translator);
+            if (processed.isPresent()) finalView = processed;
+        }
+        return finalView.flatMap(translator);
     }
 
     protected <T> Optional<DataView> processRule(
