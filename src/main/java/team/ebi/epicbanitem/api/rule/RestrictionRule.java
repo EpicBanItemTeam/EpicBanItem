@@ -83,7 +83,7 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
      * <li>2: origin object name
      */
     @Contract(pure = true)
-    TranslatableComponent canceledMessage();
+    TranslatableComponent cancelledMessage();
 
     @Override
     @NotNull

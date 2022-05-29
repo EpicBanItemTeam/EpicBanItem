@@ -176,7 +176,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     @Override
-    public TranslatableComponent canceledMessage() {
+    public TranslatableComponent cancelledMessage() {
         final var key = messageKey(key() + ".canceled");
         if (!EpicBanItem.translations.contains(key)) {
             return Component.translatable("epicbanitem.rule.canceled");
