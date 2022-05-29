@@ -11,14 +11,23 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.spongepowered.api.ResourceKey;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.Locatable;
 import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.server.ServerWorld;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.api.RestrictionService;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
@@ -35,36 +44,78 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
         super(key);
     }
 
+    protected Optional<ItemStackSnapshot> processWithMessage(Event event, ItemStackSnapshot item) {
+        final var audience = event.cause().last(Audience.class);
+        final var locale = locale(event.cause());
+        final var itemStack = item.createStack();
+        final var components = Lists.<Component>newArrayList();
+        final var finalResult = this.process(
+                event,
+                item,
+                rule -> {
+                    if (audience.isPresent()) components.add(this.ruleCancelledMessage(rule, itemStack, locale));
+                },
+                (rule, result) -> {
+                    if (result.isEmpty() || audience.isEmpty()) return;
+                    components.add(
+                            this.ruleUpdateMessage(rule, itemStack, result.get().createStack(), locale));
+                });
+        audience.ifPresent(it -> it.sendMessage(Component.join(JoinConfiguration.newlines(), components)));
+        return finalResult;
+    }
+
+    protected Optional<ItemStackSnapshot> process(
+            Event event,
+            ItemStackSnapshot item,
+            Consumer<RestrictionRule> onCancelled,
+            BiConsumer<RestrictionRule, Optional<ItemStackSnapshot>> onProcessed) {
+        return this.process(
+                event,
+                item.toContainer(),
+                item.type().key(RegistryTypes.ITEM_TYPE),
+                onCancelled,
+                onProcessed,
+                view -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, view));
+    }
+
     protected <T> Optional<T> process(
             Event event,
             DataView view,
             ResourceKey objectType,
-            Consumer<RestrictionRule> onCancel,
+            Consumer<RestrictionRule> onCancelled,
             BiConsumer<RestrictionRule, Optional<T>> onProcessed,
-            Function<DataView, Optional<T>> processor) {
+            Function<DataView, Optional<T>> translator) {
         final var cause = event.cause();
         final var world =
                 cause.last(Locatable.class).map(Locatable::serverLocation).map(Location::world);
-        if (world.isEmpty()) return processor.apply(view);
+        if (world.isEmpty()) return translator.apply(view);
         final var subject = cause.last(Subject.class).orElse(null);
-        final var predicates = predicateService.predicates(objectType);
         for (RestrictionRule rule : predicateService
-                .rules(predicates)
-                .filter(it -> predicates.contains(it.predicate()))
+                .rules(predicateService.predicates(objectType))
                 .sorted(RulePredicateService.PRIORITY_ASC)
-                .toList()) {
-            if (rule.needCancel() && event instanceof Cancellable cancellable) {
-                cancellable.setCancelled(true);
-                onCancel.accept(rule);
-            }
-            DataView finalView = view;
-            Optional<DataView> result = restrictionService
-                    .restrict(rule, view, world.get(), this, subject)
-                    .map(it -> it.process(finalView));
-            if (result.isEmpty()) continue;
-            view = result.get();
-            onProcessed.accept(rule, processor.apply(view));
+                .toList())
+            view = processRule(rule, event, view, world.get(), subject, onCancelled, onProcessed, translator)
+                    .orElse(view);
+        return translator.apply(view);
+    }
+
+    protected <T> Optional<DataView> processRule(
+            final RestrictionRule rule,
+            final Event event,
+            DataView view,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            Consumer<RestrictionRule> onCancelled,
+            BiConsumer<RestrictionRule, Optional<T>> onProcessed,
+            Function<DataView, Optional<T>> translator) {
+        if (rule.needCancel() && event instanceof Cancellable cancellable) {
+            cancellable.setCancelled(true);
+            onCancelled.accept(rule);
         }
-        return processor.apply(view);
+        Optional<DataView> result =
+                restrictionService.restrict(rule, view, world, this, subject).map(it -> it.process(view));
+        if (result.isEmpty()) return Optional.empty();
+        onProcessed.accept(rule, translator.apply(view));
+        return result;
     }
 }

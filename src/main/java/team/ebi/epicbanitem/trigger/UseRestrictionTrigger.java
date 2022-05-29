@@ -7,7 +7,6 @@ package team.ebi.epicbanitem.trigger;
 
 import java.util.Optional;
 
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.Getter;
@@ -22,11 +21,6 @@ import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.world.Locatable;
 
-import com.google.common.collect.Lists;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.translation.GlobalTranslator;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.trigger.SingleTargetRestrictionTrigger;
 
@@ -44,32 +38,7 @@ public class UseRestrictionTrigger extends SingleTargetRestrictionTrigger {
             @ContextValue("USED_HAND") HandType hand) {
         EquipmentType equipment = EquipmentTypes.registry().value(hand.key(RegistryTypes.HAND_TYPE));
         Optional<Slot> slot = equipable.equipment().slot(equipment);
-        if (slot.isEmpty()) {
-            return;
-        }
-        final var audience = event.cause().last(Audience.class);
-        final var locale = locale(event.cause());
-        final var itemStack = slot.get().peek();
-        final var components = Lists.<Component>newArrayList();
-        process(
-                        event,
-                        item.toContainer(),
-                        item.type().key(RegistryTypes.ITEM_TYPE),
-                        rule -> components.add(
-                                GlobalTranslator.render(rule.canceledMessage().args(rule, this, itemStack), locale)),
-                        (rule, result) -> {
-                            if (result.isEmpty()) return;
-                            components.add(GlobalTranslator.render(
-                                    rule.updatedMessage()
-                                            .args(
-                                                    rule,
-                                                    this,
-                                                    itemStack,
-                                                    result.get().createStack()),
-                                    locale));
-                        },
-                        view -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, view))
-                .ifPresent(it -> slot.get().set(it.createStack()));
-        audience.ifPresent(it -> it.sendMessage(Component.join(JoinConfiguration.newlines(), components)));
+        if (slot.isEmpty()) return;
+        this.processWithMessage(event, item).ifPresent(it -> slot.get().set(it.createStack()));
     }
 }

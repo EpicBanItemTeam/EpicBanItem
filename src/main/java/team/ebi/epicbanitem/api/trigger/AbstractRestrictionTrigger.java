@@ -13,8 +13,12 @@ import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.util.locale.LocaleSource;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.api.rule.RestrictionRule;
 
 public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
 
@@ -39,10 +43,11 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
     public @NotNull Component asComponent() {
         final var resourceKey = key();
         final var key = EpicBanItem.NAMESPACE + ".trigger." + resourceKey;
-        if (!EpicBanItem.translations.contains(key)) {
-            return Component.text(resourceKey.asString());
+        Component component = Component.text(resourceKey.asString());
+        if (EpicBanItem.translations.contains(key)) {
+            component = Component.translatable(key);
         }
-        return Component.translatable(key);
+        return component.color(NamedTextColor.AQUA).hoverEvent(description());
     }
 
     @Override
@@ -52,5 +57,14 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
 
     protected Locale locale(Cause cause) {
         return cause.last(LocaleSource.class).map(LocaleSource::locale).orElse(Locale.getDefault());
+    }
+
+    protected <T extends ComponentLike> Component ruleCancelledMessage(RestrictionRule rule, T object, Locale locale) {
+        return GlobalTranslator.render(rule.cancelledMessage().args(rule, this, object), locale);
+    }
+
+    protected <T extends ComponentLike> Component ruleUpdateMessage(
+            RestrictionRule rule, T object, T newObject, Locale locale) {
+        return GlobalTranslator.render(rule.updatedMessage().args(rule, this, object, newObject), locale);
     }
 }

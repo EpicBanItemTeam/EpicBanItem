@@ -38,7 +38,7 @@ public class PlaceRestrictionTrigger extends SingleTargetRestrictionTrigger {
                             block.toContainer(),
                             type.key(RegistryTypes.BLOCK_TYPE),
                             rule -> components.add(GlobalTranslator.render(
-                                    rule.canceledMessage().args(rule, this, type), locale)),
+                                    rule.cancelledMessage().args(rule, this, type), locale)),
                             (rule, result) -> {
                                 if (result.isEmpty()) return;
                                 components.add(GlobalTranslator.render(
