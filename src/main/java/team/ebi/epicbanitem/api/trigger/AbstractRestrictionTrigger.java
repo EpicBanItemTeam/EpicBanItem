@@ -14,7 +14,6 @@ import org.spongepowered.api.util.locale.LocaleSource;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.EpicBanItem;
@@ -47,7 +46,7 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
         if (EpicBanItem.translations.contains(key)) {
             component = Component.translatable(key);
         }
-        return component.color(NamedTextColor.AQUA).hoverEvent(description());
+        return component.hoverEvent(description());
     }
 
     @Override
