@@ -5,6 +5,8 @@
  */
 package team.ebi.epicbanitem.api.trigger;
 
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -12,6 +14,7 @@ import java.util.function.Function;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
@@ -27,6 +30,7 @@ import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.api.RestrictionService;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
@@ -45,22 +49,48 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
     }
 
     protected Optional<ItemStackSnapshot> processWithMessage(Event event, ItemStackSnapshot item) {
-        final var audience = event.cause().last(Audience.class);
-        final var locale = locale(event.cause());
+        return this.processWithMessage(
+                event, item, event.cause().last(Audience.class).orElse(null), this.locale(event.cause()));
+    }
+
+    protected Optional<ItemStackSnapshot> processWithMessage(
+            Event event, ItemStackSnapshot item, @Nullable Audience audience, Locale locale) {
         final var itemStack = item.createStack();
         final var components = Lists.<Component>newArrayList();
         final var finalResult = this.process(
                 event,
                 item,
                 rule -> {
-                    if (audience.isPresent()) components.add(this.ruleCancelledMessage(rule, itemStack, locale));
+                    if (Objects.nonNull(audience)) components.add(this.ruleCancelledMessage(rule, itemStack, locale));
                 },
                 (rule, result) -> {
-                    if (result.isEmpty() || audience.isEmpty()) return;
+                    if (result.isEmpty() || Objects.isNull(audience)) return;
                     components.add(
                             this.ruleUpdateMessage(rule, itemStack, result.get().createStack(), locale));
                 });
-        audience.ifPresent(it -> it.sendMessage(Component.join(JoinConfiguration.newlines(), components)));
+        if (Objects.nonNull(audience) && !components.isEmpty())
+            audience.sendMessage(Component.join(JoinConfiguration.newlines(), components));
+        return finalResult;
+    }
+
+    protected Optional<BlockSnapshot> processWithMessage(
+            Event event, BlockSnapshot block, @Nullable Audience audience, Locale locale) {
+        final var components = Lists.<Component>newArrayList();
+        final var type = block.state().type();
+        final var finalResult = this.process(
+                event,
+                block,
+                rule -> components.add(
+                        GlobalTranslator.render(rule.cancelledMessage().args(rule, this, type), locale)),
+                (rule, result) -> {
+                    if (result.isEmpty()) return;
+                    components.add(GlobalTranslator.render(
+                            rule.updatedMessage()
+                                    .args(rule, this, type, result.get().state().type()),
+                            locale));
+                });
+        if (Objects.nonNull(audience) && !components.isEmpty())
+            audience.sendMessage(Component.join(JoinConfiguration.newlines(), components));
         return finalResult;
     }
 
@@ -76,6 +106,20 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
                 onCancelled,
                 onProcessed,
                 view -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, view));
+    }
+
+    protected Optional<BlockSnapshot> process(
+            Event event,
+            BlockSnapshot block,
+            Consumer<RestrictionRule> onCancelled,
+            BiConsumer<RestrictionRule, Optional<BlockSnapshot>> onProcessed) {
+        return this.process(
+                event,
+                block.toContainer(),
+                block.state().type().key(RegistryTypes.BLOCK_TYPE),
+                onCancelled,
+                onProcessed,
+                view -> Sponge.dataManager().deserialize(BlockSnapshot.class, view));
     }
 
     protected <T> Optional<T> process(
