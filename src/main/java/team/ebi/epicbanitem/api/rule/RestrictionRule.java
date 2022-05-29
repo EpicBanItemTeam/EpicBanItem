@@ -5,6 +5,8 @@
  */
 package team.ebi.epicbanitem.api.rule;
 
+import java.util.Optional;
+
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.ResourceKeyed;
 import org.spongepowered.api.data.persistence.DataSerializable;
@@ -47,8 +49,7 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
     @Contract(pure = true)
     RestrictionRule queryExpression(QueryExpression value);
 
-    @Nullable
-    UpdateExpression updateExpression();
+    Optional<UpdateExpression> updateExpression();
 
     @Contract(pure = true)
     @Nullable

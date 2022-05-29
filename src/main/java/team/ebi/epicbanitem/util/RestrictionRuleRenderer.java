@@ -20,7 +20,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.api.rule.States;
 import team.ebi.epicbanitem.util.data.DataViewRenderer;
@@ -65,7 +64,7 @@ public final class RestrictionRuleRenderer {
         components.add(renderTriggerStates(ruleKeyString, rule.triggerStates()));
 
         // TODO Click suggest command
-        UpdateExpression updateExpression = rule.updateExpression();
+        final var updateExpression = rule.updateExpression();
         components.add(Component.text()
                 .append(Component.translatable("epicbanitem.ui.rule.query.key")
                         .hoverEvent(Component.join(
@@ -76,11 +75,12 @@ public final class RestrictionRuleRenderer {
                 .append(Component.text("  "))
                 .append(Component.translatable("epicbanitem.ui.rule.update.key")
                         .hoverEvent(
-                                Objects.isNull(updateExpression)
+                                updateExpression.isEmpty()
                                         ? Component.text("null")
                                         : Component.join(
                                                 JoinConfiguration.newlines(),
-                                                DataViewRenderer.render(Objects.requireNonNull(updateExpression)
+                                                DataViewRenderer.render(updateExpression
+                                                                .get()
                                                                 .toContainer())
                                                         .stream()
                                                         .limit(25)

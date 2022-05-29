@@ -596,7 +596,10 @@ public final class EBICommands {
                                                     .limit(25)
                                                     .toList()))));
                     (hasTrigger ? triggerArgs.stream() : allTriggers.stream())
-                            .map(trigger -> restrictionService.restrict(rule, targetView, world, trigger, null))
+                            .map(trigger -> restrictionService
+                                    .query(rule, targetView, world, trigger, null)
+                                    .flatMap(
+                                            result -> rule.updateExpression().map(it -> it.update(result, targetView))))
                             .filter(Optional::isPresent)
                             .map(Optional::get)
                             .forEach(operation -> {

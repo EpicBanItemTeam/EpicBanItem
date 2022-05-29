@@ -140,8 +140,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     @Override
-    public UpdateExpression updateExpression() {
-        return this.updateExpression;
+    public Optional<UpdateExpression> updateExpression() {
+        return Optional.ofNullable(this.updateExpression);
     }
 
     @Override
