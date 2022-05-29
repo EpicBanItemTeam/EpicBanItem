@@ -17,7 +17,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.ImplementedBy;
 import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.expression.UpdateOperation;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.api.trigger.RestrictionTrigger;
 import team.ebi.epicbanitem.rule.RestrictionServiceImpl;
@@ -32,7 +32,7 @@ public interface RestrictionService {
                         RestrictionTrigger.CONTEXT_KEY, trigger.key().asString())));
     }
 
-    default Optional<UpdateOperation> restrict(
+    default Optional<QueryResult> query(
             RestrictionRule rule,
             DataView view,
             ServerWorld world,
@@ -47,7 +47,6 @@ public interface RestrictionService {
         if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) {
             return Optional.empty();
         }
-        return rule.queryExpression().query(view).flatMap(result -> Optional.ofNullable(rule.updateExpression())
-                .map(it -> it.update(result, view)));
+        return rule.queryExpression().query(view);
     }
 }

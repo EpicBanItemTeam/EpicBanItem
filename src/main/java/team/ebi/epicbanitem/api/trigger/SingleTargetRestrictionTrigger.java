@@ -33,6 +33,7 @@ import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.api.RestrictionService;
+import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
 
@@ -152,14 +153,16 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
             Consumer<RestrictionRule> onCancelled,
             BiConsumer<RestrictionRule, Optional<T>> onProcessed,
             Function<DataView, Optional<T>> translator) {
+        Optional<QueryResult> query = restrictionService.query(rule, view, world, this, subject);
+        if (query.isEmpty()) return Optional.empty();
         if (rule.needCancel() && event instanceof Cancellable cancellable) {
             cancellable.setCancelled(true);
             onCancelled.accept(rule);
         }
-        Optional<DataView> result =
-                restrictionService.restrict(rule, view, world, this, subject).map(it -> it.process(view));
-        if (result.isEmpty()) return Optional.empty();
+        Optional<DataView> finalView = query.flatMap(result ->
+                rule.updateExpression().map(it -> it.update(result, view).process(view)));
+        if (finalView.isEmpty()) return Optional.empty();
         onProcessed.accept(rule, translator.apply(view));
-        return result;
+        return finalView;
     }
 }
