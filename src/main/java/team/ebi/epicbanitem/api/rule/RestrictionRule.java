@@ -34,6 +34,11 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
     @Contract(pure = true)
     RestrictionRule needCancel(boolean value);
 
+    boolean onlyPlayer();
+
+    @Contract(pure = true)
+    RestrictionRule onlyPlayer(boolean value);
+
     States worldStates();
 
     @Contract(pure = true)

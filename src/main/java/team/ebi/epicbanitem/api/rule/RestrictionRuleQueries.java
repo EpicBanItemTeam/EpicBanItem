@@ -14,6 +14,7 @@ public final class RestrictionRuleQueries {
     public static final DataQuery UPDATE = DataQuery.of("Update");
     public static final DataQuery PREDICATE = DataQuery.of("Predicate");
     public static final DataQuery NEED_CANCEL = DataQuery.of("NeedCancel");
+    public static final DataQuery ONLY_PLAYER = DataQuery.of("OnlyPlayer");
     public static final DataQuery WORLD = DataQuery.of("World");
     public static final DataQuery TRIGGER = DataQuery.of("Trigger");
     public static final DataQuery STATES = DataQuery.of("States");

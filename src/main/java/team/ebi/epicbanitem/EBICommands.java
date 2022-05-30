@@ -319,6 +319,25 @@ public final class EBICommands {
                 })
                 .build();
 
+        final var onlyPlayer = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.onlyPlayer"))
+                .addParameters(Parameter.bool().key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", Boolean.class));
+                    ResourceKey key = rule.key();
+                    ruleService.register(key, rule.onlyPlayer(value));
+                    ruleService.save();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    EpicBanItem.NAMESPACE + " info " + key);
+                    return CommandResult.success();
+                })
+                .build();
+
         final var query = Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.set.description.query"))
                 .addParameters(parameters.query.key(keys.query).build())
@@ -365,11 +384,12 @@ public final class EBICommands {
                         Parameter.firstOf(
                                 Parameter.subcommand(priority, "priority"),
                                 Parameter.subcommand(world, "world"),
-                                Parameter.subcommand(worldDefault, "worldDefault"),
+                                Parameter.subcommand(worldDefault, "world-default"),
                                 Parameter.subcommand(trigger, "trigger"),
-                                Parameter.subcommand(triggerDefault, "triggerDefault"),
+                                Parameter.subcommand(triggerDefault, "trigger-default"),
                                 Parameter.subcommand(predicate, "predicate"),
                                 Parameter.subcommand(cancel, "cancel"),
+                                Parameter.subcommand(onlyPlayer, "only-player"),
                                 Parameter.subcommand(query, "query"),
                                 Parameter.subcommand(update, "update")))
                 .executor(context -> {

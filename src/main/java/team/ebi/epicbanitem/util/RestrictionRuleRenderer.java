@@ -54,11 +54,20 @@ public final class RestrictionRuleRenderer {
                 .clickEvent(ClickEvent.suggestCommand(
                         MessageFormat.format("/{0} set {1} priority ", EpicBanItem.NAMESPACE, ruleKeyString))));
 
-        components.add(renderKey(Component.translatable("epicbanitem.ui.rule.cancel.key"))
-                .append(Component.text(rule.needCancel()))
-                .hoverEvent(Component.translatable("epicbanitem.ui.rule.cancel.description"))
-                .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
-                        "/{0} set {1} cancel {2}", EpicBanItem.NAMESPACE, ruleKeyString, !rule.needCancel()))));
+        components.add(Component.text()
+                .append(Component.translatable("epicbanitem.ui.rule.cancel.key")
+                        .color(rule.needCancel() ? NamedTextColor.GREEN : NamedTextColor.RED)
+                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.cancel.description"))
+                        .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                "/{0} set {1} cancel {2}", EpicBanItem.NAMESPACE, ruleKeyString, !rule.needCancel()))))
+                .append(Component.space())
+                .append(Component.translatable("epicbanitem.ui.rule.onlyPlayer.key")
+                        .color(rule.onlyPlayer() ? NamedTextColor.GREEN : NamedTextColor.RED)
+                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.onlyPlayer.description"))
+                        .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                "/{0} set {1} only-player {2}",
+                                EpicBanItem.NAMESPACE, ruleKeyString, !rule.onlyPlayer()))))
+                .build());
 
         components.add(renderWorldStates(ruleKeyString, rule.worldStates()));
         components.add(renderTriggerStates(ruleKeyString, rule.triggerStates()));
@@ -72,7 +81,7 @@ public final class RestrictionRuleRenderer {
                                 DataViewRenderer.render(rule.queryExpression().toContainer()).stream()
                                         .limit(25)
                                         .toList())))
-                .append(Component.text("  "))
+                .append(Component.space())
                 .append(Component.translatable("epicbanitem.ui.rule.update.key")
                         .hoverEvent(
                                 updateExpression.isEmpty()
@@ -91,7 +100,7 @@ public final class RestrictionRuleRenderer {
                 .append(Component.translatable("epicbanitem.ui.rule.updateMessage.key")
                         .hoverEvent(Component.translatable("epicbanitem.ui.rule.updateMessage.description")
                                 .args(Component.text(ruleKeyString))))
-                .append(Component.text("  "))
+                .append(Component.space())
                 .append(Component.translatable("epicbanitem.ui.rule.cancelMessage.key")
                         .hoverEvent(Component.translatable("epicbanitem.ui.rule.cancelMessage.description")
                                 .args(Component.text(ruleKeyString))))
@@ -121,11 +130,11 @@ public final class RestrictionRuleRenderer {
                         .color(states.defaultState() ? NamedTextColor.GREEN : NamedTextColor.RED)
                         .hoverEvent(Component.translatable("epicbanitem.ui.rule.defaultState.description"))
                         .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
-                                "/{0} set {1} {2}Default {3}",
+                                "/{0} set {1} {2}-default {3}",
                                 EpicBanItem.NAMESPACE, rule, stateName, !states.defaultState()))))
                 .append(Component.newline())
                 .append(Component.join(
-                        JoinConfiguration.separator(Component.text(" ")),
+                        JoinConfiguration.separator(Component.space()),
                         states.keySet().stream()
                                 .map(key -> {
                                     final var tristate = states.getOrDefault(key, Tristate.UNDEFINED);

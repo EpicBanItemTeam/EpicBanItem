@@ -34,6 +34,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     private final @Nullable UpdateExpression updateExpression;
     private final ResourceKey predicate;
     private final boolean needCancel;
+    private final boolean onlyPlayer;
 
     public RestrictionRuleImpl(QueryExpression queryExpression) {
         this.priority = 10;
@@ -43,6 +44,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
         this.needCancel = false;
         this.worldStates = new WorldStates(true);
         this.triggerStates = new TriggerStates(true);
+        this.onlyPlayer = true;
     }
 
     public RestrictionRuleImpl(
@@ -52,7 +54,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
             QueryExpression queryExpression,
             @Nullable UpdateExpression updateExpression,
             ResourceKey predicate,
-            boolean needCancel) {
+            boolean needCancel,
+            boolean onlyPlayer) {
         this.priority = priority;
         this.worldStates = worldStates;
         this.triggerStates = triggerStates;
@@ -60,6 +63,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
         this.updateExpression = updateExpression;
         this.predicate = predicate;
         this.needCancel = needCancel;
+        this.onlyPlayer = onlyPlayer;
     }
 
     public RestrictionRuleImpl(DataView data) {
@@ -71,6 +75,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
                 .orElse(null);
         this.predicate = view.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
         this.needCancel = view.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
+        this.onlyPlayer = view.getBoolean(RestrictionRuleQueries.ONLY_PLAYER).orElse(true);
         // TODO Need config
         this.worldStates = view.getSerializable(RestrictionRuleQueries.WORLD, WorldStates.class)
                 .orElse(new WorldStates(true));
@@ -93,7 +98,14 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule priority(int value) {
         return new RestrictionRuleImpl(
-                value, worldStates, triggerStates, queryExpression, updateExpression, predicate, needCancel);
+                value,
+                worldStates,
+                triggerStates,
+                queryExpression,
+                updateExpression,
+                predicate,
+                needCancel,
+                onlyPlayer);
     }
 
     @Override
@@ -104,7 +116,18 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule needCancel(boolean value) {
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, queryExpression, updateExpression, predicate, value);
+                priority, worldStates, triggerStates, queryExpression, updateExpression, predicate, value, onlyPlayer);
+    }
+
+    @Override
+    public boolean onlyPlayer() {
+        return onlyPlayer;
+    }
+
+    @Override
+    public RestrictionRule onlyPlayer(boolean value) {
+        return new RestrictionRuleImpl(
+                priority, worldStates, triggerStates, queryExpression, updateExpression, predicate, needCancel, value);
     }
 
     @Override
@@ -115,7 +138,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule worldStates(WorldStates states) {
         return new RestrictionRuleImpl(
-                priority, states, triggerStates, queryExpression, updateExpression, predicate, needCancel);
+                priority, states, triggerStates, queryExpression, updateExpression, predicate, needCancel, onlyPlayer);
     }
 
     public TriggerStates triggerStates() {
@@ -125,7 +148,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule triggerStates(TriggerStates states) {
         return new RestrictionRuleImpl(
-                priority, worldStates, states, queryExpression, updateExpression, predicate, needCancel);
+                priority, worldStates, states, queryExpression, updateExpression, predicate, needCancel, onlyPlayer);
     }
 
     @Override
@@ -136,7 +159,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule queryExpression(QueryExpression value) {
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, value, updateExpression, predicate, needCancel);
+                priority, worldStates, triggerStates, value, updateExpression, predicate, needCancel, onlyPlayer);
     }
 
     @Override
@@ -148,7 +171,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     public @Nullable RestrictionRule updateExpression(UpdateExpression value) {
 
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, queryExpression, value, predicate, needCancel);
+                priority, worldStates, triggerStates, queryExpression, value, predicate, needCancel, onlyPlayer);
     }
 
     @Override
@@ -159,7 +182,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule predicate(ResourceKey value) {
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, queryExpression, updateExpression, value, needCancel);
+                priority, worldStates, triggerStates, queryExpression, updateExpression, value, needCancel, onlyPlayer);
     }
 
     private String messageKey(String path) {
@@ -211,7 +234,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
                 .set(RestrictionRuleQueries.WORLD, worldStates)
                 .set(RestrictionRuleQueries.TRIGGER, triggerStates)
                 .set(RestrictionRuleQueries.PREDICATE, predicate)
-                .set(RestrictionRuleQueries.NEED_CANCEL, needCancel);
+                .set(RestrictionRuleQueries.NEED_CANCEL, needCancel)
+                .set(RestrictionRuleQueries.ONLY_PLAYER, onlyPlayer);
         return container.set(Queries.CONTENT_VERSION, contentVersion());
     }
 

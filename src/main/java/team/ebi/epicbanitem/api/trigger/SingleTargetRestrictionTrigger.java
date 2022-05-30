@@ -16,6 +16,7 @@ import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -156,6 +157,7 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
             Consumer<RestrictionRule> onCancelled,
             BiConsumer<RestrictionRule, Optional<T>> onProcessed,
             Function<DataView, Optional<T>> translator) {
+        if (rule.onlyPlayer() && !(subject instanceof ServerPlayer)) return Optional.empty();
         Optional<QueryResult> query = restrictionService.query(rule, view, world, this, subject);
         if (query.isEmpty()) return Optional.empty();
         if (rule.needCancel() && event instanceof Cancellable cancellable) {
