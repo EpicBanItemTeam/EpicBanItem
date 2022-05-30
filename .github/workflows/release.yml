@@ -27,9 +27,9 @@ jobs:
         if: success()
         id: tag
         run: |
-          ./gradlew createAndPushVersionTag
           ./gradlew generateVersionFile
           echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
+          ./gradlew createAndPushVersionTag
 
       - name: Generate Changelog
         id: changelog
