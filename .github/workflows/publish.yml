@@ -22,37 +22,44 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Test
-        run: ./gradlew test
+      - name: Test and Build
+        run: ./gradlew test build
 
-      - name: Build
-        run: ./gradlew build
+      - name: Determinate latest released tag
+        id: current-tag
+        run: |
+          tag=$(git describe --tags --abbrev=0 --match 'v*');
+          echo "::set-output name=tag::$tag";      
 
-      - name: Version
-        id: version
+      - name: Create tag
+        id: tag
         run: |
           ./gradlew generateVersionFile
           echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
+          ./gradlew createAndPushVersionTag
 
-      - name: Find Tag
-        id: tagger
-        uses: jimschubert/query-tag-action@v1
-        with:
-          include: 'v[0-1000].[0-1000].[0-1000]'
-
-      - uses: dlavrenuek/conventional-changelog-action@v1.2.0
+      - uses: seasonalmatcha/conventional-commit-changelog@latest
         id: changelog
         with:
-          from: ${{ steps.tagger.outputs.tag }}
-          to: HEAD
+          from: ${{ steps.current-tag.outputs.tag }}
+          to: ${{ steps.tag.outputs.version }}
+
+      - name: Prepend Changelog
+        uses: endaft/action-prepend@v0.0.9
+        with:
+          file_target: CHANGELOG.md
+          value_in: ${{ format('# {0}\n{1}\n', steps.tag.outputs.version, steps.changelog.outputs.body) }}
+          is_file: "false"
 
       - uses: actions/upload-artifact@v3
+        if: steps.changelog.outputs.body
         with:
           name: plugin
-          path: build/libs/EpicBanItem-*.jar
+          path: build/libs/EpicBanItem-${{ steps.current-tag.outputs.tag }}.jar
           if-no-files-found: error
 
       - name: Upload to Ore
+        if: steps.changelog.outputs.body
         uses: dualspiral/ore-upload-action@v2
         with:
           plugin: plugin
