@@ -208,7 +208,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
         }
         ruleView.set(RestrictionRuleQueries.PRIORITY, priority)
                 .set(RestrictionRuleQueries.QUERY, queryExpression)
-                .set(RestrictionRuleQueries.QUERY, queryExpression)
+                .set(RestrictionRuleQueries.WORLD, worldStates)
+                .set(RestrictionRuleQueries.TRIGGER, triggerStates)
                 .set(RestrictionRuleQueries.PREDICATE, predicate)
                 .set(RestrictionRuleQueries.NEED_CANCEL, needCancel);
         return container.set(Queries.CONTENT_VERSION, contentVersion());
