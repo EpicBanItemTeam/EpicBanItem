@@ -55,3 +55,4 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           token: ${{ github.token }}
           artifacts: build/libs/EpicBanItem-${{ steps.tag.outputs.version }}.jar
+          artifactErrorsFailBuild: true
