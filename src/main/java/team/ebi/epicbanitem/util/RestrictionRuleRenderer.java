@@ -98,12 +98,20 @@ public final class RestrictionRuleRenderer {
 
         components.add(Component.text()
                 .append(Component.translatable("epicbanitem.ui.rule.updateMessage.key")
-                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.updateMessage.description")
-                                .args(Component.text(ruleKeyString))))
+                        .hoverEvent(Component.text()
+                                .append(rule.updatedMessage())
+                                .append(Component.newline())
+                                .append(Component.translatable("epicbanitem.ui.rule.updateMessage.description")
+                                        .args(Component.text(ruleKeyString)))
+                                .build()))
                 .append(Component.space())
                 .append(Component.translatable("epicbanitem.ui.rule.cancelMessage.key")
-                        .hoverEvent(Component.translatable("epicbanitem.ui.rule.cancelMessage.description")
-                                .args(Component.text(ruleKeyString))))
+                        .hoverEvent(Component.text()
+                                .append(rule.cancelledMessage())
+                                .append(Component.newline())
+                                .append(Component.translatable("epicbanitem.ui.rule.cancelMessage.description")
+                                        .args(Component.text(ruleKeyString)))
+                                .build()))
                 .build());
         components.add(DIVIDER_BOTTOM);
         return Component.join(JoinConfiguration.newlines(), components);
