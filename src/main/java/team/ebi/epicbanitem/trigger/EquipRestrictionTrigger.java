@@ -16,10 +16,10 @@ import org.spongepowered.api.world.Locatable;
 
 import com.google.inject.Singleton;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.SingleTargetRestrictionTrigger;
+import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
 @Singleton
-public class EquipRestrictionTrigger extends SingleTargetRestrictionTrigger {
+public class EquipRestrictionTrigger extends AbstractRestrictionTrigger {
 
     public EquipRestrictionTrigger() {
         super(EpicBanItem.key("equip"));
@@ -33,6 +33,6 @@ public class EquipRestrictionTrigger extends SingleTargetRestrictionTrigger {
             @Getter("transaction") Transaction<ItemStackSnapshot> transaction) {
         final var item = transaction.finalReplacement();
         if (item.isEmpty()) return;
-        this.processWithMessage(event, item).ifPresent(transaction::setCustom);
+        this.process(event, item).ifPresent(transaction::setCustom);
     }
 }

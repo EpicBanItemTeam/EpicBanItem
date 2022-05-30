@@ -23,7 +23,7 @@ import org.spongepowered.api.plugin.PluginManager;
 import com.google.common.collect.Maps;
 import net.minecraft.world.level.block.FlowerPotBlock;
 
-public final class BlockUtils {
+public final class ItemUtils {
 
     private static final Map<Predicate<BlockSnapshot>, Function<BlockSnapshot, Optional<ItemStack>>> BLOCK_TO_ITEM =
             Maps.newHashMap();
@@ -69,7 +69,7 @@ public final class BlockUtils {
         }
     }
 
-    private BlockUtils() {}
+    private ItemUtils() {}
 
     public static Optional<ItemStack> fromBlock(BlockSnapshot snapshot) {
         try {

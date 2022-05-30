@@ -35,10 +35,7 @@ import team.ebi.epicbanitem.expression.ObjectUpdateExpression;
 import team.ebi.epicbanitem.expression.query.*;
 import team.ebi.epicbanitem.expression.update.*;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
-import team.ebi.epicbanitem.trigger.EquipRestrictionTrigger;
-import team.ebi.epicbanitem.trigger.PlaceRestrictionTrigger;
-import team.ebi.epicbanitem.trigger.RestrictionTriggerImpl;
-import team.ebi.epicbanitem.trigger.UseRestrictionTrigger;
+import team.ebi.epicbanitem.trigger.*;
 import team.ebi.epicbanitem.util.data.DataUtils;
 
 @Singleton
@@ -79,14 +76,16 @@ public final class EBIRegistries {
                 false,
                 () -> ImmutableMap.<ResourceKey, RestrictionTrigger>builder()
                         .put(EpicBanItem.key("place"), injector.getInstance(PlaceRestrictionTrigger.class))
-                        .put(EpicBanItem.key("break"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("break"), injector.getInstance(BreakRestrictionTrigger.class))
                         .put(EpicBanItem.key("pickup"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("throw"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("drop"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("use"), injector.getInstance(UseRestrictionTrigger.class))
-                        .put(EpicBanItem.key("interact"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("be_interacted"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("join"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("interact"), injector.getInstance(InteractRestrictionTrigger.class))
+                        .put(
+                                EpicBanItem.key("be_interacted"),
+                                injector.getInstance(BeInteractedRestrictionTrigger.class))
+                        .put(EpicBanItem.key("join"), injector.getInstance(JoinRestrictionTrigger.class))
                         .put(EpicBanItem.key("equip"), injector.getInstance(EquipRestrictionTrigger.class))
                         .put(EpicBanItem.key("be_equipped"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())

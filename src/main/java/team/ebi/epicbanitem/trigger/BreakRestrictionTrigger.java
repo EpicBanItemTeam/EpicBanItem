@@ -14,9 +14,9 @@ import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 import team.ebi.epicbanitem.util.EventUtils;
 
-public class PlaceRestrictionTrigger extends AbstractRestrictionTrigger {
-    public PlaceRestrictionTrigger() {
-        super(EpicBanItem.key("place"));
+public class BreakRestrictionTrigger extends AbstractRestrictionTrigger {
+    public BreakRestrictionTrigger() {
+        super(EpicBanItem.key("break"));
     }
 
     @Listener
@@ -24,7 +24,7 @@ public class PlaceRestrictionTrigger extends AbstractRestrictionTrigger {
         final var cause = event.cause();
         final var audience = cause.last(Audience.class).orElse(null);
         final var locale = EventUtils.locale(cause);
-        event.transactions(Operations.PLACE.get())
+        event.transactions(Operations.BREAK.get())
                 .forEach(transaction -> this.process(event, transaction.finalReplacement(), audience, locale)
                         .ifPresent(transaction::setCustom));
     }
