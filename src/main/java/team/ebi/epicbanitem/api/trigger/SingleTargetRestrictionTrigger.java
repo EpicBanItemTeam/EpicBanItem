@@ -6,20 +6,29 @@
 package team.ebi.epicbanitem.api.trigger;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
+import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
+import org.spongepowered.api.event.action.InteractEvent;
+import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.Slot;
+import org.spongepowered.api.item.inventory.equipment.EquipmentType;
+import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.Locatable;
@@ -31,12 +40,12 @@ import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.api.RestrictionService;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
+import team.ebi.epicbanitem.util.BlockUtils;
 
 public abstract class SingleTargetRestrictionTrigger extends AbstractRestrictionTrigger {
 
@@ -63,15 +72,20 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
                 event,
                 item,
                 rule -> {
-                    if (Objects.nonNull(audience)) components.add(this.ruleCancelledMessage(rule, itemStack, locale));
+                    if (Objects.nonNull(audience)) {
+                        components.add(this.ruleCancelledMessage(rule, itemStack, locale));
+                    }
                 },
                 (rule, result) -> {
-                    if (result.isEmpty() || Objects.isNull(audience)) return;
+                    if (result.isEmpty() || Objects.isNull(audience)) {
+                        return;
+                    }
                     components.add(
                             this.ruleUpdateMessage(rule, itemStack, result.get().createStack(), locale));
                 });
-        if (Objects.nonNull(audience) && !components.isEmpty())
+        if (Objects.nonNull(audience) && !components.isEmpty()) {
             audience.sendMessage(Component.join(JoinConfiguration.newlines(), components));
+        }
         return finalResult;
     }
 
@@ -82,17 +96,22 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
         final var finalResult = this.process(
                 event,
                 block,
-                rule -> components.add(
-                        GlobalTranslator.render(rule.cancelledMessage().args(rule, this, type), locale)),
+                rule -> {
+                    if (Objects.nonNull(audience)) {
+                        components.add(
+                                this.ruleCancelledMessage(rule, block.state().type(), locale));
+                    }
+                },
                 (rule, result) -> {
-                    if (result.isEmpty()) return;
-                    components.add(GlobalTranslator.render(
-                            rule.updatedMessage()
-                                    .args(rule, this, type, result.get().state().type()),
-                            locale));
+                    if (result.isEmpty() || Objects.isNull(audience)) {
+                        return;
+                    }
+                    components.add(this.ruleUpdateMessage(
+                            rule, block.state().type(), result.get().state().type(), locale));
                 });
-        if (Objects.nonNull(audience) && !components.isEmpty())
+        if (Objects.nonNull(audience) && !components.isEmpty()) {
             audience.sendMessage(Component.join(JoinConfiguration.newlines(), components));
+        }
         return finalResult;
     }
 
@@ -115,13 +134,15 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
             BlockSnapshot block,
             Consumer<RestrictionRule> onCancelled,
             BiConsumer<RestrictionRule, Optional<BlockSnapshot>> onProcessed) {
-        return this.process(
-                event,
-                block.toContainer(),
-                block.state().type().key(RegistryTypes.BLOCK_TYPE),
-                onCancelled,
-                onProcessed,
-                view -> Sponge.dataManager().deserialize(BlockSnapshot.class, view));
+        return BlockUtils.fromBlock(block)
+                .map(DataSerializable::toContainer)
+                .flatMap(it -> this.process(
+                        event,
+                        it,
+                        block.state().type().key(RegistryTypes.BLOCK_TYPE),
+                        onCancelled,
+                        onProcessed,
+                        view -> Sponge.dataManager().deserialize(BlockSnapshot.class, view)));
     }
 
     protected <T> Optional<T> process(
@@ -134,7 +155,9 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
         final var cause = event.cause();
         final var world =
                 cause.last(Locatable.class).map(Locatable::serverLocation).map(Location::world);
-        if (world.isEmpty()) return translator.apply(view);
+        if (world.isEmpty()) {
+            return translator.apply(view);
+        }
         final var subject = cause.last(Subject.class).orElse(null);
         var finalView = Optional.<DataView>empty();
         for (RestrictionRule rule : predicateService
@@ -143,7 +166,9 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
                 .toList()) {
             Optional<DataView> processed =
                     processRule(rule, event, view, world.get(), subject, onCancelled, onProcessed, translator);
-            if (processed.isPresent()) finalView = processed;
+            if (processed.isPresent()) {
+                finalView = processed;
+            }
         }
         return finalView.flatMap(translator);
     }
@@ -157,17 +182,35 @@ public abstract class SingleTargetRestrictionTrigger extends AbstractRestriction
             Consumer<RestrictionRule> onCancelled,
             BiConsumer<RestrictionRule, Optional<T>> onProcessed,
             Function<DataView, Optional<T>> translator) {
-        if (rule.onlyPlayer() && !(subject instanceof ServerPlayer)) return Optional.empty();
+        if (rule.onlyPlayer() && !(subject instanceof ServerPlayer)) {
+            return Optional.empty();
+        }
         Optional<QueryResult> query = restrictionService.query(rule, view, world, this, subject);
-        if (query.isEmpty()) return Optional.empty();
+        if (query.isEmpty()) {
+            return Optional.empty();
+        }
         if (rule.needCancel() && event instanceof Cancellable cancellable) {
             cancellable.setCancelled(true);
             onCancelled.accept(rule);
         }
-        Optional<DataView> finalView = query.flatMap(result ->
-                rule.updateExpression().map(it -> it.update(result, view).process(view)));
-        if (finalView.isEmpty()) return Optional.empty();
+        Optional<DataView> finalView = query.flatMap(result -> rule.updateExpression()
+                .map(it -> it.update(result, view))
+                .filter(Predicate.not(Map::isEmpty))
+                .map(it -> it.process(view)));
+        if (finalView.isEmpty()) {
+            return Optional.empty();
+        }
         onProcessed.accept(rule, translator.apply(view));
         return finalView;
+    }
+
+    protected <T extends InteractEvent> void handleInteract(
+            T event, Equipable equipable, HandType hand, ItemStackSnapshot item) {
+        EquipmentType equipment = EquipmentTypes.registry().value(hand.key(RegistryTypes.HAND_TYPE));
+        Optional<Slot> slot = equipable.equipment().slot(equipment);
+        if (slot.isEmpty()) {
+            return;
+        }
+        this.processWithMessage(event, item).ifPresent(it -> slot.get().set(it.createStack()));
     }
 }

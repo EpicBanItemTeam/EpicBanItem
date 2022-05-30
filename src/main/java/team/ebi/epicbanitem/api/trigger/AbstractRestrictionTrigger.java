@@ -59,11 +59,11 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
     }
 
     protected <T extends ComponentLike> Component ruleCancelledMessage(RestrictionRule rule, T object, Locale locale) {
-        return GlobalTranslator.render(rule.cancelledMessage().args(rule, this, object), locale);
+        return GlobalTranslator.render(rule.cancelledMessage().args(rule, description(), object), locale);
     }
 
     protected <T extends ComponentLike> Component ruleUpdateMessage(
             RestrictionRule rule, T object, T newObject, Locale locale) {
-        return GlobalTranslator.render(rule.updatedMessage().args(rule, this, object, newObject), locale);
+        return GlobalTranslator.render(rule.updatedMessage().args(rule, description(), object, newObject), locale);
     }
 }
