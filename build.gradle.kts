@@ -12,6 +12,10 @@ plugins {
 val id: String by project
 val group: String by project
 
+semver {
+    tagPrefix("v")
+    initialVersion("1.0.0")
+}
 
 project.group = group
 project.version = semver.version
@@ -110,9 +114,4 @@ spotless {
             */""".trimIndent()
         )
     }
-}
-
-semver {
-    tagPrefix("v")
-    initialVersion("1.0.0")
 }
