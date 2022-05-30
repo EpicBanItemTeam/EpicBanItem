@@ -32,18 +32,18 @@ jobs:
           tag=$(git describe --tags --abbrev=0 --match 'v*');
           echo "::set-output name=tag::$tag";  
 
-      - name: Create tag
-        id: tag
+      - name: Create tag & Get version
+        id: version
         run: |
           ./gradlew generateVersionFile
-          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
+          echo "::set-output name=version::$(head -1 build/semver/version.txt)"
           ./gradlew createAndPushVersionTag
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
         id: changelog
         with:
           from: ${{ steps.current-tag.outputs.tag }}
-          to: ${{ steps.tag.outputs.version }}
+          to: v${{ steps.version.outputs.version }}
 
       - name: Create Release
         if: steps.changelog.outputs.changelog != 'No Changes'
@@ -51,8 +51,8 @@ jobs:
         with:
           allowUpdates: true
           draft: false
-          tag: ${{ steps.tag.outputs.version }}
+          tag: v${{ steps.version.outputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
           token: ${{ github.token }}
-          artifacts: build/libs/EpicBanItem-${{ steps.tag.outputs.version }}.jar
+          artifacts: build/libs/EpicBanItem-${{ steps.version.outputs.version }}.jar
           artifactErrorsFailBuild: true
