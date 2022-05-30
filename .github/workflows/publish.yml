@@ -44,23 +44,23 @@ jobs:
           from: ${{ steps.current-tag.outputs.tag }}
           to: ${{ steps.tag.outputs.version }}
 
-      - name: Prepend Changelog
-        if: steps.changelog.outputs.changelog
-        uses: endaft/action-prepend@v0.0.9
-        with:
-          file_target: CHANGELOG.md
-          value_in: ${{ format('# {0}\n{1}\n', steps.tag.outputs.version, steps.changelog.outputs.changelog) }}
-          is_file: "false"
+#      - name: Prepend Changelog
+#        if: steps.changelog.outputs.changelog != 'No Changes'
+#        uses: endaft/action-prepend@v0.0.9
+#        with:
+#          file_target: CHANGELOG.md
+#          value_in: ${{ format('# {0}\n{1}\n', steps.tag.outputs.version, steps.changelog.outputs.changelog) }}
+#          is_file: "false"
 
       - uses: actions/upload-artifact@v3
-        if: steps.changelog.outputs.changelog
+        if: steps.changelog.outputs.changelog != 'No Changes'
         with:
           name: plugin
           path: build/libs/EpicBanItem-${{ steps.current-tag.outputs.tag }}.jar
           if-no-files-found: error
 
       - name: Upload to Ore
-        if: steps.changelog.outputs.changelog
+        if: steps.changelog.outputs.changelog != 'No Changes'
         uses: dualspiral/ore-upload-action@v2
         with:
           plugin: plugin

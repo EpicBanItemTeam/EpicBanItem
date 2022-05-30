@@ -23,11 +23,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
+      - name: Test and Build
+        run: ./gradlew test build
+
       - name: Determinate latest released tag
         id: current-tag
         run: |
           tag=$(git describe --tags --abbrev=0 --match 'v*');
-          echo "::set-output name=tag::$tag";      
+          echo "::set-output name=tag::$tag";  
 
       - name: Create tag
         id: tag
@@ -42,12 +45,8 @@ jobs:
           from: ${{ steps.current-tag.outputs.tag }}
           to: ${{ steps.tag.outputs.version }}
 
-      - name: Test and Build
-        if: steps.changelog.outputs.changelog
-        run: ./gradlew test build
-
       - name: Create Release
-        if: steps.changelog.outputs.changelog
+        if: steps.changelog.outputs.changelog != 'No Changes'
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
@@ -55,4 +54,4 @@ jobs:
           tag: ${{ steps.tag.outputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
           token: ${{ github.token }}
-          artifacts: build/libs/EpicBanItem-*.jar
+          artifacts: build/libs/EpicBanItem-${{ steps.tag.outputs.version }}.jar
