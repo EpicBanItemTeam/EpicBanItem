@@ -24,7 +24,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Create tag
-        if: success()
         id: tag
         run: |
           ./gradlew generateVersionFile
@@ -63,4 +62,4 @@ jobs:
           tag: ${{ steps.tag.outputs.version }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
-          artifacts: build/libs/EpicBanItem*
+          artifacts: build/libs/EpicBanItem-*.jar

@@ -27,3 +27,35 @@ jobs:
 
       - name: Build
         run: ./gradlew build
+
+      - name: Version
+        id: version
+        run: |
+          ./gradlew generateVersionFile
+          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
+
+      - name: Find Tag
+        id: tagger
+        uses: jimschubert/query-tag-action@v1
+        with:
+          include: 'v[0-1000].[0-1000].[0-1000]'
+
+      - uses: dlavrenuek/conventional-changelog-action@v1.2.0
+        id: changelog
+        with:
+          from: ${{ steps.tagger.outputs.tag }}
+          to: HEAD
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: plugin
+          path: build/libs/EpicBanItem-*.jar
+          if-no-files-found: error
+
+      - name: Upload to Ore
+        uses: dualspiral/ore-upload-action@v2
+        with:
+          plugin: plugin
+          description: ${{ steps.changelog.outputs.body }}
+          apiKey: ${{ secrets.ORE_API_KEY }}
+          pluginId: epicbanitem
