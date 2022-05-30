@@ -43,16 +43,16 @@ jobs:
           to: ${{ steps.tag.outputs.version }}
 
       - name: Test and Build
-        if: steps.changelog.outputs.body
+        if: steps.changelog.outputs.changelog
         run: ./gradlew test build
 
       - name: Create Release
-        if: steps.changelog.outputs.body
+        if: steps.changelog.outputs.changelog
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           draft: false
           tag: ${{ steps.tag.outputs.version }}
-          body: ${{ steps.changelog.outputs.body }}
+          body: ${{ steps.changelog.outputs.changelog }}
           token: ${{ github.token }}
           artifacts: build/libs/EpicBanItem-*.jar
