@@ -5,7 +5,6 @@
  */
 package team.ebi.epicbanitem;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.*;
@@ -25,7 +24,6 @@ import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.data.persistence.DataContainer;
-import org.spongepowered.api.data.persistence.DataFormats;
 import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.entity.living.player.Player;
@@ -64,7 +62,6 @@ import team.ebi.epicbanitem.api.trigger.RestrictionTrigger;
 import team.ebi.epicbanitem.api.trigger.RestrictionTriggers;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
-import team.ebi.epicbanitem.util.Components;
 import team.ebi.epicbanitem.util.RestrictionRuleRenderer;
 import team.ebi.epicbanitem.util.command.Flags;
 import team.ebi.epicbanitem.util.command.Parameters;
@@ -642,26 +639,16 @@ public final class EBICommands {
         final var components = predicateService.rule(predicate).stream()
                 .map(rule -> {
                     // TODO copy rule
-                    try {
-                        return rule.asComponent()
-                                .hoverEvent(Component.join(
-                                        JoinConfiguration.newlines(),
-                                        DataViewRenderer.render(
-                                                        rule.queryExpression().toContainer())
-                                                .stream()
-                                                .limit(25)
-                                                .toList()))
-                                .clickEvent(ClickEvent.suggestCommand(DataFormats.HOCON
-                                        .get()
-                                        .write(rule.queryExpression().toContainer())))
-                                .append(Component.space())
-                                .append(Components.INFO
-                                        .color(NamedTextColor.GRAY)
-                                        .clickEvent(ClickEvent.runCommand(MessageFormat.format(
-                                                "/{0} info {1}", EpicBanItem.NAMESPACE, rule.key()))));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    return rule.asComponent()
+                            .hoverEvent(Component.join(
+                                    JoinConfiguration.newlines(),
+                                    DataViewRenderer.render(
+                                                    rule.queryExpression().toContainer())
+                                            .stream()
+                                            .limit(25)
+                                            .toList()))
+                            .clickEvent(ClickEvent.runCommand(
+                                    MessageFormat.format("/{0} info {1}", EpicBanItem.NAMESPACE, rule.key())));
                 })
                 .toList();
         Sponge.serviceProvider()
