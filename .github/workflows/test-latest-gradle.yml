@@ -9,11 +9,16 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ssh-key: ${{ secrets.ACTIONS_COMMIT }}
+
       - uses: actions/setup-java@v2
         with:
           java-version: 16
           distribution: microsoft
-      - uses: gradle/gradle-build-action@v2
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
         with:
           gradle-version: current
+
       - run: gradle build --dry-run # just test build configuration
