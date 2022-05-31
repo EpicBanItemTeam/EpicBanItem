@@ -39,9 +39,13 @@ jobs:
           ./gradlew generateVersionFile
           echo "::set-output name=version::$(head -1 build/semver/version.txt)"
 
-      - uses: actions-ecosystem/action-push-tag@v1.3.2
-        with:
-          tag: ${{ steps.semver.outputs.version }}
+      - name: Tag
+        run: |
+          tag=${{ steps.semver.outputs.version }}
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git tag -a "${tag}" -m "${message}"
+          git push origin "${tag}"
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
         id: changelog
