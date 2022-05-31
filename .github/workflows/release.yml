@@ -44,7 +44,7 @@ jobs:
           tag=v${{ steps.semver.outputs.version }}
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "${tag}"
+          git tag -a "${tag}" -m ""
           git push origin "${tag}"
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
