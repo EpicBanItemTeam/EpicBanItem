@@ -14,6 +14,7 @@ import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.world.server.ServerWorld;
 
 import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
@@ -67,8 +68,11 @@ public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements S
     @Override
     public void update(boolean defaultState) {
         this.defaultState = defaultState;
-        clear();
-        Sponge.server().worldManager().worlds().forEach(world -> put(world.key(), Tristate.UNDEFINED));
+        final var keys = Sponge.server().worldManager().worlds().stream()
+                .map(ServerWorld::key)
+                .toList();
+        map.keySet().retainAll(keys);
+        keys.forEach(key -> map.putIfAbsent(key, Tristate.UNDEFINED));
     }
 
     @Override

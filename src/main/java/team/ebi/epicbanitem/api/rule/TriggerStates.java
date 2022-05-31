@@ -73,11 +73,12 @@ public class TriggerStates extends AbstractMap<ResourceKey, Tristate> implements
     @Override
     public void update(boolean defaultState) {
         this.defaultState = defaultState;
-        clear();
-        RestrictionTriggers.registry()
+        final var keys = RestrictionTriggers.registry()
                 .streamEntries()
                 .map(RegistryEntry::key)
-                .forEach(key -> map.putIfAbsent(key, Tristate.UNDEFINED));
+                .toList();
+        map.keySet().retainAll(keys);
+        keys.forEach(key -> map.putIfAbsent(key, Tristate.UNDEFINED));
     }
 
     @Override
