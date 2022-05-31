@@ -39,7 +39,7 @@ jobs:
           ./gradlew generateVersionFile
           echo "::set-output name=version::$(head -1 build/semver/version.txt)"
 
-      - uses: actions-ecosystem/action-push-tag@v1
+      - uses: actions-ecosystem/action-push-tag@v1.3.2
         with:
           tag: ${{ steps.semver.outputs.version }}
 
