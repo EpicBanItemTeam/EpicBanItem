@@ -77,9 +77,9 @@ public final class EBIRegistries {
                 () -> ImmutableMap.<ResourceKey, RestrictionTrigger>builder()
                         .put(EpicBanItem.key("place"), injector.getInstance(PlaceRestrictionTrigger.class))
                         .put(EpicBanItem.key("break"), injector.getInstance(BreakRestrictionTrigger.class))
-                        .put(EpicBanItem.key("pickup"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("pickup"), injector.getInstance(PickupRestrictionTrigger.class))
                         .put(EpicBanItem.key("throw"), injector.getInstance(ThrowRestrictionTrigger.class))
-                        .put(EpicBanItem.key("drop"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("drop"), injector.getInstance(DropRestrictionTrigger.class))
                         .put(EpicBanItem.key("use"), injector.getInstance(UseRestrictionTrigger.class))
                         .put(EpicBanItem.key("interact"), injector.getInstance(InteractRestrictionTrigger.class))
                         .put(

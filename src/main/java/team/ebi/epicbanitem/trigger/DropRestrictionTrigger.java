@@ -6,18 +6,21 @@
 package team.ebi.epicbanitem.trigger;
 
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.entity.SpawnEntityEvent;
+import org.spongepowered.api.event.filter.type.Include;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class ThrowRestrictionTrigger extends AbstractRestrictionTrigger {
-    public ThrowRestrictionTrigger() {
-        super(EpicBanItem.key("throw"));
+public class DropRestrictionTrigger extends AbstractRestrictionTrigger {
+    public DropRestrictionTrigger() {
+        super(EpicBanItem.key("drop"));
     }
 
     @Listener
-    public void onDropItemDispense(final DropItemEvent.Dispense event) {
+    @Include({DropItemEvent.Destruct.class, DropItemEvent.Close.class, DropItemEvent.Custom.class})
+    public void onDropItem(final SpawnEntityEvent event) {
         this.handleSpawnEntity(event);
     }
 }
