@@ -31,8 +31,8 @@ public class BeInteractedRestrictionTrigger extends AbstractRestrictionTrigger {
         this.processCancellable(
                         event,
                         block.location().map(ServerLocation::world).orElseThrow(),
-                        cause.last(Subject.class).orElse(null),
-                        cause.last(Audience.class).orElse(null),
+                        cause.first(Subject.class).orElse(null),
+                        cause.first(Audience.class).orElse(null),
                         block)
                 .ifPresent(it -> it.restore(true, BlockChangeFlags.NONE));
     }

@@ -35,8 +35,8 @@ public class UseRestrictionTrigger extends AbstractRestrictionTrigger {
         slotFromHand(equipable, hand).ifPresent(it -> this.processCancellable(
                         event,
                         locatable.serverLocation().world(),
-                        cause.last(Subject.class).orElse(null),
-                        cause.last(Audience.class).orElse(null),
+                        cause.first(Subject.class).orElse(null),
+                        cause.first(Audience.class).orElse(null),
                         item)
                 .map(ItemStackSnapshot::createStack)
                 .ifPresent(it::set));

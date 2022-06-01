@@ -24,8 +24,8 @@ public class PlaceRestrictionTrigger extends AbstractRestrictionTrigger {
     @Listener
     public void onChangeBlock(ChangeBlockEvent.All event, @Getter("world") ServerWorld world) {
         final var cause = event.cause();
-        final var audience = cause.last(Audience.class).orElse(null);
-        final var subject = cause.last(Subject.class).orElse(null);
+        final var audience = cause.first(Audience.class).orElse(null);
+        final var subject = cause.first(Subject.class).orElse(null);
         event.transactions(Operations.PLACE.get()).forEach(transaction -> this.processCancellable(
                         event, world, subject, audience, transaction.finalReplacement())
                 .ifPresent(transaction::setCustom));

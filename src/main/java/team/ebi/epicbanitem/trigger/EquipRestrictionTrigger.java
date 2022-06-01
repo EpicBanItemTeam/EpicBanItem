@@ -40,8 +40,8 @@ public class EquipRestrictionTrigger extends AbstractRestrictionTrigger {
         this.processCancellable(
                         event,
                         entity.serverLocation().world(),
-                        cause.last(Subject.class).orElse(null),
-                        cause.last(Audience.class).orElse(null),
+                        cause.first(Subject.class).orElse(null),
+                        cause.first(Audience.class).orElse(null),
                         item)
                 .ifPresent(transaction::setCustom);
     }

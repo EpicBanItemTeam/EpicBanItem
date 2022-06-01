@@ -34,8 +34,8 @@ public class JoinRestrictionTrigger extends AbstractRestrictionTrigger {
     @Listener
     public void onSpawnEntity(SpawnEntityEvent.Pre event, @Last ServerWorld world) {
         final var cause = event.cause();
-        final var audience = cause.last(Audience.class).orElse(null);
-        final var subject = cause.last(Subject.class).orElse(null);
+        final var audience = cause.first(Audience.class).orElse(null);
+        final var subject = cause.first(Subject.class).orElse(null);
         event.entities().stream()
                 .filter(Carrier.class::isInstance)
                 .map(it -> ((Carrier) it).inventory())
