@@ -8,17 +8,20 @@ package team.ebi.epicbanitem.trigger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.entity.SpawnEntityEvent;
+import org.spongepowered.api.event.filter.cause.Last;
 import org.spongepowered.api.event.network.ServerSideConnectionEvent;
 import org.spongepowered.api.item.inventory.Carrier;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.Ticks;
+import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.plugin.PluginContainer;
 
 import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
-import team.ebi.epicbanitem.util.EventUtils;
 
 public class JoinRestrictionTrigger extends AbstractRestrictionTrigger {
     @Inject
@@ -29,26 +32,40 @@ public class JoinRestrictionTrigger extends AbstractRestrictionTrigger {
     }
 
     @Listener
-    public void onSpawnEntity(SpawnEntityEvent.Pre event) {
+    public void onSpawnEntity(SpawnEntityEvent.Pre event, @Last ServerWorld world) {
         final var cause = event.cause();
         final var audience = cause.last(Audience.class).orElse(null);
-        final var locale = EventUtils.locale(cause);
+        final var subject = cause.last(Subject.class).orElse(null);
         event.entities().stream()
                 .filter(Carrier.class::isInstance)
                 .map(it -> ((Carrier) it).inventory())
-                .forEach(it -> handleInventory(it, event, audience, locale));
+                .flatMap(it -> it.slots().stream())
+                .filter(it -> it.freeCapacity() == 0)
+                .forEach(it -> this.process(
+                                event, world, subject, audience, it.peek().createSnapshot())
+                        .map(ItemStackSnapshot::createStack)
+                        .ifPresent(it::set));
     }
 
     @Listener
     public void onServerSideConnectionJoin(ServerSideConnectionEvent.Join event) {
         final var player = event.player();
-        final var locale = player.locale();
+        final var world = player.world();
         Sponge.server()
                 .scheduler()
                 .submit(Task.builder()
                         .plugin(plugin)
                         .delay(Ticks.of(1L))
-                        .execute(() -> handleInventory(player.inventory(), event, player, locale))
+                        .execute(() -> player.inventory().slots().stream()
+                                .filter(it -> it.freeCapacity() == 0)
+                                .forEach(it -> this.process(
+                                                event,
+                                                world,
+                                                player,
+                                                player,
+                                                it.peek().createSnapshot())
+                                        .map(ItemStackSnapshot::createStack)
+                                        .ifPresent(it::set)))
                         .build());
     }
 }

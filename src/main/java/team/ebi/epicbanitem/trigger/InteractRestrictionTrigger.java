@@ -15,7 +15,10 @@ import org.spongepowered.api.event.filter.cause.Last;
 import org.spongepowered.api.event.filter.type.Include;
 import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.world.Locatable;
 
+import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
@@ -28,9 +31,18 @@ public class InteractRestrictionTrigger extends AbstractRestrictionTrigger {
     @Include({InteractEntityEvent.class, InteractBlockEvent.Primary.Start.class, InteractBlockEvent.Secondary.class})
     public void onInteract(
             InteractEvent event,
+            @Last Locatable locatable,
             @Last Equipable equipable,
             @ContextValue("USED_HAND") HandType hand,
             @ContextValue("USED_ITEM") ItemStackSnapshot item) {
-        this.handleInteract(event, equipable, hand, item);
+        final var cause = event.cause();
+        slotFromHand(equipable, hand).ifPresent(it -> this.processCancellable(
+                        event,
+                        locatable.serverLocation().world(),
+                        cause.last(Subject.class).orElse(null),
+                        cause.last(Audience.class).orElse(null),
+                        item)
+                .map(ItemStackSnapshot::createStack)
+                .ifPresent(it::set));
     }
 }

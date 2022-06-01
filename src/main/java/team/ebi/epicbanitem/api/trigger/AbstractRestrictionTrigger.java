@@ -5,13 +5,10 @@
  */
 package team.ebi.epicbanitem.api.trigger;
 
-import java.util.Locale;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.spongepowered.api.ResourceKey;
@@ -21,35 +18,26 @@ import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
-import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
-import org.spongepowered.api.event.action.InteractEvent;
+import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.item.inventory.Equipable;
-import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.world.Locatable;
-import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.server.ServerWorld;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.RestrictionService;
-import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
 import team.ebi.epicbanitem.api.rule.RulePredicateService;
-import team.ebi.epicbanitem.util.EventUtils;
 import team.ebi.epicbanitem.util.ItemUtils;
 
 public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
@@ -93,205 +81,184 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
         return Component.translatable(EpicBanItem.NAMESPACE + ".trigger." + key() + ".description");
     }
 
-    protected Optional<BlockSnapshot> process(Event event, BlockSnapshot block) {
-        final var cause = event.cause();
-        return this.process(event, block, cause.last(Audience.class).orElse(null), EventUtils.locale(cause));
-    }
-
-    protected Optional<ItemStackSnapshot> process(Event event, ItemStackSnapshot item) {
-        final var cause = event.cause();
-        return this.process(event, item, cause.last(Audience.class).orElse(null), EventUtils.locale(cause));
-    }
-
-    protected Optional<ItemStackSnapshot> process(
-            Event event, ItemStackSnapshot item, @Nullable Audience audience, Locale locale) {
-        return this.process(event, item, audience, locale, true);
-    }
-
-    protected Optional<ItemStackSnapshot> process(
-            Event event,
-            ItemStackSnapshot item,
-            @Nullable Audience audience,
-            Locale locale,
-            final boolean shouldCancel) {
-        final var itemStack = item.createStack();
-        final var components = Lists.<Component>newArrayList();
-        final var finalResult = this.process(
-                event,
-                item,
-                shouldCancel,
-                rule -> {
-                    if (Objects.nonNull(audience)) {
-                        components.add(GlobalTranslator.render(
-                                rule.cancelledMessage().args(rule, description(), itemStack, this), locale));
-                    }
-                },
-                (rule, result) -> {
-                    if (result.isEmpty() || Objects.isNull(audience)) {
-                        return;
-                    }
-                    components.add(GlobalTranslator.render(
-                            rule.updatedMessage()
-                                    .args(
-                                            rule,
-                                            description(),
-                                            itemStack,
-                                            result.get().createStack()),
-                            locale));
-                });
-        if (Objects.nonNull(audience) && !components.isEmpty()) {
-            audience.sendMessage(Component.join(JoinConfiguration.newlines(), components));
-        }
-        return finalResult;
-    }
-
-    protected Optional<BlockSnapshot> process(
-            Event event, BlockSnapshot block, @Nullable Audience audience, Locale locale) {
-        return this.process(event, block, audience, locale, true);
-    }
-
-    protected Optional<BlockSnapshot> process(
-            Event event, BlockSnapshot block, @Nullable Audience audience, Locale locale, final boolean shouldCancel) {
-        final var components = Lists.<Component>newArrayList();
-        final var type = block.state().type();
-        final var finalResult = this.process(
-                event,
-                block,
-                shouldCancel,
-                rule -> {
-                    if (Objects.nonNull(audience)) {
-                        components.add(GlobalTranslator.render(
-                                rule.cancelledMessage().args(rule, description(), type, this), locale));
-                    }
-                },
-                (rule, result) -> {
-                    if (result.isEmpty() || Objects.isNull(audience)) {
-                        return;
-                    }
-                    components.add(GlobalTranslator.render(
-                            rule.updatedMessage()
-                                    .args(
-                                            rule,
-                                            description(),
-                                            type,
-                                            result.get().state().type()),
-                            locale));
-                });
-        if (Objects.nonNull(audience) && !components.isEmpty()) {
-            audience.sendMessage(Component.join(JoinConfiguration.newlines(), components));
-        }
-        return finalResult;
-    }
-
-    private Optional<ItemStackSnapshot> process(
+    protected Optional<BlockSnapshot> processCancellable(
             final Event event,
-            final ItemStackSnapshot item,
-            final boolean shouldCancel,
-            final Consumer<RestrictionRule> onCancelled,
-            final BiConsumer<RestrictionRule, Optional<ItemStackSnapshot>> onProcessed) {
-        return this.process(
-                event,
-                item.toContainer(),
-                item.type().key(RegistryTypes.ITEM_TYPE),
-                shouldCancel,
-                onCancelled,
-                onProcessed,
-                view -> Sponge.dataManager().deserialize(ItemStackSnapshot.class, view));
-    }
-
-    private Optional<BlockSnapshot> process(
-            final Event event,
-            final BlockSnapshot block,
-            final boolean shouldCancel,
-            final Consumer<RestrictionRule> onCancelled,
-            final BiConsumer<RestrictionRule, Optional<BlockSnapshot>> onProcessed) {
-        return ItemUtils.fromBlock(block)
-                .map(DataSerializable::toContainer)
-                .flatMap(it -> this.process(
-                        event,
-                        it,
-                        block.state().type().key(RegistryTypes.BLOCK_TYPE),
-                        shouldCancel,
-                        onCancelled,
-                        onProcessed,
-                        view -> Sponge.dataManager().deserialize(BlockSnapshot.class, view)));
-    }
-
-    private <T> Optional<T> process(
-            final Event event,
-            final DataView view,
-            final ResourceKey objectType,
-            final boolean shouldCancel,
-            final Consumer<RestrictionRule> onCancelled,
-            final BiConsumer<RestrictionRule, Optional<T>> onProcessed,
-            final Function<DataView, Optional<T>> translator) {
-        final var cause = event.cause();
-        final var world =
-                cause.last(Locatable.class).map(Locatable::serverLocation).map(Location::world);
-        if (world.isEmpty()) {
-            return translator.apply(view);
-        }
-        final var subject = cause.last(Subject.class).orElse(null);
-        var finalView = Optional.<DataView>empty();
-        for (RestrictionRule rule : predicateService
-                .rules(predicateService.predicates(objectType))
-                .sorted(RulePredicateService.PRIORITY_ASC)
-                .toList()) {
-            Optional<DataView> processed = processRule(
-                    rule, event, view, world.get(), subject, shouldCancel, onCancelled, onProcessed, translator);
-            if (processed.isPresent()) {
-                finalView = processed;
-            }
-        }
-        return finalView.flatMap(translator);
-    }
-
-    private <T> Optional<DataView> processRule(
-            final RestrictionRule rule,
-            final Event event,
-            final DataView view,
             final ServerWorld world,
             final @Nullable Subject subject,
-            final boolean shouldCancel,
-            Consumer<RestrictionRule> onCancelled,
-            BiConsumer<RestrictionRule, Optional<T>> onProcessed,
-            Function<DataView, Optional<T>> translator) {
-        if (rule.onlyPlayer() && !(subject instanceof ServerPlayer)) {
-            return Optional.empty();
-        }
-        Optional<QueryResult> query = restrictionService.query(rule, view, world, this, subject);
-        if (query.isEmpty()) {
-            return Optional.empty();
-        }
-        if (rule.needCancel() && event instanceof Cancellable cancellable) {
-            if (shouldCancel) cancellable.setCancelled(true);
-            onCancelled.accept(rule);
-        }
-        Optional<DataView> finalView = query.flatMap(result -> rule.updateExpression()
-                .map(it -> it.update(result, view))
-                .filter(Predicate.not(Map::isEmpty))
-                .map(it -> it.process(view)));
-        if (finalView.isEmpty()) {
-            return Optional.empty();
-        }
-        onProcessed.accept(rule, translator.apply(view));
-        return finalView;
+            final @Nullable Audience audience,
+            final BlockSnapshot block) {
+        return this.processCancellable(
+                event, world, subject, audience, block, ProcessHandler.CancellableHandler.CANCEL_EVENT);
     }
 
-    protected <T extends InteractEvent> void handleInteract(
-            T event, Equipable equipable, HandType hand, ItemStackSnapshot item) {
-        EquipmentType equipment = EquipmentTypes.registry().value(hand.key(RegistryTypes.HAND_TYPE));
-        Optional<Slot> slot = equipable.equipment().slot(equipment);
-        if (slot.isEmpty()) {
-            return;
-        }
-        this.process(event, item).ifPresent(it -> slot.get().set(it.createStack()));
+    protected Optional<ItemStackSnapshot> processCancellable(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final @Nullable Audience audience,
+            final ItemStackSnapshot item) {
+        return this.processCancellable(
+                event, world, subject, audience, item, ProcessHandler.CancellableHandler.CANCEL_EVENT);
     }
 
-    protected void handleInventory(
-            final Inventory inventory, final Event event, final Audience audience, final Locale locale) {
-        inventory.slots().stream().filter(it -> it.freeCapacity() == 0).forEach(slot -> this.process(
-                        event, slot.peek().createSnapshot(), audience, locale)
-                .ifPresent(it -> slot.set(it.createStack())));
+    protected Optional<BlockSnapshot> processCancellable(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final @Nullable Audience audience,
+            final BlockSnapshot block,
+            final ProcessHandler.CancellableHandler cancellable) {
+        return this.process(event, world, subject, audience, block, (ProcessHandler.Block)
+                (Objects.isNull(audience)
+                        ? new ProcessHandler.Block.Cancellable(cancellable)
+                        : new ProcessHandler.Block.MessageCancellable(block, this, cancellable)));
     }
+
+    protected Optional<ItemStackSnapshot> processCancellable(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final @Nullable Audience audience,
+            final ItemStackSnapshot item,
+            final ProcessHandler.CancellableHandler cancellable) {
+        return this.process(event, world, subject, audience, item, (ProcessHandler.Item)
+                (Objects.isNull(audience)
+                        ? new ProcessHandler.Item.Cancellable(cancellable)
+                        : new ProcessHandler.Item.MessageCancellable(item, this, cancellable)));
+    }
+
+    protected Optional<BlockSnapshot> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final @Nullable Audience audience,
+            final BlockSnapshot block) {
+        return this.process(
+                event,
+                world,
+                subject,
+                audience,
+                block,
+                Objects.isNull(audience)
+                        ? new ProcessHandler.Block.Impl()
+                        : new ProcessHandler.Block.Message(block, this));
+    }
+
+    protected Optional<ItemStackSnapshot> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final @Nullable Audience audience,
+            final ItemStackSnapshot item) {
+        return this.process(
+                event,
+                world,
+                subject,
+                audience,
+                item,
+                Objects.isNull(audience)
+                        ? new ProcessHandler.Item.Impl()
+                        : new ProcessHandler.Item.Message(item, this));
+    }
+
+    protected Optional<BlockSnapshot> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final @Nullable Audience audience,
+            final BlockSnapshot block,
+            final ProcessHandler.Block handler) {
+        final var processed = this.process(event, world, subject, block, handler);
+        if (Objects.nonNull(audience) && handler instanceof ProcessHandler.Message message) message.sendTo(audience);
+        return processed;
+    }
+
+    protected Optional<ItemStackSnapshot> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final @Nullable Audience audience,
+            final ItemStackSnapshot item,
+            final ProcessHandler.Item handler) {
+        final var processed = this.process(event, world, subject, item, handler);
+        if (Objects.nonNull(audience) && handler instanceof ProcessHandler.Message message) message.sendTo(audience);
+        return processed;
+    }
+
+    protected Optional<BlockSnapshot> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final BlockSnapshot block,
+            final ProcessHandler.Block handler) {
+        return ItemUtils.fromBlock(block)
+                .map(DataSerializable::toContainer)
+                .flatMap(view -> this.process(
+                        event, world, subject, block.state().type().key(RegistryTypes.BLOCK_TYPE), view, handler));
+    }
+
+    protected Optional<ItemStackSnapshot> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final ItemStackSnapshot item,
+            final ProcessHandler.Item handler) {
+        return this.process(
+                event, world, subject, item.type().key(RegistryTypes.ITEM_TYPE), item.toContainer(), handler);
+    }
+
+    protected <T> Optional<T> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final ResourceKey objectType,
+            final DataView view,
+            final ProcessHandler.Message<T> handler) {
+        return this.process(event, world, subject, objectType, view, (ProcessHandler<T>) handler);
+    }
+
+    protected <T> Optional<T> process(
+            final Event event,
+            final ServerWorld world,
+            final @Nullable Subject subject,
+            final ResourceKey objectType,
+            final DataView view,
+            final ProcessHandler<T> handler) {
+        final var cancelled = new ArrayList<RestrictionRule>();
+        final var updated = new ArrayList<RestrictionRule>();
+        var resultView = Optional.<DataView>empty();
+        for (final var rule : predicateService
+                .rules(predicateService.predicates(objectType))
+                .sorted(RulePredicateService.PRIORITY_ASC)
+                .filter(it -> !it.onlyPlayer() || subject instanceof ServerPlayer)
+                .toList()) {
+            final var query = restrictionService.query(rule, view, world, this, subject);
+            if (query.isEmpty()) continue;
+            if (rule.needCancel() && handler instanceof ProcessHandler.CancellableHandler cancellableHandler) {
+                cancellableHandler.cancel(event);
+                cancelled.add(rule);
+            }
+            final var prevView = resultView.orElse(view);
+            final var currView = query.flatMap(result -> rule.updateExpression()
+                    .map(it -> it.update(result, prevView))
+                    .filter(Predicate.not(Map::isEmpty))
+                    .map(it -> it.process(prevView)));
+            if (currView.isEmpty()) continue;
+            resultView = currView;
+            updated.add(rule);
+        }
+        Optional<T> result = resultView.flatMap(handler::translate);
+        if (handler instanceof ProcessHandler.Message<T> message) {
+            if (!cancelled.isEmpty()) message.cancelledMessages(cancelled);
+            if (!updated.isEmpty() && result.isPresent()) message.updatedMessages(updated, result.get());
+        }
+        return result;
+    }
+
+    protected Optional<Slot> slotFromHand(final Equipable equipable, final HandType hand) {
+        return equipable.equipment().slot((EquipmentType)
+                EquipmentTypes.registry().value(hand.key(RegistryTypes.EQUIPMENT_TYPE)));
+    }
+
+    protected <T extends DropItemEvent> void handleDrop(T event) {}
 }

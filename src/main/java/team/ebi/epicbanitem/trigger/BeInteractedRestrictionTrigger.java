@@ -10,8 +10,11 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.type.Include;
+import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.BlockChangeFlags;
+import org.spongepowered.api.world.server.ServerLocation;
 
+import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
@@ -24,6 +27,13 @@ public class BeInteractedRestrictionTrigger extends AbstractRestrictionTrigger {
     @Include({InteractBlockEvent.Primary.Start.class, InteractBlockEvent.Secondary.class})
     public void onInteractBlock(InteractBlockEvent event, @Getter("block") BlockSnapshot block) {
         // Will trigger on both hands
-        this.process(event, block).ifPresent(it -> it.restore(true, BlockChangeFlags.NONE));
+        final var cause = event.cause();
+        this.processCancellable(
+                        event,
+                        block.location().map(ServerLocation::world).orElseThrow(),
+                        cause.last(Subject.class).orElse(null),
+                        cause.last(Audience.class).orElse(null),
+                        block)
+                .ifPresent(it -> it.restore(true, BlockChangeFlags.NONE));
     }
 }

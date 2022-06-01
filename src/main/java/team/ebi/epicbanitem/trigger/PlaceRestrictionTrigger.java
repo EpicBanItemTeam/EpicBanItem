@@ -8,11 +8,13 @@ package team.ebi.epicbanitem.trigger;
 import org.spongepowered.api.block.transaction.Operations;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.filter.Getter;
+import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.world.server.ServerWorld;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
-import team.ebi.epicbanitem.util.EventUtils;
 
 public class PlaceRestrictionTrigger extends AbstractRestrictionTrigger {
     public PlaceRestrictionTrigger() {
@@ -20,12 +22,12 @@ public class PlaceRestrictionTrigger extends AbstractRestrictionTrigger {
     }
 
     @Listener
-    public void onChangeBlock(ChangeBlockEvent.All event) {
+    public void onChangeBlock(ChangeBlockEvent.All event, @Getter("world") ServerWorld world) {
         final var cause = event.cause();
         final var audience = cause.last(Audience.class).orElse(null);
-        final var locale = EventUtils.locale(cause);
-        event.transactions(Operations.PLACE.get())
-                .forEach(transaction -> this.process(event, transaction.finalReplacement(), audience, locale)
-                        .ifPresent(transaction::setCustom));
+        final var subject = cause.last(Subject.class).orElse(null);
+        event.transactions(Operations.PLACE.get()).forEach(transaction -> this.processCancellable(
+                        event, world, subject, audience, transaction.finalReplacement())
+                .ifPresent(transaction::setCustom));
     }
 }
