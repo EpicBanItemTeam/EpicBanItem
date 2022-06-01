@@ -76,7 +76,7 @@ public class EpicBanItem {
             PackContents contents = pack.contents();
             Collection<ResourcePath> paths = contents.paths(
                     PackType.server(),
-                    NAMESPACE,
+                    "plugin-" + NAMESPACE,
                     "assets/messages",
                     3,
                     name -> name.startsWith("assets/messages/messages_") && name.endsWith(".properties"));
