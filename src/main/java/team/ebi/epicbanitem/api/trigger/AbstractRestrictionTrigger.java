@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 import org.spongepowered.api.ResourceKey;
@@ -18,11 +17,8 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.type.HandType;
-import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Event;
-import org.spongepowered.api.event.entity.SpawnEntityEvent;
-import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
 import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.Slot;
@@ -32,7 +28,6 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.server.ServerWorld;
 
-import com.google.common.util.concurrent.Atomics;
 import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -112,10 +107,15 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
             final @Nullable Audience audience,
             final BlockSnapshot block,
             final ProcessHandler.CancellableHandler cancellable) {
-        return this.process(event, world, subject, audience, block, (ProcessHandler.Block)
-                (Objects.isNull(audience)
+        return this.process(
+                event,
+                world,
+                subject,
+                audience,
+                block,
+                Objects.isNull(audience)
                         ? new ProcessHandler.Block.Cancellable(cancellable)
-                        : new ProcessHandler.Block.MessageCancellable(block, this, cancellable)));
+                        : new ProcessHandler.Block.MessageCancellable(block, this, cancellable));
     }
 
     protected Optional<ItemStackSnapshot> processCancellable(
@@ -125,10 +125,15 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
             final @Nullable Audience audience,
             final ItemStackSnapshot item,
             final ProcessHandler.CancellableHandler cancellable) {
-        return this.process(event, world, subject, audience, item, (ProcessHandler.Item)
-                (Objects.isNull(audience)
+        return this.process(
+                event,
+                world,
+                subject,
+                audience,
+                item,
+                Objects.isNull(audience)
                         ? new ProcessHandler.Item.Cancellable(cancellable)
-                        : new ProcessHandler.Item.MessageCancellable(item, this, cancellable)));
+                        : new ProcessHandler.Item.MessageCancellable(item, this, cancellable));
     }
 
     protected Optional<BlockSnapshot> process(
@@ -205,7 +210,7 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
-            final ItemStackSnapshot item,
+            final @NotNull ItemStackSnapshot item,
             final ProcessHandler.Item handler) {
         return this.process(
                 event, world, subject, item.type().key(RegistryTypes.ITEM_TYPE), item.toContainer(), handler);
@@ -262,36 +267,5 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
     protected Optional<Slot> slotFromHand(final Equipable equipable, final HandType hand) {
         return equipable.equipment().slot((EquipmentType)
                 EquipmentTypes.registry().value(hand.key(RegistryTypes.HAND_TYPE)));
-    }
-
-    protected <T extends SpawnEntityEvent> void handleSpawnEntity(T event) {
-        final var cause = event.cause();
-        final var audience = cause.last(Audience.class).orElse(null);
-        final var subject = cause.last(Subject.class).orElse(null);
-        final var hasInventory = event instanceof ChangeInventoryEvent;
-        final var world = Atomics.<ServerWorld>newReference(null);
-        event.filterEntities(entity -> {
-            if (world.get() == null) world.set(entity.serverLocation().world());
-            if (!(entity instanceof Item item)) return true;
-            final var mutable = item.item();
-            final var snapshot = mutable.get();
-            final var cancelled = new AtomicBoolean(false);
-            // TODO Return the item when cancel
-            final var processed = !hasInventory
-                    ? this.process(event, world.get(), subject, audience, snapshot)
-                    : this.processCancellable(event, world.get(), subject, audience, snapshot, ignored -> {
-                        ((ChangeInventoryEvent) event).filter(it -> !snapshot.equals(it.createSnapshot()));
-                        cancelled.set(true);
-                    });
-            if (processed.isPresent()) {
-                item.offer(mutable.set(processed.get()));
-                if (hasInventory && cancelled.get())
-                    ((ChangeInventoryEvent) event)
-                            .inventory()
-                            .offer(processed.get().createStack());
-            }
-
-            return !cancelled.get();
-        });
     }
 }
