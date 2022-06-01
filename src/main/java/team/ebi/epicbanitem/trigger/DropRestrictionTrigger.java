@@ -43,9 +43,8 @@ public class DropRestrictionTrigger extends AbstractRestrictionTrigger {
             final var cancelled = new AtomicBoolean(false);
             Optional<ItemStackSnapshot> processed =
                     this.processCancellable(event, world, subject, audience, drop, ignored -> cancelled.set(true));
-            if (processed.isPresent()) {
-                if (!cancelled.get()) finalDrops.add(processed.get());
-            } else finalDrops.add(drop);
+            if (processed.isPresent() && !cancelled.get()) finalDrops.add(processed.get());
+            else if (!cancelled.get()) finalDrops.add(drop);
         }
         drops.clear();
         drops.addAll(finalDrops);
