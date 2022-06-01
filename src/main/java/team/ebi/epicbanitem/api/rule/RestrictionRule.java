@@ -80,7 +80,7 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
      * <li>3: final object name
      */
     @Contract(pure = true)
-    TranslatableComponent updatedMessage();
+    Optional<TranslatableComponent> updatedMessage();
 
     /**
      * @return Translatable component with args:
@@ -89,7 +89,7 @@ public interface RestrictionRule extends ResourceKeyed, ComponentLike, DataSeria
      * <li>2: origin object name
      */
     @Contract(pure = true)
-    TranslatableComponent cancelledMessage();
+    Optional<TranslatableComponent> cancelledMessage();
 
     @Override
     @NotNull

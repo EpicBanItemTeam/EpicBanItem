@@ -73,7 +73,6 @@ import static team.ebi.epicbanitem.util.data.DataUtils.objectName;
 
 @Singleton
 public final class EBICommands {
-
     private final Cache<UUID, RootQueryExpression> usedQuery =
             Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(10)).build();
 

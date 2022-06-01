@@ -190,21 +190,21 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     @Override
-    public TranslatableComponent updatedMessage() {
+    public Optional<TranslatableComponent> updatedMessage() {
         final var key = messageKey(key() + ".updated");
         if (!EpicBanItem.translations.contains(key)) {
-            return Component.translatable("epicbanitem.rule.updated");
+            return Optional.empty();
         }
-        return Component.translatable(key);
+        return Optional.of(Component.translatable(key));
     }
 
     @Override
-    public TranslatableComponent cancelledMessage() {
+    public Optional<TranslatableComponent> cancelledMessage() {
         final var key = messageKey(key() + ".canceled");
         if (!EpicBanItem.translations.contains(key)) {
-            return Component.translatable("epicbanitem.rule.canceled");
+            return Optional.empty();
         }
-        return Component.translatable(key);
+        return Optional.of(Component.translatable(key));
     }
 
     @Override

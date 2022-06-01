@@ -18,5 +18,8 @@ public final class Components {
     public static final TranslatableComponent INFO = Component.translatable("epicbanitem.ui.info")
             .hoverEvent(Component.translatable("epicbanitem.ui.info.description"));
 
+    public static final TranslatableComponent RULE_CANCELLED = Component.translatable("epicbanitem.rule.canceled");
+    public static final TranslatableComponent RULE_UPDATED = Component.translatable("epicbanitem.rule.updated");
+
     private Components() {}
 }
