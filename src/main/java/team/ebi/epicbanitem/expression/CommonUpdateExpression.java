@@ -34,12 +34,8 @@ public class CommonUpdateExpression implements UpdateExpression {
                         entireQuery,
                         UpdateExpressionFunctions.expressions.get(key).apply(view, entireQuery));
             } else {
-                this.expressions.clear();
-                break;
+                this.expressions.put(ROOT, new ObjectUpdateExpression(SetUpdateExpression::new, view, query));
             }
-        }
-        if (this.expressions.isEmpty()) {
-            this.expressions.put(query, new ObjectUpdateExpression(SetUpdateExpression::new, view, query));
         }
     }
 
@@ -54,10 +50,15 @@ public class CommonUpdateExpression implements UpdateExpression {
 
     @Override
     public DataContainer toContainer() {
-        DataContainer container = DataContainer.createNew();
+        final var container = DataContainer.createNew();
         this.expressions.forEach((query, expression) -> {
-            if (!query.parts().isEmpty()) {
-                container.set(query, expression.toContainer().get(ROOT).orElse(expression.toContainer()));
+            final var targetContainer = expression.toContainer();
+            if (query.equals(ROOT)) {
+                for (final var key : targetContainer.keys(false)) {
+                    container.set(key, targetContainer.get(key).orElseThrow());
+                }
+            } else if (!query.parts().isEmpty()) {
+                container.set(query, targetContainer.get(ROOT).orElse(targetContainer));
             }
         });
         return container;
