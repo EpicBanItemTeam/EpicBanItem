@@ -71,7 +71,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
         this.priority = view.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
         this.queryExpression = view.getSerializable(RestrictionRuleQueries.QUERY, RootQueryExpression.class)
                 .orElseThrow(() -> new InvalidDataException("Invalid query expression for rule"));
-        this.updateExpression = view.getSerializable(RestrictionRuleQueries.QUERY, RootUpdateExpression.class)
+        this.updateExpression = view.getSerializable(RestrictionRuleQueries.UPDATE, RootUpdateExpression.class)
                 .orElse(null);
         this.predicate = view.getResourceKey(RestrictionRuleQueries.PREDICATE).orElse(RulePredicateService.WILDCARD);
         this.needCancel = view.getBoolean(RestrictionRuleQueries.NEED_CANCEL).orElse(false);
