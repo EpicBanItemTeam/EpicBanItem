@@ -28,5 +28,5 @@ jobs:
         run: ./gradlew test -Psemver.overrideVersion={{ github.ref_name }}
 
       - name: Test
-        if: !steps.ref.outputs.success
+        if: ${{ !steps.ref.outputs.success }}
         run: ./gradlew test
