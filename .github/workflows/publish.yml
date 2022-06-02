@@ -50,7 +50,7 @@ jobs:
         if: steps.changelog.outputs.changelog != 'No Changes'
         with:
           name: plugin
-          path: build/libs/EpicBanItem-${{ github.ref_name }}.jar
+          path: build/libs/EpicBanItem-${{ github.ref_name#v }}.jar
           if-no-files-found: error
 
       - name: Upload to Ore
