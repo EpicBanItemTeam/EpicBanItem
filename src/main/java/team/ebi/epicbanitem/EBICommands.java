@@ -5,6 +5,7 @@
  */
 package team.ebi.epicbanitem;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.*;
@@ -355,12 +356,12 @@ public final class EBICommands {
 
         final var update = Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.set.description.update"))
-                .addParameters(parameters.update.key(keys.update).build())
+                .addParameters(parameters.update.key(keys.update).optional().build())
                 .executor(context -> {
                     final var rule = context.requireOne(keys.rule);
-                    final var value = context.requireOne(keys.update);
+                    final var value = context.one(keys.update);
                     ResourceKey key = rule.key();
-                    ruleService.register(key, rule.updateExpression(value));
+                    ruleService.register(key, rule.updateExpression(value.orElse(null)));
                     ruleService.save();
                     Sponge.server()
                             .commandManager()
@@ -659,10 +660,14 @@ public final class EBICommands {
         return CommandResult.success();
     }
 
-    private @NotNull CommandResult info(final @NotNull CommandContext context) {
+    private @NotNull CommandResult info(final @NotNull CommandContext context) throws CommandException {
         final var audience = context.cause().audience();
         final var rule = context.requireOne(keys.rule);
-        audience.sendMessage(RestrictionRuleRenderer.renderRule(rule));
+        try {
+            audience.sendMessage(RestrictionRuleRenderer.renderRule(rule));
+        } catch (IOException e) {
+            throw new CommandException(Component.translatable("epicbanitem.command.renderFailed"), e);
+        }
         return CommandResult.success();
     }
 }

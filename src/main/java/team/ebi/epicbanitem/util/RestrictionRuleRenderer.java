@@ -5,9 +5,12 @@
  */
 package team.ebi.epicbanitem.util;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Objects;
 
+import org.spongepowered.api.data.persistence.DataFormats;
+import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.util.Tristate;
 
 import com.google.common.collect.Lists;
@@ -30,7 +33,7 @@ public final class RestrictionRuleRenderer {
     private static final Component DIVIDER_TOP = Component.text(Strings.repeat('━', 22));
     private static final Component DIVIDER_BOTTOM = Component.text(Strings.repeat('━', 22));
 
-    public static Component renderRule(RestrictionRule rule) {
+    public static Component renderRule(RestrictionRule rule) throws IOException {
         final var ruleKeyString = rule.key().asString();
         final var components = Lists.<Component>newArrayList();
         components.add(DIVIDER_TOP);
@@ -73,14 +76,19 @@ public final class RestrictionRuleRenderer {
         components.add(renderTriggerStates(ruleKeyString, rule.triggerStates()));
 
         // TODO Click suggest command
+        final var format = DataFormats.JSON.get();
         final var updateExpression = rule.updateExpression();
+        final var query = rule.queryExpression().toContainer();
+        final var update = updateExpression.map(DataSerializable::toContainer);
         components.add(Component.text()
                 .append(Component.translatable("epicbanitem.ui.rule.query.key")
                         .hoverEvent(Component.join(
                                 JoinConfiguration.newlines(),
-                                DataViewRenderer.render(rule.queryExpression().toContainer()).stream()
+                                DataViewRenderer.render(query).stream()
                                         .limit(25)
-                                        .toList())))
+                                        .toList()))
+                        .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                "/{0} set {1} query {2}", EpicBanItem.NAMESPACE, ruleKeyString, format.write(query)))))
                 .append(Component.space())
                 .append(Component.translatable("epicbanitem.ui.rule.update.key")
                         .hoverEvent(
@@ -88,12 +96,14 @@ public final class RestrictionRuleRenderer {
                                         ? Component.text("null")
                                         : Component.join(
                                                 JoinConfiguration.newlines(),
-                                                DataViewRenderer.render(updateExpression
-                                                                .get()
-                                                                .toContainer())
-                                                        .stream()
+                                                DataViewRenderer.render(update.get()).stream()
                                                         .limit(25)
-                                                        .toList())))
+                                                        .toList()))
+                        .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                "/{0} set {1} update {2}",
+                                EpicBanItem.NAMESPACE,
+                                ruleKeyString,
+                                update.isPresent() ? format.write(update.get()) : "{}"))))
                 .build());
 
         components.add(Component.text()
