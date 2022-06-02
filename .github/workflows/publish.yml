@@ -50,6 +50,12 @@ jobs:
         id: version
         run: echo ::set-output name=version::$(echo ${{ github.ref_name }} | cut -c2-)
 
+      - uses: DamianReeves/write-file-action
+        with:
+          path: DESC
+          contents: ${{ steps.changelog.outputs.changelog }}
+          write-mode: overwrite
+
       - uses: actions/upload-artifact@v3
         if: steps.changelog.outputs.changelog != 'No Changes'
         with:
@@ -57,11 +63,19 @@ jobs:
           path: build/libs/EpicBanItem-${{ steps.version.outputs.version }}.jar
           if-no-files-found: error
 
+
+      - uses: actions/upload-artifact@v3
+        if: steps.changelog.outputs.changelog != 'No Changes'
+        with:
+          name: desc
+          path: DESC
+          if-no-files-found: error
+
       - name: Upload to Ore
         if: steps.changelog.outputs.changelog != 'No Changes'
         uses: dualspiral/ore-upload-action@v2
         with:
           plugin: plugin
-          description: ${{ steps.changelog.outputs.changelog }}
+          description: desc
           apiKey: ${{ secrets.ORE_API_KEY }}
           pluginId: epicbanitem
