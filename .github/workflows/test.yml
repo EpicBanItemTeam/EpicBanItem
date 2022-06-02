@@ -25,7 +25,7 @@ jobs:
 
       - name: Test on tag
         if: steps.ref.outputs.success
-        run: ./gradlew test -Psemver.overrideVersion={{ github.ref_name }}
+        run: ./gradlew test -Psemver.overrideVersion=${{ github.ref_name }}
 
       - name: Test
         if: ${{ !steps.ref.outputs.success }}
