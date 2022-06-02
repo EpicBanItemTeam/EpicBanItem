@@ -88,7 +88,8 @@ public final class EBIRegistries {
                                 injector.getInstance(BeInteractedRestrictionTrigger.class))
                         .put(EpicBanItem.key("join"), injector.getInstance(JoinRestrictionTrigger.class))
                         .put(EpicBanItem.key("equip"), injector.getInstance(EquipRestrictionTrigger.class))
-                        .put(EpicBanItem.key("be_equipped"), new RestrictionTriggerImpl())
+                        //                        .put(EpicBanItem.key("be_equipped"),
+                        // injector.getInstance(BeEquippedRestrictionTrigger.class))
                         .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("store"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("click"), new RestrictionTriggerImpl())
