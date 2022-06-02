@@ -50,7 +50,7 @@ jobs:
         id: version
         run: echo ::set-output name=version::$(echo ${{ github.ref_name }} | cut -c2-)
 
-      - uses: DamianReeves/write-file-action
+      - uses: DamianReeves/write-file-action@v1.0
         with:
           path: DESC
           contents: ${{ steps.changelog.outputs.changelog }}
