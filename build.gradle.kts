@@ -15,6 +15,7 @@ val group: String by project
 semver {
     tagPrefix("v")
     initialVersion("1.0.0")
+    findProperty("semver.overrideVersion")?.toString()?.let { overrideVersion(it) }
 }
 
 project.group = group
