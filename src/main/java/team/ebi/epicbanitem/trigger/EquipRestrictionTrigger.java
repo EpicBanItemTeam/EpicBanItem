@@ -5,15 +5,23 @@
  */
 package team.ebi.epicbanitem.trigger;
 
+import java.util.Optional;
+
+import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.filter.Getter;
-import org.spongepowered.api.event.filter.cause.Last;
+import org.spongepowered.api.event.filter.IsCancelled;
+import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Equipable;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.equipment.EquipmentGroups;
+import org.spongepowered.api.item.inventory.slot.EquipmentSlot;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.util.Tristate;
 
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
@@ -28,21 +36,34 @@ public class EquipRestrictionTrigger extends AbstractRestrictionTrigger {
     }
 
     @Listener
+    @IsCancelled(Tristate.UNDEFINED)
     public void onChangeEntityEquipment(
             final ChangeEntityEquipmentEvent event,
-            @Last Equipable equipable,
-            @Getter("entity") Entity entity,
-            @Getter("transaction") Transaction<ItemStackSnapshot> transaction) {
+            final @First Equipable equipable,
+            final @First Carrier carrier,
+            final @Getter("entity") Entity entity,
+            final @Getter("transaction") Transaction<ItemStackSnapshot> transaction,
+            final @Getter("slot") EquipmentSlot slot) {
+        final var equipmentType = slot.get(Keys.EQUIPMENT_TYPE).orElseThrow();
+        final var equipmentGroup = equipmentType.group();
+        if (!equipmentGroup.equals(EquipmentGroups.WORN.get())) return;
         final var item = transaction.finalReplacement();
         final var cause = event.cause();
         if (item.isEmpty()) return;
         // TODO change the cancel
-        this.processCancellable(
-                        event,
-                        entity.serverLocation().world(),
-                        cause.first(Subject.class).orElse(null),
-                        cause.first(Audience.class).orElse(null),
-                        item)
-                .ifPresent(transaction::setCustom);
+        Optional<ItemStackSnapshot> processed = this.processCancellable(
+                event,
+                entity.serverLocation().world(),
+                cause.first(Subject.class).orElse(null),
+                cause.first(Audience.class).orElse(null),
+                item);
+
+        if (processed.isPresent()) {
+            if (event.isCancelled()) carrier.inventory().offer(processed.get().createStack());
+            else transaction.setCustom(processed.get());
+        } else {
+            if (event.isCancelled())
+                carrier.inventory().offer(transaction.defaultReplacement().createStack());
+        }
     }
 }
