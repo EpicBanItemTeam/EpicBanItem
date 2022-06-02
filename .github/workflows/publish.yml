@@ -35,7 +35,7 @@ jobs:
       - name: Get semver
         id: semver
         run: |
-          ./gradlew generateVersionFile -Psemver.overrideVersion={{ github.ref_name# }}
+          ./gradlew generateVersionFile -Psemver.overrideVersion=${{ github.ref_name# }}
           echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
