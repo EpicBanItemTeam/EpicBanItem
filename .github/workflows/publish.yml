@@ -32,17 +32,11 @@ jobs:
           tag=$(git describe --tags --abbrev=0 --match 'v*');
           echo "::set-output name=tag::$tag";      
 
-      - name: Get semver
-        id: semver
-        run: |
-          ./gradlew generateVersionFile -Psemver.overrideVersion=${{ github.ref_name }}
-          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
-
       - uses: seasonalmatcha/conventional-commit-changelog@latest
         id: changelog
         with:
           from: ${{ steps.current-tag.outputs.tag }}
-          to: ${{ steps.semver.outputs.version }}
+          to: ${{ github.ref_name }}
 
 #      - name: Prepend Changelog
 #        if: steps.changelog.outputs.changelog != 'No Changes'
@@ -56,7 +50,7 @@ jobs:
         if: steps.changelog.outputs.changelog != 'No Changes'
         with:
           name: plugin
-          path: build/libs/EpicBanItem-${{ steps.semver.outputs.version }}.jar
+          path: build/libs/EpicBanItem-${{ github.ref_name }}jar
           if-no-files-found: error
 
       - name: Upload to Ore
