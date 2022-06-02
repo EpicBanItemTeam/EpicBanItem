@@ -92,7 +92,7 @@ public final class EBIRegistries {
                         // injector.getInstance(BeEquippedRestrictionTrigger.class))
                         .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())
                         .put(EpicBanItem.key("store"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("click"), new RestrictionTriggerImpl())
+                        //                        .put(EpicBanItem.key("click"), new RestrictionTriggerImpl())
                         .build());
 
         event.register(
