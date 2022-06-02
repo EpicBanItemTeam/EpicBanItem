@@ -46,11 +46,15 @@ jobs:
 #          value_in: ${{ format('# {0}\n{1}\n', steps.tag.outputs.version, steps.changelog.outputs.changelog) }}
 #          is_file: "false"
 
+      - name: Get the version
+        id: version
+        run: echo ::set-output name=version::$(echo ${{ github.ref_name }} | cut -c2-)
+
       - uses: actions/upload-artifact@v3
         if: steps.changelog.outputs.changelog != 'No Changes'
         with:
           name: plugin
-          path: build/libs/EpicBanItem-${{ github.ref_name#v }}.jar
+          path: build/libs/EpicBanItem-${{ steps.version.outputs.version }}.jar
           if-no-files-found: error
 
       - name: Upload to Ore
