@@ -29,7 +29,7 @@ jobs:
       - name: Determinate latest released tag
         id: current-tag
         run: |
-          tag=$(git describe --tags --abbrev=0 --match 'v*');
+          tag=$(git describe --abbrev=0 --match 'v[0-9]*' --exclude *-*);
           echo "::set-output name=tag::$tag";      
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
