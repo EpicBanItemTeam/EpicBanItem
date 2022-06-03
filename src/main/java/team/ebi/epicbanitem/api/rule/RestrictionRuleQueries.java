@@ -9,6 +9,7 @@ import org.spongepowered.api.data.persistence.DataQuery;
 
 public final class RestrictionRuleQueries {
     public static final DataQuery RULE = DataQuery.of("Rule");
+    public static final DataQuery KEY = DataQuery.of("Key");
     public static final DataQuery PRIORITY = DataQuery.of("Priority");
     public static final DataQuery QUERY = DataQuery.of("Query");
     public static final DataQuery UPDATE = DataQuery.of("Update");

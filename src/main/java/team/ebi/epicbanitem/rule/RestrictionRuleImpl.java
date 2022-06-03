@@ -15,7 +15,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import team.ebi.epicbanitem.EBIServices;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
@@ -35,8 +34,10 @@ public class RestrictionRuleImpl implements RestrictionRule {
     private final ResourceKey predicate;
     private final boolean needCancel;
     private final boolean onlyPlayer;
+    private final ResourceKey key;
 
-    public RestrictionRuleImpl(QueryExpression queryExpression) {
+    public RestrictionRuleImpl(ResourceKey key, QueryExpression queryExpression) {
+        this.key = key;
         this.priority = 10;
         this.queryExpression = queryExpression;
         this.updateExpression = null;
@@ -48,6 +49,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     public RestrictionRuleImpl(
+            ResourceKey key,
             int priority,
             WorldStates worldStates,
             TriggerStates triggerStates,
@@ -56,6 +58,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
             ResourceKey predicate,
             boolean needCancel,
             boolean onlyPlayer) {
+        this.key = key;
         this.priority = priority;
         this.worldStates = worldStates;
         this.triggerStates = triggerStates;
@@ -68,6 +71,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     public RestrictionRuleImpl(DataView data) {
         DataView view = data.getView(RestrictionRuleQueries.RULE).orElseThrow();
+        this.key = view.getResourceKey(RestrictionRuleQueries.KEY).orElseThrow();
         this.priority = view.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
         this.queryExpression = view.getSerializable(RestrictionRuleQueries.QUERY, RootQueryExpression.class)
                 .orElseThrow(() -> new InvalidDataException("Invalid query expression for rule"));
@@ -85,9 +89,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     @Override
     public @NotNull ResourceKey key() {
-        return EBIServices.ruleService
-                .of(this)
-                .orElseThrow(() -> new IllegalArgumentException("Rule has to registered to get key"));
+        return key;
     }
 
     @Override
@@ -98,6 +100,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule priority(int value) {
         return new RestrictionRuleImpl(
+                key,
                 value,
                 worldStates,
                 triggerStates,
@@ -116,7 +119,15 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule needCancel(boolean value) {
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, queryExpression, updateExpression, predicate, value, onlyPlayer);
+                key,
+                priority,
+                worldStates,
+                triggerStates,
+                queryExpression,
+                updateExpression,
+                predicate,
+                value,
+                onlyPlayer);
     }
 
     @Override
@@ -127,7 +138,15 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule onlyPlayer(boolean value) {
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, queryExpression, updateExpression, predicate, needCancel, value);
+                key,
+                priority,
+                worldStates,
+                triggerStates,
+                queryExpression,
+                updateExpression,
+                predicate,
+                needCancel,
+                value);
     }
 
     @Override
@@ -138,7 +157,15 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule worldStates(WorldStates states) {
         return new RestrictionRuleImpl(
-                priority, states, triggerStates, queryExpression, updateExpression, predicate, needCancel, onlyPlayer);
+                key,
+                priority,
+                states,
+                triggerStates,
+                queryExpression,
+                updateExpression,
+                predicate,
+                needCancel,
+                onlyPlayer);
     }
 
     public TriggerStates triggerStates() {
@@ -148,7 +175,15 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule triggerStates(TriggerStates states) {
         return new RestrictionRuleImpl(
-                priority, worldStates, states, queryExpression, updateExpression, predicate, needCancel, onlyPlayer);
+                key,
+                priority,
+                worldStates,
+                states,
+                queryExpression,
+                updateExpression,
+                predicate,
+                needCancel,
+                onlyPlayer);
     }
 
     @Override
@@ -159,7 +194,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule queryExpression(QueryExpression value) {
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, value, updateExpression, predicate, needCancel, onlyPlayer);
+                key, priority, worldStates, triggerStates, value, updateExpression, predicate, needCancel, onlyPlayer);
     }
 
     @Override
@@ -171,7 +206,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     public @Nullable RestrictionRule updateExpression(UpdateExpression value) {
 
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, queryExpression, value, predicate, needCancel, onlyPlayer);
+                key, priority, worldStates, triggerStates, queryExpression, value, predicate, needCancel, onlyPlayer);
     }
 
     @Override
@@ -182,7 +217,15 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public RestrictionRule predicate(ResourceKey value) {
         return new RestrictionRuleImpl(
-                priority, worldStates, triggerStates, queryExpression, updateExpression, value, needCancel, onlyPlayer);
+                key,
+                priority,
+                worldStates,
+                triggerStates,
+                queryExpression,
+                updateExpression,
+                value,
+                needCancel,
+                onlyPlayer);
     }
 
     private String messageKey(String path) {
@@ -229,7 +272,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
         if (Objects.nonNull(updateExpression)) {
             ruleView.set(RestrictionRuleQueries.UPDATE, updateExpression);
         }
-        ruleView.set(RestrictionRuleQueries.PRIORITY, priority)
+        ruleView.set(RestrictionRuleQueries.KEY, key)
+                .set(RestrictionRuleQueries.PRIORITY, priority)
                 .set(RestrictionRuleQueries.QUERY, queryExpression)
                 .set(RestrictionRuleQueries.WORLD, worldStates)
                 .set(RestrictionRuleQueries.TRIGGER, triggerStates)

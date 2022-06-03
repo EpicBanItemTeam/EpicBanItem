@@ -13,7 +13,6 @@ import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
@@ -30,6 +29,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.api.rule.RestrictionRule;
+import team.ebi.epicbanitem.api.rule.RestrictionRuleQueries;
 import team.ebi.epicbanitem.api.rule.RestrictionRuleService;
 
 @Singleton
@@ -86,7 +86,7 @@ public class RestrictionRulesStorage {
 
     public void save(ResourceKey key, RestrictionRule rule) {
         try {
-            var loader = this.configBuilder
+            final var loader = this.configBuilder
                     .path(rulesDir.resolve(configExtension(key.value())))
                     .build();
             loader.save(loader.createNode().set(rule));
@@ -108,8 +108,8 @@ public class RestrictionRulesStorage {
     }
 
     private Map<ResourceKey, RestrictionRule> rulesFromFiles() throws IOException {
-
-        try (Stream<Path> paths = Files.find(
+        final var keyQuery = RestrictionRuleQueries.RULE.then(RestrictionRuleQueries.KEY);
+        try (final var paths = Files.find(
                 rulesDir,
                 2,
                 (path, attributes) -> attributes.isRegularFile()
@@ -120,6 +120,16 @@ public class RestrictionRulesStorage {
                             getNameWithoutExtension(it.getFileName().toString())),
                     it -> {
                         try {
+                            // Need a way to translate ndoe to data view
+                            //                            final var view =
+                            // configBuilder.path(it).build().load().get(DataContainer.class);
+                            //                            if (!Objects.requireNonNull(view).contains(keyQuery))
+                            //                                view.set(keyQuery, EpicBanItem.key(
+                            //
+                            // getNameWithoutExtension(it.getFileName().toString())));
+                            //                            return
+                            // Objects.requireNonNull(Sponge.dataManager().deserialize(RestrictionRule.class,
+                            // view).orElse(null));
                             return Objects.requireNonNull(
                                     configBuilder.path(it).build().load().get(RestrictionRule.class));
                         } catch (ConfigurateException e) {

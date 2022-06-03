@@ -40,4 +40,6 @@ public interface RestrictionRuleService {
     RestrictionRule remove(ResourceKey key);
 
     void save();
+
+    void save(ResourceKey key);
 }

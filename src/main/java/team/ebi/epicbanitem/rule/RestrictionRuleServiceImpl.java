@@ -74,4 +74,9 @@ public class RestrictionRuleServiceImpl implements RestrictionRuleService {
     public void save() {
         rulesStorage.get().save();
     }
+
+    @Override
+    public void save(ResourceKey key) {
+        rulesStorage.get().save(key);
+    }
 }

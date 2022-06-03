@@ -184,7 +184,7 @@ public final class EBICommands {
                     final var value = context.requireOne(Parameter.key("value", Integer.class));
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.priority(value));
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -205,7 +205,7 @@ public final class EBICommands {
                     final var serverWorld = context.requireOne(Parameter.key("world", ServerWorld.class));
                     final var value = context.requireOne(Parameter.key("value", Tristate.class));
                     rule.worldStates().put(serverWorld.key(), value);
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -223,7 +223,7 @@ public final class EBICommands {
                     final var rule = context.requireOne(keys.rule);
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
                     rule.worldStates().update(value);
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -250,7 +250,7 @@ public final class EBICommands {
                             context.requireOne(Parameter.key("trigger", RestrictionTrigger.class));
                     final var value = context.requireOne(Parameter.key("value", Tristate.class));
                     rule.triggerStates().put(restrictionTrigger.key(), value);
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -268,7 +268,7 @@ public final class EBICommands {
                     final var rule = context.requireOne(keys.rule);
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
                     rule.triggerStates().update(value);
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -287,7 +287,7 @@ public final class EBICommands {
                     final var value = context.requireOne(keys.predicate);
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.predicate(value));
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -306,7 +306,7 @@ public final class EBICommands {
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.needCancel(value));
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -325,7 +325,7 @@ public final class EBICommands {
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.onlyPlayer(value));
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -344,7 +344,7 @@ public final class EBICommands {
                     final var value = context.requireOne(keys.query);
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.queryExpression(value));
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -363,7 +363,7 @@ public final class EBICommands {
                     final var value = context.one(keys.update);
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.updateExpression(value.orElse(null)));
-                    ruleService.save();
+                    ruleService.save(rule.key());
                     Sponge.server()
                             .commandManager()
                             .process(
@@ -554,8 +554,8 @@ public final class EBICommands {
             return CommandResult.error(Component.translatable("epicbanitem.command.create.noExpression"));
         }
         RootQueryExpression finalExpression = new RootQueryExpression(expressionView);
-        ruleService.register(name, new RestrictionRuleImpl(finalExpression).predicate(predicate));
-        ruleService.save();
+        ruleService.register(name, new RestrictionRuleImpl(name, finalExpression).predicate(predicate));
+        ruleService.save(name);
         Sponge.server()
                 .commandManager()
                 .process(player, MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, name));
