@@ -7,6 +7,7 @@ package team.ebi.epicbanitem.util;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.spongepowered.api.data.persistence.DataFormats;
@@ -20,6 +21,8 @@ import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.EpicBanItem;
@@ -33,7 +36,7 @@ public final class RestrictionRuleRenderer {
     private static final Component DIVIDER_TOP = Component.text(Strings.repeat('━', 22));
     private static final Component DIVIDER_BOTTOM = Component.text(Strings.repeat('━', 22));
 
-    public static Component renderRule(RestrictionRule rule) throws IOException {
+    public static Component renderRule(final RestrictionRule rule, final Locale locale) throws IOException {
         final var ruleKeyString = rule.key().asString();
         final var components = Lists.<Component>newArrayList();
         components.add(DIVIDER_TOP);
@@ -43,7 +46,12 @@ public final class RestrictionRuleRenderer {
                         .append(Component.newline())
                         .append(Component.translatable("epicbanitem.ui.rule.title.description")
                                 .args(Component.text(ruleKeyString))))
-                .clickEvent(ClickEvent.copyToClipboard(ruleKeyString)));
+                .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                        "/{0} set {1} name {2}",
+                        EpicBanItem.NAMESPACE,
+                        ruleKeyString,
+                        PlainTextComponentSerializer.plainText()
+                                .serialize(GlobalTranslator.render(rule.asComponent(), locale))))));
 
         components.add(renderKey(Component.translatable("epicbanitem.ui.rule.predicate.key"))
                 .append(Component.text(rule.predicate().asString()))
@@ -110,18 +118,28 @@ public final class RestrictionRuleRenderer {
                 .append(Component.translatable("epicbanitem.ui.rule.updateMessage.key")
                         .hoverEvent(Component.text()
                                 .append(rule.updatedMessage().orElse(Components.RULE_UPDATED))
-                                .append(Component.newline())
-                                .append(Component.translatable("epicbanitem.ui.rule.updateMessage.description")
-                                        .args(Component.text(ruleKeyString)))
-                                .build()))
+                                .build())
+                        .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                "/{0} set {1} updated-message {2}",
+                                EpicBanItem.NAMESPACE,
+                                ruleKeyString,
+                                rule.updatedMessage()
+                                        .map(it -> GlobalTranslator.render(it, locale))
+                                        .map(PlainTextComponentSerializer.plainText()::serialize)
+                                        .orElse("")))))
                 .append(Component.space())
                 .append(Component.translatable("epicbanitem.ui.rule.cancelMessage.key")
                         .hoverEvent(Component.text()
                                 .append(rule.cancelledMessage().orElse(Components.RULE_CANCELLED))
-                                .append(Component.newline())
-                                .append(Component.translatable("epicbanitem.ui.rule.cancelMessage.description")
-                                        .args(Component.text(ruleKeyString)))
-                                .build()))
+                                .build())
+                        .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
+                                "/{0} set {1} cancelled-message {2}",
+                                EpicBanItem.NAMESPACE,
+                                ruleKeyString,
+                                rule.cancelledMessage()
+                                        .map(it -> GlobalTranslator.render(it, locale))
+                                        .map(PlainTextComponentSerializer.plainText()::serialize)
+                                        .orElse("")))))
                 .build());
         components.add(DIVIDER_BOTTOM);
         return Component.join(JoinConfiguration.newlines(), components);

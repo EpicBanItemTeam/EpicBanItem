@@ -15,7 +15,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.EBITranslation;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.rule.*;
@@ -235,7 +235,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     @Override
     public Optional<TranslatableComponent> updatedMessage() {
         final var key = messageKey(key() + ".updated");
-        if (!EpicBanItem.translations.contains(key)) {
+        if (!EBITranslation.registry.contains(key)) {
             return Optional.empty();
         }
         return Optional.of(Component.translatable(key));
@@ -243,8 +243,8 @@ public class RestrictionRuleImpl implements RestrictionRule {
 
     @Override
     public Optional<TranslatableComponent> cancelledMessage() {
-        final var key = messageKey(key() + ".canceled");
-        if (!EpicBanItem.translations.contains(key)) {
+        final var key = messageKey(key() + ".cancelled");
+        if (!EBITranslation.registry.contains(key)) {
             return Optional.empty();
         }
         return Optional.of(Component.translatable(key));
@@ -254,7 +254,7 @@ public class RestrictionRuleImpl implements RestrictionRule {
     public @NotNull Component asComponent() {
         final var resourceKey = key();
         final var key = messageKey(resourceKey.asString());
-        if (!EpicBanItem.translations.contains(key)) {
+        if (!EBITranslation.registry.contains(key)) {
             return Component.text(resourceKey.asString());
         }
         return Component.translatable(key);

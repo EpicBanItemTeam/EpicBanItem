@@ -191,21 +191,23 @@ public interface ProcessHandler<T> {
         public void updatedMessages(List<RestrictionRule> rules, @Nullable T result) {
             final var commonRules = Lists.<RestrictionRule>newArrayList();
             final var description = trigger.description();
+            final var finalComponent = component(result);
             for (final var rule : rules) {
                 final var component = rule.updatedMessage();
                 if (component.isPresent()) {
                     component
-                            .map(it -> it.args(rule, description, originComponent, trigger))
+                            .map(it -> it.args(rule, description, originComponent, finalComponent))
                             .ifPresent(components::add);
                 } else {
                     commonRules.add(rule);
                 }
             }
-            components.add(Components.RULE_UPDATED.args(
-                    Component.join(JoinConfiguration.commas(true), commonRules),
-                    description,
-                    originComponent,
-                    component(result)));
+            if (!commonRules.isEmpty())
+                components.add(Components.RULE_UPDATED.args(
+                        Component.join(JoinConfiguration.commas(true), commonRules),
+                        description,
+                        originComponent,
+                        finalComponent));
         }
     }
 }

@@ -8,10 +8,7 @@ package team.ebi.epicbanitem;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -37,6 +34,7 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.server.ServerWorld;
@@ -89,6 +87,9 @@ public final class EBICommands {
 
     @Inject
     private RulePredicateService predicateService;
+
+    @Inject
+    private EBITranslation translation;
 
     @Inject
     private Parameters parameters;
@@ -176,21 +177,42 @@ public final class EBICommands {
     }
 
     public Command.@NotNull Parameterized buildSetCommand() {
+        final var name = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.name"))
+                .addParameters(Parameter.remainingJoinedStrings().key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", String.class));
+                    final var key = rule.key();
+                    this.translation.setExternal(
+                            MessageFormat.format("{0}.rules.{1}", EpicBanItem.NAMESPACE, key), value);
+                    this.translation.saveExternal();
+                    this.translation.loadMessages();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
+                    return CommandResult.success();
+                })
+                .build();
+
         final var priority = Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.set.description.priority"))
                 .addParameters(Parameter.rangedInteger(1, 10).key("value").build())
                 .executor(context -> {
                     final var rule = context.requireOne(keys.rule);
                     final var value = context.requireOne(Parameter.key("value", Integer.class));
-                    ResourceKey key = rule.key();
+                    final var key = rule.key();
                     ruleService.register(key, rule.priority(value));
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + key);
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -204,14 +226,15 @@ public final class EBICommands {
                     final var rule = context.requireOne(keys.rule);
                     final var serverWorld = context.requireOne(Parameter.key("world", ServerWorld.class));
                     final var value = context.requireOne(Parameter.key("value", Tristate.class));
+                    final var key = rule.key();
                     rule.worldStates().put(serverWorld.key(), value);
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -222,14 +245,15 @@ public final class EBICommands {
                 .executor(context -> {
                     final var rule = context.requireOne(keys.rule);
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
+                    final var key = rule.key();
                     rule.worldStates().update(value);
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -249,14 +273,15 @@ public final class EBICommands {
                     final var restrictionTrigger =
                             context.requireOne(Parameter.key("trigger", RestrictionTrigger.class));
                     final var value = context.requireOne(Parameter.key("value", Tristate.class));
+                    final var key = rule.key();
                     rule.triggerStates().put(restrictionTrigger.key(), value);
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -267,14 +292,15 @@ public final class EBICommands {
                 .executor(context -> {
                     final var rule = context.requireOne(keys.rule);
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
+                    final var key = rule.key();
                     rule.triggerStates().update(value);
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + rule.key());
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -287,13 +313,13 @@ public final class EBICommands {
                     final var value = context.requireOne(keys.predicate);
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.predicate(value));
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + key);
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -306,13 +332,13 @@ public final class EBICommands {
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.needCancel(value));
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + key);
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -325,13 +351,13 @@ public final class EBICommands {
                     final var value = context.requireOne(Parameter.key("value", Boolean.class));
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.onlyPlayer(value));
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + key);
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -344,13 +370,13 @@ public final class EBICommands {
                     final var value = context.requireOne(keys.query);
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.queryExpression(value));
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + key);
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -363,13 +389,55 @@ public final class EBICommands {
                     final var value = context.one(keys.update);
                     ResourceKey key = rule.key();
                     ruleService.register(key, rule.updateExpression(value.orElse(null)));
-                    ruleService.save(rule.key());
+                    ruleService.save(key);
                     Sponge.server()
                             .commandManager()
                             .process(
                                     context.subject(),
                                     context.cause().audience(),
-                                    EpicBanItem.NAMESPACE + " info " + key);
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var updatedMessage = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.updated-message"))
+                .addParameters(Parameter.remainingJoinedStrings().key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", String.class));
+                    final var key = rule.key();
+                    this.translation.setExternal(
+                            MessageFormat.format("{0}.rules.{1}.updated", EpicBanItem.NAMESPACE, key), value);
+                    this.translation.saveExternal();
+                    this.translation.loadMessages();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
+                    return CommandResult.success();
+                })
+                .build();
+
+        final var cancelledMessage = Command.builder()
+                .shortDescription(Component.translatable("epicbanitem.command.set.description.cancelled-message"))
+                .addParameters(Parameter.remainingJoinedStrings().key("value").build())
+                .executor(context -> {
+                    final var rule = context.requireOne(keys.rule);
+                    final var value = context.requireOne(Parameter.key("value", String.class));
+                    final var key = rule.key();
+                    this.translation.setExternal(
+                            MessageFormat.format("{0}.rules.{1}.cancelled", EpicBanItem.NAMESPACE, key), value);
+                    this.translation.saveExternal();
+                    this.translation.loadMessages();
+                    Sponge.server()
+                            .commandManager()
+                            .process(
+                                    context.subject(),
+                                    context.cause().audience(),
+                                    MessageFormat.format("{0} info {1}", EpicBanItem.NAMESPACE, key));
                     return CommandResult.success();
                 })
                 .build();
@@ -380,6 +448,7 @@ public final class EBICommands {
                 .addParameters(
                         parameters.rule.key(keys.rule).build(),
                         Parameter.firstOf(
+                                Parameter.subcommand(name, "name"),
                                 Parameter.subcommand(priority, "priority"),
                                 Parameter.subcommand(world, "world"),
                                 Parameter.subcommand(worldDefault, "world-default"),
@@ -389,7 +458,9 @@ public final class EBICommands {
                                 Parameter.subcommand(cancel, "cancel"),
                                 Parameter.subcommand(onlyPlayer, "only-player"),
                                 Parameter.subcommand(query, "query"),
-                                Parameter.subcommand(update, "update")))
+                                Parameter.subcommand(update, "update"),
+                                Parameter.subcommand(updatedMessage, "updated-message"),
+                                Parameter.subcommand(cancelledMessage, "cancelled-message")))
                 .executor(context -> {
                     throw new UnsupportedOperationException();
                 })
@@ -611,11 +682,9 @@ public final class EBICommands {
     }
 
     private @NotNull CommandResult list(@NotNull CommandContext context) {
-        final var subject = context.cause().subject();
         final var predicate = context.one(keys.predicate).orElse(RulePredicateService.WILDCARD);
         final var components = predicateService.rule(predicate).stream()
                 .map(rule -> {
-                    // TODO copy rule
                     return rule.asComponent()
                             .hoverEvent(Component.join(
                                     JoinConfiguration.newlines(),
@@ -638,10 +707,14 @@ public final class EBICommands {
     }
 
     private @NotNull CommandResult info(final @NotNull CommandContext context) throws CommandException {
+        final var locale = context.cause()
+                .first(LocaleSource.class)
+                .map(LocaleSource::locale)
+                .orElse(Locale.getDefault());
         final var audience = context.cause().audience();
         final var rule = context.requireOne(keys.rule);
         try {
-            audience.sendMessage(RestrictionRuleRenderer.renderRule(rule));
+            audience.sendMessage(RestrictionRuleRenderer.renderRule(rule, locale));
         } catch (IOException e) {
             throw new CommandException(Component.translatable("epicbanitem.command.renderFailed"), e);
         }

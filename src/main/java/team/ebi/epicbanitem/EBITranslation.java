@@ -34,7 +34,7 @@ import team.ebi.epicbanitem.util.PropertyResourceBundle;
 import static team.ebi.epicbanitem.EpicBanItem.NAMESPACE;
 
 public final class EBITranslation {
-    public TranslationRegistry registry;
+    public static TranslationRegistry registry;
     private final Path messagesDir;
 
     private final Map<Path, Properties> externalProperties = Maps.newHashMap();
@@ -97,7 +97,7 @@ public final class EBITranslation {
         });
     }
 
-    private void loadMessages() {
+    public void loadMessages() {
         if (registry != null) GlobalTranslator.translator().removeSource(registry);
         registry = TranslationRegistry.create(EpicBanItem.key("translations"));
         try (final var pack = Sponge.server().packRepository().pack(plugin)) {
