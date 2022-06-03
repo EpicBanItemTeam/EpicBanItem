@@ -7,20 +7,19 @@ package team.ebi.epicbanitem;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
+import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.lifecycle.RefreshGameEvent;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
-import org.spongepowered.api.resource.Resource;
-import org.spongepowered.api.resource.ResourcePath;
-import org.spongepowered.api.resource.pack.Pack;
-import org.spongepowered.api.resource.pack.PackContents;
 import org.spongepowered.api.resource.pack.PackType;
 import org.spongepowered.api.util.locale.Locales;
 import org.spongepowered.plugin.PluginContainer;
@@ -42,17 +41,24 @@ public class EpicBanItem {
 
     public static TranslationRegistry translations;
 
-    @Inject
-    private PluginContainer plugin;
+    private final PluginContainer plugin;
+
+    private final Injector injector;
+
+    private final Path messagesDir;
 
     @Inject
-    private Injector injector;
-
-    @SuppressWarnings("SpongeInjection")
-    @Inject
-    EpicBanItem(EBIServices services, EBIRegistries registries) {
-        Objects.requireNonNull(services);
+    EpicBanItem(
+            final EBIRegistries registries,
+            final PluginContainer plugin,
+            final Injector injector,
+            final @ConfigDir(sharedRoot = false) Path configDir)
+            throws IOException {
+        this.plugin = plugin;
+        this.injector = injector;
+        this.messagesDir = configDir.resolve("messages");
         Objects.requireNonNull(registries);
+        if (Files.notExists(this.messagesDir)) Files.createDirectories(this.messagesDir);
     }
 
     public static ResourceKey key(String value) {
@@ -68,29 +74,44 @@ public class EpicBanItem {
         event.register(plugin, injector.getInstance(EBICommands.class).buildCommand(), NAMESPACE, "ebi");
     }
 
-    @Listener
-    public void onStartingEngine(final StartingEngineEvent<Server> event) {
-        // TODO read external messages files
-        translations = new EBITranslationRegistry();
-        try (Pack pack = Sponge.server().packRepository().pack(plugin)) {
-            PackContents contents = pack.contents();
-            Collection<ResourcePath> paths = contents.paths(
+    private void loadMessages() {
+        if (translations != null) GlobalTranslator.translator().removeSource(translations);
+        translations = TranslationRegistry.create(EpicBanItem.key("translations"));
+        try (final var pack = Sponge.server().packRepository().pack(plugin)) {
+            final var contents = pack.contents();
+            final var paths = contents.paths(
                     PackType.server(),
                     "plugin-" + NAMESPACE,
                     "assets/messages",
                     3,
                     name -> name.startsWith("assets/messages/messages_") && name.endsWith(".properties"));
-            for (ResourcePath path : paths) {
-                String name = path.name();
-                Resource resource = contents.requireResource(PackType.server(), path);
-                String locale = name.substring(9, name.lastIndexOf(".properties"));
-                PropertyResourceBundle bundle =
-                        new PropertyResourceBundle(new InputStreamReader(resource.inputStream()));
+            for (final var path : paths) {
+                final var name = path.name();
+                final var resource = contents.requireResource(PackType.server(), path);
+                final var locale = name.substring(9, name.lastIndexOf(".properties"));
+                var bundle = new PropertyResourceBundle(new InputStreamReader(resource.inputStream()));
+                final var external = messagesDir.resolve(name);
+                if (Files.notExists(external)) Files.createFile(external);
+                try (final var reader = Files.newBufferedReader(external)) {
+                    final var externalBundle = new PropertyResourceBundle(reader);
+                    externalBundle.setParent(bundle);
+                    bundle = externalBundle;
+                }
                 translations.registerAll(Locales.of(locale), bundle, false);
             }
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
         GlobalTranslator.translator().addSource(translations);
+    }
+
+    @Listener
+    public void onStartingEngine(final StartingEngineEvent<Server> event) {
+        loadMessages();
+    }
+
+    @Listener
+    public void onRefreshGame(RefreshGameEvent event) {
+        loadMessages();
     }
 }
