@@ -50,6 +50,18 @@ jobs:
         id: version
         run: echo ::set-output name=version::$(echo ${{ github.ref_name }} | cut -c2-)
 
+      - name: Create Release
+        if: steps.changelog.outputs.changelog != 'No Changes'
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: false
+          tag: v${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          token: ${{ github.token }}
+          artifacts: build/libs/EpicBanItem-${{ steps.version.outputs.version }}.jar
+          artifactErrorsFailBuild: true
+
       - uses: DamianReeves/write-file-action@v1.0
         with:
           path: DESC
