@@ -1,8 +1,8 @@
 name: Tag and Release
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main
       - develop
 
 jobs:
