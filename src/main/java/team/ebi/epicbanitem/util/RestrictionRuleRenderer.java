@@ -84,7 +84,7 @@ public final class RestrictionRuleRenderer {
         components.add(renderTriggerStates(ruleKeyString, rule.triggerStates()));
 
         // TODO Click suggest command
-        final var format = DataFormats.JSON.get();
+        final var format = DataFormats.SNBT.get();
         final var updateExpression = rule.updateExpression();
         final var query = rule.queryExpression().toContainer();
         final var update = updateExpression.map(DataSerializable::toContainer);
