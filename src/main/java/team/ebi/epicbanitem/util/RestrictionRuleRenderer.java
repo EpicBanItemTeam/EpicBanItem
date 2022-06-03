@@ -142,14 +142,16 @@ public final class RestrictionRuleRenderer {
     }
 
     @Contract(pure = true)
-    private static @NotNull Component renderRuleStates(String rule, @NotNull States states, String stateName) {
+    private static @NotNull Component renderRuleStates(
+            final String rule, final @NotNull States states, final String stateName) {
+        final var defaultState = states.defaultState();
         return Component.text()
                 .append(Component.translatable("epicbanitem.ui.rule.defaultState")
-                        .color(states.defaultState() ? NamedTextColor.GREEN : NamedTextColor.RED)
+                        .color(defaultState ? NamedTextColor.GREEN : NamedTextColor.RED)
                         .hoverEvent(Component.translatable("epicbanitem.ui.rule.defaultState.description"))
                         .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
                                 "/{0} set {1} {2}-default {3}",
-                                EpicBanItem.NAMESPACE, rule, stateName, !states.defaultState()))))
+                                EpicBanItem.NAMESPACE, rule, stateName, !defaultState))))
                 .append(Component.newline())
                 .append(Component.join(
                         JoinConfiguration.separator(Component.space()),
@@ -160,13 +162,21 @@ public final class RestrictionRuleRenderer {
                                     builder.append(states.key(key))
                                             .color(
                                                     Objects.requireNonNullElse(
-                                                                    tristate.asNullableBoolean(), states.defaultState())
+                                                                    tristate.asNullableBoolean(), defaultState)
                                                             ? NamedTextColor.GREEN
                                                             : NamedTextColor.RED)
                                             .hoverEvent(states.description(key))
                                             .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
-                                                    "/{0} set {1} {2} {3} ",
-                                                    EpicBanItem.NAMESPACE, rule, stateName, key)));
+                                                    "/{0} set {1} {2} {3} {4}",
+                                                    EpicBanItem.NAMESPACE,
+                                                    rule,
+                                                    stateName,
+                                                    key,
+                                                    (tristate.equals(Tristate.UNDEFINED)
+                                                                    ? Tristate.fromBoolean(!defaultState)
+                                                                    : Tristate.UNDEFINED)
+                                                            .name()
+                                                            .toLowerCase())));
                                     if (tristate.equals(Tristate.UNDEFINED)) builder.decorate(TextDecoration.ITALIC);
                                     return builder.build();
                                 })
