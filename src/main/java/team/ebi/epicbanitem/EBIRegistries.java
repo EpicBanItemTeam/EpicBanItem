@@ -90,8 +90,8 @@ public final class EBIRegistries {
                         .put(EpicBanItem.key("equip"), injector.getInstance(EquipRestrictionTrigger.class))
                         //                        .put(EpicBanItem.key("be_equipped"),
                         // injector.getInstance(BeEquippedRestrictionTrigger.class))
-                        .put(EpicBanItem.key("craft"), new RestrictionTriggerImpl())
-                        .put(EpicBanItem.key("store"), new RestrictionTriggerImpl())
+                        .put(EpicBanItem.key("craft"), injector.getInstance(CraftRestrictionTrigger.class))
+                        .put(EpicBanItem.key("store"), injector.getInstance(StoreRestrictionTrigger.class))
                         //                        .put(EpicBanItem.key("click"), new RestrictionTriggerImpl())
                         .build());
 

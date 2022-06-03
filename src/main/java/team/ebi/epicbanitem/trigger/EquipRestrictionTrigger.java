@@ -13,7 +13,6 @@ import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.filter.Getter;
-import org.spongepowered.api.event.filter.IsCancelled;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Equipable;
@@ -21,7 +20,6 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentGroups;
 import org.spongepowered.api.item.inventory.slot.EquipmentSlot;
 import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.util.Tristate;
 
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
@@ -36,7 +34,7 @@ public class EquipRestrictionTrigger extends AbstractRestrictionTrigger {
     }
 
     @Listener
-    @IsCancelled(Tristate.UNDEFINED)
+    @SuppressWarnings("IsCancelled")
     public void onChangeEntityEquipment(
             final ChangeEntityEquipmentEvent event,
             final @First Equipable equipable,
