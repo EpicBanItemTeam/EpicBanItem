@@ -20,9 +20,8 @@ import org.spongepowered.api.world.Locatable;
 import com.google.common.collect.Sets;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class DropRestrictionTrigger extends AbstractRestrictionTrigger {
+public class DropRestrictionTrigger extends EBIRestrictionTrigger {
     public DropRestrictionTrigger() {
         super(EpicBanItem.key("drop"));
     }

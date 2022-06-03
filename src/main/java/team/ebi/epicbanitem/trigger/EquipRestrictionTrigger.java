@@ -24,10 +24,9 @@ import org.spongepowered.api.service.permission.Subject;
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
 @Singleton
-public class EquipRestrictionTrigger extends AbstractRestrictionTrigger {
+public class EquipRestrictionTrigger extends EBIRestrictionTrigger {
 
     public EquipRestrictionTrigger() {
         super(EpicBanItem.key("equip"));

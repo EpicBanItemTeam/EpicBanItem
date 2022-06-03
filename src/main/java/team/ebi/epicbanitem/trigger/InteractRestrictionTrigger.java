@@ -20,9 +20,8 @@ import org.spongepowered.api.world.Locatable;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class InteractRestrictionTrigger extends AbstractRestrictionTrigger {
+public class InteractRestrictionTrigger extends EBIRestrictionTrigger {
     public InteractRestrictionTrigger() {
         super(EpicBanItem.key("interact"));
     }

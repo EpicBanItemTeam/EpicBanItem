@@ -14,9 +14,8 @@ import org.spongepowered.api.world.server.ServerWorld;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class BreakRestrictionTrigger extends AbstractRestrictionTrigger {
+public class BreakRestrictionTrigger extends EBIRestrictionTrigger {
     public BreakRestrictionTrigger() {
         super(EpicBanItem.key("break"));
     }

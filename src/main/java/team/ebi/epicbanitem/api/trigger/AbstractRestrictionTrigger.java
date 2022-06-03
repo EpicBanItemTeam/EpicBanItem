@@ -65,17 +65,6 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
     }
 
     @Override
-    public @NotNull Component asComponent() {
-        final var resourceKey = key();
-        final var key = EpicBanItem.NAMESPACE + ".trigger." + resourceKey;
-        Component component = Component.text(resourceKey.asString());
-        if (EpicBanItem.translations.contains(key)) {
-            component = Component.translatable(key);
-        }
-        return component.hoverEvent(description());
-    }
-
-    @Override
     public Component description() {
         return Component.translatable(EpicBanItem.NAMESPACE + ".trigger." + key() + ".description");
     }

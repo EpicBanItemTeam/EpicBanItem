@@ -16,9 +16,8 @@ import org.spongepowered.api.world.server.ServerLocation;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class BeInteractedRestrictionTrigger extends AbstractRestrictionTrigger {
+public class BeInteractedRestrictionTrigger extends EBIRestrictionTrigger {
     public BeInteractedRestrictionTrigger() {
         super(EpicBanItem.key("be_interacted"));
     }

@@ -32,10 +32,9 @@ import org.spongepowered.api.world.server.ServerWorld;
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
 @Singleton
-public class StoreRestrictionTrigger extends AbstractRestrictionTrigger {
+public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
 
     private static final Predicate<SlotTransaction> IS_STANDARD_INVENTORY =
             it -> it.slot().viewedSlot().parent() instanceof StandardInventory;

@@ -26,10 +26,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
 @Singleton
-public class BeEquippedRestrictionTrigger extends AbstractRestrictionTrigger {
+public class BeEquippedRestrictionTrigger extends EBIRestrictionTrigger {
     @Inject
     private PluginContainer plugin;
 

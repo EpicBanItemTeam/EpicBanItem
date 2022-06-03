@@ -17,9 +17,8 @@ import org.spongepowered.api.world.server.ServerWorld;
 import com.google.common.util.concurrent.Atomics;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class ThrowRestrictionTrigger extends AbstractRestrictionTrigger {
+public class ThrowRestrictionTrigger extends EBIRestrictionTrigger {
     public ThrowRestrictionTrigger() {
         super(EpicBanItem.key("throw"));
     }

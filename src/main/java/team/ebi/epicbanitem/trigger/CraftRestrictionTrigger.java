@@ -19,10 +19,9 @@ import org.spongepowered.api.world.Locatable;
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
 @Singleton
-public class CraftRestrictionTrigger extends AbstractRestrictionTrigger {
+public class CraftRestrictionTrigger extends EBIRestrictionTrigger {
 
     public CraftRestrictionTrigger() {
         super(EpicBanItem.key("craft"));

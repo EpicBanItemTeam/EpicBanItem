@@ -21,9 +21,8 @@ import org.spongepowered.plugin.PluginContainer;
 import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class JoinRestrictionTrigger extends AbstractRestrictionTrigger {
+public class JoinRestrictionTrigger extends EBIRestrictionTrigger {
     @Inject
     private PluginContainer plugin;
 

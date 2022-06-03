@@ -14,9 +14,8 @@ import org.spongepowered.api.world.server.ServerWorld;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
-import team.ebi.epicbanitem.api.trigger.AbstractRestrictionTrigger;
 
-public class PlaceRestrictionTrigger extends AbstractRestrictionTrigger {
+public class PlaceRestrictionTrigger extends EBIRestrictionTrigger {
     public PlaceRestrictionTrigger() {
         super(EpicBanItem.key("place"));
     }

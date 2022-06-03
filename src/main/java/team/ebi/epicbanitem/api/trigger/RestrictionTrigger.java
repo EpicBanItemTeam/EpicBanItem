@@ -14,7 +14,7 @@ import net.kyori.adventure.text.ComponentLike;
 import team.ebi.epicbanitem.EpicBanItem;
 
 /**
- * Recommend to extend {@link AbstractRestrictionTrigger}
+ * Recommend to extend {@link EBIRestrictionTrigger}
  */
 @CatalogedBy(RestrictionTriggers.class)
 public interface RestrictionTrigger extends DefaultedRegistryValue, ResourceKeyed, ComponentLike {
