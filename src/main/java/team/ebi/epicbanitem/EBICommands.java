@@ -8,7 +8,10 @@ package team.ebi.epicbanitem;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -46,10 +49,8 @@ import com.google.inject.Singleton;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.api.ItemQueries;
 import team.ebi.epicbanitem.api.RestrictionPresets;
@@ -395,24 +396,10 @@ public final class EBICommands {
                 .build();
     }
 
-    private @NotNull CommandResult remove(final @NotNull CommandContext context) {
-        var key = context.requireOne(keys.ruleKey);
-        var stringKey = key.asString();
-        var rule = ruleService.remove(key);
-        if (Objects.isNull(rule)) {
-            TextComponent.Builder builder = Component.text();
-            builder.append(Component.translatable("epicbanitem.command.remove.notExist"));
-            //noinspection deprecation
-            ruleService
-                    .keys()
-                    .map(ResourceKey::asString)
-                    .min(Comparator.comparingInt(k -> StringUtils.getLevenshteinDistance(k, stringKey)))
-                    .map(it -> Component.translatable("epicbanitem.command.suggestRule")
-                            .args(Component.text(it))
-                            .clickEvent(ClickEvent.suggestCommand("ebi remove " + it)))
-                    .ifPresent(it -> builder.append(Component.newline()).append(it));
-            return CommandResult.error(builder.build());
-        }
+    private @NotNull CommandResult remove(final @NotNull CommandContext context) throws CommandException {
+        context.one(keys.ruleKey)
+                .map(ruleService::remove)
+                .orElseThrow(() -> new CommandException(Component.translatable("epicbanitem.command.ruleNotExist")));
         return CommandResult.success();
     }
 
@@ -568,16 +555,6 @@ public final class EBICommands {
         }
         RootQueryExpression finalExpression = new RootQueryExpression(expressionView);
         ruleService.register(name, new RestrictionRuleImpl(finalExpression).predicate(predicate));
-        player.sendMessage(Component.translatable("epicbanitem.command.create.success")
-                .args(Component.text(name.value())
-                        .hoverEvent(Component.join(
-                                JoinConfiguration.newlines(),
-                                DataViewRenderer.render(
-                                                finalExpression.expression().toContainer())
-                                        .stream()
-                                        .limit(25)
-                                        .toList())))
-                .append(Component.space()));
         ruleService.save();
         Sponge.server()
                 .commandManager()
