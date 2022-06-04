@@ -7,6 +7,7 @@ plugins {
     id("org.spongepowered.gradle.vanilla") version "0.2"
     id("com.diffplug.spotless") version "6.6.1"
     id("io.github.nefilim.gradle.semver-plugin") version "0.3.13"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 val id: String by project
@@ -31,7 +32,7 @@ val spongeApiVersion: String by project
 val bstatsVersion: String by project
 
 dependencies {
-    implementation("org.bstats:bstats-sponge:$bstatsVersion")
+    shadow("org.bstats:bstats-sponge:$bstatsVersion")
 
     testRuntimeOnly("org.spongepowered:spongeapi:$spongeApiVersion")
 
@@ -94,6 +95,9 @@ tasks.withType(AbstractArchiveTask::class).configureEach {
     isReproducibleFileOrder = true
     isPreserveFileTimestamps = false
 }
+artifacts {
+    archives (tasks.shadowJar)
+}
 
 tasks {
     test {
@@ -101,6 +105,11 @@ tasks {
     }
     runServer {
         jvmArgs("-XX:+AllowEnhancedClassRedefinition", "-XX:HotswapAgent=fatjar", "-Dlog4j.configurationFile=../log4j2.xml")
+    }
+    shadowJar {
+        configurations = listOf(project.configurations.shadow.get())
+        archiveClassifier.set("")
+        minimize()
     }
 }
 
