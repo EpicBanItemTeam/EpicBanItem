@@ -28,7 +28,7 @@ jobs:
 
       - name: Get prev tag
         id: prev-tag
-        run: echo "::set-output name=tag::$(git describe --abbrev=0 --tags $(git describe --abbrev=0)^ --match 'v[0-9]*' --exclude *-*)"
+        run: echo "::set-output name=tag::$(git describe --abbrev=0 --tags $(git describe --abbrev=0) --match 'v[0-9]*' --exclude *-*)"
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
         id: changelog
