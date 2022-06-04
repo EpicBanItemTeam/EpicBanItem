@@ -55,7 +55,7 @@ jobs:
           allowUpdates: true
           draft: false
           tag: ${{ github.ref_name }}
-          body: ${{ steps.body.outputs.content }}
+          body: ${{ steps.changelog.outputs.changelog }}
           token: ${{ github.token }}
           artifacts: build/libs/EpicBanItem-${{ steps.version.outputs.version }}.jar
           artifactErrorsFailBuild: true
