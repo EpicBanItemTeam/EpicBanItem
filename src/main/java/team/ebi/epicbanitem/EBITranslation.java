@@ -87,6 +87,10 @@ public final class EBITranslation {
         for (Properties properties : externalProperties.values()) properties.setProperty(key, value);
     }
 
+    public void removeExternal(String key) {
+        for (Properties properties : externalProperties.values()) properties.remove(key);
+    }
+
     public void saveExternal() {
         externalProperties.forEach((path, properties) -> {
             try {

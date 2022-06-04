@@ -182,10 +182,10 @@ public final class EBICommands {
                 .addParameters(Parameter.remainingJoinedStrings().key("value").build())
                 .executor(context -> {
                     final var rule = context.requireOne(keys.rule);
-                    final var value = context.requireOne(Parameter.key("value", String.class));
+                    final var value = context.one(Parameter.key("value", String.class));
                     final var key = rule.key();
                     this.translation.setExternal(
-                            MessageFormat.format("{0}.rules.{1}", EpicBanItem.NAMESPACE, key), value);
+                            MessageFormat.format("{0}.rules.{1}", EpicBanItem.NAMESPACE, key), value.get());
                     this.translation.saveExternal();
                     this.translation.loadMessages();
                     Sponge.server()
@@ -402,13 +402,23 @@ public final class EBICommands {
 
         final var updatedMessage = Command.builder()
                 .shortDescription(Component.translatable("epicbanitem.command.set.description.updated-message"))
-                .addParameters(Parameter.remainingJoinedStrings().key("value").build())
+                .addParameters(Parameter.remainingJoinedStrings()
+                        .key("value")
+                        .optional()
+                        .build())
                 .executor(context -> {
                     final var rule = context.requireOne(keys.rule);
-                    final var value = context.requireOne(Parameter.key("value", String.class));
+                    final var value = context.one(Parameter.key("value", String.class));
                     final var key = rule.key();
-                    this.translation.setExternal(
-                            MessageFormat.format("{0}.rules.{1}.updated", EpicBanItem.NAMESPACE, key), value);
+                    final var translationKey =
+                            MessageFormat.format("{0}.rules.{1}.updated", EpicBanItem.NAMESPACE, key);
+                    if (value.isPresent()) {
+                        this.translation.setExternal(
+                                MessageFormat.format("{0}.rules.{1}.updated", EpicBanItem.NAMESPACE, key), value.get());
+                    } else {
+                        this.translation.removeExternal(
+                                MessageFormat.format("{0}.rules.{1}.updated", EpicBanItem.NAMESPACE, key));
+                    }
                     this.translation.saveExternal();
                     this.translation.loadMessages();
                     Sponge.server()
@@ -426,10 +436,15 @@ public final class EBICommands {
                 .addParameters(Parameter.remainingJoinedStrings().key("value").build())
                 .executor(context -> {
                     final var rule = context.requireOne(keys.rule);
-                    final var value = context.requireOne(Parameter.key("value", String.class));
+                    final var value = context.one(Parameter.key("value", String.class));
                     final var key = rule.key();
-                    this.translation.setExternal(
-                            MessageFormat.format("{0}.rules.{1}.cancelled", EpicBanItem.NAMESPACE, key), value);
+                    final var translationKey =
+                            MessageFormat.format("{0}.rules.{1}.cancelled", EpicBanItem.NAMESPACE, key);
+                    if (value.isPresent()) {
+                        this.translation.setExternal(translationKey, value.get());
+                    } else {
+                        this.translation.removeExternal(translationKey);
+                    }
                     this.translation.saveExternal();
                     this.translation.loadMessages();
                     Sponge.server()

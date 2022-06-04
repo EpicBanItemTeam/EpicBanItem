@@ -98,8 +98,6 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
         final var cancelled = new AtomicBoolean(false);
         final var containerSlots =
                 transactions.stream().filter(IS_STANDARD_INVENTORY.negate()).toList();
-        final var playerSlots =
-                transactions.stream().filter(IS_STANDARD_INVENTORY).toList();
         final var fallbackInventory = event.inventory().children().stream()
                 .filter(it -> it instanceof PrimaryPlayerInventory)
                 .findAny()
