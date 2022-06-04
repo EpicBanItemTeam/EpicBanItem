@@ -19,14 +19,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Filter ref
-        id: ref
-        run: if [[ $GITHUB_REF =~ v[0-9]+\.[0-9]+\.[0-9]+-?.* ]]; then echo "::set-output name=success::true"; fi
+      - name: Filter is release
+        id: not-beta
+        run: if [[ $GITHUB_REF =~ v[0-9]+\.[0-9]+\.[0-9]+-?.* ]]; then echo "::set-output name=result::true"; fi
 
       - name: Test on tag
-        if: steps.ref.outputs.success
+        if: steps.not-beta.outputs.result
         run: ./gradlew test -Psemver.overrideVersion=${{ github.ref_name }}
 
       - name: Test
-        if: ${{ !steps.ref.outputs.success }}
+        if: ${{ !steps.not-beta.outputs.result }}
         run: ./gradlew test

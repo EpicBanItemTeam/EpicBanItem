@@ -1,0 +1,48 @@
+name: Tag
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.ACTIONS_COMMIT }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: 16
+          distribution: microsoft
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Test and Build
+        run: ./gradlew test build
+
+      - name: Determinate latest released tag
+        id: current-tag
+        run: |
+          tag=$(git describe --tags --abbrev=0 --match 'v[0-9]*');
+          echo "::set-output name=tag::$tag";  
+
+      - name: Get semver
+        id: semver
+        run: |
+          ./gradlew generateVersionFile
+          echo "::set-output name=version::$(tail -1 build/semver/version.txt)"
+
+      - name: Tag
+        if: steps.changelog.outputs.changelog != 'No Changes'
+        run: |
+          tag=${{ steps.semver.outputs.version }}
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git tag "${tag}"
+          git push origin "${tag}"

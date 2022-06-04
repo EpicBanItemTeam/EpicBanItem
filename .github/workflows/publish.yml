@@ -26,16 +26,14 @@ jobs:
       - name: Test and Build
         run: ./gradlew test build -Psemver.overrideVersion=${{ github.ref_name }}
 
-      - name: Determinate latest released tag
-        id: current-tag
-        run: |
-          tag=$(git describe --abbrev=0 --match 'v[0-9]*' --exclude *-*);
-          echo "::set-output name=tag::$tag";      
+      - name: Get prev tag
+        id: prev-tag
+        run: echo "::set-output name=tag::$(git describe --abbrev=0 --tags $(git describe --abbrev=0)^ --match 'v[0-9]*' --exclude *-*)"
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
         id: changelog
         with:
-          from: ${{ steps.current-tag.outputs.tag }}
+          from: ${{ steps.prev-tag.outputs.tag }}
           to: ${{ github.ref_name }}
 
 #      - name: Prepend Changelog
@@ -49,18 +47,6 @@ jobs:
       - name: Get the version
         id: version
         run: echo ::set-output name=version::$(echo ${{ github.ref_name }} | cut -c2-)
-
-      - name: Create Release
-        if: steps.changelog.outputs.changelog != 'No Changes'
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          draft: false
-          tag: v${{ steps.version.outputs.version }}
-          body: ${{ steps.changelog.outputs.changelog }}
-          token: ${{ github.token }}
-          artifacts: build/libs/EpicBanItem-${{ steps.version.outputs.version }}.jar
-          artifactErrorsFailBuild: true
 
       - uses: DamianReeves/write-file-action@v1.0
         with:

@@ -1,9 +1,8 @@
-name: Tag and Release
+name: Release
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - develop
+    tags:
+      - v*
 
 jobs:
   release:
@@ -27,31 +26,27 @@ jobs:
       - name: Test and Build
         run: ./gradlew test build
 
-      - name: Determinate latest released tag
-        id: current-tag
-        run: |
-          tag=$(git describe --tags --abbrev=0 --match 'v[0-9]*');
-          echo "::set-output name=tag::$tag";  
+      - name: Get the version
+        id: version
+        run: echo ::set-output name=version::$(echo ${{ github.ref_name }} | cut -c2-)
 
-      - name: Get semver
-        id: semver
-        run: |
-          ./gradlew generateVersionFile
-          echo "::set-output name=version::$(head -1 build/semver/version.txt)"
+      - name: Filter not beta
+        id: not-beta
+        run: if [[ $GITHUB_REF =~ v[0-9]+\.[0-9]+\.[0-9]+-?.* ]]; then echo "::set-output name=result::true"; fi
 
-      - name: Tag
+      - name: Get prev tag
+        id: prev-tag
         run: |
-          tag=v${{ steps.semver.outputs.version }}
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "${tag}" -m ""
-          git push origin "${tag}"
+          if [[ ${{ steps.not-beta.outputs.result }} = true ]]; 
+          then echo "::set-output name=tag::$(git describe --abbrev=0 --tags $(git describe --abbrev=0)^ --match 'v[0-9]*')";
+          else echo "::set-output name=tag::$(git describe --abbrev=0 --tags $(git describe --abbrev=0)^ --match 'v[0-9]*' --exclude *-*)";
+          fi
 
       - uses: seasonalmatcha/conventional-commit-changelog@latest
         id: changelog
         with:
-          from: ${{ steps.current-tag.outputs.tag }}
-          to: v${{ steps.semver.outputs.version }}
+          from: ${{ steps.prev-tag.outputs.tag }}
+          to: ${{ github.ref_name }}
 
       - name: Create Release
         if: steps.changelog.outputs.changelog != 'No Changes'
@@ -59,8 +54,8 @@ jobs:
         with:
           allowUpdates: true
           draft: false
-          tag: v${{ steps.semver.outputs.version }}
-          body: ${{ steps.changelog.outputs.changelog }}
+          tag: ${{ github.ref_name }}
+          body: ${{ steps.body.outputs.content }}
           token: ${{ github.token }}
-          artifacts: build/libs/EpicBanItem-${{ steps.semver.outputs.version }}.jar
+          artifacts: build/libs/EpicBanItem-${{ steps.version.outputs.version }}.jar
           artifactErrorsFailBuild: true
