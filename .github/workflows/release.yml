@@ -24,7 +24,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Test and Build
-        run: ./gradlew test build
+        run: ./gradlew test build -Psemver.overrideVersion=${{ github.ref_name }}
 
       - name: Get the version
         id: version
