@@ -83,7 +83,6 @@ public final class RestrictionRuleRenderer {
         components.add(renderWorldStates(ruleKeyString, rule.worldStates()));
         components.add(renderTriggerStates(ruleKeyString, rule.triggerStates()));
 
-        // TODO Click suggest command
         final var format = DataFormats.JSON.get();
         final var updateExpression = rule.updateExpression();
         final var query = rule.queryExpression().toContainer();

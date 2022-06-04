@@ -28,8 +28,11 @@ repositories {
 val junitVersion: String by project
 val mockitoVersion: String by project
 val spongeApiVersion: String by project
+val bstatsVersion: String by project
 
 dependencies {
+    implementation("org.bstats:bstats-sponge:$bstatsVersion")
+
     testRuntimeOnly("org.spongepowered:spongeapi:$spongeApiVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")

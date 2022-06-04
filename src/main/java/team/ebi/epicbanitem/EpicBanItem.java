@@ -8,6 +8,7 @@ package team.ebi.epicbanitem;
 import java.util.Objects;
 
 import org.spongepowered.api.ResourceKey;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
@@ -16,6 +17,7 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.bstats.sponge.Metrics;
 
 /**
  * @author The EpicBanItem Team
@@ -24,6 +26,8 @@ import com.google.inject.Injector;
 public class EpicBanItem {
 
     public static final String NAMESPACE = "epicbanitem";
+
+    public static Metrics metrics;
 
     private final PluginContainer plugin;
 
@@ -34,11 +38,14 @@ public class EpicBanItem {
             final EBIRegistries registries,
             final EBITranslation translation,
             final PluginContainer plugin,
-            final Injector injector) {
+            final Injector injector,
+            final Metrics.Factory metrics) {
         this.plugin = plugin;
         this.injector = injector;
         Objects.requireNonNull(registries);
         Objects.requireNonNull(translation);
+        if (Sponge.metricsConfigManager().effectiveCollectionState(plugin).asBoolean())
+            EpicBanItem.metrics = metrics.make(3527);
     }
 
     public static ResourceKey key(String value) {
