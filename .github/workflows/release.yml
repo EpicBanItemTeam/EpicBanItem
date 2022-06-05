@@ -14,6 +14,9 @@ jobs:
           fetch-depth: 0
           ssh-key: ${{ secrets.ACTIONS_COMMIT }}
 
+      - name: Recovery tag information
+        run: git fetch --tags --force
+
       - name: Setup Java
         uses: actions/setup-java@v2
         with:
