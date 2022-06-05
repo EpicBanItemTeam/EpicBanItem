@@ -6,6 +6,8 @@
 package team.ebi.epicbanitem.trigger;
 
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.entity.EntityTypes;
@@ -42,7 +44,14 @@ public class BeInteractedRestrictionTrigger extends EBIRestrictionTrigger {
         if (processed.isPresent())
             processed
                     .flatMap(it -> ItemUtils.toBlock(it, location, block.state()))
-                    .ifPresentOrElse(it -> it.restore(true, BlockChangeFlags.NONE), () -> {
+                    .ifPresentOrElse(it -> it.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT), () -> {
+                        BlockSnapshot.builder()
+                                .from(location)
+                                .blockState(BlockState.builder()
+                                        .blockType(BlockTypes.AIR)
+                                        .build())
+                                .build()
+                                .restore(true, BlockChangeFlags.DEFAULT_PLACEMENT);
                         final var item = location.createEntity(EntityTypes.ITEM.get());
                         item.offer(Value.mutableOf(Keys.ITEM_STACK_SNAPSHOT, processed.get()));
                         item.offer(Value.mutableOf(Keys.PICKUP_DELAY, Ticks.of(40L)));
