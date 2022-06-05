@@ -16,6 +16,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
+import team.ebi.epicbanitem.util.data.DataUtils;
 
 public class RemoveUpdateOperation extends AbstractMap<DataQuery, UpdateOperation> implements UpdateOperation {
 
@@ -31,7 +32,7 @@ public class RemoveUpdateOperation extends AbstractMap<DataQuery, UpdateOperatio
 
     @Override
     public DataView process(DataView view) {
-        return view.remove(query);
+        return DataUtils.remove(view, query);
     }
 
     @NotNull

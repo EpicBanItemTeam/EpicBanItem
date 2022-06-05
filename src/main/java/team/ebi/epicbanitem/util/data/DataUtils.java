@@ -33,6 +33,46 @@ public final class DataUtils {
 
     private DataUtils() {}
 
+    public static DataView set(DataView view, @NotNull DataQuery query, Object value) {
+        if (query.parts().size() <= 1) {
+            view.set(query, value);
+            return view;
+        }
+        DataQuery firstQuery = query.queryParts().get(0);
+        Optional<DataView> subView = view.getView(firstQuery);
+        Optional<List<?>> list = view.get(firstQuery).flatMap(DataUtils::asList);
+        String index = query.parts().get(1);
+        if (StringUtils.isNumeric(index) && list.isPresent()) {
+            Object element = list.get().get(Integer.parseInt(index));
+            if (element instanceof DataView viewValue) {
+                // The first is index. Second is the key
+                set(viewValue, query.popFirst().popFirst(), value);
+            }
+        }
+        subView.ifPresent(it -> set(it, query.popFirst(), value));
+        return view;
+    }
+
+    public static DataView remove(DataView view, @NotNull DataQuery query) {
+        if (query.parts().size() <= 1) {
+            view.remove(query);
+            return view;
+        }
+        DataQuery firstQuery = query.queryParts().get(0);
+        Optional<DataView> subView = view.getView(firstQuery);
+        Optional<List<?>> list = view.get(firstQuery).flatMap(DataUtils::asList);
+        String index = query.parts().get(1);
+        if (StringUtils.isNumeric(index) && list.isPresent()) {
+            Object element = list.get().get(Integer.parseInt(index));
+            if (element instanceof DataView viewValue) {
+                // The first is index. Second is the key
+                remove(viewValue, query.popFirst().popFirst());
+            }
+        }
+        subView.ifPresent(it -> remove(it, query.popFirst()));
+        return view;
+    }
+
     /**
      * Support to get value from array
      *
@@ -46,7 +86,6 @@ public final class DataUtils {
         }
         DataQuery firstQuery = query.queryParts().get(0);
         Optional<DataView> subView = view.getView(firstQuery);
-        // Coerce#asList(Object) will process primitive types
         Optional<List<?>> list = view.get(firstQuery).flatMap(DataUtils::asList);
         String index = query.parts().get(1);
         if (StringUtils.isNumeric(index) && list.isPresent()) {

@@ -12,21 +12,31 @@ import java.util.function.Predicate;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.block.entity.BlockEntityArchetype;
+import org.spongepowered.api.block.entity.BlockEntityTypes;
 import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.type.PistonTypes;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginManager;
+import org.spongepowered.api.registry.RegistryTypes;
+import org.spongepowered.api.world.server.ServerLocation;
 
 import com.google.common.collect.Maps;
 import net.minecraft.world.level.block.FlowerPotBlock;
+import team.ebi.epicbanitem.api.ItemQueries;
 
 public final class ItemUtils {
 
     private static final Map<Predicate<BlockSnapshot>, Function<BlockSnapshot, Optional<ItemStack>>> BLOCK_TO_ITEM =
             Maps.newHashMap();
+
+    private static final DataQuery BLOCK_ENTITY_TAG = ItemQueries.UNSAFE_DATA.then(ItemQueries.BLOCK_ENTITY_TAG);
 
     static {
         PluginManager pluginManager = Sponge.pluginManager();
@@ -84,5 +94,27 @@ public final class ItemUtils {
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
+    }
+
+    public static Optional<BlockSnapshot> toBlock(
+            final ItemStackSnapshot item, final ServerLocation location, final BlockState oldState) {
+        return item.type().block().flatMap(blockType -> {
+            final var state =
+                    BlockState.builder().from(oldState).blockType(blockType).build();
+            final var container = item.toContainer();
+            var block = Optional.<BlockSnapshot>empty();
+            if (container.contains(BLOCK_ENTITY_TAG)) {
+                final var archetype = BlockEntityArchetype.builder()
+                        .state(state)
+                        .blockEntity(() -> BlockEntityTypes.registry().value(blockType.key(RegistryTypes.BLOCK_TYPE)))
+                        .blockEntityData(container.getView(BLOCK_ENTITY_TAG).orElseThrow())
+                        .build();
+                block = Optional.of(archetype.toSnapshot(location));
+            } else {
+                block = Optional.of(
+                        BlockSnapshot.builder().blockState(state).from(location).build());
+            }
+            return block;
+        });
     }
 }
