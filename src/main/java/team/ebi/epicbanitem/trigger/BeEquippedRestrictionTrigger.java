@@ -52,7 +52,7 @@ public class BeEquippedRestrictionTrigger extends EBIRestrictionTrigger {
         if (item.isEmpty()) return;
         // TODO Use click rewrite
         final var cancelled = new AtomicBoolean(false);
-        final var processed = this.processCancellable(
+        final var processed = this.processItemCancellable(
                 event,
                 entity.serverLocation().world(),
                 cause.first(Subject.class).orElse(null),

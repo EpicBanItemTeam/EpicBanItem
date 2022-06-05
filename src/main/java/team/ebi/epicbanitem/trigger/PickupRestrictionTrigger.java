@@ -50,7 +50,7 @@ public class PickupRestrictionTrigger extends EBIRestrictionTrigger {
                     .build()
                     .createSnapshot();
             final var cancelled = new AtomicBoolean(false);
-            final var processed = this.processCancellable(
+            final var processed = this.processItemCancellable(
                     event, world, subject, audience, pickedItem, ignored -> cancelled.set(true));
             if (processed.isPresent()) {
                 transaction.setCustom(originalItem);

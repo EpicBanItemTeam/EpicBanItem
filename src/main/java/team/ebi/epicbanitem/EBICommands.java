@@ -16,8 +16,6 @@ import java.util.stream.Collectors;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.block.BlockState;
-import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.entity.carrier.CarrierBlockEntity;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandResult;
@@ -62,6 +60,7 @@ import team.ebi.epicbanitem.api.trigger.RestrictionTrigger;
 import team.ebi.epicbanitem.api.trigger.RestrictionTriggers;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.rule.RestrictionRuleImpl;
+import team.ebi.epicbanitem.util.ItemUtils;
 import team.ebi.epicbanitem.util.RestrictionRuleRenderer;
 import team.ebi.epicbanitem.util.command.Flags;
 import team.ebi.epicbanitem.util.command.Parameters;
@@ -517,11 +516,11 @@ public final class EBICommands {
         if (!(context.cause().root() instanceof final Player player)) {
             return CommandResult.error(NEED_PLAYER);
         }
-        boolean isBlock = context.hasFlag("block");
+        final var isBlock = context.hasFlag("block");
         UUID uuid = player.identity().uuid();
         // Last > Empty
-        var queryExpression = Objects.requireNonNull(usedQuery.get(uuid, it -> new RootQueryExpression()));
-        var updateExpression = context.requireOne(keys.update);
+        final var queryExpression = Objects.requireNonNull(usedQuery.get(uuid, it -> new RootQueryExpression()));
+        final var updateExpression = context.requireOne(keys.update);
         ItemStack targetObject;
         EquipmentType hand = null;
         BlockSnapshot block = null;
@@ -532,31 +531,24 @@ public final class EBICommands {
             hand = heldHand(player).orElseThrow(() -> new CommandException(NEED_ITEM));
             targetObject = equipped(player, hand).orElseThrow(() -> new CommandException(NEED_ITEM));
         }
-        var container = targetObject.toContainer();
-        var cleaned = ExpressionService.cleanup(container);
-        var result = queryExpression.query(cleaned).orElse(QueryResult.success());
-        var operation = updateExpression.update(result, cleaned);
-        var processed = operation.process(cleaned);
+        final var container = targetObject.toContainer();
+        final var cleaned = ExpressionService.cleanup(container);
+        final var result = queryExpression.query(cleaned).orElse(QueryResult.success());
+        final var operation = updateExpression.update(result, cleaned);
+        final var processed = operation.process(cleaned);
         processed.values(false).forEach((query, o) -> {
             container.remove(query);
             container.set(query, o);
         });
-        var dataManager = Sponge.dataManager();
-        var deserialized = dataManager.deserialize(ItemStack.class, container).orElseThrow();
+        final var dataManager = Sponge.dataManager();
+        final var deserialized =
+                dataManager.deserialize(ItemStack.class, container).orElseThrow();
         if (deserialized.quantity() > deserialized.maxStackQuantity()) {
             deserialized.setQuantity(deserialized.maxStackQuantity());
         }
         if (isBlock) {
-            BlockType blockType = deserialized.type().block().orElseThrow();
-            BlockState oldState = block.state();
-            BlockState newState = BlockState.builder()
-                    .blockType(blockType)
-                    .addFrom(blockType.defaultState())
-                    .addFrom(oldState)
-                    .build();
-            BlockSnapshot newSnapshot =
-                    BlockSnapshot.builder().from(block).blockState(newState).build();
-            newSnapshot.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT);
+            ItemUtils.toBlock(deserialized.createSnapshot(), block.location().get(), block.state())
+                    .ifPresent(it -> it.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT));
         } else {
             player.equip(hand, deserialized);
         }

@@ -103,16 +103,17 @@ public final class ItemUtils {
                     BlockState.builder().blockType(blockType).addFrom(oldState).build();
             final var container = item.toContainer();
             var block = Optional.<BlockSnapshot>empty();
-            if (container.contains(BLOCK_ENTITY_TAG)) {
+            final var blockEntityType = BlockEntityTypes.registry().findValue(blockType.key(RegistryTypes.BLOCK_TYPE));
+            if (container.contains(BLOCK_ENTITY_TAG) && blockEntityType.isPresent()) {
                 final var archetype = BlockEntityArchetype.builder()
                         .state(state)
-                        .blockEntity(() -> BlockEntityTypes.registry().value(blockType.key(RegistryTypes.BLOCK_TYPE)))
+                        .blockEntity(blockEntityType.get())
                         .blockEntityData(container.getView(BLOCK_ENTITY_TAG).orElseThrow())
                         .build();
                 block = Optional.of(archetype.toSnapshot(location));
             } else {
                 block = Optional.of(
-                        BlockSnapshot.builder().blockState(state).from(location).build());
+                        BlockSnapshot.builder().from(location).blockState(state).build());
             }
             return block;
         });

@@ -31,7 +31,7 @@ public class UseRestrictionTrigger extends EBIRestrictionTrigger {
             @ContextValue("USED_HAND") HandType hand,
             @ContextValue("USED_ITEM") ItemStackSnapshot item) {
         final var cause = event.cause();
-        slotFromHand(equipable, hand).ifPresent(it -> this.processCancellable(
+        slotFromHand(equipable, hand).ifPresent(it -> this.processItemCancellable(
                         event,
                         locatable.serverLocation().world(),
                         cause.first(Subject.class).orElse(null),

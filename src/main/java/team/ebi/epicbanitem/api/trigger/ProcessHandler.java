@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
@@ -77,60 +75,6 @@ public interface ProcessHandler<T> {
                     ItemStackSnapshot originObject,
                     RestrictionTrigger trigger,
                     ProcessHandler.CancellableHandler handler) {
-                super(originObject, trigger);
-                this.handler = handler;
-            }
-
-            @Override
-            public void cancel(Event event) {
-                handler.cancel(event);
-            }
-        }
-    }
-
-    interface Block extends ProcessHandler<BlockSnapshot> {
-        @Override
-        default Optional<BlockSnapshot> translate(DataView view) {
-            return Sponge.dataManager()
-                    .deserialize(ItemStackSnapshot.class, view)
-                    .map(item -> BlockSnapshot.builder()
-                            .blockState(BlockState.builder()
-                                    .blockType(item.type().block().orElseThrow())
-                                    .build())
-                            .build());
-        }
-
-        class Impl implements Block {}
-
-        class Cancellable implements CancellableHandler, Block {
-            private final CancellableHandler handler;
-
-            public Cancellable(CancellableHandler handler) {
-                this.handler = handler;
-            }
-
-            @Override
-            public void cancel(Event event) {
-                handler.cancel(event);
-            }
-        }
-
-        class Message extends ProcessHandler.Message<BlockSnapshot> implements Block {
-            public Message(BlockSnapshot originObject, RestrictionTrigger trigger) {
-                super(originObject, trigger);
-            }
-
-            @Override
-            protected ComponentLike component(BlockSnapshot obj) {
-                return obj.state().type();
-            }
-        }
-
-        class MessageCancellable extends Message implements Block, CancellableHandler {
-            private final CancellableHandler handler;
-
-            public MessageCancellable(
-                    BlockSnapshot originObject, RestrictionTrigger trigger, ProcessHandler.CancellableHandler handler) {
                 super(originObject, trigger);
                 this.handler = handler;
             }

@@ -37,8 +37,8 @@ public class ThrowRestrictionTrigger extends EBIRestrictionTrigger {
             final var snapshot = mutable.get();
             final var cancelled = new AtomicBoolean(false);
             final var processed = !hasInventory
-                    ? this.process(event, world.get(), subject, audience, snapshot)
-                    : this.processCancellable(event, world.get(), subject, audience, snapshot, ignored -> {
+                    ? this.processItem(event, world.get(), subject, audience, snapshot)
+                    : this.processItemCancellable(event, world.get(), subject, audience, snapshot, ignored -> {
                         ((ChangeInventoryEvent) event).filter(it -> !snapshot.equals(it.createSnapshot()));
                         cancelled.set(true);
                     });

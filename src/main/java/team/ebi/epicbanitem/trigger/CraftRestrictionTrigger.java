@@ -34,7 +34,7 @@ public class CraftRestrictionTrigger extends EBIRestrictionTrigger {
             final @First Locatable locatable) {
         final var cause = event.cause();
         final var cancelled = new AtomicBoolean(false);
-        final var processed = this.processCancellable(
+        final var processed = this.processItemCancellable(
                 event,
                 locatable.serverLocation().world(),
                 cause.first(Subject.class).orElse(null),

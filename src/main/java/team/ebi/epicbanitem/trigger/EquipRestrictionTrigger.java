@@ -48,7 +48,7 @@ public class EquipRestrictionTrigger extends EBIRestrictionTrigger {
         final var cause = event.cause();
         if (item.isEmpty()) return;
         // TODO change the cancel
-        Optional<ItemStackSnapshot> processed = this.processCancellable(
+        Optional<ItemStackSnapshot> processed = this.processItemCancellable(
                 event,
                 entity.serverLocation().world(),
                 cause.first(Subject.class).orElse(null),

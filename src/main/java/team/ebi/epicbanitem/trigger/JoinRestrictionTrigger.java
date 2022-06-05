@@ -40,7 +40,7 @@ public class JoinRestrictionTrigger extends EBIRestrictionTrigger {
                 .map(it -> ((Carrier) it).inventory())
                 .flatMap(it -> it.slots().stream())
                 .filter(it -> it.freeCapacity() == 0)
-                .forEach(it -> this.process(
+                .forEach(it -> this.processItem(
                                 event, world, subject, audience, it.peek().createSnapshot())
                         .map(ItemStackSnapshot::createStack)
                         .ifPresent(it::set));
@@ -57,7 +57,7 @@ public class JoinRestrictionTrigger extends EBIRestrictionTrigger {
                         .delay(Ticks.of(1L))
                         .execute(() -> player.inventory().slots().stream()
                                 .filter(it -> it.freeCapacity() == 0)
-                                .forEach(it -> this.process(
+                                .forEach(it -> this.processItem(
                                                 event,
                                                 world,
                                                 player,

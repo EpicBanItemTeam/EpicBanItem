@@ -41,7 +41,7 @@ public class DropRestrictionTrigger extends EBIRestrictionTrigger {
         for (final var drop : drops) {
             final var cancelled = new AtomicBoolean(false);
             Optional<ItemStackSnapshot> processed =
-                    this.processCancellable(event, world, subject, audience, drop, ignored -> cancelled.set(true));
+                    this.processItemCancellable(event, world, subject, audience, drop, ignored -> cancelled.set(true));
             if (processed.isPresent() && !cancelled.get()) finalDrops.add(processed.get());
             else if (!cancelled.get()) finalDrops.add(drop);
         }

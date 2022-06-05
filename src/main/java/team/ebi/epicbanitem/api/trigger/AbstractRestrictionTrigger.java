@@ -14,12 +14,12 @@ import java.util.function.Predicate;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.item.inventory.Equipable;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
@@ -69,52 +69,46 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
         return Component.translatable(EpicBanItem.NAMESPACE + ".trigger." + key() + ".description");
     }
 
-    protected Optional<BlockSnapshot> processCancellable(
+    protected Optional<ItemStackSnapshot> processBlockCancellable(
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
             final @Nullable Audience audience,
             final BlockSnapshot block) {
-        return this.processCancellable(
+        return this.processBlockCancellable(
                 event, world, subject, audience, block, ProcessHandler.CancellableHandler.CANCEL_EVENT);
     }
 
-    protected Optional<ItemStackSnapshot> processCancellable(
+    protected Optional<ItemStackSnapshot> processItemCancellable(
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
             final @Nullable Audience audience,
             final ItemStackSnapshot item) {
-        return this.processCancellable(
+        return this.processItemCancellable(
                 event, world, subject, audience, item, ProcessHandler.CancellableHandler.CANCEL_EVENT);
     }
 
-    protected Optional<BlockSnapshot> processCancellable(
+    protected Optional<ItemStackSnapshot> processBlockCancellable(
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
             final @Nullable Audience audience,
             final BlockSnapshot block,
             final ProcessHandler.CancellableHandler cancellable) {
-        return this.process(
-                event,
-                world,
-                subject,
-                audience,
-                block,
-                Objects.isNull(audience)
-                        ? new ProcessHandler.Block.Cancellable(cancellable)
-                        : new ProcessHandler.Block.MessageCancellable(block, this, cancellable));
+        return ItemUtils.fromBlock(block)
+                .map(ItemStack::createSnapshot)
+                .flatMap(it -> this.processItemCancellable(event, world, subject, audience, it, cancellable));
     }
 
-    protected Optional<ItemStackSnapshot> processCancellable(
+    protected Optional<ItemStackSnapshot> processItemCancellable(
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
             final @Nullable Audience audience,
             final ItemStackSnapshot item,
             final ProcessHandler.CancellableHandler cancellable) {
-        return this.process(
+        return this.processItem(
                 event,
                 world,
                 subject,
@@ -125,30 +119,13 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
                         : new ProcessHandler.Item.MessageCancellable(item, this, cancellable));
     }
 
-    protected Optional<BlockSnapshot> process(
-            final Event event,
-            final ServerWorld world,
-            final @Nullable Subject subject,
-            final @Nullable Audience audience,
-            final BlockSnapshot block) {
-        return this.process(
-                event,
-                world,
-                subject,
-                audience,
-                block,
-                Objects.isNull(audience)
-                        ? new ProcessHandler.Block.Impl()
-                        : new ProcessHandler.Block.Message(block, this));
-    }
-
-    protected Optional<ItemStackSnapshot> process(
+    protected Optional<ItemStackSnapshot> processItem(
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
             final @Nullable Audience audience,
             final ItemStackSnapshot item) {
-        return this.process(
+        return this.processItem(
                 event,
                 world,
                 subject,
@@ -159,43 +136,19 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
                         : new ProcessHandler.Item.Message(item, this));
     }
 
-    protected Optional<BlockSnapshot> process(
-            final Event event,
-            final ServerWorld world,
-            final @Nullable Subject subject,
-            final @Nullable Audience audience,
-            final BlockSnapshot block,
-            final ProcessHandler.Block handler) {
-        final var processed = this.process(event, world, subject, block, handler);
-        if (Objects.nonNull(audience) && handler instanceof ProcessHandler.Message message) message.sendTo(audience);
-        return processed;
-    }
-
-    protected Optional<ItemStackSnapshot> process(
+    protected Optional<ItemStackSnapshot> processItem(
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
             final @Nullable Audience audience,
             final ItemStackSnapshot item,
             final ProcessHandler.Item handler) {
-        final var processed = this.process(event, world, subject, item, handler);
+        final var processed = this.processItem(event, world, subject, item, handler);
         if (Objects.nonNull(audience) && handler instanceof ProcessHandler.Message message) message.sendTo(audience);
         return processed;
     }
 
-    protected Optional<BlockSnapshot> process(
-            final Event event,
-            final ServerWorld world,
-            final @Nullable Subject subject,
-            final BlockSnapshot block,
-            final ProcessHandler.Block handler) {
-        return ItemUtils.fromBlock(block)
-                .map(DataSerializable::toContainer)
-                .flatMap(view -> this.process(
-                        event, world, subject, block.state().type().key(RegistryTypes.BLOCK_TYPE), view, handler));
-    }
-
-    protected Optional<ItemStackSnapshot> process(
+    protected Optional<ItemStackSnapshot> processItem(
             final Event event,
             final ServerWorld world,
             final @Nullable Subject subject,
@@ -203,16 +156,6 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
             final ProcessHandler.Item handler) {
         return this.process(
                 event, world, subject, item.type().key(RegistryTypes.ITEM_TYPE), item.toContainer(), handler);
-    }
-
-    protected <T> Optional<T> process(
-            final Event event,
-            final ServerWorld world,
-            final @Nullable Subject subject,
-            final ResourceKey objectType,
-            final DataView view,
-            final ProcessHandler.Message<T> handler) {
-        return this.process(event, world, subject, objectType, view, (ProcessHandler<T>) handler);
     }
 
     protected <T> Optional<T> process(

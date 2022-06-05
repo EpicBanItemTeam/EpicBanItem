@@ -55,7 +55,7 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
         final var entityOpt = world.entity(creator);
         if (entityOpt.isEmpty()) return;
         final var cancelled = new AtomicBoolean(false);
-        final var processed = this.processCancellable(
+        final var processed = this.processItemCancellable(
                 event,
                 world,
                 entityOpt
@@ -121,9 +121,10 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
                             .quantity(finalItem.quantity() - originalItem.quantity())
                             .build()
                             .createSnapshot();
-                    final var processed = this.processCancellable(event, world, player, player, deltaItem, ignored -> {
-                        cancelled.set(true);
-                    });
+                    final var processed =
+                            this.processItemCancellable(event, world, player, player, deltaItem, ignored -> {
+                                cancelled.set(true);
+                            });
                     if (processed.isPresent()) {
                         if (cancelled.get()) {
                             if (isCursor) {
