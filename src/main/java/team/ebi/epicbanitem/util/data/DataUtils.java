@@ -42,7 +42,7 @@ public final class DataUtils {
         Optional<DataView> subView = view.getView(firstQuery);
         Optional<List<?>> list = view.get(firstQuery).flatMap(DataUtils::asList);
         String index = query.parts().get(1);
-        if (StringUtils.isNumeric(index) && list.isPresent()) {
+        if (StringUtils.isNumeric(index) && list.isPresent() && !list.get().isEmpty()) {
             Object element = list.get().get(Integer.parseInt(index));
             if (element instanceof DataView viewValue) {
                 // The first is index. Second is the key
@@ -62,7 +62,7 @@ public final class DataUtils {
         Optional<DataView> subView = view.getView(firstQuery);
         Optional<List<?>> list = view.get(firstQuery).flatMap(DataUtils::asList);
         String index = query.parts().get(1);
-        if (StringUtils.isNumeric(index) && list.isPresent()) {
+        if (StringUtils.isNumeric(index) && list.isPresent() && !list.get().isEmpty()) {
             Object element = list.get().get(Integer.parseInt(index));
             if (element instanceof DataView viewValue) {
                 // The first is index. Second is the key
@@ -88,7 +88,7 @@ public final class DataUtils {
         Optional<DataView> subView = view.getView(firstQuery);
         Optional<List<?>> list = view.get(firstQuery).flatMap(DataUtils::asList);
         String index = query.parts().get(1);
-        if (StringUtils.isNumeric(index) && list.isPresent()) {
+        if (StringUtils.isNumeric(index) && list.isPresent() && !list.get().isEmpty()) {
             Object value = list.get().get(Integer.parseInt(index));
             if (value instanceof DataView viewValue) {
                 // The first is index. Second is the key

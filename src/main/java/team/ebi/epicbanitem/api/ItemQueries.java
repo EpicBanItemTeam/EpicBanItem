@@ -12,6 +12,7 @@ public final class ItemQueries {
     public static final DataQuery UNSAFE_DAMAGE = DataQuery.of("UnsafeDamage");
     public static final DataQuery ITEM_TYPE = DataQuery.of("ItemType");
     public static final DataQuery CREATOR = DataQuery.of("sponge-data", "sponge", "creator_tracked");
+    public static final DataQuery UNSAFE_DATA = DataQuery.of("UnsafeData");
     public static final DataQuery BLOCK_ENTITY_TAG = DataQuery.of("BlockEntityTag");
     public static final DataQuery BLOCK_ID = BLOCK_ENTITY_TAG.then("id");
 

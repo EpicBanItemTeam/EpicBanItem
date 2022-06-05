@@ -100,7 +100,7 @@ public final class ItemUtils {
             final ItemStackSnapshot item, final ServerLocation location, final BlockState oldState) {
         return item.type().block().flatMap(blockType -> {
             final var state =
-                    BlockState.builder().from(oldState).blockType(blockType).build();
+                    BlockState.builder().blockType(blockType).addFrom(oldState).build();
             final var container = item.toContainer();
             var block = Optional.<BlockSnapshot>empty();
             if (container.contains(BLOCK_ENTITY_TAG)) {
