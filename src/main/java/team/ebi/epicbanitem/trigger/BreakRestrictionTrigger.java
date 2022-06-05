@@ -7,15 +7,11 @@ package team.ebi.epicbanitem.trigger;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.transaction.Operations;
-import org.spongepowered.api.data.Keys;
-import org.spongepowered.api.data.value.Value;
-import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.plugin.PluginContainer;
@@ -55,12 +51,7 @@ public class BreakRestrictionTrigger extends EBIRestrictionTrigger {
                                                 .plugin(plugin)
                                                 .execute(() -> it.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT))
                                                 .build()),
-                                () -> {
-                                    final var item = location.createEntity(EntityTypes.ITEM.get());
-                                    item.offer(Value.mutableOf(Keys.ITEM_STACK_SNAPSHOT, processedItem));
-                                    item.offer(Value.mutableOf(Keys.PICKUP_DELAY, Ticks.of(40L)));
-                                    location.spawnEntity(item);
-                                });
+                                () -> location.spawnEntity(ItemUtils.droppedItem(processedItem, location)));
             }
         });
     }

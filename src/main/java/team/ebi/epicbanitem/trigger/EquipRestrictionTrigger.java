@@ -24,6 +24,7 @@ import org.spongepowered.api.service.permission.Subject;
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.util.InventoryUtils;
 
 @Singleton
 public class EquipRestrictionTrigger extends EBIRestrictionTrigger {
@@ -45,22 +46,27 @@ public class EquipRestrictionTrigger extends EBIRestrictionTrigger {
         final var equipmentGroup = equipmentType.group();
         if (!equipmentGroup.equals(EquipmentGroups.WORN.get())) return;
         final var item = transaction.finalReplacement();
-        final var cause = event.cause();
         if (item.isEmpty()) return;
-        // TODO change the cancel
+        final var location = entity.serverLocation();
+        final var cause = event.cause();
         Optional<ItemStackSnapshot> processed = this.processItemCancellable(
                 event,
-                entity.serverLocation().world(),
+                location.world(),
                 cause.first(Subject.class).orElse(null),
                 cause.first(Audience.class).orElse(null),
                 item);
 
         if (processed.isPresent()) {
-            if (event.isCancelled()) carrier.inventory().offer(processed.get().createStack());
-            else transaction.setCustom(processed.get());
+            if (event.isCancelled() || slot.isValidItem(processed.get().type()))
+                location.spawnEntities(InventoryUtils.offerOrDrop(
+                        carrier.inventory(), location, processed.get().createStack()));
+            else if (!event.isCancelled()) transaction.setCustom(processed.get());
         } else {
             if (event.isCancelled())
-                carrier.inventory().offer(transaction.defaultReplacement().createStack());
+                location.spawnEntities(InventoryUtils.offerOrDrop(
+                        carrier.inventory(),
+                        location,
+                        transaction.defaultReplacement().createStack()));
         }
     }
 }

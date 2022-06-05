@@ -8,19 +8,16 @@ package team.ebi.epicbanitem.trigger;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.spongepowered.api.block.transaction.Operations;
-import org.spongepowered.api.data.Keys;
-import org.spongepowered.api.data.value.Value;
-import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.server.ServerWorld;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.util.InventoryUtils;
 import team.ebi.epicbanitem.util.ItemUtils;
 
 public class PlaceRestrictionTrigger extends EBIRestrictionTrigger {
@@ -42,20 +39,17 @@ public class PlaceRestrictionTrigger extends EBIRestrictionTrigger {
                     this.processBlockCancellable(event, world, subject, audience, finalReplacement, ignored -> {
                         transaction.invalidate();
                         cancelled.set(true);
-                        carrier.ifPresent(
-                                it -> ItemUtils.fromBlock(finalReplacement).ifPresent(it.inventory()::offer));
+                        carrier.ifPresent(it -> ItemUtils.fromBlock(finalReplacement)
+                                .ifPresent(item -> InventoryUtils.offerOrDrop(it.inventory(), location, item)));
                     });
             if (processed.isPresent() && !cancelled.get()) {
                 final var processedItem = processed.get();
                 final var blockType = processedItem.type().block();
                 blockType
                         .flatMap(ignored -> ItemUtils.toBlock(processedItem, location, finalReplacement.state()))
-                        .ifPresentOrElse(transaction::setCustom, () -> {
-                            final var item = location.createEntity(EntityTypes.ITEM.get());
-                            item.offer(Value.mutableOf(Keys.ITEM_STACK_SNAPSHOT, processedItem));
-                            item.offer(Value.mutableOf(Keys.PICKUP_DELAY, Ticks.of(40L)));
-                            location.spawnEntity(item);
-                        });
+                        .ifPresentOrElse(
+                                transaction::setCustom,
+                                () -> location.spawnEntity(ItemUtils.droppedItem(processedItem, location)));
             }
         });
     }

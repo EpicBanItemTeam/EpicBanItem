@@ -32,6 +32,7 @@ import org.spongepowered.api.world.server.ServerWorld;
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.util.InventoryUtils;
 
 @Singleton
 public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
@@ -95,6 +96,7 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
             @Getter("transactions") List<SlotTransaction> transactions,
             @Getter("cursorTransaction") Transaction<ItemStackSnapshot> cursorTransaction) {
         final var world = player.world();
+        final var location = player.serverLocation();
         final var cancelled = new AtomicBoolean(false);
         final var containerSlots =
                 transactions.stream().filter(IS_STANDARD_INVENTORY.negate()).toList();
@@ -136,7 +138,10 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
                                         .createSnapshot());
                             } else {
                                 transaction.setCustom(ItemStack.empty());
-                                fallbackInventory.offer(processed.get().createStack());
+                                InventoryUtils.offerOrDrop(
+                                        fallbackInventory,
+                                        location,
+                                        processed.get().createStack());
                             }
                         } else transaction.setCustom(processed.get().createStack());
                     } else if (cancelled.get()) event.setCancelled(true);

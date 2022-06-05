@@ -20,11 +20,15 @@ import org.spongepowered.api.block.entity.BlockEntityTypes;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.type.PistonTypes;
+import org.spongepowered.api.data.value.Value;
+import org.spongepowered.api.entity.EntityTypes;
+import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.registry.RegistryTypes;
+import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.server.ServerLocation;
 
 import com.google.common.collect.Maps;
@@ -117,5 +121,12 @@ public final class ItemUtils {
             }
             return block;
         });
+    }
+
+    public static Item droppedItem(final ItemStackSnapshot item, final ServerLocation location) {
+        final var entity = location.createEntity(EntityTypes.ITEM.get());
+        entity.offer(Value.mutableOf(Keys.ITEM_STACK_SNAPSHOT, item));
+        entity.offer(Value.mutableOf(Keys.PICKUP_DELAY, Ticks.of(40L)));
+        return entity;
     }
 }

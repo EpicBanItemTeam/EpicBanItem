@@ -24,6 +24,7 @@ import org.spongepowered.api.world.Locatable;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
+import team.ebi.epicbanitem.util.InventoryUtils;
 
 public class PickupRestrictionTrigger extends EBIRestrictionTrigger {
     public PickupRestrictionTrigger() {
@@ -59,7 +60,9 @@ public class PickupRestrictionTrigger extends EBIRestrictionTrigger {
                     item.offer(Value.mutableOf(Keys.ITEM_STACK_SNAPSHOT, processed.get()));
                     item.offer(Value.mutableOf(Keys.PICKUP_DELAY, Ticks.of(40L)));
                     location.spawnEntity(item);
-                } else inventory.offer(processed.get().createStack());
+                } else
+                    InventoryUtils.offerOrDrop(
+                            inventory, location, processed.get().createStack());
             }
         }
     }
