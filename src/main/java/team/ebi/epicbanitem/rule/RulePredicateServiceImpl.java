@@ -24,7 +24,7 @@ public class RulePredicateServiceImpl implements RulePredicateService {
     @Override
     public boolean remove(RestrictionRule rule) {
         return predicates(rule.predicate()).stream()
-                .reduce(false, (prev, curr) -> prev || predicates.get(curr).remove(rule), (prev, curr) -> prev || curr);
+                .reduce(false, (prev, curr) -> predicates.get(curr).remove(rule) || prev, (prev, curr) -> prev || curr);
     }
 
     @Override

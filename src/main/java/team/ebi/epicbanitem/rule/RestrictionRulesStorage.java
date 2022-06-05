@@ -70,7 +70,6 @@ public class RestrictionRulesStorage {
     }
 
     public void remove(ResourceKey key) {
-        ruleService.remove(key);
         try {
             Files.delete(rulesDir.resolve(configExtension(key.value())));
         } catch (IOException e) {
