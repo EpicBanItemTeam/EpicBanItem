@@ -19,10 +19,7 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.item.inventory.TransferInventoryEvent;
 import org.spongepowered.api.event.item.inventory.container.ClickContainerEvent;
-import org.spongepowered.api.item.inventory.Container;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.Slot;
+import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.entity.PrimaryPlayerInventory;
 import org.spongepowered.api.item.inventory.entity.StandardInventory;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
@@ -100,7 +97,7 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
         final var cancelled = new AtomicBoolean(false);
         final var containerSlots =
                 transactions.stream().filter(IS_STANDARD_INVENTORY.negate()).toList();
-        final var fallbackInventory = event.inventory().children().stream()
+        final var fallbackInventory = event.inventory().viewed().stream()
                 .filter(it -> it instanceof PrimaryPlayerInventory)
                 .findAny()
                 .or(() -> transactions.stream()
