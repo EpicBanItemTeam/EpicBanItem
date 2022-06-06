@@ -6,6 +6,7 @@
 package team.ebi.epicbanitem.trigger;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.Transaction;
@@ -34,7 +35,6 @@ public class EquipRestrictionTrigger extends EBIRestrictionTrigger {
     }
 
     @Listener
-    @SuppressWarnings("IsCancelled")
     public void onChangeEntityEquipment(
             final ChangeEntityEquipmentEvent event,
             final @First Equipable equipable,
@@ -49,24 +49,32 @@ public class EquipRestrictionTrigger extends EBIRestrictionTrigger {
         if (item.isEmpty()) return;
         final var location = entity.serverLocation();
         final var cause = event.cause();
+        final var cancelled = new AtomicBoolean(false);
         Optional<ItemStackSnapshot> processed = this.processItemCancellable(
                 event,
                 location.world(),
                 cause.first(Subject.class).orElse(null),
                 cause.first(Audience.class).orElse(null),
-                item);
+                item,
+                ignored -> cancelled.set(true));
 
         if (processed.isPresent()) {
-            if (event.isCancelled() || slot.isValidItem(processed.get().type()))
+            if (cancelled.get()) {
+                transaction.setCustom(ItemStackSnapshot.empty());
                 location.spawnEntities(InventoryUtils.offerOrDrop(
                         carrier.inventory(), location, processed.get().createStack()));
-            else if (!event.isCancelled()) transaction.setCustom(processed.get());
-        } else {
-            if (event.isCancelled())
+            } else if (slot.isValidItem(processed.get().type())) transaction.setCustom(processed.get());
+            else {
+                transaction.setCustom(ItemStackSnapshot.empty());
                 location.spawnEntities(InventoryUtils.offerOrDrop(
-                        carrier.inventory(),
-                        location,
-                        transaction.defaultReplacement().createStack()));
+                        carrier.inventory(), location, processed.get().createStack()));
+            }
+        } else if (cancelled.get()) {
+            location.spawnEntities(InventoryUtils.offerOrDrop(
+                    carrier.inventory(),
+                    location,
+                    transaction.finalReplacement().createStack()));
+            transaction.setCustom(ItemStackSnapshot.empty());
         }
     }
 }

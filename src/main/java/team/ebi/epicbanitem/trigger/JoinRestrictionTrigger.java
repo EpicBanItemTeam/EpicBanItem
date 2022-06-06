@@ -50,7 +50,7 @@ public class JoinRestrictionTrigger extends EBIRestrictionTrigger {
     }
 
     @Listener
-    public void onServerSideConnectionJoin(final ServerSideConnectionEvent.Join event) {
+    public void onServerSideConnectionJoin(ServerSideConnectionEvent.Join event) {
         final var player = event.player();
         final var world = player.world();
         final var location = player.serverLocation();
@@ -65,16 +65,17 @@ public class JoinRestrictionTrigger extends EBIRestrictionTrigger {
     }
 
     private void handleInventory(
-            final Event event,
-            final ServerWorld world,
-            final Audience audience,
-            final Subject subject,
-            final ServerLocation location,
-            final CarriedInventory<? extends Carrier> inventory) {
+            Event event,
+            ServerWorld world,
+            Audience audience,
+            Subject subject,
+            ServerLocation location,
+            CarriedInventory<? extends Carrier> inventory) {
         inventory.slots().stream().filter(it -> it.freeCapacity() == 0).forEach(it -> this.processItem(
                         event, world, subject, audience, it.peek().createSnapshot())
                 .map(ItemStackSnapshot::createStack)
                 .ifPresent(item -> {
+                    // TODO Sponge won't tell me what type the slot is
                     if (it instanceof FilteringSlot slot && slot.isValidItem(item))
                         location.spawnEntities(InventoryUtils.offerOrDrop(inventory, location, item));
                     else it.set(item);
