@@ -21,10 +21,10 @@ import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
 
 @Singleton
-public class CraftRestrictionTrigger extends EBIRestrictionTrigger {
+public class BeCraftedRestrictionTrigger extends EBIRestrictionTrigger {
 
-    public CraftRestrictionTrigger() {
-        super(EpicBanItem.key("craft"));
+    public BeCraftedRestrictionTrigger() {
+        super(EpicBanItem.key("be_crafted"));
     }
 
     @Listener
