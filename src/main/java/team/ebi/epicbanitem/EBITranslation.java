@@ -7,6 +7,8 @@ package team.ebi.epicbanitem;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -75,7 +77,7 @@ public final class EBITranslation {
                 .forEach(it -> {
                     try {
                         final var properties = new Properties();
-                        properties.load(Files.newInputStream(it));
+                        properties.load(new InputStreamReader(Files.newInputStream(it), StandardCharsets.UTF_8));
                         externalProperties.put(it, properties);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -94,7 +96,7 @@ public final class EBITranslation {
     public void saveExternal() {
         externalProperties.forEach((path, properties) -> {
             try {
-                properties.store(Files.newOutputStream(path), null);
+                properties.store(new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.UTF_8), null);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -116,7 +118,8 @@ public final class EBITranslation {
                 final var name = path.name();
                 final var resource = contents.requireResource(PackType.server(), path);
                 final var locale = name.substring(9, name.lastIndexOf(".properties"));
-                var bundle = new PropertyResourceBundle(new InputStreamReader(resource.inputStream()));
+                var bundle = new PropertyResourceBundle(
+                        new InputStreamReader(resource.inputStream(), StandardCharsets.UTF_8));
                 final var external = messagesDir.resolve(name);
                 if (Files.notExists(external)) Files.createFile(external);
                 try (final var reader = Files.newBufferedReader(external)) {
