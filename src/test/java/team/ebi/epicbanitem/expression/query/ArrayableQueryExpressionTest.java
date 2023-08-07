@@ -5,12 +5,12 @@
  */
 package team.ebi.epicbanitem.expression.query;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
@@ -26,8 +26,8 @@ class ArrayableQueryExpressionTest {
 
     @BeforeAll
     static void beforeAll() {
-        testContainer.set(DataQuery.of("bad"), List.of(0, 2));
-        testContainer.set(DataQuery.of("array"), List.of(0, 1, 2));
+        testContainer.set(DataQuery.of("bad"), Lists.newArrayList(0, 2));
+        testContainer.set(DataQuery.of("array"), Lists.newArrayList(0, 1, 2));
         testContainer.set(DataQuery.of("number"), 1);
     }
 

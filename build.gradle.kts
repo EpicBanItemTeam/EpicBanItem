@@ -2,12 +2,13 @@ import org.spongepowered.gradle.plugin.config.PluginLoaders
 import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
+    idea
     `java-library`
-    id("org.spongepowered.gradle.plugin") version "2.0.2"
-    id("org.spongepowered.gradle.vanilla") version "0.2"
-    id("com.diffplug.spotless") version "6.6.1"
+    id("org.spongepowered.gradle.plugin") version "2.1.1"
+    id("org.spongepowered.gradle.vanilla") version "0.2.1-SNAPSHOT"
+    id("com.diffplug.spotless") version "6.20.0"
     id("io.github.nefilim.gradle.semver-plugin") version "0.3.13"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 val id: String by project
@@ -30,9 +31,14 @@ val junitVersion: String by project
 val mockitoVersion: String by project
 val spongeApiVersion: String by project
 val bstatsVersion: String by project
+val jabelVersion: String by project
 
 dependencies {
     shadow("org.bstats:bstats-sponge:$bstatsVersion")
+
+    annotationProcessor("com.github.bsideup.jabel:jabel-javac-plugin:$jabelVersion")
+    compileOnly("com.github.bsideup.jabel:jabel-javac-plugin:$jabelVersion")
+    annotationProcessor("net.java.dev.jna:jna-platform:5.13.0")
 
     testRuntimeOnly("org.spongepowered:spongeapi:$spongeApiVersion")
 
@@ -42,7 +48,6 @@ dependencies {
 
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    testImplementation("org.mockito:mockito-inline:$mockitoVersion")
 }
 
 sponge {
@@ -55,9 +60,9 @@ sponge {
     plugin(id) {
         displayName("Epic Ban Item")
         entrypoint("team.ebi.epicbanitem.EpicBanItem")
-        description("Restrict items with nbt tags")
+        description("Modify objects in game with powerful rules")
         links {
-            homepage("https://docs.ebi.team")
+            homepage("https://github.com/EpicBanItemTeam/EpicBanItem")
             source("https://github.com/EpicBanItemTeam/EpicBanItem")
             issues("https://github.com/EpicBanItemTeam/EpicBanItem/issues")
         }
@@ -73,20 +78,31 @@ sponge {
 
 minecraft {
     version("1.16.5")
+
+    runs {
+        server("runVanillaServer") {
+            workingDirectory(file("run/server"))
+        }
+        client("runVanillaClient") {
+            workingDirectory(file("run/client"))
+        }
+    }
 }
 
-val javaTarget = 16
 java {
-    sourceCompatibility = JavaVersion.toVersion(javaTarget)
-    targetCompatibility = JavaVersion.toVersion(javaTarget)
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.withType(JavaCompile::class).configureEach {
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "17"
     options.apply {
         encoding = "utf-8" // Consistent source file encoding
-        if (JavaVersion.current().isJava10Compatible) {
-            release.set(javaTarget)
-        }
+        release.set(8)
+    }
+
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -96,7 +112,7 @@ tasks.withType(AbstractArchiveTask::class).configureEach {
     isPreserveFileTimestamps = false
 }
 artifacts {
-    archives (tasks.shadowJar)
+    archives(tasks.shadowJar)
 }
 
 tasks {
@@ -104,7 +120,11 @@ tasks {
         useJUnitPlatform()
     }
     runServer {
-        jvmArgs("-XX:+AllowEnhancedClassRedefinition", "-XX:HotswapAgent=fatjar", "-Dlog4j.configurationFile=../log4j2.xml")
+        jvmArgs(
+            "-XX:+AllowEnhancedClassRedefinition",
+            "-XX:HotswapAgent=fatjar",
+            "-Dlog4j.configurationFile=../log4j2.xml"
+        )
     }
     shadowJar {
         configurations = listOf(project.configurations.shadow.get())

@@ -5,8 +5,8 @@
  */
 package team.ebi.epicbanitem.expression;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -36,7 +36,11 @@ public class ExtraQueryQueryExpression implements QueryExpression {
     public Optional<QueryResult> query(DataQuery query, DataView data) {
         return expression
                 .query(query.then(this.query), data)
-                .map(it -> QueryResult.success(Map.of(this.query.toString(), it)));
+                .map(it -> QueryResult.success(new HashMap<>() {
+                    {
+                        put(ExtraQueryQueryExpression.this.query.toString(), it);
+                    }
+                }));
     }
 
     @Override

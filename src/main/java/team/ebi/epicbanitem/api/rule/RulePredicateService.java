@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import org.spongepowered.api.ResourceKey;
 
+import com.google.common.collect.Lists;
 import com.google.inject.ImplementedBy;
 import it.unimi.dsi.fastutil.objects.*;
 import team.ebi.epicbanitem.rule.RulePredicateServiceImpl;
@@ -54,7 +55,7 @@ public interface RulePredicateService {
      */
     default SortedSet<ResourceKey> predicates(ResourceKey id) {
         return new ObjectLinkedOpenHashSet<>(
-                List.of(WILDCARD, ResourceKey.of(id.namespace(), "_"), ResourceKey.of("_", id.value()), id));
+                Lists.newArrayList(WILDCARD, ResourceKey.of(id.namespace(), "_"), ResourceKey.of("_", id.value()), id));
     }
 
     boolean remove(RestrictionRule rule);

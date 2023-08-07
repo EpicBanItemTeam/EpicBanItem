@@ -26,7 +26,7 @@ public class NinQueryExpression implements QueryExpression {
     }
 
     public NinQueryExpression(DataView data, DataQuery query) {
-        if (data.getList(query).isEmpty()) {
+        if (!data.getList(query).isPresent()) {
             throw new InvalidDataException("$nin should be an array");
         }
         this.expression = new InQueryExpression(data, query);
@@ -34,7 +34,7 @@ public class NinQueryExpression implements QueryExpression {
 
     @Override
     public Optional<QueryResult> query(DataQuery query, DataView data) {
-        return QueryResult.from(expression.query(query, data).isEmpty());
+        return QueryResult.from(!expression.query(query, data).isPresent());
     }
 
     @Override

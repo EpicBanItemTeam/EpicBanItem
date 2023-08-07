@@ -42,7 +42,7 @@ public class EquipRestrictionTrigger extends EBIRestrictionTrigger {
             final @Getter("entity") Entity entity,
             final @Getter("transaction") Transaction<ItemStackSnapshot> transaction,
             final @Getter("slot") EquipmentSlot slot) {
-        final var equipmentType = slot.get(Keys.EQUIPMENT_TYPE).orElseThrow();
+        final var equipmentType = slot.get(Keys.EQUIPMENT_TYPE).get();
         final var equipmentGroup = equipmentType.group();
         if (!equipmentGroup.equals(EquipmentGroups.WORN.get())) return;
         final var item = transaction.finalReplacement();

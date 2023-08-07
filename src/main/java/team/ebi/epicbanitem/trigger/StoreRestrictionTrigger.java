@@ -6,9 +6,12 @@
 package team.ebi.epicbanitem.trigger;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -28,6 +31,7 @@ import org.spongepowered.api.world.server.ServerWorld;
 
 import com.google.inject.Singleton;
 import net.kyori.adventure.audience.Audience;
+import net.minecraft.util.LazyLoadedValue;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.util.InventoryUtils;
 
@@ -51,7 +55,7 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
             final @Getter("sourceSlot") Slot sourceSlot,
             final @Getter("targetSlot") Slot targetSlot) {
         final var entityOpt = world.entity(creator);
-        if (entityOpt.isEmpty()) return;
+        if (!entityOpt.isPresent()) return;
         final var cancelled = new AtomicBoolean(false);
         final var processed = this.processItemCancellable(
                 event,
@@ -96,16 +100,22 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
         final var location = player.serverLocation();
         final var cancelled = new AtomicBoolean(false);
         final var containerSlots =
-                transactions.stream().filter(IS_STANDARD_INVENTORY.negate()).toList();
-        final var fallbackInventory = event.inventory().viewed().stream()
-                .filter(it -> it instanceof PrimaryPlayerInventory)
-                .findAny()
-                .or(() -> transactions.stream()
-                        .map(it -> it.slot().viewedSlot().parent())
-                        .filter(it -> it instanceof StandardInventory)
-                        .map(it -> ((StandardInventory) it).primary())
-                        .findAny())
-                .orElse(event.inventory());
+                transactions.stream().filter(IS_STANDARD_INVENTORY.negate()).collect(Collectors.toList());
+
+        final var fallbackInventory = new LazyLoadedValue<>(() -> {
+            final var playerInventoryFromViewedSupplier = event.inventory().viewed().stream()
+                    .filter(it -> it instanceof PrimaryPlayerInventory)
+                    .findAny();
+            final Supplier<Optional<Inventory>> playerInventoryFromTransactionsSupplier = () -> transactions.stream()
+                    .map(it -> it.slot().viewedSlot().parent())
+                    .filter(it -> it instanceof StandardInventory)
+                    .map(it -> (Inventory) ((StandardInventory) it).primary())
+                    .findAny();
+            if (playerInventoryFromViewedSupplier.isPresent()) return playerInventoryFromViewedSupplier.get();
+            final var playerInventoryFromTransactions = playerInventoryFromTransactionsSupplier.get();
+            return playerInventoryFromTransactions.orElseGet(event::inventory);
+        });
+
         final var cursorOriginal = cursorTransaction.original();
         final var cursorFinal = cursorTransaction.finalReplacement();
         final var isCursor = cursorOriginal.quantity() > cursorFinal.quantity();
@@ -120,10 +130,8 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
                             .quantity(finalItem.quantity() - originalItem.quantity())
                             .build()
                             .createSnapshot();
-                    final var processed =
-                            this.processItemCancellable(event, world, player, player, deltaItem, ignored -> {
-                                cancelled.set(true);
-                            });
+                    final var processed = this.processItemCancellable(
+                            event, world, player, player, deltaItem, ignored -> cancelled.set(true));
                     if (processed.isPresent()) {
                         if (cancelled.get()) {
                             if (isCursor) {
@@ -136,7 +144,7 @@ public class StoreRestrictionTrigger extends EBIRestrictionTrigger {
                             } else {
                                 transaction.setCustom(ItemStack.empty());
                                 InventoryUtils.offerOrDrop(
-                                        fallbackInventory,
+                                        fallbackInventory.get(),
                                         location,
                                         processed.get().createStack());
                             }

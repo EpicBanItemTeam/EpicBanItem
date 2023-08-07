@@ -21,6 +21,7 @@ import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.rule.*;
 import team.ebi.epicbanitem.expression.RootQueryExpression;
 import team.ebi.epicbanitem.expression.RootUpdateExpression;
+import team.ebi.epicbanitem.util.exception.KeyNotExistInDataViewException;
 
 public class RestrictionRuleImpl implements RestrictionRule {
 
@@ -70,8 +71,10 @@ public class RestrictionRuleImpl implements RestrictionRule {
     }
 
     public RestrictionRuleImpl(DataView data) {
-        DataView view = data.getView(RestrictionRuleQueries.RULE).orElseThrow();
-        this.key = view.getResourceKey(RestrictionRuleQueries.KEY).orElseThrow();
+        DataView view = data.getView(RestrictionRuleQueries.RULE)
+                .orElseThrow(() -> new KeyNotExistInDataViewException(RestrictionRuleQueries.RULE, data));
+        this.key = view.getResourceKey(RestrictionRuleQueries.KEY)
+                .orElseThrow(() -> new KeyNotExistInDataViewException(RestrictionRuleQueries.KEY, view));
         this.priority = view.getInt(RestrictionRuleQueries.PRIORITY).orElse(10);
         this.queryExpression = view.getSerializable(RestrictionRuleQueries.QUERY, RootQueryExpression.class)
                 .orElseThrow(() -> new InvalidDataException("Invalid query expression for rule"));

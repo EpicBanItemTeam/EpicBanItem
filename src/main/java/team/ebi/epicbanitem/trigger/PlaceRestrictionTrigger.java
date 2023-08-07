@@ -33,7 +33,7 @@ public class PlaceRestrictionTrigger extends EBIRestrictionTrigger {
         final var carrier = cause.first(Carrier.class);
         event.transactions(Operations.PLACE.get()).forEach(transaction -> {
             final var finalReplacement = transaction.finalReplacement();
-            final var location = finalReplacement.location().orElseThrow();
+            final var location = finalReplacement.location().get();
             final var cancelled = new AtomicBoolean(false);
             final var processed =
                     this.processBlockCancellable(event, world, subject, audience, finalReplacement, ignored -> {
@@ -45,11 +45,13 @@ public class PlaceRestrictionTrigger extends EBIRestrictionTrigger {
             if (processed.isPresent() && !cancelled.get()) {
                 final var processedItem = processed.get();
                 final var blockType = processedItem.type().block();
-                blockType
-                        .flatMap(ignored -> ItemUtils.toBlock(processedItem, location, finalReplacement.state()))
-                        .ifPresentOrElse(
-                                transaction::setCustom,
-                                () -> location.spawnEntity(ItemUtils.droppedItem(processedItem, location)));
+                final var processedBlock = blockType.flatMap(
+                        ignored -> ItemUtils.toBlock(processedItem, location, finalReplacement.state()));
+                if (processedBlock.isPresent()) {
+                    transaction.setCustom(processedBlock.get());
+                } else {
+                    location.spawnEntity(ItemUtils.droppedItem(processedItem, location));
+                }
             }
         });
     }

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EqQueryExpressionTest {
@@ -32,21 +33,21 @@ class EqQueryExpressionTest {
         expressionView.set(query, "bar");
         final EqQueryExpression expression = new EqQueryExpression(expressionView, query);
         assertTrue(expression.query(DataQuery.of("string"), testContainer).isPresent());
-        assertTrue(expression.query(DataQuery.of("number"), testContainer).isEmpty());
+        assertFalse(expression.query(DataQuery.of("number"), testContainer).isPresent());
     }
 
     @Test
     void string() {
         EqQueryExpression expression = new EqQueryExpression("bar");
         assertTrue(expression.query(DataQuery.of("string"), testContainer).isPresent());
-        assertTrue(expression.query(DataQuery.of("number"), testContainer).isEmpty());
+        assertFalse(expression.query(DataQuery.of("number"), testContainer).isPresent());
     }
 
     @Test
     void number() {
         EqQueryExpression expression = new EqQueryExpression(123456);
         assertTrue(expression.query(DataQuery.of("number"), testContainer).isPresent());
-        assertTrue(expression.query(DataQuery.of("string"), testContainer).isEmpty());
+        assertFalse(expression.query(DataQuery.of("string"), testContainer).isPresent());
     }
 
     @Test
@@ -56,6 +57,6 @@ class EqQueryExpressionTest {
 
         EqQueryExpression expression = new EqQueryExpression(object);
         assertTrue(expression.query(DataQuery.of("object"), testContainer).isPresent());
-        assertTrue(expression.query(DataQuery.of("number"), testContainer).isEmpty());
+        assertFalse(expression.query(DataQuery.of("number"), testContainer).isPresent());
     }
 }

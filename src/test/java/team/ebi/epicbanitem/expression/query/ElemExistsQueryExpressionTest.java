@@ -5,12 +5,12 @@
  */
 package team.ebi.epicbanitem.expression.query;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
@@ -24,7 +24,7 @@ class ElemExistsQueryExpressionTest {
 
     @BeforeAll
     static void beforeAll() {
-        testContainer.set(DataQuery.of("foo"), List.of(1, 2, 3));
+        testContainer.set(DataQuery.of("foo"), Lists.newArrayList(1, 2, 3));
     }
 
     @Test

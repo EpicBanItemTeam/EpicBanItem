@@ -37,6 +37,7 @@ import team.ebi.epicbanitem.expression.update.*;
 import team.ebi.epicbanitem.rule.RestrictionRulesStorage;
 import team.ebi.epicbanitem.trigger.*;
 import team.ebi.epicbanitem.util.data.DataUtils;
+import team.ebi.epicbanitem.util.exception.KeyNotExistInDataViewException;
 
 @Singleton
 public final class EBIRegistries {
@@ -170,7 +171,9 @@ public final class EBIRegistries {
                 .put(EpicBanItem.key("type"), view -> DataContainer.createNew()
                         .set(
                                 ItemQueries.ITEM_TYPE,
-                                view.get(ItemQueries.ITEM_TYPE).orElseThrow()))
+                                view.get(ItemQueries.ITEM_TYPE)
+                                        .orElseThrow(
+                                                () -> new KeyNotExistInDataViewException(ItemQueries.ITEM_TYPE, view))))
                 .put(EpicBanItem.key("all"), DataUtils::dataToExpression)
                 .put(EpicBanItem.key("empty"), view -> DataContainer.createNew())
                 .build());

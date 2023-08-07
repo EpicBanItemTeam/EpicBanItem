@@ -5,9 +5,9 @@
  */
 package team.ebi.epicbanitem.expression;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.HashMap;
 
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.api.expression.QueryResult.Type;
@@ -18,12 +18,20 @@ class QueryResultTest {
 
     @Test
     void merge() {
-        var result = QueryResult.success(Map.of("0", QueryResult.success()));
-        var result2 = QueryResult.success(Map.of("foo", QueryResult.success()));
+        var result = QueryResult.success(new HashMap<>() {
+            {
+                put("0", QueryResult.success());
+            }
+        });
+        var result2 = QueryResult.success(new HashMap<>() {
+            {
+                put("foo", QueryResult.success());
+            }
+        });
         assertEquals(result, result.merge(QueryResult.success()));
         QueryResult merged = result.merge(result2);
         assertEquals(2, merged.size());
-        assertEquals(Set.of("0", "foo"), merged.keySet());
+        assertEquals(Sets.newHashSet("0", "foo"), merged.keySet());
     }
 
     @Test

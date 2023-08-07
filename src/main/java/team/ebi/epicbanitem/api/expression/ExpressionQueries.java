@@ -9,6 +9,8 @@ import java.util.Set;
 
 import org.spongepowered.api.data.persistence.DataQuery;
 
+import com.google.common.collect.Sets;
+
 import static team.ebi.epicbanitem.api.expression.ExpressionKeys.query;
 
 public final class ExpressionQueries {
@@ -50,9 +52,9 @@ public final class ExpressionQueries {
     /**
      * The expressions can at root level
      */
-    public static final Set<DataQuery> ROOT_QUERY_EXPRESSIONS = Set.of(OR, NOR, AND);
+    public static final Set<DataQuery> ROOT_QUERY_EXPRESSIONS = Sets.newHashSet(OR, NOR, AND);
 
-    public static final Set<DataQuery> UPDATE_EXPRESSIONS = Set.of(SET, UNSET, RENAME, POP, PULL, INC, MUL);
+    public static final Set<DataQuery> UPDATE_EXPRESSIONS = Sets.newHashSet(SET, UNSET, RENAME, POP, PULL, INC, MUL);
 
     private ExpressionQueries() {}
 }

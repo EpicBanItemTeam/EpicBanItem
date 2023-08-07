@@ -5,11 +5,10 @@
  */
 package team.ebi.epicbanitem.expression.query;
 
-import java.util.List;
-
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
@@ -32,7 +31,7 @@ class InQueryExpressionTest {
     void constructFromView() {
         final DataView expressionView = new DummyDataContainer();
         DataQuery query = DataQuery.of("array");
-        expressionView.set(query, List.of(0, "1"));
+        expressionView.set(query, Lists.newArrayList(0, "1"));
         assertFalse(new InQueryExpression(expressionView, query)
                 .query(DataQuery.of("foo"), testContainer)
                 .isPresent());
@@ -41,7 +40,7 @@ class InQueryExpressionTest {
     @Test
     void test() {
         InQueryExpression expression =
-                new InQueryExpression(List.of(new ValueQueryExpression("1"), new ValueQueryExpression(0)));
+                new InQueryExpression(Lists.newArrayList(new ValueQueryExpression("1"), new ValueQueryExpression(0)));
         assertTrue(expression.query(DataQuery.of("bar"), testContainer).isPresent());
         assertFalse(expression.query(DataQuery.of("foo"), testContainer).isPresent());
     }

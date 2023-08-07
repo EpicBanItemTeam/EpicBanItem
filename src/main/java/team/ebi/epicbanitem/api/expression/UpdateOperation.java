@@ -11,6 +11,7 @@ import java.util.Objects;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Maps;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Nullable;
 import team.ebi.epicbanitem.expression.CommonUpdateOperation;
@@ -20,7 +21,7 @@ import team.ebi.epicbanitem.expression.ReplaceUpdateOperation;
 public interface UpdateOperation extends Map<DataQuery, UpdateOperation>, ComponentLike {
 
     static UpdateOperation common() {
-        return common(Map.of());
+        return common(Maps.newHashMap());
     }
 
     static UpdateOperation common(Map<DataQuery, UpdateOperation> children) {

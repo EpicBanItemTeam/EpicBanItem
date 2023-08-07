@@ -7,7 +7,6 @@ package team.ebi.epicbanitem.expression.query;
 
 import java.text.MessageFormat;
 import java.util.Optional;
-import java.util.Set;
 
 import org.spongepowered.api.data.persistence.DataContainer;
 import org.spongepowered.api.data.persistence.DataQuery;
@@ -15,6 +14,7 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.Coerce;
 
+import com.google.common.collect.Sets;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 import team.ebi.epicbanitem.util.data.DataUtils;
@@ -30,11 +30,14 @@ public class ExistsQueryExpression implements QueryExpression {
 
     public ExistsQueryExpression(DataView data, DataQuery query) {
         expect = data.get(query)
-                .map(value -> Coerce.asInteger(value)
-                        .filter(Set.of(0, 1)::contains)
-                        .map(it -> it == 1)
-                        .or(() -> Coerce.asBoolean(value))
-                        .orElseThrow(() -> new InvalidDataException(MessageFormat.format(EXCEPTION, value))))
+                .map(value -> {
+                    final var existBoolean = Coerce.asInteger(value)
+                            .filter(Sets.newHashSet(0, 1)::contains)
+                            .map(it -> it == 1);
+                    final var valueAsBoolean = Coerce.asBoolean(value);
+                    return existBoolean.orElseGet(() -> valueAsBoolean.orElseThrow(
+                            () -> new InvalidDataException(MessageFormat.format(EXCEPTION, value))));
+                })
                 .orElseThrow(() -> new InvalidDataException(MessageFormat.format(EXCEPTION, "null")));
     }
 

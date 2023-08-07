@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NeQueryExpressionTest {
 
@@ -32,21 +33,21 @@ class NeQueryExpressionTest {
         expressionView.set(query, "bar");
         final NeQueryExpression expression = new NeQueryExpression(expressionView, query);
         assertFalse(expression.query(DataQuery.of("string"), testContainer).isPresent());
-        assertFalse(expression.query(DataQuery.of("number"), testContainer).isEmpty());
+        assertTrue(expression.query(DataQuery.of("number"), testContainer).isPresent());
     }
 
     @Test
     void string() {
         NeQueryExpression stringEq = new NeQueryExpression("bar");
         assertFalse(stringEq.query(DataQuery.of("string"), testContainer).isPresent());
-        assertFalse(stringEq.query(DataQuery.of("number"), testContainer).isEmpty());
+        assertTrue(stringEq.query(DataQuery.of("number"), testContainer).isPresent());
     }
 
     @Test
     void number() {
         NeQueryExpression numberEq = new NeQueryExpression(123456);
         assertFalse(numberEq.query(DataQuery.of("number"), testContainer).isPresent());
-        assertFalse(numberEq.query(DataQuery.of("string"), testContainer).isEmpty());
+        assertTrue(numberEq.query(DataQuery.of("string"), testContainer).isPresent());
     }
 
     @Test
@@ -56,6 +57,6 @@ class NeQueryExpressionTest {
 
         NeQueryExpression objectEq = new NeQueryExpression(object);
         assertFalse(objectEq.query(DataQuery.of("object"), testContainer).isPresent());
-        assertFalse(objectEq.query(DataQuery.of("number"), testContainer).isEmpty());
+        assertTrue(objectEq.query(DataQuery.of("number"), testContainer).isPresent());
     }
 }

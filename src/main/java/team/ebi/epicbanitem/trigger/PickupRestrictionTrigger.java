@@ -8,9 +8,6 @@ package team.ebi.epicbanitem.trigger;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.spongepowered.api.data.Keys;
-import org.spongepowered.api.data.value.Value;
-import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
@@ -19,12 +16,12 @@ import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.Locatable;
 
 import net.kyori.adventure.audience.Audience;
 import team.ebi.epicbanitem.EpicBanItem;
 import team.ebi.epicbanitem.util.InventoryUtils;
+import team.ebi.epicbanitem.util.ItemUtils;
 
 public class PickupRestrictionTrigger extends EBIRestrictionTrigger {
     public PickupRestrictionTrigger() {
@@ -56,10 +53,7 @@ public class PickupRestrictionTrigger extends EBIRestrictionTrigger {
             if (processed.isPresent()) {
                 transaction.setCustom(originalItem);
                 if (cancelled.get()) {
-                    final var item = location.createEntity(EntityTypes.ITEM.get());
-                    item.offer(Value.mutableOf(Keys.ITEM_STACK_SNAPSHOT, processed.get()));
-                    item.offer(Value.mutableOf(Keys.PICKUP_DELAY, Ticks.of(40L)));
-                    location.spawnEntity(item);
+                    location.spawnEntity(ItemUtils.droppedItem(processed.get(), location));
                 } else
                     InventoryUtils.offerOrDrop(
                             inventory, location, processed.get().createStack());

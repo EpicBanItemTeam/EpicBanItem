@@ -45,7 +45,7 @@ public class AllQueryExpression implements QueryExpression {
                         return new ValueQueryExpression(value);
                     }
                 })
-                .collect(Collectors.toUnmodifiableSet());
+                .collect(Collectors.toSet());
     }
 
     @Override

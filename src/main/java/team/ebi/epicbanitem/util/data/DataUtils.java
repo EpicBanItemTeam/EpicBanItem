@@ -100,21 +100,19 @@ public final class DataUtils {
     }
 
     public static DataView dataToExpression(@NotNull DataView view) {
-        DataContainer container = DataContainer.createNew();
+        final var container = DataContainer.createNew();
         view.values(true).forEach((key, value) -> {
             if (!(value instanceof DataView)) {
-                asList(value)
-                        .ifPresentOrElse(
-                                list -> {
-                                    if (!list.isEmpty()) {
-                                        container
-                                                .createView(DataQuery.of(key.toString()))
-                                                .set(ExpressionQueries.ALL, list);
-                                    } else {
-                                        container.set(DataQuery.of(key.toString()), list);
-                                    }
-                                },
-                                () -> container.set(DataQuery.of(key.toString()), value));
+                final var list = asList(value);
+                if (list.isPresent()) {
+                    if (!list.get().isEmpty()) {
+                        container.createView(DataQuery.of(key.toString())).set(ExpressionQueries.ALL, list);
+                    } else {
+                        container.set(DataQuery.of(key.toString()), list);
+                    }
+                } else {
+                    container.set(DataQuery.of(key.toString()), value);
+                }
             }
         });
         return container;
@@ -165,9 +163,9 @@ public final class DataUtils {
     @SuppressWarnings("SuspiciousToArrayCall")
     public static Optional<Object> operateListOrArray(@NotNull Object value, UnaryOperator<List<?>> consumer) {
         boolean isArray = value.getClass().isArray();
-        Class<?> type = value.getClass().componentType();
+        Class<?> type = value.getClass().getComponentType();
         Optional<List<?>> list = asList(value);
-        if (list.isEmpty()) {
+        if (!list.isPresent()) {
             return Optional.empty();
         }
         var finalList = consumer.apply(Lists.newArrayList(list.get()));

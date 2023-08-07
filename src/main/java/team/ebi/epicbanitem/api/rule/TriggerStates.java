@@ -76,7 +76,7 @@ public class TriggerStates extends AbstractMap<ResourceKey, Tristate> implements
         final var keys = RestrictionTriggers.registry()
                 .streamEntries()
                 .map(RegistryEntry::key)
-                .toList();
+                .collect(Collectors.toList());
         map.keySet().retainAll(keys);
         keys.forEach(key -> map.putIfAbsent(key, Tristate.UNDEFINED));
     }

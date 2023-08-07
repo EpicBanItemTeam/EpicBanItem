@@ -6,12 +6,12 @@
 package team.ebi.epicbanitem.util.data;
 
 import java.util.List;
-import java.util.Map;
 
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.Style;
@@ -35,7 +35,7 @@ public final class QueryResultRenderer {
 
     private static List<Component> renderList(List<?> list, DataQuery expandedQuery, @Nullable QueryResult result) {
         var components = Lists.<Component>newArrayList();
-        var children = result == null ? Map.<String, QueryResult>of() : Map.copyOf(result);
+        var children = result == null ? Maps.<String, QueryResult>newHashMap() : Maps.newHashMap(result);
         for (int i = 0; i < list.size(); i++) {
             var key = Integer.toString(i);
             var value = list.get(i);
@@ -57,14 +57,14 @@ public final class QueryResultRenderer {
                         .append(Component.text(value.toString()).style(style.merge(valueStyle(value)))));
             }
         }
-        return List.copyOf(components);
+        return Lists.newArrayList(components);
     }
 
     private static List<Component> renderView(DataView view, DataQuery expandedQuery, @Nullable QueryResult result) {
         var components = Lists.<Component>newArrayList();
-        var children = result == null ? Map.<String, QueryResult>of() : Map.copyOf(result);
+        var children = result == null ? Maps.<String, QueryResult>newHashMap() : Maps.newHashMap(result);
         for (DataQuery query : view.keys(false)) {
-            var value = view.get(query).orElseThrow();
+            var value = view.get(query).get();
             var key = query.parts().get(0);
             var currentExpandedQuery = expandedQuery.then(key);
             var style = Style.style();

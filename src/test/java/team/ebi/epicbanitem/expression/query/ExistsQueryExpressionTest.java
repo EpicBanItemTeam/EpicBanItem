@@ -5,16 +5,16 @@
  */
 package team.ebi.epicbanitem.expression.query;
 
-import java.util.Set;
-
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
 import team.ebi.epicbanitem.api.expression.ExpressionQueries;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExistsQueryExpressionTest {
@@ -31,7 +31,7 @@ class ExistsQueryExpressionTest {
     @Test
     void constructFromView() {
         DataQuery query = ExpressionQueries.EXISTS;
-        for (ExistsQueryExpression expression : Set.of(
+        for (ExistsQueryExpression expression : Sets.newHashSet(
                 new ExistsQueryExpression(new DummyDataContainer().set(query, true), query),
                 new ExistsQueryExpression(new DummyDataContainer().set(query, 1), query))) {
             assertTrue(expression
@@ -45,8 +45,8 @@ class ExistsQueryExpressionTest {
         assertTrue(new ExistsQueryExpression(true)
                 .query(DataQuery.of("object", "foo"), testContainer)
                 .isPresent());
-        assertTrue(new ExistsQueryExpression(false)
+        assertFalse(new ExistsQueryExpression(false)
                 .query(DataQuery.of("object", "foo"), testContainer)
-                .isEmpty());
+                .isPresent());
     }
 }

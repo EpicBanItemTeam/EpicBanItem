@@ -45,21 +45,23 @@ public class PopUpdateExpression implements UpdateExpression {
         var builder = ImmutableMap.<DataQuery, UpdateOperation>builder();
         for (DataQuery currentQuery : UpdateExpression.parseQuery(query, result)) {
             Optional<Object> currentValue = data.get(currentQuery);
-            if (currentValue.isEmpty()) {
+            if (!currentValue.isPresent()) {
                 continue;
             }
-            DataUtils.operateListOrArray(currentValue.get(), list -> {
-                        if (value == Position.FIRST) {
-                            list.remove(0);
-                        } else {
-                            list.remove(list.size() - 1);
-                        }
-                        return list;
-                    })
-                    .ifPresentOrElse(it -> builder.put(currentQuery, UpdateOperation.replace(currentQuery, it)), () -> {
-                        throw new UnsupportedOperationException(
-                                MessageFormat.format("$pop failed, {0} is invalid list", currentQuery));
-                    });
+            Optional<Object> listOperator = DataUtils.operateListOrArray(currentValue.get(), list -> {
+                if (value == Position.FIRST) {
+                    list.remove(0);
+                } else {
+                    list.remove(list.size() - 1);
+                }
+                return list;
+            });
+            if (listOperator.isPresent()) {
+                builder.put(currentQuery, UpdateOperation.replace(currentQuery, listOperator.get()));
+            } else {
+                throw new UnsupportedOperationException(
+                        MessageFormat.format("$pop failed, {0} is invalid list", currentQuery));
+            }
         }
         return UpdateOperation.common(builder.build());
     }

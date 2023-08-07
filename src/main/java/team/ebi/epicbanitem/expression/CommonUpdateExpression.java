@@ -17,6 +17,7 @@ import team.ebi.epicbanitem.api.expression.UpdateExpression;
 import team.ebi.epicbanitem.api.expression.UpdateExpressionFunctions;
 import team.ebi.epicbanitem.api.expression.UpdateOperation;
 import team.ebi.epicbanitem.expression.update.SetUpdateExpression;
+import team.ebi.epicbanitem.util.exception.KeyNotExistInDataViewException;
 
 import static team.ebi.epicbanitem.api.expression.ExpressionQueries.UPDATE_EXPRESSIONS;
 
@@ -55,7 +56,11 @@ public class CommonUpdateExpression implements UpdateExpression {
             final var targetContainer = expression.toContainer();
             if (query.equals(ROOT)) {
                 for (final var key : targetContainer.keys(false)) {
-                    container.set(key, targetContainer.get(key).orElseThrow());
+                    container.set(
+                            key,
+                            targetContainer
+                                    .get(key)
+                                    .orElseThrow(() -> new KeyNotExistInDataViewException(key, targetContainer)));
                 }
             } else if (!query.parts().isEmpty()) {
                 container.set(query, targetContainer.get(ROOT).orElse(targetContainer));

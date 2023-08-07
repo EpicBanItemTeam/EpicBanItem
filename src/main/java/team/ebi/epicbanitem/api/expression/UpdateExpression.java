@@ -8,6 +8,7 @@ package team.ebi.epicbanitem.api.expression;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.spongepowered.api.data.persistence.DataQuery;
@@ -51,7 +52,7 @@ public interface UpdateExpression extends DataSerializable {
                         Tuple.of(tuple.first().then(part), tuple.second().map(it -> it.get(part))));};
         }
 
-        return stream.map(Tuple::first).toList();
+        return stream.map(Tuple::first).collect(Collectors.toList());
     }
 
     /**

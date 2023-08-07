@@ -7,6 +7,7 @@ package team.ebi.epicbanitem.util.command;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.command.CommandCompletion;
@@ -21,6 +22,7 @@ import org.spongepowered.api.command.parameter.managed.clientcompletion.ClientCo
 import org.spongepowered.api.util.StartsWithPredicate;
 import org.spongepowered.api.world.server.ServerWorld;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.leangen.geantyref.TypeToken;
@@ -75,7 +77,7 @@ public final class Parameters {
 
             @Override
             public List<ClientCompletionType> clientCompletionType() {
-                return List.of(ClientCompletionTypes.RESOURCE_KEY.get());
+                return Lists.newArrayList(ClientCompletionTypes.RESOURCE_KEY.get());
             }
         });
         ruleKey = Parameter.resourceKey()
@@ -91,7 +93,7 @@ public final class Parameters {
                         })
                         .map(ResourceKey::asString)
                         .map(CommandCompletion::of)
-                        .toList());
+                        .collect(Collectors.toList()));
 
         preset = Parameter.registryElement(
                 TypeToken.get(RestrictionPreset.class), EBIRegistries.PRESET, EpicBanItem.NAMESPACE);
@@ -110,7 +112,7 @@ public final class Parameters {
                         })
                         .map(ResourceKey::asString)
                         .map(CommandCompletion::of)
-                        .toList());
+                        .collect(Collectors.toList()));
 
         query = Parameter.builder(keys.query).addParser(queryExpressionValueParser);
         update = Parameter.builder(keys.update).addParser(updateExpressionValueParser);
@@ -125,7 +127,7 @@ public final class Parameters {
                         })
                         .map(ResourceKey::asString)
                         .map(CommandCompletion::of)
-                        .toList());
+                        .collect(Collectors.toList()));
     }
 
     @Singleton

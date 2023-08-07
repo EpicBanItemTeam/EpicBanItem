@@ -18,6 +18,7 @@ import org.spongepowered.api.command.parameter.managed.clientcompletion.ClientCo
 import org.spongepowered.api.command.parameter.managed.clientcompletion.ClientCompletionTypes;
 import org.spongepowered.api.data.persistence.DataSerializable;
 
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 public class DataSerializableValueParser<T extends DataSerializable> implements ValueParser<T> {
@@ -39,6 +40,6 @@ public class DataSerializableValueParser<T extends DataSerializable> implements 
 
     @Override
     public List<ClientCompletionType> clientCompletionType() {
-        return List.of(ClientCompletionTypes.SNBT.get());
+        return Lists.newArrayList(ClientCompletionTypes.SNBT.get());
     }
 }

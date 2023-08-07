@@ -5,11 +5,10 @@
  */
 package team.ebi.epicbanitem.expression.query;
 
-import java.util.List;
-
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
@@ -24,7 +23,7 @@ class SizeQueryExpressionTest {
 
     @BeforeAll
     static void beforeAll() {
-        testContainer.set(DataQuery.of("list"), List.of(1, 2, 3, 4));
+        testContainer.set(DataQuery.of("list"), Lists.newArrayList(1, 2, 3, 4));
     }
 
     // TODO DataView#getList can't get native type array

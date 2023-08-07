@@ -33,7 +33,7 @@ public class ElemMatchQueryExpression implements QueryExpression {
     @Override
     public Optional<QueryResult> query(DataQuery query, DataView data) {
         Optional<List<?>> list = DataUtils.get(data, query).flatMap(DataUtils::asList);
-        if (list.isEmpty() || list.get().isEmpty()) {
+        if (!list.isPresent() || list.get().isEmpty()) {
             return QueryResult.failed();
         }
         List<?> values = list.get();

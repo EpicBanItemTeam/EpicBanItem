@@ -50,7 +50,7 @@ public class MathUpdateExpression implements UpdateExpression {
                 }
                 return null;
             });
-            if (value.isEmpty()) {
+            if (!value.isPresent()) {
                 continue;
             }
             builder.put(

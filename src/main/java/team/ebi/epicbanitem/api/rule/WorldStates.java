@@ -70,7 +70,7 @@ public class WorldStates extends AbstractMap<ResourceKey, Tristate> implements S
         this.defaultState = defaultState;
         final var keys = Sponge.server().worldManager().worlds().stream()
                 .map(ServerWorld::key)
-                .toList();
+                .collect(Collectors.toList());
         map.keySet().retainAll(keys);
         keys.forEach(key -> map.putIfAbsent(key, Tristate.UNDEFINED));
     }

@@ -5,7 +5,6 @@
  */
 package team.ebi.epicbanitem.api;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import org.spongepowered.api.data.persistence.DataView;
@@ -44,9 +43,9 @@ public interface RestrictionService {
         if (!rule.worldStates().getOrDefault(world.key())) {
             return Optional.empty();
         }
-        if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) {
-            return Optional.empty();
-        }
+        //        if (Objects.nonNull(subject) && shouldBypass(subject, rule, trigger)) {
+        //            return Optional.empty();
+        //        }
         return rule.queryExpression().query(view);
     }
 }

@@ -42,23 +42,25 @@ public class PullUpdateExpression implements UpdateExpression {
         var builder = ImmutableMap.<DataQuery, UpdateOperation>builder();
         for (DataQuery currentQuery : UpdateExpression.parseQuery(query, result)) {
             Optional<Object> currentValue = data.get(currentQuery);
-            if (currentValue.isEmpty()) {
+            if (!currentValue.isPresent()) {
                 continue;
             }
-            DataUtils.operateListOrArray(currentValue.get(), list -> {
-                        var finalList = Lists.newArrayList();
-                        for (int i = 0; i < list.size(); i++) {
-                            var subResult = expression.query(currentQuery.then(String.valueOf(i)), data);
-                            if (subResult.isPresent()) {
-                                finalList.add(list.get(i));
-                            }
-                        }
-                        return finalList;
-                    })
-                    .ifPresentOrElse(it -> builder.put(currentQuery, UpdateOperation.replace(currentQuery, it)), () -> {
-                        throw new UnsupportedOperationException(
-                                MessageFormat.format("$pop failed, {0} is invalid list", currentQuery));
-                    });
+            Optional<Object> listOperator = DataUtils.operateListOrArray(currentValue.get(), list -> {
+                var finalList = Lists.newArrayList();
+                for (int i = 0; i < list.size(); i++) {
+                    var subResult = expression.query(currentQuery.then(String.valueOf(i)), data);
+                    if (subResult.isPresent()) {
+                        finalList.add(list.get(i));
+                    }
+                }
+                return finalList;
+            });
+            if (listOperator.isPresent()) {
+                builder.put(currentQuery, UpdateOperation.replace(currentQuery, listOperator.get()));
+            } else {
+                throw new UnsupportedOperationException(
+                        MessageFormat.format("$pull failed, {0} is invalid list", currentQuery));
+            }
         }
         return UpdateOperation.common(builder.build());
     }

@@ -13,15 +13,17 @@ import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.Queries;
 
+import com.google.common.collect.Sets;
 import com.google.inject.ImplementedBy;
 import net.kyori.adventure.text.Component;
 import team.ebi.epicbanitem.api.ItemQueries;
 import team.ebi.epicbanitem.expression.ExpressionServiceImpl;
+import team.ebi.epicbanitem.util.exception.KeyNotExistInDataViewException;
 
 @ImplementedBy(ExpressionServiceImpl.class)
 public interface ExpressionService {
 
-    Set<DataQuery> IGNORED = Set.of(
+    Set<DataQuery> IGNORED = Sets.newHashSet(
             Queries.CONTENT_VERSION,
             Queries.WORLD_KEY,
             ItemQueries.UNSAFE_DAMAGE,
@@ -34,7 +36,7 @@ public interface ExpressionService {
     static DataView cleanup(DataView view) {
         DataContainer container = DataContainer.createNew();
         view.keys(true).forEach(key -> {
-            Object value = view.get(key).orElseThrow();
+            Object value = view.get(key).orElseThrow(() -> new KeyNotExistInDataViewException(key, view));
             if (value instanceof DataView) {
                 return;
             }

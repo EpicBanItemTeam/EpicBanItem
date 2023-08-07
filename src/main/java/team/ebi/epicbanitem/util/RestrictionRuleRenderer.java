@@ -8,7 +8,7 @@ package team.ebi.epicbanitem.util;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Locale;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.data.persistence.DataFormats;
 import org.spongepowered.api.data.persistence.DataSerializable;
@@ -93,19 +93,19 @@ public final class RestrictionRuleRenderer {
                                 JoinConfiguration.newlines(),
                                 DataViewRenderer.render(query).stream()
                                         .limit(25)
-                                        .toList()))
+                                        .collect(Collectors.toList())))
                         .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
                                 "/{0} set {1} query {2}", EpicBanItem.NAMESPACE, ruleKeyString, format.write(query)))))
                 .append(Component.space())
                 .append(Component.translatable("epicbanitem.ui.rule.update.key")
                         .hoverEvent(
-                                updateExpression.isEmpty()
-                                        ? Component.text("null")
-                                        : Component.join(
+                                updateExpression.isPresent()
+                                        ? Component.join(
                                                 JoinConfiguration.newlines(),
                                                 DataViewRenderer.render(update.get()).stream()
                                                         .limit(25)
-                                                        .toList()))
+                                                        .collect(Collectors.toList()))
+                                        : Component.text("null"))
                         .clickEvent(ClickEvent.suggestCommand(MessageFormat.format(
                                 "/{0} set {1} update {2}",
                                 EpicBanItem.NAMESPACE,
@@ -178,8 +178,9 @@ public final class RestrictionRuleRenderer {
                                     final var builder = Component.text();
                                     builder.append(states.key(key))
                                             .color(
-                                                    Objects.requireNonNullElse(
-                                                                    tristate.asNullableBoolean(), defaultState)
+                                                    (tristate == Tristate.UNDEFINED
+                                                                    ? defaultState
+                                                                    : tristate.asBoolean())
                                                             ? NamedTextColor.GREEN
                                                             : NamedTextColor.RED)
                                             .hoverEvent(states.description(key))
@@ -197,7 +198,7 @@ public final class RestrictionRuleRenderer {
                                     if (tristate.equals(Tristate.UNDEFINED)) builder.decorate(TextDecoration.ITALIC);
                                     return builder.build();
                                 })
-                                .toList()))
+                                .collect(Collectors.toList())))
                 .build();
     }
 }

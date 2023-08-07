@@ -6,12 +6,13 @@
 package team.ebi.epicbanitem.api.rule;
 
 import java.util.Map;
-import java.util.Objects;
 
 import org.spongepowered.api.ResourceKey;
-import org.spongepowered.api.data.persistence.*;
+import org.spongepowered.api.data.persistence.DataContainer;
+import org.spongepowered.api.data.persistence.DataSerializable;
 import org.spongepowered.api.util.Tristate;
 
+import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,8 @@ public interface States extends Map<ResourceKey, Tristate>, DataSerializable {
     void update(boolean defaultState);
 
     default boolean getOrDefault(ResourceKey key) {
-        return Objects.requireNonNullElse(get(key).asNullableBoolean(), defaultState());
+        final var result = get(key).asNullableBoolean();
+        return result == null ? defaultState() : result;
     }
 
     boolean defaultState();
@@ -36,7 +38,7 @@ public interface States extends Map<ResourceKey, Tristate>, DataSerializable {
         return DataContainer.createNew()
                 .set(RestrictionRuleQueries.DEFAULT, defaultState())
                 // Avoid recursive
-                .set(RestrictionRuleQueries.STATES, Map.copyOf(this));
+                .set(RestrictionRuleQueries.STATES, Maps.newHashMap(this));
     }
 
     @Override

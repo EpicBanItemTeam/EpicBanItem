@@ -9,9 +9,11 @@ import java.util.Optional;
 
 import org.spongepowered.api.data.persistence.*;
 
+import com.github.bsideup.jabel.Desugar;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryResult;
 
+@Desugar
 public record RootQueryExpression(CommonQueryExpression expression) implements QueryExpression, DataSerializable {
 
     public RootQueryExpression() {

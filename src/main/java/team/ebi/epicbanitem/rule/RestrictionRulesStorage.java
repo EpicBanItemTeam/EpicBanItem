@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigManager;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
@@ -41,10 +40,11 @@ public class RestrictionRulesStorage {
 
     @Inject
     public RestrictionRulesStorage(
-            EventManager eventManager, ConfigManager configManager, RestrictionRuleService ruleService)
+            EventManager eventManager,
+            ConfigManager configManager,
+            RestrictionRuleService ruleService,
+            PluginContainer plugin)
             throws IOException {
-        PluginContainer plugin =
-                Sponge.pluginManager().plugin(EpicBanItem.NAMESPACE).orElseThrow();
         eventManager.registerListeners(plugin, this);
         this.rulesDir = configManager.pluginConfig(plugin).directory().resolve("rules");
         this.configBuilder = HoconConfigurationLoader.builder()
@@ -114,12 +114,12 @@ public class RestrictionRulesStorage {
                 (path, attributes) -> attributes.isRegularFile()
                         && path.toString().endsWith(".conf")
                         && !path.getFileName().toString().equals(".conf"))) {
-            return paths.collect(Collectors.toUnmodifiableMap(
+            return paths.collect(Collectors.toMap(
                     it -> EpicBanItem.key(
                             getNameWithoutExtension(it.getFileName().toString())),
                     it -> {
                         try {
-                            // Need a way to translate ndoe to data view
+                            // Need a way to translate node to data view
                             //                            final var view =
                             // configBuilder.path(it).build().load().get(DataContainer.class);
                             //                            if (!Objects.requireNonNull(view).contains(keyQuery))

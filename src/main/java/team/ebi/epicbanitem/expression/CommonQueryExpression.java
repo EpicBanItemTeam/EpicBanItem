@@ -14,13 +14,16 @@ import org.spongepowered.api.data.persistence.DataView;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.Tuple;
 
+import com.github.bsideup.jabel.Desugar;
 import com.google.common.collect.Maps;
 import team.ebi.epicbanitem.api.expression.QueryExpression;
 import team.ebi.epicbanitem.api.expression.QueryExpressionFunctions;
 import team.ebi.epicbanitem.api.expression.QueryResult;
+import team.ebi.epicbanitem.util.exception.KeyNotExistInDataViewException;
 
 import static team.ebi.epicbanitem.api.expression.ExpressionQueries.ROOT_QUERY_EXPRESSIONS;
 
+@Desugar
 public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions) implements QueryExpression {
 
     public CommonQueryExpression(DataView view) {
@@ -30,7 +33,11 @@ public record CommonQueryExpression(Map<DataQuery, QueryExpression> expressions)
     public CommonQueryExpression(DataView view, DataQuery query) {
         this(Maps.newHashMap());
         view.getView(query).ifPresent(expressionView -> expressionView.keys(false).stream()
-                .map(it -> Tuple.of(it, expressionView.get(it).orElseThrow()))
+                .map(it -> Tuple.of(
+                        it,
+                        expressionView
+                                .get(it)
+                                .orElseThrow(() -> new KeyNotExistInDataViewException(it, expressionView))))
                 .forEach(tuple -> {
                     // Can be root expressions or nbt path
                     DataQuery key = tuple.first();

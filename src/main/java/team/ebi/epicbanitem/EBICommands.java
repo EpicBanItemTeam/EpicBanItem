@@ -10,7 +10,6 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
@@ -40,6 +39,7 @@ import org.spongepowered.api.world.server.ServerWorld;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.leangen.geantyref.TypeToken;
@@ -541,8 +541,9 @@ public final class EBICommands {
             container.set(query, o);
         });
         final var dataManager = Sponge.dataManager();
-        final var deserialized =
-                dataManager.deserialize(ItemStack.class, container).orElseThrow();
+        final var deserialized = dataManager
+                .deserialize(ItemStack.class, container)
+                .orElseThrow(() -> new IllegalStateException("Deserialize item stack from data container failed"));
         if (deserialized.quantity() > deserialized.maxStackQuantity()) {
             deserialized.setQuantity(deserialized.maxStackQuantity());
         }
@@ -571,22 +572,21 @@ public final class EBICommands {
         final var isBlock = context.hasFlag(flags.block);
         expression.ifPresent(it -> it.expression().toContainer().values(false).forEach(expressionView::set));
         if (isBlock) {
-            Optional<BlockSnapshot> block = targetBlock(player);
-            Set<DataView> views = block
-                    .flatMap(it -> it.location().flatMap(Location::blockEntity))
+            final var block = targetBlock(player);
+            final var slotsInBlock = block.flatMap(it -> it.location().flatMap(Location::blockEntity))
                     .filter(Predicates.instanceOf(CarrierBlockEntity.class))
                     .map(it -> ((CarrierBlockEntity) it).inventory())
                     .filter(it -> !it.peek().isEmpty())
-                    .map(it -> it.slots().stream())
-                    .stream()
+                    .map(it -> it.slots().stream());
+            final var views = Streams.stream(slotsInBlock)
                     .flatMap(Function.identity())
                     .map(Inventory::peek)
-                    .filter(Predicate.not(ItemStack::isEmpty))
+                    .filter(Predicates.not(ItemStack::isEmpty))
                     .map(DataSerializable::toContainer)
                     .map(ExpressionService::cleanup)
                     .map(preset)
                     .filter(it -> !it.keys(false).isEmpty())
-                    .collect(Collectors.toUnmodifiableSet());
+                    .collect(Collectors.toSet());
             if (!views.isEmpty()) {
                 if (views.size() == 1) {
                     DataView view = views.iterator().next();
@@ -601,7 +601,7 @@ public final class EBICommands {
                             .map(it -> it.getResourceKey(ItemQueries.ITEM_TYPE))
                             .filter(Optional::isPresent)
                             .map(Optional::get)
-                            .toList());
+                            .collect(Collectors.toList()));
                 }
             } else {
                 Optional<DataView> data = block.map(
@@ -666,7 +666,7 @@ public final class EBICommands {
                                                             .toContainer())
                                                     .stream()
                                                     .limit(25)
-                                                    .toList()))));
+                                                    .collect(Collectors.toList())))));
                     (hasTrigger ? triggerArgs.stream() : allTriggers.stream())
                             .map(trigger -> restrictionService
                                     .query(rule, targetView, world, trigger, null)
@@ -699,11 +699,11 @@ public final class EBICommands {
                                                     rule.queryExpression().toContainer())
                                             .stream()
                                             .limit(25)
-                                            .toList()))
+                                            .collect(Collectors.toList())))
                             .clickEvent(ClickEvent.runCommand(
                                     MessageFormat.format("/{0} info {1}", EpicBanItem.NAMESPACE, rule.key())));
                 })
-                .toList();
+                .collect(Collectors.toList());
         Sponge.serviceProvider()
                 .paginationService()
                 .builder()

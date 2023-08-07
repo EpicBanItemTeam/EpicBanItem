@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
@@ -28,6 +28,7 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.world.server.ServerWorld;
 
+import com.google.common.base.Predicates;
 import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -172,9 +173,9 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
                 .rules(predicateService.predicates(objectType))
                 .sorted(RulePredicateService.PRIORITY_ASC)
                 .filter(it -> !it.onlyPlayer() || subject instanceof ServerPlayer)
-                .toList()) {
+                .collect(Collectors.toList())) {
             final var query = restrictionService.query(rule, view, world, this, subject);
-            if (query.isEmpty()) continue;
+            if (!query.isPresent()) continue;
             if (rule.needCancel() && handler instanceof ProcessHandler.CancellableHandler cancellableHandler) {
                 cancellableHandler.cancel(event);
                 cancelled.add(rule);
@@ -182,14 +183,15 @@ public abstract class AbstractRestrictionTrigger implements RestrictionTrigger {
             final var prevView = resultView.orElse(view);
             final var currView = query.flatMap(result -> rule.updateExpression()
                     .map(it -> it.update(result, prevView))
-                    .filter(Predicate.not(Map::isEmpty))
+                    .filter(Predicates.not(Map::isEmpty))
                     .map(it -> it.process(prevView)));
-            if (currView.isEmpty()) continue;
+            if (!currView.isPresent()) continue;
             resultView = currView;
             updated.add(rule);
         }
         Optional<T> result = resultView.flatMap(handler::translate);
-        if (handler instanceof ProcessHandler.Message<T> message) {
+        if (handler instanceof ProcessHandler.Message) {
+            final var message = (ProcessHandler.Message<T>) handler;
             if (!cancelled.isEmpty()) message.cancelledMessages(cancelled);
             if (!updated.isEmpty() && result.isPresent()) message.updatedMessages(updated, result.get());
         }

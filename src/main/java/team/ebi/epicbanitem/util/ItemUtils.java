@@ -112,7 +112,7 @@ public final class ItemUtils {
                 final var archetype = BlockEntityArchetype.builder()
                         .state(state)
                         .blockEntity(blockEntityType.get())
-                        .blockEntityData(container.getView(BLOCK_ENTITY_TAG).orElseThrow())
+                        .blockEntityData(container.getView(BLOCK_ENTITY_TAG).get())
                         .build();
                 block = Optional.of(archetype.toSnapshot(location));
             } else {

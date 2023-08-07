@@ -29,7 +29,7 @@ public class NotQueryExpression implements QueryExpression {
 
     @Override
     public Optional<QueryResult> query(DataQuery query, DataView data) {
-        return QueryResult.from(expression.query(query, data).isEmpty());
+        return QueryResult.from(!expression.query(query, data).isPresent());
     }
 
     @Override

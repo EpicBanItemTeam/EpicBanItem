@@ -1,12 +1,20 @@
+pluginManagement {
+    repositories {
+        maven("https://repo.spongepowered.org/repository/maven-public/")
+        gradlePluginPortal()
+    }
+}
+
 plugins {
-    id("org.danilopianini.gradle-pre-commit-git-hooks") version "1.0.11"
+    id("org.danilopianini.gradle-pre-commit-git-hooks") version "1.1.9"
 }
 
 gitHooks {
     preCommit {
         from {
             """
-            git diff --cached --name-only --diff-filter=ACMR | while read -r a; do echo ${'$'}(readlink -f ${"$"}a); ./gradlew spotlessApply -q -PspotlessIdeHook="${'$'}(readlink -f ${"$"}a)" </dev/null; done
+            git diff --cached --name-only --diff-filter=ACMR | while read -r a; do echo ${'$'}(readlink -f ${"$"}a); 
+            ./gradlew spotlessApply -q -PspotlessIdeHook="${'$'}(readlink -f ${"$"}a)" </dev/null; done
             """.trimIndent()
         }
     }

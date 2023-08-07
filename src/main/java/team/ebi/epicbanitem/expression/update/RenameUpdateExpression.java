@@ -6,8 +6,8 @@
 package team.ebi.epicbanitem.expression.update;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.spongepowered.api.data.persistence.DataContainer;
@@ -55,9 +55,12 @@ public class RenameUpdateExpression implements UpdateExpression {
         Optional<Object> value = data.get(source);
         UpdateOperation operation = UpdateOperation.common();
         if (value.isPresent()) {
-            operation = UpdateOperation.common(Map.of(
-                    source, UpdateOperation.remove(source),
-                    target, UpdateOperation.replace(target, value.get())));
+            operation = UpdateOperation.common(new HashMap<>() {
+                {
+                    put(source, UpdateOperation.remove(source));
+                    put(target, UpdateOperation.replace(target, value.get()));
+                }
+            });
         }
         return operation;
     }

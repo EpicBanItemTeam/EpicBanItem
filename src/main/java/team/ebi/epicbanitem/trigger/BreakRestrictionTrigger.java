@@ -36,22 +36,25 @@ public class BreakRestrictionTrigger extends EBIRestrictionTrigger {
         final var subject = cause.first(Subject.class).orElse(null);
         event.transactions(Operations.BREAK.get()).forEach(transaction -> {
             final var original = transaction.original();
-            final var location = original.location().orElseThrow();
+            final var location = original.location().get();
             final var processed = this.processBlockCancellable(
                     event, world, subject, audience, original, ignored -> transaction.invalidate());
             if (processed.isPresent()) {
                 final var processedItem = processed.get();
                 final var blockType = processedItem.type().block();
-                blockType
-                        .flatMap(ignored -> ItemUtils.toBlock(processedItem, location, original.state()))
-                        .ifPresentOrElse(
-                                it -> Sponge.server()
-                                        .scheduler()
-                                        .submit(Task.builder()
-                                                .plugin(plugin)
-                                                .execute(() -> it.restore(true, BlockChangeFlags.DEFAULT_PLACEMENT))
-                                                .build()),
-                                () -> location.spawnEntity(ItemUtils.droppedItem(processedItem, location)));
+                final var processedBlock =
+                        blockType.flatMap(ignored -> ItemUtils.toBlock(processedItem, location, original.state()));
+                if (processedBlock.isPresent()) {
+                    Sponge.server()
+                            .scheduler()
+                            .submit(Task.builder()
+                                    .plugin(plugin)
+                                    .execute(() ->
+                                            processedBlock.get().restore(true, BlockChangeFlags.DEFAULT_PLACEMENT))
+                                    .build());
+                } else {
+                    location.spawnEntity(ItemUtils.droppedItem(processedItem, location));
+                }
             }
         });
     }

@@ -186,7 +186,7 @@ public class DummyDataView implements DataView {
             return Optional.of(object);
         }
         final Optional<DataView> subViewOptional = this.getUnsafeView(key);
-        if (subViewOptional.isEmpty()) {
+        if (!subViewOptional.isPresent()) {
             return Optional.empty();
         }
         final DataView subView = subViewOptional.get();
@@ -207,7 +207,7 @@ public class DummyDataView implements DataView {
             final DataQuery subQuery = DataQuery.of(key);
             final Optional<DataView> subViewOptional = this.getUnsafeView(subQuery);
             final DataView subView;
-            if (subViewOptional.isEmpty()) {
+            if (!subViewOptional.isPresent()) {
                 this.createView(subQuery);
                 subView = (DataView) this.map.get(key);
             } else {
@@ -239,7 +239,7 @@ public class DummyDataView implements DataView {
             final String subKey = parts.get(0);
             final DataQuery subQuery = DataQuery.of(subKey);
             final Optional<DataView> subViewOptional = this.getUnsafeView(subQuery);
-            if (subViewOptional.isEmpty()) {
+            if (!subViewOptional.isPresent()) {
                 return this;
             }
             final DataView subView = subViewOptional.get();
@@ -572,7 +572,7 @@ public class DummyDataView implements DataView {
     public Optional<List<Key<? extends Value<?>>>> getDataKeyList(final DataQuery path) {
         Objects.requireNonNull(path, "path");
         final Optional<List<ResourceKey>> resourceKeys = this.getResourceKeyList(path);
-        if (resourceKeys.isEmpty()) {
+        if (!resourceKeys.isPresent()) {
             return Optional.empty();
         }
 

@@ -6,6 +6,7 @@
 package team.ebi.epicbanitem.util;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.item.inventory.Inventory;
@@ -24,7 +25,7 @@ public final class InventoryUtils {
         if (!result.type().equals(InventoryTransactionResult.Type.SUCCESS))
             items = result.rejectedItems().stream()
                     .map(it -> ItemUtils.droppedItem(it, location))
-                    .toList();
+                    .collect(Collectors.toList());
         return items;
     }
 }

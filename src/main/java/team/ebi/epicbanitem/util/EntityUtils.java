@@ -6,7 +6,6 @@
 package team.ebi.epicbanitem.util;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.Keys;
@@ -21,6 +20,7 @@ import org.spongepowered.api.util.blockray.RayTrace;
 import org.spongepowered.api.util.blockray.RayTraceResult;
 import org.spongepowered.api.world.LocatableBlock;
 
+import com.google.common.base.Predicates;
 import org.jetbrains.annotations.NotNull;
 
 public class EntityUtils {
@@ -28,10 +28,11 @@ public class EntityUtils {
     private EntityUtils() {}
 
     public static Optional<ItemStack> targetObject(Player player, boolean isBlock) {
-        return Optional.of(isBlock)
+        final var itemFromBlock = Optional.of(isBlock)
                 .filter(Boolean::booleanValue)
-                .flatMap(ignored -> targetBlock(player).flatMap(ItemUtils::fromBlock))
-                .or(() -> heldHand(player).flatMap(it -> equipped(player, it)));
+                .flatMap(ignored -> targetBlock(player).flatMap(ItemUtils::fromBlock));
+        final var itemInHand = heldHand(player).flatMap(it -> equipped(player, it));
+        return itemFromBlock.isPresent() ? itemFromBlock : itemInHand;
     }
 
     public static Optional<LocatableBlock> targetLocation(Living living) {
@@ -54,17 +55,18 @@ public class EntityUtils {
     }
 
     public static Optional<EquipmentType> heldHand(@NotNull Equipable equipable) {
-        return equipable
+        final var itemInMainHand = equipable
                 .equipped(EquipmentTypes.MAIN_HAND.get())
-                .filter(Predicate.not(ItemStack::isEmpty))
-                .map(it -> EquipmentTypes.MAIN_HAND.get())
-                .or(() -> equipable
-                        .equipped(EquipmentTypes.OFF_HAND.get())
-                        .filter(Predicate.not(ItemStack::isEmpty))
-                        .map(it -> EquipmentTypes.OFF_HAND.get()));
+                .filter(Predicates.not(ItemStack::isEmpty))
+                .map(it -> EquipmentTypes.MAIN_HAND.get());
+        final var itemInOffHand = equipable
+                .equipped(EquipmentTypes.OFF_HAND.get())
+                .filter(Predicates.not(ItemStack::isEmpty))
+                .map(it -> EquipmentTypes.OFF_HAND.get());
+        return itemInMainHand.isPresent() ? itemInMainHand : itemInOffHand;
     }
 
     public static Optional<ItemStack> equipped(@NotNull Equipable equipable, EquipmentType type) {
-        return equipable.equipped(type).filter(Predicate.not(ItemStack::isEmpty));
+        return equipable.equipped(type).filter(Predicates.not(ItemStack::isEmpty));
     }
 }

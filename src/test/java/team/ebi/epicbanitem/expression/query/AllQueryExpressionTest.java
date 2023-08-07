@@ -5,12 +5,11 @@
  */
 package team.ebi.epicbanitem.expression.query;
 
-import java.util.List;
-import java.util.Set;
-
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
@@ -27,16 +26,16 @@ class AllQueryExpressionTest {
     static void beforeAll() {
         testContainer.set(
                 DataQuery.of("foo"),
-                List.of(
-                        new DummyDataContainer().set(DataQuery.of("bar"), List.of(0, 2, 3)),
-                        new DummyDataContainer().set(DataQuery.of("bar"), List.of(0, 1, 2))));
+                Lists.newArrayList(
+                        new DummyDataContainer().set(DataQuery.of("bar"), Lists.newArrayList(0, 2, 3)),
+                        new DummyDataContainer().set(DataQuery.of("bar"), Lists.newArrayList(0, 1, 2))));
     }
 
     @Test
     void constructFromView() {
         final DataView expressionView = new DummyDataContainer();
         DataQuery query = DataQuery.of("object");
-        expressionView.set(query, List.of(0, 3));
+        expressionView.set(query, Lists.newArrayList(0, 3));
         assertTrue(new AllQueryExpression(expressionView, query)
                 .query(DataQuery.of("foo", "0", "bar"), testContainer)
                 .isPresent());
@@ -44,21 +43,21 @@ class AllQueryExpressionTest {
 
     @Test
     void test() {
-        assertFalse(new AllQueryExpression(Set.of(new ValueQueryExpression(0), new ValueQueryExpression(1)))
+        assertFalse(new AllQueryExpression(Sets.newHashSet(new ValueQueryExpression(0), new ValueQueryExpression(1)))
                 .query(DataQuery.of("foo", "0", "bar"), testContainer)
                 .isPresent());
-        assertFalse(new AllQueryExpression(Set.of(
+        assertFalse(new AllQueryExpression(Sets.newHashSet(
                         new ValueQueryExpression(0),
                         new ValueQueryExpression(1),
                         new ValueQueryExpression(2),
                         new ValueQueryExpression(3)))
                 .query(DataQuery.of("foo", "0", "bar"), testContainer)
                 .isPresent());
-        var result = new AllQueryExpression(Set.of(new ValueQueryExpression(0), new ValueQueryExpression(2)))
+        var result = new AllQueryExpression(Sets.newHashSet(new ValueQueryExpression(0), new ValueQueryExpression(2)))
                 .query(DataQuery.of("foo", "1", "bar"), testContainer);
         assertTrue(result.isPresent());
         assertEquals(Type.ARRAY, result.get().type());
         assertEquals(2, result.get().size());
-        assertEquals(Set.of("0", "2"), result.get().keySet());
+        assertEquals(Sets.newHashSet("0", "2"), result.get().keySet());
     }
 }

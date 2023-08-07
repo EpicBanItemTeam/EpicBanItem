@@ -7,6 +7,7 @@ package team.ebi.epicbanitem.util.data;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
@@ -49,7 +50,7 @@ public final class DataViewRenderer {
             components.add(keyComponent.append(leftBracket).append(rightBracket).build());
         } else {
             components.add(keyComponent.append(leftBracket).build());
-            components.addAll(input.stream().map(INDENT::append).toList());
+            components.addAll(input.stream().map(INDENT::append).collect(Collectors.toList()));
             components.add(rightBracket);
         }
         return components;
@@ -97,7 +98,7 @@ public final class DataViewRenderer {
     private static List<Component> renderView(DataView view) {
         var components = Lists.<Component>newArrayList();
         for (DataQuery query : view.keys(false)) {
-            var value = view.get(query).orElseThrow();
+            var value = view.get(query).get();
             var key = query.parts().get(0);
             if (value instanceof DataView subView) {
                 components.addAll(wrapObject(Component.text(key).append(COLON), renderView(subView)));

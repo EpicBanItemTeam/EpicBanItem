@@ -5,11 +5,10 @@
  */
 package team.ebi.epicbanitem.expression.query;
 
-import java.util.Set;
-
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataView;
 
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import team.ebi.epicbanitem.DummyDataContainer;
@@ -28,11 +27,11 @@ class OrQueryExpressionTest {
 
     @Test
     void gtAndLt() {
-        assertFalse(new OrQueryExpression(Set.of(new GtQueryExpression(6), new LtQueryExpression(4)))
+        assertFalse(new OrQueryExpression(Sets.newHashSet(new GtQueryExpression(6), new LtQueryExpression(4)))
                 .query(DataQuery.of("number"), testContainer)
                 .isPresent());
 
-        assertTrue(new OrQueryExpression(Set.of(new GtQueryExpression(5), new LtQueryExpression(6)))
+        assertTrue(new OrQueryExpression(Sets.newHashSet(new GtQueryExpression(5), new LtQueryExpression(6)))
                 .query(DataQuery.of("number"), testContainer)
                 .isPresent());
     }
